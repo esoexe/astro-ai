@@ -31,7 +31,7 @@ http.createServer((req, res) => {
     const headers = { 'Content-Type': TYPES[ext] || 'application/octet-stream', 'Content-Length': st.size, 'Cache-Control': 'no-cache',
       'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin',
       // same policy as _headers / vercel.json, so problems show up in the preview too
-      'Content-Security-Policy': "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src 'self' https://vgtucdfretcvojcfvbzk.supabase.co; frame-ancestors *; base-uri 'self'; form-action 'self'" };
+      'Content-Security-Policy': "default-src 'self'; img-src 'self' data: https://avatars.githubusercontent.com; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src 'self' https://vgtucdfretcvojcfvbzk.supabase.co; frame-ancestors *; base-uri 'self'; form-action 'self'" };
     if (file.includes(path.sep + 'downloads' + path.sep)) headers['Content-Disposition'] = 'attachment';
     headers['Accept-Ranges'] = 'bytes';
     const m = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');

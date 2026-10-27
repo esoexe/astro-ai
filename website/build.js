@@ -150,6 +150,35 @@ ${body}
 `;
 }
 
+// App layout (meta.layout = "app"): the account console has its own chrome, no marketing header or footer.
+function appLayout(meta, body, rel, file) {
+  const r = rel;
+  const url = SITE.url.replace(/\/$/, '') + '/' + file;
+  const title = meta.title ? `${meta.title} · Astro AI` : 'Astro AI';
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>${esc(title)}</title>
+<meta name="description" content="${esc(meta.description || SITE.description)}">
+<link rel="canonical" href="${esc(url)}">
+${meta.noindex ? '<meta name="robots" content="noindex">\n' : ''}<meta name="theme-color" content="#0a0a0c">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/png" sizes="32x32" href="${r}assets/img/favicon-32.png">
+<link rel="apple-touch-icon" href="${r}assets/img/apple-touch-icon.png">
+<link rel="preload" href="${r}assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="${r}assets/css/site.css">
+${(meta.styles || []).map((x) => `<link rel="stylesheet" href="${r}assets/css/${x}">`).join('\n')}
+${(meta.scripts || []).map((x) => `<script defer src="${r}assets/js/${x}"></script>`).join('\n')}
+</head>
+<body class="${meta.bodyClass || ''}" data-root="${r}">
+${body}
+</body>
+</html>
+`;
+}
+
 // ------------------------------------------------------------------ pages
 const pages = walk(path.join(SRC, 'pages')).filter((f) => f.endsWith('.html'));
 const sitemap = [];
@@ -173,7 +202,7 @@ for (const f of pages) {
     });
   const out = path.join(OUT, f);
   fs.mkdirSync(path.dirname(out), { recursive: true });
-  fs.writeFileSync(out, layout(meta, src, rel, f.split(path.sep).join('/')));
+  fs.writeFileSync(out, (meta.layout === 'app' ? appLayout : layout)(meta, src, rel, f.split(path.sep).join('/')));
   if (!meta.noindex) sitemap.push(f.split(path.sep).join('/').replace(/index\.html$/, ''));
 }
 const base = SITE.url.replace(/\/$/, '');

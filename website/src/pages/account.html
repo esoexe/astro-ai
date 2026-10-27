@@ -1,114 +1,120 @@
-<!--meta {"title": "Account", "description": "Sign in to Astro AI to create your Astro API key: one key and one endpoint for every AI model you have access to.", "nav": "api", "scripts": ["account.js"], "noindex": true, "bodyClass": "page-account"} -->
-<section class="page-hero acct-hero">
-  <div class="wrap">
-    <span class="eyebrow">Astro AI account</span>
-    <h1 class="h2" id="acct-title">One key for <em class="accent">every model.</em></h1>
-    <p class="lead" id="acct-lead">Sign in to create your Astro API key. Add the provider keys you already have, and call all of their models through one OpenAI-compatible endpoint.</p>
+<!--meta {"title": "Console", "description": "Astro AI Console: manage your Astro API keys, provider keys, models, usage and account settings.", "layout": "app", "styles": ["console.css"], "scripts": ["account.js"], "noindex": true, "bodyClass": "console"} -->
+<noscript><div class="cx-noscript">The Astro AI Console needs JavaScript turned on.</div></noscript>
+
+<!-- boot -->
+<div class="cx-boot" id="boot" role="status" aria-live="polite">
+  <img src="{{root}}assets/img/icon-192.png" alt="" width="40" height="40">
+  <span class="cx-spin" aria-hidden="true"></span>
+  <span class="sr">Loading the Astro AI Console…</span>
+</div>
+
+<!-- signed out -->
+<section class="auth" id="auth" hidden>
+  <aside class="auth-side" aria-hidden="true">
+    <a class="auth-brand" href="{{root}}index.html" tabindex="-1"><img src="{{root}}assets/img/icon-192.png" alt="" width="30" height="30"><span>Astro AI</span></a>
+    <div class="auth-orbit">
+      <svg viewBox="0 0 400 400" class="orbit-svg">
+        <defs>
+          <radialGradient id="core" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffd2b0"/><stop offset=".55" stop-color="#f3a679"/><stop offset="1" stop-color="#f08a4b" stop-opacity="0"/></radialGradient>
+        </defs>
+        <circle cx="200" cy="200" r="70" fill="url(#core)" opacity=".9"/>
+        <g fill="none" stroke="rgba(255,210,176,.22)">
+          <ellipse cx="200" cy="200" rx="170" ry="62" transform="rotate(-18 200 200)"/>
+          <ellipse cx="200" cy="200" rx="150" ry="150" stroke-dasharray="2 7"/>
+          <ellipse cx="200" cy="200" rx="185" ry="80" transform="rotate(28 200 200)"/>
+        </g>
+        <g class="orbit-a"><circle cx="370" cy="200" r="6" fill="#ffd2b0"/></g>
+        <g class="orbit-b"><circle cx="50" cy="200" r="4.5" fill="#f3a679"/></g>
+        <g class="orbit-c"><circle cx="200" cy="50" r="3.5" fill="#fff"/></g>
+      </svg>
+    </div>
+    <div class="auth-copy">
+      <h2>One key for <em>every model.</em></h2>
+      <ul>
+        <li><b>One endpoint.</b> OpenAI-compatible, works with any SDK.</li>
+        <li><b>Your keys, encrypted.</b> Bring Groq, Gemini, OpenAI, Anthropic and 75 more.</li>
+        <li><b>Automatic failover.</b> <code>astro/auto</code> moves to the next free provider when one is busy.</li>
+      </ul>
+    </div>
+    <p class="auth-side-foot">© Astro AI · <a href="{{root}}privacy.html#accounts" tabindex="-1">Privacy</a> · <a href="{{root}}api.html" tabindex="-1">API docs</a></p>
+  </aside>
+
+  <div class="auth-main">
+    <a class="auth-back" href="{{root}}index.html">← Back to website</a>
+    <div class="auth-box">
+      <img class="auth-logo" src="{{root}}assets/img/icon-192.png" alt="" width="44" height="44">
+      <h1 id="auth-title">Sign in to Astro AI</h1>
+      <p class="auth-sub" id="auth-sub">Welcome back. Sign in to manage your API keys and providers.</p>
+
+      <button type="button" class="cx-btn cx-btn-outline cx-btn-block gh-btn" id="gh">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        Continue with GitHub
+      </button>
+      <div class="auth-or"><span>or</span></div>
+
+      <form id="auth-form" novalidate>
+        <label class="cx-field"><span>Email</span><input type="email" name="email" autocomplete="email" required maxlength="200" placeholder="you@example.com"></label>
+        <label class="cx-field"><span>Password</span>
+          <span class="pw-wrap"><input type="password" name="password" autocomplete="current-password" required minlength="8" maxlength="72" placeholder="At least 8 characters"><button type="button" class="pw-eye" data-eye aria-label="Show password">Show</button></span>
+        </label>
+        <label class="cx-field" id="confirm-wrap" hidden><span>Confirm password</span><input type="password" name="confirm" autocomplete="new-password" minlength="8" maxlength="72"></label>
+        <div class="pw-meter" id="pw-meter" hidden><i></i><span></span></div>
+        <p class="cx-msg" id="auth-msg" role="status" aria-live="polite"></p>
+        <button class="cx-btn cx-btn-primary cx-btn-block" type="submit" id="auth-submit">Sign in</button>
+      </form>
+      <p class="auth-switch" id="auth-switch"></p>
+      <p class="auth-legal">By continuing you agree to use each provider within its own terms. Read our <a href="{{root}}privacy.html#accounts">privacy notes</a>.</p>
+    </div>
   </div>
 </section>
 
-<noscript><div class="wrap"><div class="callout warn"><div>Your account page needs JavaScript turned on.</div></div></div></noscript>
-
-<div class="wrap acct" id="acct">
-  <!-- signed out -->
-  <section class="auth-card card" id="auth" hidden>
-    <div class="auth-tabs" role="tablist" aria-label="Sign in or create an account">
-      <button type="button" role="tab" id="tab-in" aria-selected="true" data-mode="signin">Sign in</button>
-      <button type="button" role="tab" id="tab-up" aria-selected="false" data-mode="signup">Create account</button>
-    </div>
-
-    <button type="button" class="btn btn-ghost btn-block gh-btn" id="gh">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-      Continue with GitHub
-    </button>
-    <div class="or"><span>or use email</span></div>
-
-    <form id="auth-form" novalidate>
-      <label class="field"><span>Email</span><input type="email" name="email" autocomplete="email" required maxlength="200" placeholder="you@example.com"></label>
-      <label class="field"><span>Password</span><input type="password" name="password" autocomplete="current-password" required minlength="8" maxlength="72" placeholder="At least 8 characters"></label>
-      <label class="field" id="confirm-wrap" hidden><span>Confirm password</span><input type="password" name="confirm" autocomplete="new-password" minlength="8" maxlength="72"></label>
-      <p class="form-msg" id="auth-msg" role="status" aria-live="polite"></p>
-      <button class="btn btn-primary btn-block" type="submit" id="auth-submit">Sign in</button>
-    </form>
-    <p class="small muted auth-foot" id="auth-foot">New here? <a href="#" data-switch="signup">Create a free account</a>.</p>
-    <p class="small muted">By continuing you agree to use the API within each provider's terms. See our <a href="{{root}}privacy.html#accounts">privacy notes</a>.</p>
-  </section>
-
-  <!-- loading -->
-  <div class="acct-loading" id="loading"><span class="spinner" aria-hidden="true"></span><span>Loading your account…</span></div>
-
-  <!-- signed in -->
-  <section id="dash" hidden>
-    <div class="dash-head">
-      <div class="who">
-        <span class="avatar" id="avatar" aria-hidden="true"></span>
-        <div><b id="who-email"></b><span class="small muted" id="who-via"></span></div>
+<!-- signed in -->
+<div class="app" id="app" hidden>
+  <header class="topbar">
+    <button class="icon-btn only-mobile" type="button" id="nav-open" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <a class="tb-brand" href="#/overview"><img src="{{root}}assets/img/icon-192.png" alt="" width="26" height="26"><span>Astro AI</span></a>
+    <span class="tb-sep" aria-hidden="true">/</span>
+    <div class="tb-ws" title="Your workspace"><span class="tb-ws-av" id="ws-av"></span><span id="ws-name">Personal</span><span class="pill">Free</span></div>
+    <div class="tb-spacer"></div>
+    <nav class="tb-links" aria-label="Resources">
+      <a href="{{root}}api.html">API docs</a>
+      <a href="{{root}}docs.html">Guides</a>
+      <a href="{{root}}download.html">Download app</a>
+    </nav>
+    <div class="menu-wrap">
+      <button class="tb-user" type="button" id="user-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="user-menu"><span class="avatar" id="tb-avatar"></span></button>
+      <div class="menu" id="user-menu" role="menu" hidden>
+        <div class="menu-head"><b id="um-name"></b><span id="um-email"></span></div>
+        <a role="menuitem" href="#/settings/profile">Profile</a>
+        <a role="menuitem" href="#/settings/security">Security</a>
+        <a role="menuitem" href="#/keys">API keys</a>
+        <hr>
+        <a role="menuitem" href="{{root}}api.html">API documentation</a>
+        <a role="menuitem" href="{{root}}index.html">Back to website</a>
+        <hr>
+        <button role="menuitem" type="button" id="signout">Sign out</button>
       </div>
-      <button class="btn btn-ghost btn-sm" type="button" id="signout">Sign out</button>
     </div>
+  </header>
 
-    <div class="dash-grid">
-      <article class="card dash-card span-2">
-        <h2 class="h3">Your endpoint</h2>
-        <p class="muted small">OpenAI-compatible. Use it anywhere you can set a base URL. <a href="{{root}}api.html">Read the API docs →</a></p>
-        <div class="endpoint"><code id="endpoint"></code><button class="btn btn-ghost btn-sm" type="button" data-copy-target="endpoint">Copy</button></div>
-        <div class="stats-row">
-          <div><b id="st-today">0</b><span>requests today</span></div>
-          <div><b id="st-limit">5,000</b><span>daily limit</span></div>
-          <div><b id="st-providers">0</b><span>providers connected</span></div>
-          <div><b id="st-keys">0</b><span>active Astro keys</span></div>
-        </div>
-        <div class="usage-bars" id="usage" aria-label="Requests over the last 14 days"></div>
-      </article>
-
-      <article class="card dash-card span-2" id="keys-card">
-        <div class="card-head">
-          <div><h2 class="h3">Astro API keys</h2><p class="muted small">Each key works with every provider you connect below. Keep keys secret, and revoke any that leak.</p></div>
-        </div>
-        <form class="inline-form" id="key-form">
-          <input name="name" maxlength="60" placeholder="Key name, e.g. laptop or my-app" aria-label="Key name" required>
-          <button class="btn btn-primary btn-sm" type="submit">Create key</button>
-        </form>
-        <div class="new-key" id="new-key" hidden>
-          <p><b>Copy your new key now.</b> For your safety it is shown only once.</p>
-          <div class="endpoint"><code id="new-key-value"></code><button class="btn btn-primary btn-sm" type="button" data-copy-target="new-key-value">Copy</button></div>
-          <button class="linkish small" type="button" id="new-key-done">I've saved it</button>
-        </div>
-        <div class="table" id="keys"></div>
-      </article>
-
-      <article class="card dash-card span-2" id="prov-card">
-        <div class="card-head">
-          <div><h2 class="h3">Your provider keys</h2><p class="muted small">Bring your own keys (free or paid). They are encrypted before they're stored, and only ever sent to that provider. Astro AI never pays for or shares model access.</p></div>
-        </div>
-        <div class="table" id="providers"></div>
-
-        <details class="add-prov" id="add-prov">
-          <summary>Add a provider</summary>
-          <div class="prov-pick">
-            <input type="search" id="prov-search" placeholder="Search 79 providers… (Groq, OpenAI, Anthropic, Mistral)" aria-label="Search providers">
-            <label class="check small"><input type="checkbox" id="prov-free" checked> Free tiers first</label>
-          </div>
-          <div class="prov-list" id="prov-list" role="listbox" aria-label="Providers"></div>
-          <form id="prov-form" hidden>
-            <div class="prov-sel"><b id="pf-name"></b> <span class="badge" id="pf-badge"></span> <a id="pf-signup" target="_blank" rel="noopener">Get a key ↗</a></div>
-            <label class="field"><span id="pf-keylabel">API key</span><input type="password" name="key" autocomplete="off" spellcheck="false" required maxlength="600"></label>
-            <div id="pf-extra"></div>
-            <p class="form-msg" id="pf-msg" role="status" aria-live="polite"></p>
-            <div class="row"><button class="btn btn-primary btn-sm" type="submit">Save and test</button><button class="btn btn-ghost btn-sm" type="button" id="pf-cancel">Cancel</button></div>
-          </form>
-        </details>
-      </article>
-
-      <article class="card dash-card span-2 danger">
-        <h2 class="h3">Delete account</h2>
-        <p class="muted small">This permanently deletes your account, all Astro keys, every saved provider key and your usage history. It can't be undone.</p>
-        <form class="inline-form" id="del-form">
-          <input name="confirm" placeholder="Type DELETE to confirm" aria-label="Type DELETE to confirm" autocomplete="off">
-          <button class="btn btn-danger btn-sm" type="submit">Delete my account</button>
-        </form>
-      </article>
+  <div class="scrim" id="scrim" hidden></div>
+  <aside class="sidebar" id="sidebar" aria-label="Console navigation">
+    <nav class="side-nav" id="side-nav"></nav>
+    <div class="side-plan">
+      <div class="side-plan-top"><b>Free plan</b><span id="plan-count">0 / 5,000</span></div>
+      <div class="meter"><i id="plan-meter"></i></div>
+      <p>Requests today. Resets at 00:00 UTC.</p>
     </div>
-  </section>
+    <div class="side-foot">
+      <a href="{{root}}api.html">Documentation ↗</a>
+      <a href="https://github.com/esoexe/astro-ai/issues" rel="noopener">Report an issue ↗</a>
+    </div>
+  </aside>
+
+  <main class="main" id="main" tabindex="-1">
+    <div class="view" id="view"></div>
+  </main>
 </div>
-<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<div class="modal-root" id="modal-root"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
