@@ -585,6 +585,14 @@ std::string model_endpoint(const ModelConfig& config) {
     return config.base_url.ends_with("/chat/completions") ? config.base_url : config.base_url + "/chat/completions";
 }
 
+// OpenRouter app attribution (https://openrouter.ai/docs/app-attribution). Only the public app name and
+// website are sent, never user data, and only to openrouter.ai.
+std::vector<std::string> attribution_headers(const std::string& url) {
+    if (url.find("://openrouter.ai/") == std::string::npos) return {};
+    return {"HTTP-Referer: https://esoexe.github.io/astro-ai/", "X-OpenRouter-Title: Astro AI", "X-Title: Astro AI",
+            "X-OpenRouter-Categories: general-chat,personal-agent"};
+}
+
 std::string build_model_body(const ModelConfig& config,
                              const std::vector<std::pair<std::string, std::string>>& messages,
                              const std::string& context,
@@ -641,6 +649,7 @@ ModelResult call_model_with(const ModelConfig& config,
     headers = curl_slist_append(headers, "Accept: application/json");
     const std::string auth = config.api_key.empty() ? "" : "Authorization: Bearer " + config.api_key;
     if (!auth.empty()) headers = curl_slist_append(headers, auth.c_str());
+    for (const auto& h : attribution_headers(endpoint)) headers = curl_slist_append(headers, h.c_str());
     std::string response_body;
     curl_easy_setopt(curl, CURLOPT_URL, endpoint.c_str());
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
@@ -1160,6 +1169,7 @@ AttemptResult stream_attempt(int fd, const ModelConfig& config, const std::strin
     const std::string auth = config.api_key.empty() ? "" : "Authorization: Bearer " + config.api_key;
     if (!auth.empty()) headers = curl_slist_append(headers, auth.c_str());
     const std::string endpoint = model_endpoint(config);
+    for (const auto& h : attribution_headers(endpoint)) headers = curl_slist_append(headers, h.c_str());
     StreamState state; state.client_fd = fd; state.prefix = prefix;
     state.stall_seconds = idle_seconds + 5;
     curl_easy_setopt(curl, CURLOPT_URL, endpoint.c_str());

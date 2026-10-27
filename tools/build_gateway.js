@@ -17,6 +17,8 @@ for (const p of doc.providers) {
   // The gateway asks each platform for its live model list; the catalog keeps only defaults as a fallback.
   if (p.models?.length) e.models = p.models.slice(0, p.discover ? 1 : 4);
   if (p.discover_headers) e.headers = p.discover_headers;
+  // OpenRouter app attribution (public app name + site only): https://openrouter.ai/docs/app-attribution
+  if (/^https:\/\/openrouter\.ai\//.test(base + '/')) e.headers = { ...(e.headers ?? {}), 'HTTP-Referer': 'https://esoexe.github.io/astro-ai/', 'X-OpenRouter-Title': 'Astro AI', 'X-Title': 'Astro AI', 'X-OpenRouter-Categories': 'general-chat,personal-agent' };
   if (p.discover_suffix) e.suffix = p.discover_suffix;
   if (p.discover_exclude_suffix) e.exclude = p.discover_exclude_suffix;
   if (p.discover_contains) e.contains = p.discover_contains;

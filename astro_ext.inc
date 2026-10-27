@@ -757,6 +757,7 @@ VisionResult describe_image(const std::string& image, const std::string& prompt)
         const std::string post = dump_json(Json(std::move(body)));
         std::vector<std::string> headers = {"Content-Type: application/json"};
         if (!route.api_key.empty()) headers.push_back("Authorization: Bearer " + route.api_key);
+        for (const auto& h : attribution_headers(route.base_url + "/")) headers.push_back(h);
         const long long t0 = now_ms();
         const FetchResult f = http_fetch(route.base_url + "/chat/completions", headers, &post, 75, 2'000'000, false);
         std::string text;
