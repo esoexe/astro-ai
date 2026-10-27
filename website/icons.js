@@ -1,0 +1,41 @@
+// Inline SVG icons (24px grid, stroke-based) used by pages via {{icon:name}}.
+const P = {
+  spark: '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z"/>',
+  chat: '<path d="M5 5h14a2 2 0 012 2v8a2 2 0 01-2 2h-6l-5 4v-4H5a2 2 0 01-2-2V7a2 2 0 012-2z"/>',
+  code: '<path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/>',
+  bot: '<rect x="4.5" y="8" width="15" height="11" rx="3.5"/><path d="M12 4v4M9.2 13.2h.01M14.8 13.2h.01M2.5 13v2M21.5 13v2"/>',
+  mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/>',
+  wave: '<path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/>',
+  book: '<path d="M4 5.5A2.5 2.5 0 016.5 3H11v16H6.5A2.5 2.5 0 004 21.5zM20 5.5A2.5 2.5 0 0017.5 3H13v16h4.5a2.5 2.5 0 012.5 2.5z"/>',
+  flask: '<path d="M9 3h6M10 3v6L4.8 18.6A1.6 1.6 0 006.2 21h11.6a1.6 1.6 0 001.4-2.4L14 9V3M7.5 15h9"/>',
+  note: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>',
+  tasks: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+  layers: '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
+  shield: '<path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  history: '<path d="M3.5 12a8.5 8.5 0 102.6-6.1L3.5 8.5"/><path d="M3.5 3.5v5h5M12 7.5V12l3 2"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/>',
+  terminal: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9l3 3-3 3M13 15h4"/>',
+  calc: '<rect x="5" y="3" width="14" height="18" rx="3"/><path d="M8.5 7.5h7M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01"/>',
+  command: '<path d="M9 6a3 3 0 10-3 3h12a3 3 0 10-3-3v12a3 3 0 103-3H6a3 3 0 103 3z"/>',
+  download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+  arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  back: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+  key: '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3M14 9l2 2"/>',
+  team: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0112 0"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.2A5 5 0 0121 19"/>',
+  zap: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>',
+  file: '<path d="M6 3h8l5 5v13H6z"/><path d="M13 3v6h6"/>',
+  export: '<path d="M12 15V3M7 8l5-5 5 5M5 14v5a2 2 0 002 2h10a2 2 0 002-2v-5"/>',
+  eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  lang: '<path d="M4 5h9M8.5 3v2M6 5c1 4 4 7 7 8M11 5c-1 4-4 7-7 8M13 21l4-9 4 9M14.5 18h5"/>',
+  palette: '<path d="M12 3a9 9 0 100 18c1.2 0 1.8-.9 1.5-2-.4-1.4.5-2.5 2-2.5H18a3 3 0 003-3c0-5.6-4-10.5-9-10.5z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/>',
+  box: '<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
+  orbit: '<circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-20 12 12)"/>',
+  windows: '<path d="M3 5.6l7.4-1v7H3zM11.6 4.4L21 3v8.6h-9.4zM3 12.6h7.4v7L3 18.4zM11.6 12.6H21V21l-9.4-1.3z" fill="currentColor" stroke="none"/>',
+  linux: '<path d="M12 3c-2.2 0-3.4 1.8-3.4 4.2 0 1.4.3 2.3-.6 3.6C6.6 12.7 5 14.8 5 17c0 .7.2 1.3.5 1.8M12 3c2.2 0 3.4 1.8 3.4 4.2 0 1.4-.3 2.3.6 3.6 1.4 1.9 3 4 3 6.2 0 .7-.2 1.3-.5 1.8"/><path d="M5.5 18.8c.8 1.4 3.2 2.2 6.5 2.2s5.7-.8 6.5-2.2"/><circle cx="10.4" cy="7.6" r=".7" fill="currentColor"/><circle cx="13.6" cy="7.6" r=".7" fill="currentColor"/><path d="M10.6 10h2.8l-1.4 1.2z"/>',
+  macos: '<rect x="3" y="4" width="18" height="13" rx="2.5"/><path d="M8 21h8M12 17v4"/><path d="M9.5 9.5c.8.9 1.6 1.3 2.5 1.3s1.7-.4 2.5-1.3"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+};
+module.exports = (name, cls = '') => {
+  if (!P[name]) throw new Error('Unknown icon: ' + name);
+  return `<svg${cls ? ` class="${cls}"` : ''} viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name]}</svg>`;
+};

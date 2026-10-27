@@ -1,0 +1,48 @@
+<!--meta {"title": "Privacy", "description": "How Astro AI handles your data: stored locally, no account, no analytics, no telemetry. Questions go only to the AI providers that answer them.", "nav": "privacy"} -->
+<section class="page-hero">
+  <div class="wrap">
+    <span class="eyebrow">Privacy</span>
+    <h1 class="h2">Privacy, <em class="accent">plainly.</em></h1>
+    <p class="lead">Short version: your data stays on your computer, there's no account and no tracking, and your questions go only to the AI providers that answer them.</p>
+  </div>
+</section>
+
+<div class="wrap" style="padding-bottom:80px">
+  <article class="prose">
+    <p class="post-meta">Last updated {{date}}</p>
+
+    <h2>The app</h2>
+    <h3>What stays on your computer</h3>
+    <p>Your conversations, notes, tasks, projects, knowledge files, settings and API keys are stored in a folder on your own computer (<a href="{{root}}docs.html#data">see where</a>). We don't run servers that store them, and we can't see them.</p>
+
+    <h3>What leaves your computer</h3>
+    <ul>
+      <li><strong>Your questions and their context</strong> (relevant chat history, attached files, knowledge files and, in the Workspace or Agent, the parts of your project being worked on) are sent to the AI providers that generate the answer. With One Brain, that's every provider on the team. With a single model, it's only that model's provider.</li>
+      <li><strong>Web mode and the Reader</strong> fetch the pages you ask for, or search results, from the internet.</li>
+      <li><strong>The Agent</strong> can access the internet and run commands as part of a job you give it.</li>
+    </ul>
+    <p>Each AI provider handles your data under its own terms and privacy policy, and free tiers sometimes use prompts to improve their models. Don't send passwords, personal details about others, or confidential material you wouldn't share with those providers. Settings shows each provider's privacy notes where we know them.</p>
+
+    <h3>What we don't do</h3>
+    <ul>
+      <li>No account, sign-in or email address</li>
+      <li>No analytics, telemetry, crash reporting or advertising</li>
+      <li>No selling or sharing of data, because we don't collect any</li>
+    </ul>
+
+    <h3>Local engine</h3>
+    <p>Astro AI runs a small engine on your computer that only listens on <code>127.0.0.1</code>, so other devices on your network can't connect to it.</p>
+
+    <h3>Microphone</h3>
+    <p>Voice features use your operating system's speech services and only listen while voice is active. Depending on your system, speech recognition may be processed by your OS vendor's services.</p>
+
+    <h2>This website</h2>
+    <p>This site is plain static pages. It uses no cookies, analytics, trackers or third-party scripts, and all fonts and images are served from this site. The hosting provider may keep standard server logs (such as IP address and pages requested) for security and operations.</p>
+
+    <h2>Children</h2>
+    <p>Astro AI isn't directed at children under 13. AI providers set their own minimum ages, and you should follow them.</p>
+
+    <h2>Changes</h2>
+    <p>If this policy changes, we'll update this page and the date at the top.</p>
+  </article>
+</div>

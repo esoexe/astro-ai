@@ -1,0 +1,15 @@
+Astro AI
+Copyright (c) 2026 ESO EXE and the Astro AI contributors
+
+Astro AI is licensed under your choice of any of these licenses:
+
+  * MIT License                       (LICENSE-MIT    or https://opensource.org/license/mit)
+  * Apache License, Version 2.0       (LICENSE-APACHE or https://www.apache.org/licenses/LICENSE-2.0)
+  * GNU General Public License v3.0   (LICENSE-GPL    or https://www.gnu.org/licenses/gpl-3.0.html)
+
+SPDX-License-Identifier: MIT OR Apache-2.0 OR GPL-3.0-only
+
+Unless you explicitly state otherwise, any contribution you submit for inclusion in this project
+is offered under the same three licenses, without any additional terms or conditions.
+
+Third-party components keep their own licenses. They are listed in THIRD-PARTY-NOTICES.md.

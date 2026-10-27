@@ -1,0 +1,268 @@
+<!--meta {"title": "", "description": "Astro AI is a free desktop app where a team of free AI models answers as one, with a code workspace, an autonomous agent, voice, notes and tasks. Windows, Linux and macOS.", "nav": "home", "bodyClass": "home"} -->
+<section class="hero">
+  <canvas class="hero-canvas" data-orbit data-cx="0.77" data-cy="0.45" data-size="0.25" data-mcx="0.66" data-mcy="0.17" data-msize="0.5" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="eyebrow reveal">Version {{version}} · Free desktop app</span>
+      <h1 class="display reveal" data-delay="1">One brain, <em class="accent">many minds.</em></h1>
+      <p class="lead reveal" data-delay="2">Astro AI gets a team of free AI models to answer as one. It also gives you a code workspace, an autonomous agent, voice, notes and tasks, all in one calm desktop app for Windows, Linux and macOS.</p>
+      <div class="hero-actions reveal" data-delay="3">
+        <a class="btn btn-primary btn-lg" href="{{root}}download.html" data-os-primary
+           data-href-windows="{{dl:windows-x64-Setup:href}}" data-href-linux="{{dl:_amd64:href}}" data-href-macos="{{root}}download.html#macos">
+          {{icon:download}}<span class="label">Download Astro AI</span></a>
+        <a class="btn btn-ghost btn-lg" href="#how">See how it works <span class="arrow">→</span></a>
+      </div>
+      <div class="hero-meta reveal" data-delay="3"><span>Free</span><span>No account</span><span>26 models out of the box</span><span>No telemetry</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="showcase">
+  <div class="wrap reveal">
+    <div class="frame"><div class="frame-glow"></div>
+      <img src="{{root}}assets/img/shots/chat-answer.webp" width="1440" height="900" alt="Astro AI showing a team answer: 19 models worked together to explain how rockets reach orbit" fetchpriority="high">
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="wrap">
+    <p class="caption">Free models from providers like these, built in or with your own free key</p>
+    <div class="marquee" aria-label="Supported providers">
+      <div class="marquee-track">
+        <span class="chip"><i></i>OVHcloud AI Endpoints</span><span class="chip"><i></i>Kilo Gateway</span><span class="chip"><i></i>LLM7</span><span class="chip"><i></i>Pollinations</span><span class="chip"><i></i>Groq</span><span class="chip"><i></i>Google Gemini</span><span class="chip"><i></i>Mistral</span><span class="chip"><i></i>OpenRouter</span><span class="chip"><i></i>Cerebras</span><span class="chip"><i></i>NVIDIA</span><span class="chip"><i></i>Cohere</span><span class="chip"><i></i>Cloudflare Workers AI</span><span class="chip"><i></i>Hugging Face</span><span class="chip"><i></i>Z.ai</span><span class="chip"><i></i>SiliconFlow</span><span class="chip"><i></i>Ollama Cloud</span><span class="chip"><i></i>Atria</span><span class="chip"><i></i>SEA-LION</span>
+        <span class="chip" aria-hidden="true"><i></i>OVHcloud AI Endpoints</span><span class="chip" aria-hidden="true"><i></i>Kilo Gateway</span><span class="chip" aria-hidden="true"><i></i>LLM7</span><span class="chip" aria-hidden="true"><i></i>Pollinations</span><span class="chip" aria-hidden="true"><i></i>Groq</span><span class="chip" aria-hidden="true"><i></i>Google Gemini</span><span class="chip" aria-hidden="true"><i></i>Mistral</span><span class="chip" aria-hidden="true"><i></i>OpenRouter</span><span class="chip" aria-hidden="true"><i></i>Cerebras</span><span class="chip" aria-hidden="true"><i></i>NVIDIA</span><span class="chip" aria-hidden="true"><i></i>Cohere</span><span class="chip" aria-hidden="true"><i></i>Cloudflare Workers AI</span><span class="chip" aria-hidden="true"><i></i>Hugging Face</span><span class="chip" aria-hidden="true"><i></i>Z.ai</span><span class="chip" aria-hidden="true"><i></i>SiliconFlow</span><span class="chip" aria-hidden="true"><i></i>Ollama Cloud</span><span class="chip" aria-hidden="true"><i></i>Atria</span><span class="chip" aria-hidden="true"><i></i>SEA-LION</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="wrap stats reveal">
+    <div class="stat"><b>26</b><span>free models ready the first time you open it</span></div>
+    <div class="stat"><b>50<em>+</em></b><span>providers supported. Add free keys whenever you like.</span></div>
+    <div class="stat"><b>0</b><span>accounts, ads, trackers or telemetry</span></div>
+    <div class="stat"><b><em>1</em></b><span>answer, written by the whole team together</span></div>
+  </div>
+</section>
+
+<section class="section" id="how">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">How One Brain works</span>
+      <h2 class="h2">Not a router. <em class="accent">A team.</em></h2>
+      <p>Most multi-model apps send each question to one model. Astro AI asks every available model, has them check each other's work, then merges the best of it into a single answer.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><span class="n">01</span><h3>Plan</h3><p>The team reads your question, your chat history and any knowledge files, then agrees on an approach.</p><div class="bar"><i></i></div></div>
+      <div class="step reveal" data-delay="1"><span class="n">02</span><h3>Work</h3><p>Every available model drafts its own answer at the same time. Slow models still get a say.</p><div class="bar"><i></i></div></div>
+      <div class="step reveal" data-delay="2"><span class="n">03</span><h3>Review</h3><p>The drafts are compared. Where models disagree, the team finds the reason and checks facts and code.</p><div class="bar"><i></i></div></div>
+      <div class="step reveal" data-delay="3"><span class="n">04</span><h3>Answer</h3><p>One model merges the best parts into a single reply, and shows how many models contributed and how confident they were.</p><div class="bar"><i></i></div></div>
+    </div>
+
+    <div class="split" style="margin-top: clamp(56px, 8vw, 96px)">
+      <div class="reveal">
+        <span class="eyebrow">Honest by design</span>
+        <h2 class="h2">Teamwork takes <em class="accent">a few minutes.</em></h2>
+        <p>Waiting for every mind is slower than asking one. A full One Brain answer usually takes a few minutes, and Astro AI shows each stage while it works. Press <strong>Answer now</strong> at any time to stop waiting for slower teammates.</p>
+        <ul class="ticks">
+          <li>Need it fast? Pick any single model, or use Fast mode in the Workspace.</li>
+          <li>Every answer shows how many models worked on it and which model merged it.</li>
+          <li>Free tiers have daily limits. When one provider runs out, the rest of the team carries on.</li>
+        </ul>
+      </div>
+      <div class="reveal" data-delay="1">
+        <div class="frame"><img src="{{root}}assets/img/shots/brain-working.webp" width="1440" height="900" alt="The One Brain progress card: Plan done, Work in progress, with an Answer now button" loading="lazy"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section class="section" id="features">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="eyebrow">Everything in one place</span>
+      <h2 class="h2">Chat, build, research, <em class="accent">ship.</em></h2>
+      <p>Each space shares the same brain, so you can go from asking a question to running working code without switching apps.</p>
+    </div>
+    <div class="bento">
+      <article class="card xl reveal">
+        <div class="icon">{{icon:code}}</div>
+        <h3>Workspace: a real code editor the team works in</h3>
+        <p>Files, tabs, a terminal and a live preview. Run JavaScript, Python, C, C++, Java, Bash and HTML. Every change is saved as a version first, so you can diff it or undo it.</p>
+        <div class="shot"><img src="{{root}}assets/img/shots/workspace.webp" width="1440" height="900" alt="The Workspace running a C++ program, with the AI engineering team panel on the right" loading="lazy"></div>
+      </article>
+      <article class="card tall reveal" data-delay="1">
+        <div class="icon">{{icon:bot}}</div>
+        <h3>Agent</h3>
+        <p>Give it a job and it works on its own. It runs commands, writes files, searches the web, starts servers and fixes its own errors. The team plans and reviews, and a fast model does the steps.</p>
+        <ul class="ticks" style="margin-top:18px">
+          <li>Every step and file change is logged</li>
+          <li>A checkpoint before each job, so you can roll back</li>
+          <li>See changes, files, terminal and preview side by side</li>
+        </ul>
+      </article>
+      <article class="card reveal">
+        <div class="icon">{{icon:wave}}</div>
+        <h3>Live voice</h3>
+        <p>Talk to the brain out loud and hear it answer, or dictate when you'd rather not type.</p>
+      </article>
+      <article class="card reveal" data-delay="1">
+        <div class="icon">{{icon:flask}}</div>
+        <h3>Model Lab</h3>
+        <p>Send one prompt to many models at once and compare their speed and answers side by side.</p>
+      </article>
+      <article class="card reveal">
+        <div class="icon">{{icon:book}}</div>
+        <h3>Reader</h3>
+        <p>Open any web page or file and read it with AI: summaries, questions, explanations.</p>
+      </article>
+      <article class="card reveal" data-delay="1">
+        <div class="icon">{{icon:tasks}}</div>
+        <h3>Notes &amp; Tasks</h3>
+        <p>Save the useful parts of a conversation as notes, turn plans into tasks, and keep it all next to your chats.</p>
+      </article>
+      <article class="card reveal" data-delay="2">
+        <div class="icon">{{icon:layers}}</div>
+        <h3>Knowledge files</h3>
+        <p>Add your own documents and the team uses them as context when it answers, in any chat or project.</p>
+      </article>
+    </div>
+    <p style="text-align:center;margin-top:36px"><a class="btn btn-ghost" href="{{root}}features.html">Explore every feature <span class="arrow">→</span></a></p>
+  </div>
+</section>
+
+<section class="section" id="tour">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="eyebrow">Take the tour</span>
+      <h2 class="h2">Calm on the surface, <em class="accent">busy underneath.</em></h2>
+    </div>
+    <div data-tabs class="reveal">
+      <div class="tabs" role="tablist" aria-label="Screenshots">
+        <button class="tab" role="tab" id="t-chat" aria-controls="p-chat" aria-selected="true">Chat</button>
+        <button class="tab" role="tab" id="t-ws" aria-controls="p-ws" aria-selected="false" tabindex="-1">Workspace</button>
+        <button class="tab" role="tab" id="t-agent" aria-controls="p-agent" aria-selected="false" tabindex="-1">Agent</button>
+        <button class="tab" role="tab" id="t-lab" aria-controls="p-lab" aria-selected="false" tabindex="-1">Model Lab</button>
+        <button class="tab" role="tab" id="t-light" aria-controls="p-light" aria-selected="false" tabindex="-1">Light theme</button>
+      </div>
+      <div class="tab-panel active" id="p-chat" role="tabpanel" aria-labelledby="t-chat">
+        <div class="frame"><img src="{{root}}assets/img/shots/home-dark.webp" width="1440" height="900" alt="The Astro AI chat home screen in dark theme" loading="lazy"></div>
+        <p class="cap">Chat with the whole team, or pick one model. Change modes, response language and voice right from the composer.</p>
+      </div>
+      <div class="tab-panel" id="p-ws" role="tabpanel" aria-labelledby="t-ws">
+        <div class="frame"><img src="{{root}}assets/img/shots/workspace.webp" width="1440" height="900" alt="The Workspace with a C++ file open and its output below" loading="lazy"></div>
+        <p class="cap">Edit, run and preview code. The team sees your project, its memory and git status, then writes complete files.</p>
+      </div>
+      <div class="tab-panel" id="p-agent" role="tabpanel" aria-labelledby="t-agent">
+        <div class="frame"><img src="{{root}}assets/img/shots/agent.webp" width="1440" height="900" alt="The Agent screen with sessions on the left, the job in the middle and changes on the right" loading="lazy"></div>
+        <p class="cap">Hand over a whole job. Changes, files, terminal and preview stay visible the entire time.</p>
+      </div>
+      <div class="tab-panel" id="p-lab" role="tabpanel" aria-labelledby="t-lab">
+        <div class="frame"><img src="{{root}}assets/img/shots/model-lab.webp" width="1440" height="900" alt="Model Lab listing free models grouped by provider" loading="lazy"></div>
+        <p class="cap">Test any model against any other and export the results.</p>
+      </div>
+      <div class="tab-panel" id="p-light" role="tabpanel" aria-labelledby="t-light">
+        <div class="frame"><img src="{{root}}assets/img/shots/chat-light.webp" width="1440" height="900" alt="A team answer shown in the light theme" loading="lazy"></div>
+        <p class="cap">Prefer daylight? Switch between light and dark with one click.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap split flip">
+    <div class="reveal">
+      <span class="eyebrow">Installs in seconds</span>
+      <h2 class="h2">An installer that <em class="accent">feels like liftoff.</em></h2>
+      <p>On Windows, Astro AI has its own installer, built from scratch. The moon's orbit is the progress bar. It installs just for you, without admin rights, and removes itself completely when you uninstall.</p>
+      <ul class="ticks">
+        <li>Per-user install: no administrator prompt</li>
+        <li>Silent install for IT: <code class="mono small">Setup.exe /S</code></li>
+        <li>Clean uninstall, with an option to remove your data too</li>
+      </ul>
+    </div>
+    <div class="reveal" data-delay="1">
+      <div class="frame"><img src="{{root}}assets/img/shots/installer-1-welcome-clean.webp" width="860" height="560" alt="The Astro AI installer welcome screen: Ready for liftoff" loading="lazy"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="platforms">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="eyebrow">Download</span>
+      <h2 class="h2">For the computer <em class="accent">you already have.</em></h2>
+      <p>The models run in the cloud, so Astro AI stays light on your RAM, CPU and GPU.</p>
+    </div>
+    <div class="grid-3">
+      <article class="card platform reveal" data-os-card="windows">
+        <div class="os">{{icon:windows}}<h3>Windows</h3><span class="badge for-you" hidden>For you</span></div>
+        <p>Windows 10 and 11, 64-bit. Uses the Microsoft Edge WebView2 runtime, which is already included in Windows 11.</p>
+        <div class="files">
+          <a class="dl primary" href="{{dl:windows-x64-Setup:href}}" download><span class="t"><b>Installer (.exe)</b><span>{{dl:windows-x64-Setup:size}} · recommended</span></span><span class="go">{{icon:download}}</span></a>
+          <a class="dl" href="{{dl:windows-x64-portable:href}}" download><span class="t"><b>Portable (.zip)</b><span>{{dl:windows-x64-portable:size}} · no install</span></span><span class="go">{{icon:download}}</span></a>
+        </div>
+      </article>
+      <article class="card platform reveal" data-delay="1" data-os-card="linux">
+        <div class="os">{{icon:linux}}<h3>Linux</h3><span class="badge for-you" hidden>For you</span></div>
+        <p>64-bit Linux with glibc 2.35 or newer, such as Ubuntu 22.04+, Debian 12+ and Fedora 36+. Uses WebKitGTK.</p>
+        <div class="files">
+          <a class="dl primary" href="{{dl:_amd64:href}}" download><span class="t"><b>Debian / Ubuntu (.deb)</b><span>{{dl:_amd64:size}}</span></span><span class="go">{{icon:download}}</span></a>
+          <a class="dl" href="{{dl:linux-x64-portable:href}}" download><span class="t"><b>Portable (.tar.gz)</b><span>{{dl:linux-x64-portable:size}} · any distro</span></span><span class="go">{{icon:download}}</span></a>
+        </div>
+      </article>
+      <article class="card platform reveal" data-delay="2" data-os-card="macos">
+        <div class="os">{{icon:macos}}<h3>macOS</h3><span class="badge for-you" hidden>For you</span></div>
+        <p>macOS 11 or newer, on Apple Silicon or Intel. For now you build the app yourself with one script. It takes about a minute.</p>
+        <div class="files">
+          <a class="dl primary" href="{{dl:macos-source:href}}" download><span class="t"><b>Build kit (.tar.gz)</b><span>{{dl:macos-source:size}} · makes a universal .app + .dmg</span></span><span class="go">{{icon:download}}</span></a>
+          <a class="dl" href="{{root}}docs.html#install-macos"><span class="t"><b>How to build it</b><span>Xcode Command Line Tools</span></span><span class="go">{{icon:arrow}}</span></a>
+        </div>
+      </article>
+    </div>
+    <p class="muted small" style="text-align:center;margin-top:22px">Checksums and install notes are on the <a href="{{root}}download.html">download page</a>.</p>
+  </div>
+</section>
+
+<section class="section" id="faq">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="eyebrow">Questions</span>
+      <h2 class="h2">Good to <em class="accent">know.</em></h2>
+    </div>
+    <div class="faq reveal">
+      <details><summary>Is Astro AI really free?</summary><div class="a">
+        <p>Yes. The app is free, and so are the models it uses out of the box. They come from providers' free tiers, which have daily or per-minute limits. When one provider hits its limit, the rest of the team keeps going.</p>
+        <p>You can add free API keys from more providers in Settings. Nothing in Astro AI asks you to pay.</p></div></details>
+      <details><summary>Do I need an account?</summary><div class="a"><p>No. There is no Astro AI account and no sign-in. Install it and start chatting. Some providers ask you to sign up to get a free key, but that's optional.</p></div></details>
+      <details><summary>Where do my chats go?</summary><div class="a">
+        <p>Chats, notes, tasks, projects and keys are stored on your computer. When you ask a question, the text goes to the AI providers that answer it, and each provider has its own privacy policy. Astro AI has no analytics and no telemetry. <a href="{{root}}privacy.html">Read the privacy page</a>.</p></div></details>
+      <details><summary>Why is a One Brain answer slower than other chatbots?</summary><div class="a">
+        <p>Because it waits for the whole team, then reviews and merges their answers. That usually takes a few minutes. You can press <strong>Answer now</strong> at any time, or pick a single model for quick replies.</p></div></details>
+      <details><summary>Is this AGI?</summary><div class="a">
+        <p>No. Astro AI combines existing language models, and teamwork tends to catch more mistakes than any one model alone. But the models can still be wrong, so double-check anything important.</p></div></details>
+      <details><summary>Windows says it "protected my PC". Is that safe?</summary><div class="a">
+        <p>The installer isn't code-signed yet, so Microsoft SmartScreen shows a warning for new apps. Click <strong>More info</strong>, then <strong>Run anyway</strong>. To be sure the file wasn't changed along the way, compare its SHA-256 checksum with the one on the <a href="{{root}}download.html#verify">download page</a>.</p></div></details>
+      <details><summary>Does it work offline?</summary><div class="a"><p>The editor, notes, tasks and calculator work offline, and so does running code with compilers you have installed. AI answers need an internet connection, because the models run in the cloud.</p></div></details>
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="wrap">
+    <div class="cta reveal">
+      <canvas data-orbit data-cx="0.5" data-cy="1.12" data-size="0.36" data-stars="0.7" data-mcx="0.5" data-mcy="1.1" data-msize="0.6" aria-hidden="true"></canvas>
+      <span class="eyebrow">Ready for liftoff</span>
+      <h2 class="h2">Put a whole team of AI <em class="accent">on your desktop.</em></h2>
+      <p>Free, no account, and ready the first time you open it.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-lg" href="{{root}}download.html" data-os-primary
+           data-href-windows="{{dl:windows-x64-Setup:href}}" data-href-linux="{{dl:_amd64:href}}" data-href-macos="{{root}}download.html#macos">{{icon:download}}<span class="label">Download Astro AI</span></a>
+        <a class="btn btn-ghost btn-lg" href="{{root}}docs.html">Read the docs</a>
+      </div>
+    </div>
+  </div>
+</section>

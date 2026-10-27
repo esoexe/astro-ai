@@ -1,0 +1,8 @@
+*
+!Makefile
+!workspace_server.cpp
+!astro_ext.inc
+!platform.h
+!*.inc
+!providers.json
+!web/

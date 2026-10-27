@@ -1,0 +1,201 @@
+<!--meta {"title": "Docs", "description": "Install Astro AI, use One Brain, add free provider keys, and get the most out of the Workspace, Agent, voice and knowledge files. Plus troubleshooting and uninstall.", "nav": "docs"} -->
+<section class="page-hero">
+  <div class="wrap">
+    <span class="eyebrow">Documentation</span>
+    <h1 class="h2">Astro AI <em class="accent">docs.</em></h1>
+    <p class="lead">Everything you need, from the first launch to advanced setups. If something isn't covered here, check <a href="#troubleshooting">Troubleshooting</a>.</p>
+  </div>
+</section>
+
+<div class="wrap docs">
+  <aside class="toc" aria-label="On this page">
+    <h4>Get started</h4>
+    <a href="#install-windows">Install on Windows</a>
+    <a href="#install-linux">Install on Linux</a>
+    <a href="#install-macos">Install on macOS</a>
+    <a href="#first-chat">Your first chat</a>
+    <h4>Using Astro AI</h4>
+    <a href="#one-brain">One Brain &amp; single models</a>
+    <a href="#keys">Adding free keys</a>
+    <a href="#workspace">Workspace</a>
+    <a href="#agent">Agent</a>
+    <a href="#voice">Voice</a>
+    <a href="#knowledge">Knowledge, notes &amp; tasks</a>
+    <a href="#shortcuts">Shortcuts</a>
+    <h4>Reference</h4>
+    <a href="#data">Where your data lives</a>
+    <a href="#silent">Silent install (IT)</a>
+    <a href="#troubleshooting">Troubleshooting</a>
+    <a href="#uninstall">Uninstall</a>
+  </aside>
+
+  <article class="prose">
+    <h2 id="install-windows">Install on Windows</h2>
+    <ol>
+      <li>Download <a href="{{dl:windows-x64-Setup:href}}">{{dl:windows-x64-Setup:file}}</a> ({{dl:windows-x64-Setup:size}}).</li>
+      <li>Double-click it and choose <strong>Install</strong>. Astro AI installs just for your user account, so there's no administrator prompt.</li>
+      <li>Launch it from the Start menu or the desktop shortcut. The app is called <strong>Astro AI Clean</strong>.</li>
+    </ol>
+    <div class="callout warn"><div><b>"Windows protected your PC"?</b> The installer isn't code-signed yet, so SmartScreen warns about it. Click <strong>More info → Run anyway</strong>. To make sure the file is genuine, check its <a href="{{root}}download.html#verify">SHA-256 checksum</a> first.</div></div>
+    <p>Rather not install anything? Download the <a href="{{dl:windows-x64-portable:href}}">portable zip</a>, extract it anywhere, and run <code>AstroAI-Clean.exe</code>.</p>
+    <p>Astro AI uses the Microsoft Edge <strong>WebView2</strong> runtime. It's built into Windows 11 and up-to-date Windows 10. If it's missing, the app tells you and opens Microsoft's download page.</p>
+
+    <h2 id="install-linux">Install on Linux</h2>
+    <p>On Debian, Ubuntu and their derivatives, install the package with apt so it pulls in dependencies (WebKitGTK 4.1, libcurl, OpenSSL 3):</p>
+<pre><code>sudo apt install ./{{dl:_amd64:file}}</code></pre>
+    <p>Then open <strong>Astro AI Clean</strong> from your app menu, or run <code>astro-ai-clean</code> in a terminal.</p>
+    <p>On other distributions, use the <a href="{{dl:linux-x64-portable:href}}">portable tarball</a>:</p>
+<pre><code>tar xzf {{dl:linux-x64-portable:file}}
+cd astro-ai-clean-{{version}}-linux-x64-CLEAN
+./install.sh        # optional: adds it to your app menu (no root needed)
+./astro-desktop</code></pre>
+    <p>Requirements: 64-bit, glibc 2.35 or newer (Ubuntu 22.04+, Debian 12+, Fedora 36+), and WebKitGTK 4.1 (<code>libwebkit2gtk-4.1-0</code>, or <code>webkit2gtk4.1</code> on Fedora).</p>
+
+    <h2 id="install-macos">Install on macOS</h2>
+    <p>For now, the Mac version comes as a small build kit that you compile on your own Mac. It takes about a minute and makes a universal app that runs natively on both Apple Silicon and Intel.</p>
+    <ol>
+      <li>Install Apple's free command line tools (skip this if you already have Xcode):
+<pre><code>xcode-select --install</code></pre></li>
+      <li>Download and unpack the <a href="{{dl:macos-source:href}}">build kit</a>, then run the build script:
+<pre><code>tar xzf {{dl:macos-source:file}}
+cd AstroAI-{{version}}-macos-source-CLEAN
+./build_mac.sh</code></pre></li>
+      <li>Open the <code>.dmg</code> it creates and drag <strong>Astro AI Clean</strong> into Applications.</li>
+    </ol>
+    <p>Needs macOS 11 Big Sur or newer. To build for just one architecture, use <code>ARCHS="-arch arm64" ./build_mac.sh</code>. Because you built the app yourself, macOS opens it without the warning it shows for downloaded apps.</p>
+
+    <h2 id="first-chat">Your first chat</h2>
+    <p>Open Astro AI and type a question in the box that says <strong>Ask Astro AI</strong>. That's it: there's no account and nothing to set up. The model menu above the chat starts on <strong>One Brain · all 26 minds together</strong>, and the status bar at the bottom left shows how many models are ready.</p>
+    <p>Under the message box you'll find:</p>
+    <ul>
+      <li><strong>General / Compare / Web</strong>: the answer mode. Web brings in fresh search results.</li>
+      <li><strong>Auto</strong>: the response language. Set it to answer in a specific language.</li>
+      <li><strong>Microphone</strong> to dictate, and the <strong>wave</strong> button for a live voice conversation.</li>
+      <li><strong>+</strong> to attach files.</li>
+    </ul>
+
+    <h2 id="one-brain">One Brain &amp; single models</h2>
+    <p>With <strong>One Brain</strong> selected, every available model works on your question together, in four stages shown on the progress card:</p>
+    <table>
+      <thead><tr><th>Stage</th><th>What happens</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Plan</strong></td><td>The team reads your question and context, then agrees on an approach.</td></tr>
+        <tr><td><strong>Work</strong></td><td>Each model drafts its own answer at the same time.</td></tr>
+        <tr><td><strong>Review</strong></td><td>The drafts are compared, disagreements are resolved, and facts and code are checked.</td></tr>
+        <tr><td><strong>Answer</strong></td><td>One model merges the best parts into a single reply.</td></tr>
+      </tbody>
+    </table>
+    <p>Under each answer you'll see how many models contributed, which model merged it, how long it took and how confident the team was.</p>
+    <p><strong>It takes a while, on purpose.</strong> Waiting for slow models is part of the deal: a full answer usually takes a few minutes. Press <strong>Answer now</strong> on the progress card to stop waiting and write the answer from what's ready. For quick back-and-forth, pick a single model from the model menu instead.</p>
+    <div class="callout"><div>Free tiers have rate and daily limits, and providers can change them at any time. When one runs out, the rest of the team keeps answering. Limits reset on the provider's schedule, usually daily.</div></div>
+
+    <h2 id="keys">Adding free keys</h2>
+    <p>Out of the box, Astro AI uses providers that need no key. To grow the team, create free API keys with your own accounts and paste them into <strong>Settings → Providers &amp; keys</strong>. New models join One Brain straight away.</p>
+    <table>
+      <thead><tr><th>Provider</th><th>Get a free key</th></tr></thead>
+      <tbody>
+        <tr><td>Groq</td><td><a href="https://console.groq.com/keys" rel="noopener">console.groq.com/keys</a></td></tr>
+        <tr><td>Google Gemini</td><td><a href="https://aistudio.google.com/apikey" rel="noopener">aistudio.google.com/apikey</a></td></tr>
+        <tr><td>Mistral</td><td><a href="https://console.mistral.ai/api-keys" rel="noopener">console.mistral.ai/api-keys</a></td></tr>
+        <tr><td>OpenRouter</td><td><a href="https://openrouter.ai/keys" rel="noopener">openrouter.ai/keys</a></td></tr>
+        <tr><td>Cerebras</td><td><a href="https://cloud.cerebras.ai" rel="noopener">cloud.cerebras.ai</a></td></tr>
+        <tr><td>NVIDIA</td><td><a href="https://build.nvidia.com" rel="noopener">build.nvidia.com</a></td></tr>
+        <tr><td>Cohere</td><td><a href="https://dashboard.cohere.com/api-keys" rel="noopener">dashboard.cohere.com/api-keys</a></td></tr>
+        <tr><td>Hugging Face</td><td><a href="https://huggingface.co/settings/tokens" rel="noopener">huggingface.co/settings/tokens</a></td></tr>
+        <tr><td>Cloudflare Workers AI</td><td><a href="https://dash.cloudflare.com/profile/api-tokens" rel="noopener">dash.cloudflare.com</a>. Enter it as <code>account_id:token</code>.</td></tr>
+        <tr><td>Z.ai</td><td><a href="https://z.ai/manage-apikey/apikey-list" rel="noopener">z.ai</a></td></tr>
+        <tr><td>Ollama Cloud</td><td><a href="https://ollama.com/settings/keys" rel="noopener">ollama.com/settings/keys</a></td></tr>
+        <tr><td>SiliconFlow</td><td><a href="https://cloud.siliconflow.com/account/ak" rel="noopener">cloud.siliconflow.com</a></td></tr>
+        <tr><td>Atria</td><td><a href="https://api.atria-asi.ai/console/keys" rel="noopener">api.atria-asi.ai</a></td></tr>
+      </tbody>
+    </table>
+    <p>Astro AI supports more than 50 providers, and Settings lists all of them with sign-up links. Keys are saved only on your computer, in the <a href="#data">data folder</a>. Treat them like passwords: anyone with your key can use your quota.</p>
+
+    <h2 id="workspace">Workspace</h2>
+    <p>The Workspace is a code editor with an AI engineering team built in. Pick a project in the top-left menu (a starter <code>my-project</code> is included). Then:</p>
+    <ul>
+      <li><strong>Edit</strong> files in tabs, with find and replace, folding and word wrap.</li>
+      <li><strong>Run</strong> the current file with <kbd>Ctrl</kbd> + <kbd>Enter</kbd>. Output, errors and the exit code appear below. HTML files open in the live <strong>Preview</strong>.</li>
+      <li>Open the <strong>Terminal</strong> tab for a real shell in your project folder.</li>
+      <li>Ask the team (right panel) to build, fix or explain something. Use <strong>Team</strong> for the best results, <strong>Fast</strong> for speed, or <strong>Agent</strong> to let it work on its own. Turn on <strong>Plan</strong> for multi-step goals and <strong>Auto-fix</strong> to retry failed runs.</li>
+      <li>Every change is saved as a version first. Use the history button in the file panel to compare versions or undo.</li>
+    </ul>
+    <p>Running code uses the tools installed on your computer: Node.js for JavaScript, Python, a C/C++ compiler (gcc or clang), and a JDK for Java. HTML and CSS need nothing extra. On Windows, the terminal works best with <a href="https://git-scm.com/download/win" rel="noopener">Git for Windows</a> installed, because it provides <code>bash</code>.</p>
+
+    <h2 id="agent">Agent</h2>
+    <p>Open <strong>Agent</strong> in the sidebar, choose a project, and describe the job, for example "build a to-do app with an Express API, start it and test it with curl". The team of models plans the work and reviews it, and a fast model carries out the steps. The agent can:</p>
+    <ul>
+      <li>run commands and start servers,</li>
+      <li>create, edit and delete files,</li>
+      <li>search the web,</li>
+      <li>check its results and fix its own errors until the job is done.</li>
+    </ul>
+    <p>It runs automatically, without approval prompts. The side panel shows <strong>Changes</strong> (with a diff per file), <strong>Files</strong>, <strong>Terminal</strong> and <strong>Preview</strong>. A checkpoint is taken before each job, so you can roll back.</p>
+    <div class="callout warn"><div><b>Use it with care.</b> The agent runs real commands on your computer. Give it a project folder you're happy for it to change, and keep backups of anything that matters.</div></div>
+
+    <h2 id="voice">Voice</h2>
+    <p>Click the microphone to <strong>dictate</strong> a message, or the highlighted <strong>Live</strong> wave button for a spoken back-and-forth conversation. The speaker button under any answer reads it aloud. Voice uses your operating system's speech engine, so the available voices and languages depend on your system. The first time, allow microphone access when asked.</p>
+
+    <h2 id="knowledge">Knowledge, notes &amp; tasks</h2>
+    <ul>
+      <li><strong>Knowledge</strong>: add documents and the team uses them as context when answering.</li>
+      <li><strong>Notes</strong>: write and organise notes, and ask the AI about them.</li>
+      <li><strong>Tasks</strong>: a simple to-do list that lives next to your chats.</li>
+      <li><strong>Reader</strong>: open a web page or file and read it with AI help.</li>
+      <li><strong>Model Lab</strong>: run one prompt on many models and compare the results.</li>
+    </ul>
+
+    <h2 id="shortcuts">Shortcuts</h2>
+    <table>
+      <thead><tr><th>Keys</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>K</kbd></td><td>Command palette and search</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>T</kbd></td><td>New chat</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>Enter</kbd></td><td>Run the current file (Workspace)</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>B</kbd></td><td>Show or hide the sidebar</td></tr>
+        <tr><td><kbd>Enter</kbd> / <kbd>Shift</kbd> + <kbd>Enter</kbd></td><td>Send / new line (you can switch to Ctrl + Enter to send in Settings)</td></tr>
+      </tbody>
+    </table>
+    <p>On macOS, use <kbd>⌘</kbd> wherever this table says <kbd>Ctrl</kbd>.</p>
+
+    <h2 id="data">Where your data lives</h2>
+    <p>Chats, notes, tasks, projects, settings and keys are stored locally, in a per-user folder:</p>
+    <table>
+      <thead><tr><th>System</th><th>Data folder</th></tr></thead>
+      <tbody>
+        <tr><td>Windows</td><td><code>%APPDATA%\Astro AI Clean</code></td></tr>
+        <tr><td>Linux</td><td><code>~/.local/share/astro-ai-clean</code> (or <code>$XDG_DATA_HOME/astro-ai-clean</code>)</td></tr>
+        <tr><td>macOS</td><td><code>~/Library/Application Support/Astro AI Clean</code></td></tr>
+      </tbody>
+    </table>
+    <p>Logs are in the <code>logs</code> subfolder. To back up everything, copy this folder. To start fresh, quit the app and delete it.</p>
+
+    <h2 id="silent">Silent install (IT)</h2>
+    <p>The Windows installer supports unattended installs:</p>
+<pre><code>{{dl:windows-x64-Setup:file}} /S [/D=C:\path\to\folder] [--no-desktop-shortcut]</code></pre>
+    <p>By default it installs to <code>%LOCALAPPDATA%\Programs\Astro AI Clean</code>, for the current user. To remove it silently (add <code>--purge</code> to delete the user's data as well):</p>
+<pre><code>"%LOCALAPPDATA%\Programs\Astro AI Clean\Uninstall.exe" /S [--purge]</code></pre>
+
+    <h2 id="troubleshooting">Troubleshooting</h2>
+    <h3>The window doesn't open on Windows</h3>
+    <p>Install the <a href="https://developer.microsoft.com/microsoft-edge/webview2/" rel="noopener">Microsoft Edge WebView2 Runtime</a> (the "Evergreen" version), then start Astro AI again.</p>
+    <h3>The app doesn't start on Linux</h3>
+    <p>Check that WebKitGTK 4.1 is installed (<code>sudo apt install libwebkit2gtk-4.1-0</code>), and run <code>astro-ai-clean</code> from a terminal to see any error. If you see a blank window in a virtual machine, try <code>WEBKIT_DISABLE_DMABUF_RENDERER=1 astro-ai-clean</code>.</p>
+    <h3>"Port in use" or the app can't reach its engine</h3>
+    <p>Astro AI runs a small local engine on <code>127.0.0.1</code>, starting at port <code>47612</code>. It only listens on your own computer. If a firewall asks, allow local connections. If another program uses that port, close it and restart Astro AI.</p>
+    <h3>Answers are slow or a model fails</h3>
+    <p>One Brain is slow by design (see <a href="#one-brain">above</a>). If a single model fails, it has probably hit a free-tier limit. Try another model, wait for the limit to reset, or add more free keys.</p>
+    <h3>Code won't run in the Workspace</h3>
+    <p>Install the language's tools (Node.js, Python, gcc/clang, a JDK) and make sure they're on your <code>PATH</code>, then restart Astro AI.</p>
+    <h3>Still stuck?</h3>
+    <p>Look at <code>logs/server.log</code> in your <a href="#data">data folder</a>. It usually says exactly what went wrong.</p>
+
+    <h2 id="uninstall">Uninstall</h2>
+    <ul>
+      <li><strong>Windows:</strong> Settings → Apps → <em>Astro AI Clean</em> → Uninstall, or use the Start menu shortcut. You can choose to remove your data too.</li>
+      <li><strong>Linux (.deb):</strong> <code>sudo apt remove astro-ai-clean</code>. Your data in <code>~/.local/share/astro-ai-clean</code> is kept. Delete that folder if you want it gone.</li>
+      <li><strong>Linux (tarball):</strong> delete the folder, plus <code>~/.local/share/applications/astro-ai-clean.desktop</code> if you ran <code>install.sh</code>.</li>
+      <li><strong>macOS:</strong> drag the app from Applications to the Trash, and delete the data folder if you like.</li>
+    </ul>
+  </article>
+</div>

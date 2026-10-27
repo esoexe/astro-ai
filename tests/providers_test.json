@@ -1,0 +1,7 @@
+{
+  "_comment": "Offline test registry: keyed providers only, so the smoke tests never call real models.",
+  "providers": [
+    { "id": "groq", "name": "Groq", "kind": "openai", "base_url": "https://api.groq.com/openai/v1", "key": "GROQ_API_KEY", "models": ["openai/gpt-oss-20b"], "signup": "https://console.groq.com/keys", "limits": "test", "privacy": "test" },
+    { "id": "openrouter", "name": "OpenRouter", "kind": "openai", "base_url": "https://openrouter.ai/api/v1", "key": "OPENROUTER_API_KEY", "models": ["x:free"], "signup": "https://openrouter.ai/keys", "limits": "test", "privacy": "test" }
+  ]
+}

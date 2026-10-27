@@ -1,0 +1,117 @@
+<!--meta {"title": "Download", "description": "Download Astro AI {{version}} for Windows, Linux and macOS. Free, no account, with SHA-256 checksums for every file.", "nav": "download"} -->
+<section class="page-hero center">
+  <div class="wrap">
+    <span class="eyebrow">Version {{version}} · {{date}}</span>
+    <h1 class="h2">Download <em class="accent">Astro AI.</em></h1>
+    <p class="lead">Free for Windows, Linux and macOS, with no account needed. You get 26 free models the first time you open it, and you can add more at any time.</p>
+    <div class="hero-actions" style="justify-content:center;margin-top:32px">
+      <a class="btn btn-primary btn-lg" href="#windows" data-os-primary
+         data-href-windows="{{dl:windows-x64-Setup:href}}" data-href-linux="{{dl:_amd64:href}}" data-href-macos="#macos">{{icon:download}}<span class="label">Choose your system</span></a>
+    </div>
+    <p class="muted small" style="margin-top:14px" data-os-note
+       data-note-windows="Windows 10 and 11 · 64-bit · {{dl:windows-x64-Setup:size}}"
+       data-note-linux="Debian and Ubuntu package · 64-bit · {{dl:_amd64:size}}"
+       data-note-macos="macOS 11+ · build the app on your Mac in about a minute"
+       data-note-mobile="Astro AI is a desktop app. Open this page on your computer to download it.">Pick your system below.</p>
+  </div>
+</section>
+
+<section class="section-tight" style="padding-top:24px">
+  <div class="wrap">
+    <div class="grid-3">
+      <article class="card platform reveal" id="windows" data-os-card="windows">
+        <div class="os">{{icon:windows}}<h3>Windows</h3><span class="badge for-you" hidden>For you</span></div>
+        <p>Windows 10 or 11, 64-bit. Needs the Microsoft Edge WebView2 runtime, which comes with Windows 11 and up-to-date Windows 10.</p>
+        <div class="files">
+          <a class="dl primary" href="{{dl:windows-x64-Setup:href}}" download><span class="t"><b>Installer</b><span>{{dl:windows-x64-Setup:file}}</span></span><span class="go">{{icon:download}}</span></a>
+          <div class="sha"><code title="SHA-256">{{dl:windows-x64-Setup:sha}}</code><button class="copy" type="button" data-copy="{{dl:windows-x64-Setup:sha}}">Copy</button></div>
+          <a class="dl" href="{{dl:windows-x64-portable:href}}" download><span class="t"><b>Portable zip</b><span>{{dl:windows-x64-portable:file}}</span></span><span class="go">{{icon:download}}</span></a>
+          <div class="sha"><code title="SHA-256">{{dl:windows-x64-portable:sha}}</code><button class="copy" type="button" data-copy="{{dl:windows-x64-portable:sha}}">Copy</button></div>
+        </div>
+        <p class="small muted">Installer {{dl:windows-x64-Setup:size}} · Portable {{dl:windows-x64-portable:size}}</p>
+      </article>
+
+      <article class="card platform reveal" data-delay="1" id="linux" data-os-card="linux">
+        <div class="os">{{icon:linux}}<h3>Linux</h3><span class="badge for-you" hidden>For you</span></div>
+        <p>64-bit, glibc 2.35 or newer (Ubuntu 22.04+, Debian 12+, Fedora 36+). Needs WebKitGTK 4.1, libcurl and OpenSSL 3.</p>
+        <div class="files">
+          <a class="dl primary" href="{{dl:_amd64:href}}" download><span class="t"><b>Debian / Ubuntu package</b><span>{{dl:_amd64:file}}</span></span><span class="go">{{icon:download}}</span></a>
+          <div class="sha"><code title="SHA-256">{{dl:_amd64:sha}}</code><button class="copy" type="button" data-copy="{{dl:_amd64:sha}}">Copy</button></div>
+          <a class="dl" href="{{dl:linux-x64-portable:href}}" download><span class="t"><b>Portable tarball</b><span>{{dl:linux-x64-portable:file}}</span></span><span class="go">{{icon:download}}</span></a>
+          <div class="sha"><code title="SHA-256">{{dl:linux-x64-portable:sha}}</code><button class="copy" type="button" data-copy="{{dl:linux-x64-portable:sha}}">Copy</button></div>
+        </div>
+        <p class="small muted">.deb {{dl:_amd64:size}} · .tar.gz {{dl:linux-x64-portable:size}}</p>
+      </article>
+
+      <article class="card platform reveal" data-delay="2" id="macos" data-os-card="macos">
+        <div class="os">{{icon:macos}}<h3>macOS</h3><span class="badge for-you" hidden>For you</span></div>
+        <p>macOS 11 or newer, on Apple Silicon or Intel. One script builds a universal <code class="mono small">.app</code> and <code class="mono small">.dmg</code> on your own Mac.</p>
+        <div class="files">
+          <a class="dl primary" href="{{dl:macos-source:href}}" download><span class="t"><b>macOS build kit</b><span>{{dl:macos-source:file}}</span></span><span class="go">{{icon:download}}</span></a>
+          <div class="sha"><code title="SHA-256">{{dl:macos-source:sha}}</code><button class="copy" type="button" data-copy="{{dl:macos-source:sha}}">Copy</button></div>
+          <a class="dl" href="{{root}}docs.html#install-macos"><span class="t"><b>Step-by-step guide</b><span>Needs the Xcode Command Line Tools</span></span><span class="go">{{icon:arrow}}</span></a>
+        </div>
+        <p class="small muted">Build kit {{dl:macos-source:size}}. Signed, ready-made Mac builds are planned.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Install in a minute</span>
+      <h2 class="h2">Getting <em class="accent">set up.</em></h2>
+    </div>
+    <div class="grid-3">
+      <div class="card reveal">
+        <div class="icon">{{icon:windows}}</div>
+        <h3>Windows</h3>
+        <p>Run the installer and click <strong>Install</strong>. It installs just for you, with no admin prompt, and adds Start menu and desktop shortcuts.</p>
+        <p style="margin-top:12px">If SmartScreen says "Windows protected your PC", click <strong>More info → Run anyway</strong>. The app isn't code-signed yet.</p>
+      </div>
+      <div class="card reveal" data-delay="1">
+        <div class="icon">{{icon:terminal}}</div>
+        <h3>Linux</h3>
+        <p>Install the package. Your package manager pulls in WebKitGTK for you:</p>
+        <p style="margin-top:12px"><code class="mono small" style="color:var(--peach-hi)">sudo apt install ./{{dl:_amd64:file}}</code></p>
+        <p style="margin-top:12px">Using the tarball? Unpack it and run <code class="mono small">./install.sh</code> to add it to your app menu.</p>
+      </div>
+      <div class="card reveal" data-delay="2">
+        <div class="icon">{{icon:command}}</div>
+        <h3>macOS</h3>
+        <p>Install Apple's free command line tools, then build:</p>
+        <p style="margin-top:12px"><code class="mono small" style="color:var(--peach-hi)">xcode-select --install</code><br><code class="mono small" style="color:var(--peach-hi)">./build_mac.sh</code></p>
+        <p style="margin-top:12px">Drag the app from the new <code class="mono small">.dmg</code> into Applications.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-tight" id="verify">
+  <div class="wrap split">
+    <div class="reveal">
+      <span class="eyebrow">Verify your download</span>
+      <h2 class="h2">Check it's <em class="accent">the real thing.</em></h2>
+      <p>Each file has a SHA-256 checksum listed above. Compare it with the file you downloaded. If they match, the file is exactly what we published.</p>
+      <p><a href="{{root}}downloads/SHA256SUMS.txt">Download SHA256SUMS.txt</a></p>
+    </div>
+    <div class="prose reveal" data-delay="1">
+<h3 style="margin-top:0">Windows (PowerShell)</h3>
+<pre><code>Get-FileHash .\{{dl:windows-x64-Setup:file}} -Algorithm SHA256</code></pre>
+<h3>Linux</h3>
+<pre><code>sha256sum -c SHA256SUMS.txt --ignore-missing</code></pre>
+<h3>macOS</h3>
+<pre><code>shasum -a 256 {{dl:macos-source:file}}</code></pre>
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="wrap">
+    <div class="callout reveal" style="max-width:860px;margin-inline:auto">
+      <div><b>About the "Clean" in the file names.</b> Public downloads are the Clean edition, so they ship with no API keys at all. The app shows up as <strong>Astro AI Clean</strong>. It works straight away with 26 free models, and you can add your own free keys in <strong>Settings → Providers &amp; keys</strong> to bring in more.</div>
+    </div>
+    <p class="muted small" style="text-align:center;margin-top:28px">Looking for older versions or what changed? See the <a href="{{root}}changelog.html">changelog</a>.</p>
+  </div>
+</section>

@@ -1,0 +1,20 @@
+# ---- secrets and personal data: never commit ----
+.env
+.workspace.env
+.astro_keys.env
+.astro_auth.json
+.astro_sessions
+seed-keys.env
+gateway.env
+astro_data/
+uploads/
+desktop-builds/
+*WITH-KEYS*
+
+# ---- build output ----
+/workspace_server
+/astro_measure
+website/public/
+node_modules/
+.cache/
+*.o

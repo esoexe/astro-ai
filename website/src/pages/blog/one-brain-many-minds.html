@@ -1,0 +1,55 @@
+<!--meta {"title": "How One Brain works, and what it costs you", "description": "Why Astro AI asks every model instead of routing to one, how Plan, Work, Review and Answer fit together, and the honest trade-offs: time, limits and privacy.", "nav": "blog", "ogType": "article"} -->
+<section class="page-hero">
+  <div class="wrap article" style="padding-bottom:0">
+    <a class="back" href="index.html">← All posts</a>
+    <div class="post-meta"><span>Deep dive</span><span>October 27, 2026</span><span>6 min read</span></div>
+    <h1 class="h2" style="margin-top:0">How One Brain works, <em class="accent">and what it costs you.</em></h1>
+    <p class="lead">Why we ask every model instead of routing to one, and the honest trade-offs that come with it.</p>
+  </div>
+</section>
+<div class="wrap article">
+  <figure class="cover frame"><img src="{{root}}assets/img/blog/one-brain-many-minds.webp" width="1600" height="900" alt="The One Brain progress card and the summary line of a finished team answer"></figure>
+  <div class="prose">
+    <h2>Routing vs. teamwork</h2>
+    <p>Most apps that offer many models are <strong>routers</strong>. They look at your question, guess which model suits it best, and send it there. That's fast and cheap, but you get one model's strengths and one model's blind spots.</p>
+    <p>One Brain does something different. It sends your question to <strong>every available model</strong>, and then makes them work together. The idea is simple: independent models make different mistakes, so comparing their answers is a good way to catch errors that any one of them would miss.</p>
+
+    <h2>The four stages</h2>
+    <h3>1. Plan</h3>
+    <p>The team reads your question along with its context: recent messages, attached files and any knowledge files you've added. Then it settles on an approach. A request for code gets a different plan than a request for a short explanation.</p>
+    <h3>2. Work</h3>
+    <p>Every model drafts its own answer at the same time. Fast models finish in seconds, slow ones can take minutes, and we deliberately wait for the slow ones. Some of the most careful answers come from the slowest models.</p>
+    <h3>3. Review</h3>
+    <p>The drafts are compared. Points that most models agree on gain weight. Where models disagree, the team works out why and checks the facts, the arithmetic or the code. This stage catches confident-sounding mistakes.</p>
+    <h3>4. Answer</h3>
+    <p>One model, usually a large and capable one, merges the reviewed material into a single reply. Below it you'll see a summary like <em>"One Brain · 19 minds · merged by Qwen3.5-397B · 4m 33s · high confidence"</em>. That tells you how many models contributed, who wrote the final version, how long it took, and how much the team agreed.</p>
+
+    <h2>The costs, honestly</h2>
+    <h3>Time</h3>
+    <p>Teamwork is slow. Waiting for every model, then reviewing and merging, usually takes <strong>a few minutes</strong>. The example in the cover image took four and a half. We think that's worth it for questions that matter, but it's the wrong tool for quick back-and-forth.</p>
+    <p>So there are two ways out. Press <strong>Answer now</strong> on the progress card and the team writes the answer from whatever is ready. Or pick a single model from the model menu for instant replies. In the Workspace, <strong>Fast</strong> mode does the same for code.</p>
+
+    <h3>Limits</h3>
+    <p>Every model in the default team runs on a provider's free tier, and free tiers have rate limits and daily caps. One Brain uses one request per model per stage, so it spends quota faster than a single-model chat. When a provider runs dry, the team carries on without it, and the summary line shows the smaller head count. Adding your own free keys means more providers, more models and more headroom.</p>
+
+    <h3>Privacy</h3>
+    <p>Sending your question to every model means sending it to every provider on the team. Each provider has its own privacy policy, and some free tiers may use prompts for training. If a question is sensitive, pick one model from a provider you trust, so only that provider sees it. Settings shows each provider's privacy notes where we know them. More on our <a href="{{root}}privacy.html">privacy page</a>.</p>
+
+    <h3>It can still be wrong</h3>
+    <p>Teamwork reduces mistakes; it doesn't eliminate them. If most models share the same misconception, review won't catch it. That's why every answer carries the team's confidence, and why we suggest double-checking anything important.</p>
+
+    <h2>When to use what</h2>
+    <table>
+      <thead><tr><th>You want…</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>The most careful answer to a question that matters</td><td>One Brain</td></tr>
+        <tr><td>Quick back-and-forth, brainstorming, small edits</td><td>A single model</td></tr>
+        <tr><td>To see how models differ on a prompt</td><td>Model Lab</td></tr>
+        <tr><td>Working code in a project</td><td>Workspace: Team for quality, Fast for speed</td></tr>
+        <tr><td>A whole job done end to end</td><td>Agent</td></tr>
+      </tbody>
+    </table>
+    <p>Try it on a question you know the answer to and see how the team does. Then try it on one you don't.</p>
+  </div>
+  <p style="margin-top:48px"><a class="btn btn-primary btn-lg" href="{{root}}download.html">{{icon:download}}Download Astro AI</a></p>
+</div>
