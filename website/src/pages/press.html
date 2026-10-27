@@ -16,8 +16,8 @@
     <div class="grid-2">
       <div class="card reveal">
         <h3 style="margin-top:0">Boilerplate</h3>
-        <p>Astro AI is a free desktop app for Windows, Linux and macOS where a team of free AI models answers as one. Its One Brain mode sends each question to every available model, has them review each other's drafts, and merges the result into a single answer. It also includes a code Workspace, an autonomous Agent, live voice, Model Lab, Reader, notes and tasks. Astro AI needs no account and has no telemetry. Data is stored on the user's computer.</p>
-        <p style="margin-top:14px"><button class="copy" type="button" data-copy="Astro AI is a free desktop app for Windows, Linux and macOS where a team of free AI models answers as one. Its One Brain mode sends each question to every available model, has them review each other's drafts, and merges the result into a single answer. It also includes a code Workspace, an autonomous Agent, live voice, Model Lab, Reader, notes and tasks. Astro AI needs no account and has no telemetry. Data is stored on the user's computer.">Copy text</button></p>
+        <p>Astro AI is a free AI coding platform and desktop app for Windows, Linux and macOS, where a team of free AI models works as one. Developers open any folder, choose Plan, Ask or Auto permissions, and let the agent plan, write, test and review code. It reads the rules, skills, MCP servers and plugins already used with Claude Code, Codex, Cursor and OpenCode. Its One Brain chat sends each question to every available model and merges their reviewed drafts into one answer. No account, analytics or telemetry.</p>
+        <p style="margin-top:14px"><button class="copy" type="button" data-copy="Astro AI is a free AI coding platform and desktop app for Windows, Linux and macOS, where a team of free AI models works as one. Developers open any folder, choose Plan, Ask or Auto permissions, and let the agent plan, write, test and review code. It reads the rules, skills, MCP servers and plugins already used with Claude Code, Codex, Cursor and OpenCode. Its One Brain chat sends each question to every available model and merges their reviewed drafts into one answer. No account, analytics or telemetry.">Copy text</button></p>
       </div>
       <div class="card reveal" data-delay="1">
         <h3 style="margin-top:0">Fact sheet</h3>
@@ -29,7 +29,8 @@
               <tr><td>Platforms</td><td>Windows 10/11 x64, Linux x64, macOS 11+ (build kit)</td></tr>
               <tr><td>Price</td><td>Free. Uses providers' free tiers, which have usage limits.</td></tr>
               <tr><td>Models</td><td>26 out of the box. 50+ providers supported with free keys.</td></tr>
-              <tr><td>Account</td><td>None needed</td></tr>
+              <tr><td>Coding</td><td>Open folders, Plan / Ask / Auto, skills, MCP servers, plugins, Open VSX themes</td></tr>
+              <tr><td>Account</td><td>None needed for the app; optional for the Astro API</td></tr>
               <tr><td>Tagline</td><td>One brain, many minds.</td></tr>
             </tbody>
           </table>
@@ -87,8 +88,12 @@
 
 <section class="section-tight">
   <div class="wrap">
-    <div class="section-head reveal"><span class="eyebrow">Screenshots</span><h2 class="h2" style="font-size:clamp(34px,4vw,48px)">The app <em class="accent">in action.</em></h2><p>Real screenshots of Astro AI {{version}}. Full-resolution PNGs are in the zip.</p></div>
+    <div class="section-head reveal"><span class="eyebrow">Screenshots</span><h2 class="h2" style="font-size:clamp(34px,4vw,48px)">The app <em class="accent">in action.</em></h2><p>Real screenshots. The first four are from version {{version}}, the rest from 1.0. Full-resolution PNGs are in the zip.</p></div>
     <div class="grid-2">
+      <a class="card asset reveal" href="{{root}}assets/img/shots/v11-agent-after.webp"><div class="preview" style="aspect-ratio:16/10;padding:0"><img src="{{root}}assets/img/shots/v11-agent-after.webp" width="1440" height="900" alt="The agent writing src/limit.js in Ask mode" loading="lazy"></div><b>Agent at work (1.1)</b></a>
+      <a class="card asset reveal" data-delay="1" href="{{root}}assets/img/shots/v11-ext-mcp.webp"><div class="preview" style="aspect-ratio:16/10;padding:0"><img src="{{root}}assets/img/shots/v11-ext-mcp.webp" width="1440" height="900" alt="The Extensions panel with an MCP server running" loading="lazy"></div><b>Extensions · MCP (1.1)</b></a>
+      <a class="card asset reveal" href="{{root}}assets/img/shots/v11-mcp-registry.webp"><div class="preview" style="aspect-ratio:16/10;padding:0"><img src="{{root}}assets/img/shots/v11-mcp-registry.webp" width="1440" height="900" alt="Browsing the MCP registry" loading="lazy"></div><b>MCP registry (1.1)</b></a>
+      <a class="card asset reveal" data-delay="1" href="{{root}}assets/img/shots/v11-problems.webp"><div class="preview" style="aspect-ratio:16/10;padding:0"><img src="{{root}}assets/img/shots/v11-problems.webp" width="1440" height="900" alt="The Problems panel with an error squiggle" loading="lazy"></div><b>Problems panel (1.1)</b></a>
       <a class="card asset reveal" href="{{root}}assets/img/shots/chat-answer.webp"><div class="preview" style="aspect-ratio:16/10;padding:0"><img src="{{root}}assets/img/shots/chat-answer.webp" width="1440" height="900" alt="Team answer" loading="lazy"></div><b>One Brain answer (dark)</b></a>
       <a class="card asset reveal" data-delay="1" href="{{root}}assets/img/shots/chat-light.webp"><div class="preview" style="aspect-ratio:16/10;padding:0"><img src="{{root}}assets/img/shots/chat-light.webp" width="1440" height="900" alt="Team answer in light theme" loading="lazy"></div><b>One Brain answer (light)</b></a>
       <a class="card asset reveal" href="{{root}}assets/img/shots/workspace.webp"><div class="preview" style="aspect-ratio:16/10;padding:0"><img src="{{root}}assets/img/shots/workspace.webp" width="1440" height="900" alt="Workspace" loading="lazy"></div><b>Workspace</b></a>

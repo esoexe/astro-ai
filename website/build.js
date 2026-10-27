@@ -110,11 +110,12 @@ function layout(meta, body, rel, file) {
 <link rel="stylesheet" href="${r}assets/css/site.css">
 <script defer src="${r}assets/js/site.js"></script>${(meta.scripts || []).map((x) => `\n<script defer src="${r}assets/js/${x}"></script>`).join('')}
 </head>
-<body class="${meta.bodyClass || ''}" data-root="${r}">
+<body class="site ${meta.bodyClass || ''}" data-root="${r}">
 <a class="skip" href="#main">Skip to content</a>
 <header class="nav" id="top">
   <div class="nav-inner">
     ${LOGO(r)}
+    <a class="nav-ver" href="${r}changelog.html" title="What's new in ${SITE.version}">v${SITE.version.split('.').slice(0, 2).join('.')}</a>
     <nav class="nav-links" aria-label="Main">${nav}</nav>
     <div class="nav-cta">
       <a class="btn btn-ghost btn-sm nav-signin" href="${r}account.html" data-account-link>Sign in</a>
@@ -136,13 +137,14 @@ ${body}
   <div class="wrap footer-grid">
     <div class="footer-brand">
       ${LOGO(r)}
-      <p>One brain, many minds. A free desktop app for chat, code and agents, powered by a team of free AI models.</p>
-      <p class="mono small">v${SITE.version} · ${SITE.dateLabel}</p>
+      <p>One brain, many minds. A free AI coding platform and desktop app: open a folder, pick Plan, Ask or Auto, and let a team of free models build with you.</p>
+      <span class="footer-status"><i></i>v${SITE.version} · ${SITE.dateLabel}</span>
     </div>
-    <div><h4>Product</h4><a href="${r}features.html">Features</a><a href="${r}download.html">Download</a><a href="${r}changelog.html">Changelog</a></div>
+    <div><h4>Product</h4><a href="${r}features.html">Features</a><a href="${r}features.html#extensions">Extensions</a><a href="${r}download.html">Download</a><a href="${r}changelog.html">Changelog</a></div>
     <div><h4>Resources</h4><a href="${r}docs.html">Docs</a><a href="${r}api.html">Astro API</a><a href="${r}account.html">Account</a><a href="${r}blog/index.html">Blog</a><a href="${r}press.html">Press kit</a>${SITE.repo ? `<a href="${SITE.repo}" rel="noopener">Source on GitHub</a>` : ''}</div>
     <div><h4>Legal</h4><a href="${r}privacy.html">Privacy</a><a href="${r}assets/fonts/FONTS-LICENSE.txt">Font licenses</a></div>
   </div>
+  <div class="wrap footer-word" aria-hidden="true">Astro <em>AI</em></div>
   <div class="wrap footer-base"><span>© ${SITE.year} Astro AI</span><span class="mono">Made for curious people · runs on free AI models, which can make mistakes</span></div>
 </footer>
 </body>

@@ -1,26 +1,327 @@
-<!--meta {"title": "", "description": "Astro AI is a free desktop app where a team of free AI models answers as one, with a code workspace, an autonomous agent, voice, notes and tasks. Windows, Linux and macOS.", "nav": "home", "bodyClass": "home"} -->
+<!--meta {"title": "", "description": "Astro AI 1.1 is a free AI coding platform and desktop app. Open any folder, pick Plan, Ask or Auto, and a team of free AI models plans, writes, tests and reviews your code, with skills, MCP servers, plugins and themes. Windows, Linux and macOS.", "nav": "home", "bodyClass": "home"} -->
 <section class="hero">
-  <canvas class="hero-canvas" data-orbit data-cx="0.77" data-cy="0.45" data-size="0.25" data-mcx="0.66" data-mcy="0.17" data-msize="0.5" aria-hidden="true"></canvas>
+  <canvas class="hero-canvas" data-orbit data-cx="0.93" data-cy="0.09" data-size="0.1" data-stars="0.8" data-mcx="0.9" data-mcy="0.05" data-msize="0.22" aria-hidden="true" style="opacity:.75"></canvas>
   <div class="wrap">
     <div class="hero-copy">
-      <span class="eyebrow reveal">Version {{version}} · Free desktop app</span>
-      <h1 class="display reveal" data-delay="1">One brain, <em class="accent">many minds.</em></h1>
-      <p class="lead reveal" data-delay="2">Astro AI gets a team of free AI models to answer as one. It also gives you a code workspace, an autonomous agent, voice, notes and tasks, all in one calm desktop app for Windows, Linux and macOS.</p>
+      <a class="announce reveal" href="{{root}}blog/astro-ai-1-1-coding-platform.html"><b>New · {{version}}</b>Open folders, Plan / Ask / Auto<span class="hide-sm">, MCP and plugins</span> <span class="arrow">→</span></a>
+      <h1 class="display reveal" data-delay="1">Build with <em class="accent">a whole team</em> of AI.</h1>
+      <p class="lead reveal" data-delay="2">Astro AI is a free coding platform. Open any folder and a team of free AI models plans, writes, tests and reviews your code. It reads the setup you already use with Claude Code, Codex, Cursor and OpenCode: rules, skills, MCP servers and plugins.</p>
       <div class="hero-actions reveal" data-delay="3">
         <a class="btn btn-primary btn-lg" href="{{root}}download.html" data-os-primary
            data-href-windows="{{dl:windows-x64-Setup:href}}" data-href-linux="{{dl:_amd64:href}}" data-href-macos="{{root}}download.html#macos">
           {{icon:download}}<span class="label">Download Astro AI</span></a>
-        <a class="btn btn-ghost btn-lg" href="#how">See how it works <span class="arrow">→</span></a>
+        <a class="btn btn-ghost btn-lg" href="#modes">How the agent works <span class="arrow">→</span></a>
       </div>
-      <div class="hero-meta reveal" data-delay="3"><span>Free</span><span>No account</span><span>26 models out of the box</span><span>No telemetry</span></div>
+      <div class="hero-meta reveal" data-delay="3"><span>Free</span><span>No account needed</span><span>26 models out of the box</span><span>No telemetry</span></div>
+    </div>
+
+    <div class="ide-stage">
+      <div class="win ide" data-ide aria-label="Animated demo: the Astro AI agent adds rate limiting to an API">
+        <div class="win-bar">
+          <div class="win-dots"><i></i><i></i><i></i></div>
+          <div class="win-title"><b>Astro AI</b> · ~/projects/todo-api</div>
+          <span class="win-meta"><i class="live" data-ide-live></i><span data-ide-status>Ready</span></span>
+        </div>
+        <div class="ide-main">
+          <aside class="ide-tree" data-ide-tree></aside>
+          <div class="ide-center">
+            <div class="ide-tabs" data-ide-tabs></div>
+            <div class="ide-code" data-ide-code></div>
+            <div class="ide-term">
+              <div class="ide-term-h"><span class="on">Terminal</span><span>Problems</span><span>Output</span></div>
+              <div class="ide-term-b" data-ide-term></div>
+            </div>
+          </div>
+          <aside class="ide-agent">
+            <div class="ag-h"><span class="dot">{{icon:bot}}</span>Agent<small data-ide-mode-label>Ask · approve writes</small></div>
+            <div class="ag-log" data-ide-log></div>
+            <div class="ag-foot">
+              <div class="ag-input">Give the team a job: build, fix, test…</div>
+              <div class="ag-modes" role="group" aria-label="Permission mode (restarts the demo)">
+                <button type="button" data-mode="plan" aria-pressed="false">Plan</button>
+                <button type="button" data-mode="ask" aria-pressed="true">Ask</button>
+                <button type="button" data-mode="auto" aria-pressed="false">Auto</button>
+                <button type="button" class="replay" data-ide-replay aria-label="Replay the demo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.6"/><path d="M4 4v4.6h4.6"/></svg></button>
+              </div>
+            </div>
+          </aside>
+        </div>
+        <noscript><img src="{{root}}assets/img/shots/v11-agent-after.webp" width="1440" height="900" alt="The Astro AI agent writing src/limit.js and editing src/server.js"></noscript>
+      </div>
+      <p class="ide-caption"><span><b>Try it:</b> switch between Plan, Ask and Auto</span><span>A dramatised demo · <a href="#tour" style="color:inherit;text-decoration:underline">see real screenshots</a></span></p>
     </div>
   </div>
 </section>
 
-<section class="showcase">
-  <div class="wrap reveal">
-    <div class="frame"><div class="frame-glow"></div>
-      <img src="{{root}}assets/img/shots/chat-answer.webp" width="1440" height="900" alt="Astro AI showing a team answer: 19 models worked together to explain how rockets reach orbit" fetchpriority="high">
+<section class="section-tight">
+  <div class="wrap">
+    <p class="caption">Reads the files these tools already put in your repo</p>
+    <div class="tools-row reveal"><span>Claude Code</span><span>OpenAI Codex</span><span>Cursor</span><span>OpenCode</span><span>Gemini CLI</span><span>VS Code</span><span>DeepSeek Harness</span></div>
+    <div class="grid-4">
+      <div class="card cfg reveal"><code>AGENTS.md · CLAUDE.md · GEMINI.md</code><span class="what">Project rules</span><p class="small muted">Plus .cursorrules, .cursor/rules and copilot-instructions. Always given to the agent.</p><div class="who"><span>Codex</span><span>Claude Code</span><span>Gemini</span><span>Cursor</span></div></div>
+      <div class="card cfg reveal" data-delay="1"><code>.claude/skills/*/SKILL.md</code><span class="what">Skills</span><p class="small muted">Also .opencode/skill, .codex/skills and .agents/skills. Loaded only when a job needs them.</p><div class="who"><span>Claude Code</span><span>OpenCode</span><span>Codex</span></div></div>
+      <div class="card cfg reveal" data-delay="2"><code>.mcp.json · .vscode/mcp.json</code><span class="what">MCP servers</span><p class="small muted">Also .cursor/mcp.json and opencode.json. Local and remote servers, started only after you trust them.</p><div class="who"><span>Claude Code</span><span>VS Code</span><span>Cursor</span><span>OpenCode</span></div></div>
+      <div class="card cfg reveal" data-delay="3"><code>.claude/commands/*.md</code><span class="what">Slash commands</span><p class="small muted">Your own commands with $ARGUMENTS, from .claude, .opencode and .cursor folders.</p><div class="who"><span>Claude Code</span><span>OpenCode</span><span>Cursor</span></div></div>
+      <div class="card cfg reveal"><code>.claude/agents/*.md</code><span class="what">Subagents</span><p class="small muted">Custom agents the team can hand work to, plus the coding CLIs installed on your computer.</p><div class="who"><span>Claude Code</span><span>OpenCode</span></div></div>
+      <div class="card cfg reveal" data-delay="1"><code>.claude/settings.json → hooks</code><span class="what">Hooks</span><p class="small muted">Run your scripts before or after tools. Project hooks need your trust first.</p><div class="who"><span>Claude Code</span></div></div>
+      <div class="card cfg reveal" data-delay="2"><code>.claude-plugin/plugin.json</code><span class="what">Plugins</span><p class="small muted">Install from GitHub: skills, commands, agents, hooks and MCP servers in one go.</p><div class="who"><span>Claude Code</span></div></div>
+      <div class="card cfg reveal" data-delay="3"><code>claude · codex · gemini · dsh</code><span class="what">Coding CLIs as subagents</span><p class="small muted">If they're installed, the agent can delegate to them, in the same permission mode.</p><div class="who"><span>Claude Code</span><span>Codex</span><span>Gemini CLI</span><span>DeepSeek Harness</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="modes">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="eyebrow"><span class="no">01 /</span> Permissions</span>
+      <h2 class="h2">You decide how much <em class="accent">it can touch.</em></h2>
+      <p>Every folder you open has a permission mode. Change it any time from the composer or with <code class="mono small">/mode</code>. A checkpoint is saved before each run, so you can undo the whole job.</p>
+    </div>
+    <div class="modes">
+      <article class="card mode reveal">
+        <div class="mode-h"><span class="lbl">{{icon:eye}} Plan</span><h3>Look, don't touch.</h3><p>Read-only. The agent explores, searches and runs safe commands, then hands you a plan to approve.</p></div>
+<div class="tx"><span class="u">› /plan add rate limiting</span>
+<span class="d">  read   src/server.js</span>
+<span class="d">  search app.use</span>
+<span class="p">  ✎ Plan · 4 steps</span>
+<span class="d">  write  src/limit.js</span>  <span class="w">blocked</span>
+  <span class="btns"><i class="on">Run this plan</i></span></div>
+      </article>
+      <article class="card mode ask reveal" data-delay="1">
+        <div class="mode-h"><span class="lbl">{{icon:shield}} Ask</span><span class="badge soft">Default for folders</span><h3>Ask before changes.</h3><p>Reading is free. Writing files and running commands waits for your OK, once or for the whole run.</p></div>
+<div class="tx"><span class="u">› add rate limiting</span>
+<span class="ok">  ✓ read src/server.js</span>
+<span class="w">  ? Write src/limit.js (15 lines)</span>
+  <span class="btns"><i>Allow</i><i class="on">Allow all this run</i><i>Deny</i></span>
+<span class="ok">  ✓ wrote src/limit.js</span>
+<span class="ok">  ✓ edited src/server.js  +2</span></div>
+      </article>
+      <article class="card mode reveal" data-delay="2">
+        <div class="mode-h"><span class="lbl">{{icon:zap}} Auto</span><h3>Full speed.</h3><p>The agent works on its own, logs every step and keeps a checkpoint, so one click undoes everything.</p></div>
+<div class="tx"><span class="u">› add rate limiting</span>
+<span class="d">  ⟲ checkpoint saved</span>
+<span class="ok">  ✓ wrote  src/limit.js</span>
+<span class="ok">  ✓ edited src/server.js</span>
+<span class="ok">  ✓ npm test · 14 passed</span>
+<span class="p">  ✓ team review done</span>
+  <span class="btns"><i>↶ Undo all</i></span></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section band" id="extensions">
+  <div class="wrap">
+    <div class="section-head row reveal">
+      <div>
+        <span class="eyebrow"><span class="no">02 /</span> Extensions</span>
+        <h2 class="h2">Plug in <em class="accent">anything.</em></h2>
+        <p>MCP servers, Claude Code plugins, skills, commands, themes and snippets, all in one Extensions panel next to your files.</p>
+      </div>
+      <a class="btn btn-ghost" href="{{root}}docs.html#extensions">Extensions docs <span class="arrow">→</span></a>
+    </div>
+    <div class="bento">
+      <article class="card xl reveal">
+        <span class="tag">MCP</span>
+        <div class="icon">{{icon:plug}}</div>
+        <h3>MCP servers, from your repo or the registry</h3>
+        <p>Browse the official MCP registry, or let Astro find the servers already in your project config. Project servers can run code, so they only start after you trust them.</p>
+        <div class="mock" aria-hidden="true">
+          <div class="mock-row"><span class="dot run"></span><span class="nm">project-notes</span><span class="ds">.mcp.json · 2 tools</span><span class="st run">running</span></div>
+          <div class="mock-row"><span class="dot warn"></span><span class="nm">postgres</span><span class="ds">.vscode/mcp.json · query your database</span><span class="st trust">Trust and start</span></div>
+          <div class="mock-row"><span class="dot"></span><span class="nm">browser</span><span class="ds">registry · remote server over HTTP</span><span class="st off">Add</span></div>
+        </div>
+      </article>
+      <article class="card reveal" data-delay="1">
+        <span class="tag">Plugins</span>
+        <div class="icon">{{icon:puzzle}}</div>
+        <h3>Plugins from GitHub</h3>
+        <p>Paste a repo. Astro installs Claude Code plugins and plugin marketplaces.</p>
+        <div class="mock" aria-hidden="true">
+          <div class="mock-in"><span class="f">github.com/owner/plugin</span><span class="b">Install</span></div>
+          <div class="mock-row"><span class="ds">Adds 3 skills · 2 commands · 1 MCP server</span></div>
+        </div>
+      </article>
+      <article class="card wide reveal">
+        <span class="tag">Themes · Open VSX</span>
+        <div class="icon">{{icon:palette}}</div>
+        <h3>VS Code themes, one click away</h3>
+        <p>Search Open VSX and install colour themes and snippet packs. Try one here: it recolours every code sample on this page.</p>
+        <div class="swatches-row" role="group" aria-label="Code theme">
+          <button type="button" aria-pressed="true" data-theme-set="#f3a679,#a3e4b8,#9fb0ff,#fbcf6b,#6f6f78,#e6e6ea,#09090b"><i></i>Astro</button>
+          <button type="button" aria-pressed="false" data-theme-set="#c678dd,#98c379,#61afef,#d19a66,#5c6370,#abb2bf,#282c34"><i></i>One Dark</button>
+          <button type="button" aria-pressed="false" data-theme-set="#ff79c6,#f1fa8c,#50fa7b,#bd93f9,#6272a4,#f8f8f2,#282a36"><i></i>Dracula</button>
+          <button type="button" aria-pressed="false" data-theme-set="#bb9af7,#9ece6a,#7aa2f7,#ff9e64,#565f89,#c0caf5,#1a1b26"><i></i>Tokyo Night</button>
+        </div>
+        <div class="mock"><pre class="mock-code" data-hl>// src/limit.js
+export function limit({ max = 100 } = {}) {
+  const hits = new Map();
+  return (req, res, next) =&gt; {
+    const n = (hits.get(req.ip) ?? 0) + 1;
+    hits.set(req.ip, n);
+    if (n &gt; max) return res.status(429).end();
+    next();
+  };
+}</pre></div>
+      </article>
+      <article class="card wide reveal" data-delay="1">
+        <span class="tag">Commands</span>
+        <div class="icon">{{icon:command}}</div>
+        <h3>Slash commands you already know</h3>
+        <p>Built in, plus your own from <code class="mono small">.claude/commands</code>. Type to filter.</p>
+        <div class="palette" data-palette>
+          <label>/<input type="text" placeholder="type a command…" aria-label="Filter slash commands" autocomplete="off" spellcheck="false"></label>
+          <ul>
+            <li data-k="init agents.md project"><b>/init</b><span>Write or improve AGENTS.md</span></li>
+            <li data-k="plan read-only"><b>/plan</b><span>Plan first (read-only), then run it</span></li>
+            <li data-k="mode plan ask auto permission"><b>/mode</b><span>Plan, Ask or Auto</span></li>
+            <li data-k="review diff changes"><b>/review</b><span>Review the current changes</span></li>
+            <li data-k="test fix failures"><b>/test</b><span>Run the tests and fix failures</span></li>
+            <li data-k="commit git message"><b>/commit</b><span>Write a message and commit (no push)</span></li>
+            <li data-k="compact summarise context"><b>/compact</b><span>Summarise the session to free context</span></li>
+            <li data-k="mcp servers tools"><b>/mcp</b><span>MCP servers and their tools</span></li>
+            <li data-k="skills"><b>/skills</b><span>Installed skills</span></li>
+            <li data-k="ship custom release"><b>/ship</b><span>Your command · .claude/commands/ship.md</span></li>
+            <li class="none" hidden>No command matches. Your own commands show up here too.</li>
+          </ul>
+        </div>
+      </article>
+      <article class="card reveal">
+        <span class="tag">Skills</span>
+        <div class="icon">{{icon:spark}}</div>
+        <h3>Skills, loaded on demand</h3>
+        <p>The agent sees each skill's name and description, and reads the full SKILL.md only when it's relevant.</p>
+      </article>
+      <article class="card reveal" data-delay="1">
+        <span class="tag">Problems</span>
+        <div class="icon">{{icon:check}}</div>
+        <h3>A real Problems panel</h3>
+        <p>Checks with the tools you have (node, tsc, gcc, cargo, go and more), with squiggles in the editor. The agent can read them too.</p>
+      </article>
+      <article class="card reveal" data-delay="2">
+        <span class="tag">Editor</span>
+        <div class="icon">{{icon:code}}</div>
+        <h3>AI ghost text</h3>
+        <p>Optional inline suggestions as you type. <kbd>Tab</kbd> to accept, keep typing to ignore.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="tour">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="eyebrow"><span class="no">03 /</span> The real thing</span>
+      <h2 class="h2">Not a mockup. <em class="accent">Version {{version}}.</em></h2>
+      <p>Screenshots straight from the app, working on the same todo-api project as the demo above.</p>
+    </div>
+    <div data-tabs class="reveal">
+      <div class="tabs" role="tablist" aria-label="Screenshots">
+        <button class="tab" role="tab" id="t-agent" aria-controls="p-agent" aria-selected="true">Agent</button>
+        <button class="tab" role="tab" id="t-mcp" aria-controls="p-mcp" aria-selected="false" tabindex="-1">Extensions</button>
+        <button class="tab" role="tab" id="t-reg" aria-controls="p-reg" aria-selected="false" tabindex="-1">MCP registry</button>
+        <button class="tab" role="tab" id="t-themes" aria-controls="p-themes" aria-selected="false" tabindex="-1">Themes</button>
+        <button class="tab" role="tab" id="t-probs" aria-controls="p-probs" aria-selected="false" tabindex="-1">Problems</button>
+        <button class="tab" role="tab" id="t-open" aria-controls="p-open" aria-selected="false" tabindex="-1">Open folder</button>
+        <button class="tab" role="tab" id="t-brain" aria-controls="p-brain" aria-selected="false" tabindex="-1">One Brain</button>
+      </div>
+      <div class="tab-panel active" id="p-agent" role="tabpanel" aria-labelledby="t-agent">
+        <div class="frame"><div class="frame-glow"></div><img src="{{root}}assets/img/shots/v11-agent-after.webp" width="1440" height="900" alt="The Agent page: the agent wrote src/limit.js, edited src/server.js and is starting the server. The Changes panel lists 3 changed files." loading="lazy"></div>
+        <p class="cap">A real Ask-mode run: every write is logged, and the Changes panel keeps a diff for each file.</p>
+      </div>
+      <div class="tab-panel" id="p-mcp" role="tabpanel" aria-labelledby="t-mcp">
+        <div class="frame"><img src="{{root}}assets/img/shots/v11-ext-mcp.webp" width="1440" height="900" alt="The Extensions panel in the Workspace showing the project-notes MCP server running with 2 tools" loading="lazy"></div>
+        <p class="cap">The project's own MCP server, found in .mcp.json and running after you trust it.</p>
+      </div>
+      <div class="tab-panel" id="p-reg" role="tabpanel" aria-labelledby="t-reg">
+        <div class="frame"><img src="{{root}}assets/img/shots/v11-mcp-registry.webp" width="1440" height="900" alt="The MCP registry browser listing servers from the official Model Context Protocol registry" loading="lazy"></div>
+        <p class="cap">Search the official MCP registry and add a server in a click.</p>
+      </div>
+      <div class="tab-panel" id="p-themes" role="tabpanel" aria-labelledby="t-themes">
+        <div class="frame"><img src="{{root}}assets/img/shots/v11-themes.webp" width="1440" height="900" alt="Searching Open VSX for dark colour themes from the Themes tab" loading="lazy"></div>
+        <p class="cap">VS Code colour themes and snippets from Open VSX. Extensions that run code are not installed.</p>
+      </div>
+      <div class="tab-panel" id="p-probs" role="tabpanel" aria-labelledby="t-probs">
+        <div class="frame"><img src="{{root}}assets/img/shots/v11-problems.webp" width="1440" height="900" alt="The Problems panel listing a syntax error in src/routes/users.js, with a red squiggle in the editor" loading="lazy"></div>
+        <p class="cap">Problems from your own toolchain, with squiggles right where the error is.</p>
+      </div>
+      <div class="tab-panel" id="p-open" role="tabpanel" aria-labelledby="t-open">
+        <div class="frame"><img src="{{root}}assets/img/shots/v11-open-folder.webp" width="1440" height="900" alt="The Open folder dialog browsing to the todo-api project" loading="lazy"></div>
+        <p class="cap">Work on real folders on your disk. Closing one never deletes your files.</p>
+      </div>
+      <div class="tab-panel" id="p-brain" role="tabpanel" aria-labelledby="t-brain">
+        <div class="frame"><img src="{{root}}assets/img/shots/chat-answer.webp" width="1440" height="900" alt="A One Brain answer written by 19 models working together" loading="lazy"></div>
+        <p class="cap">And the chat that started it all: One Brain, where the whole team writes one answer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="wrap stats reveal">
+    <div class="stat"><b>26</b><span>free models ready the first time you open it</span></div>
+    <div class="stat"><b>50<em>+</em></b><span>providers supported. Add free keys whenever you like.</span></div>
+    <div class="stat"><b>3</b><span>permission modes, with a checkpoint before every run</span></div>
+    <div class="stat"><b>0</b><span>accounts, ads, trackers or telemetry</span></div>
+  </div>
+</section>
+
+<section class="section" id="how">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="eyebrow"><span class="no">04 /</span> One Brain</span>
+      <h2 class="h2">One brain, <em class="accent">many minds.</em></h2>
+      <p>The agent plans with the team and reviews with the team. One fast model does the typing, with automatic failover if it hits a limit.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><span class="n">01 · ASK</span><h3>You ask</h3><p>Write a question or give the agent a job, in chat, the Workspace or the Agent page.</p><div class="bar"><i></i></div></div>
+      <div class="step reveal" data-delay="1"><span class="n">02 · THINK</span><h3>They all work</h3><p>Every available model works on it at the same time, including the slow ones.</p><div class="bar"><i></i></div></div>
+      <div class="step reveal" data-delay="2"><span class="n">03 · REVIEW</span><h3>They check</h3><p>The answers are compared and reviewed, so mistakes one model makes get caught by the others.</p><div class="bar"><i></i></div></div>
+      <div class="step reveal" data-delay="3"><span class="n">04 · ANSWER</span><h3>One answer</h3><p>You get one clear answer or one finished change. Press <strong>Answer now</strong> if you don't want to wait.</p><div class="bar"><i></i></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="wrap split">
+    <div class="reveal">
+      <span class="eyebrow"><span class="no">05 /</span> Astro API</span>
+      <h2 class="h2">Use your keys <em class="accent">from anywhere.</em></h2>
+      <p>An optional account gives you one OpenAI-compatible endpoint for every provider key you add. Point any tool that speaks the OpenAI API at it, including Astro AI itself.</p>
+      <ul class="ticks">
+        <li><code class="mono small">astro/auto</code> fails over between your free models</li>
+        <li>Your provider keys are encrypted; prompts are never stored</li>
+        <li>Paid models only when you turn them on</li>
+      </ul>
+      <div class="hero-actions" style="margin-top:28px"><a class="btn btn-ghost" href="{{root}}api.html">Read the API docs <span class="arrow">→</span></a></div>
+    </div>
+    <div class="win codewin reveal" data-delay="1">
+      <div class="win-bar"><div class="win-dots"><i></i><i></i><i></i></div><div class="win-title">terminal</div><span class="win-meta">curl</span></div>
+<pre data-hl>curl https://…/astro-api/v1/chat/completions \
+  -H 'Authorization: Bearer astro_sk_…' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "model": "astro/auto",
+    "messages": [{ "role": "user", "content": "Explain MCP in one line" }],
+    "max_tokens": 400
+  }'</pre>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="trailer">
+  <div class="wrap split flip">
+    <div class="reveal">
+      <span class="eyebrow">The 1.0 trailer</span>
+      <h2 class="h2">Sixty seconds, <em class="accent">many minds.</em></h2>
+      <p>Where it started: One Brain, the Workspace, the Agent and voice in one minute. Sound on.</p>
+      <p class="small muted">Space scenes are AI-generated; the app footage is real (version 1.0). <a href="{{root}}assets/video/astro-ai-trailer.mp4" download>Download MP4</a> · <a href="{{root}}assets/video/astro-ai-trailer-vertical.mp4" download>Vertical 9:16 cut</a></p>
+    </div>
+    <div class="frame trailer reveal" data-delay="1">
+      <video controls preload="none" playsinline width="1920" height="1080" poster="{{root}}assets/video/astro-ai-trailer-poster.jpg" aria-label="Astro AI 1.0 trailer, 60 seconds">
+        <source src="{{root}}assets/video/astro-ai-trailer.mp4" type="video/mp4">
+        <a href="{{root}}assets/video/astro-ai-trailer.mp4">Download the Astro AI trailer (MP4)</a>
+      </video>
     </div>
   </div>
 </section>
@@ -37,180 +338,10 @@
   </div>
 </section>
 
-<section class="section-tight">
-  <div class="wrap stats reveal">
-    <div class="stat"><b>26</b><span>free models ready the first time you open it</span></div>
-    <div class="stat"><b>50<em>+</em></b><span>providers supported. Add free keys whenever you like.</span></div>
-    <div class="stat"><b>0</b><span>accounts, ads, trackers or telemetry</span></div>
-    <div class="stat"><b><em>1</em></b><span>answer, written by the whole team together</span></div>
-  </div>
-</section>
-
-<section class="section" id="trailer">
-  <div class="wrap">
-    <div class="section-head center reveal">
-      <span class="eyebrow">Official trailer</span>
-      <h2 class="h2">Sixty seconds, <em class="accent">many minds.</em></h2>
-      <p>One Brain, the Workspace, the Agent and voice in one minute. Sound on.</p>
-    </div>
-    <div class="frame trailer reveal"><div class="frame-glow"></div>
-      <video controls preload="none" playsinline width="1920" height="1080" poster="{{root}}assets/video/astro-ai-trailer-poster.jpg" aria-label="Astro AI official trailer, 60 seconds">
-        <source src="{{root}}assets/video/astro-ai-trailer.mp4" type="video/mp4">
-        <a href="{{root}}assets/video/astro-ai-trailer.mp4">Download the Astro AI trailer (MP4)</a>
-      </video>
-    </div>
-    <p class="trailer-note small muted">Space scenes are AI-generated; the app footage is real. <a href="{{root}}assets/video/astro-ai-trailer.mp4" download>Download MP4</a> · <a href="{{root}}assets/video/astro-ai-trailer-vertical.mp4" download>Vertical 9:16 cut</a></p>
-  </div>
-</section>
-
-<section class="section" id="how">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="eyebrow">How One Brain works</span>
-      <h2 class="h2">Not a router. <em class="accent">A team.</em></h2>
-      <p>Most multi-model apps send each question to one model. Astro AI asks every available model, has them check each other's work, then merges the best of it into a single answer.</p>
-    </div>
-    <div class="steps">
-      <div class="step reveal"><span class="n">01</span><h3>Plan</h3><p>The team reads your question, your chat history and any knowledge files, then agrees on an approach.</p><div class="bar"><i></i></div></div>
-      <div class="step reveal" data-delay="1"><span class="n">02</span><h3>Work</h3><p>Every available model drafts its own answer at the same time. Slow models still get a say.</p><div class="bar"><i></i></div></div>
-      <div class="step reveal" data-delay="2"><span class="n">03</span><h3>Review</h3><p>The drafts are compared. Where models disagree, the team finds the reason and checks facts and code.</p><div class="bar"><i></i></div></div>
-      <div class="step reveal" data-delay="3"><span class="n">04</span><h3>Answer</h3><p>One model merges the best parts into a single reply, and shows how many models contributed and how confident they were.</p><div class="bar"><i></i></div></div>
-    </div>
-
-    <div class="split" style="margin-top: clamp(56px, 8vw, 96px)">
-      <div class="reveal">
-        <span class="eyebrow">Honest by design</span>
-        <h2 class="h2">Teamwork takes <em class="accent">a few minutes.</em></h2>
-        <p>Waiting for every mind is slower than asking one. A full One Brain answer usually takes a few minutes, and Astro AI shows each stage while it works. Press <strong>Answer now</strong> at any time to stop waiting for slower teammates.</p>
-        <ul class="ticks">
-          <li>Need it fast? Pick any single model, or use Fast mode in the Workspace.</li>
-          <li>Every answer shows how many models worked on it and which model merged it.</li>
-          <li>Free tiers have daily limits. When one provider runs out, the rest of the team carries on.</li>
-        </ul>
-      </div>
-      <div class="reveal" data-delay="1">
-        <div class="frame"><img src="{{root}}assets/img/shots/brain-working.webp" width="1440" height="900" alt="The One Brain progress card: Plan done, Work in progress, with an Answer now button" loading="lazy"></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<hr class="divider">
-
-<section class="section" id="features">
-  <div class="wrap">
-    <div class="section-head center reveal">
-      <span class="eyebrow">Everything in one place</span>
-      <h2 class="h2">Chat, build, research, <em class="accent">ship.</em></h2>
-      <p>Each space shares the same brain, so you can go from asking a question to running working code without switching apps.</p>
-    </div>
-    <div class="bento">
-      <article class="card xl reveal">
-        <div class="icon">{{icon:code}}</div>
-        <h3>Workspace: a real code editor the team works in</h3>
-        <p>Files, tabs, a terminal and a live preview. Run JavaScript, Python, C, C++, Java, Bash and HTML. Every change is saved as a version first, so you can diff it or undo it.</p>
-        <div class="shot"><img src="{{root}}assets/img/shots/workspace.webp" width="1440" height="900" alt="The Workspace running a C++ program, with the AI engineering team panel on the right" loading="lazy"></div>
-      </article>
-      <article class="card tall reveal" data-delay="1">
-        <div class="icon">{{icon:bot}}</div>
-        <h3>Agent</h3>
-        <p>Give it a job and it works on its own. It runs commands, writes files, searches the web, starts servers and fixes its own errors. The team plans and reviews, and a fast model does the steps.</p>
-        <ul class="ticks" style="margin-top:18px">
-          <li>Every step and file change is logged</li>
-          <li>A checkpoint before each job, so you can roll back</li>
-          <li>See changes, files, terminal and preview side by side</li>
-        </ul>
-      </article>
-      <article class="card reveal">
-        <div class="icon">{{icon:wave}}</div>
-        <h3>Live voice</h3>
-        <p>Talk to the brain out loud and hear it answer, or dictate when you'd rather not type.</p>
-      </article>
-      <article class="card reveal" data-delay="1">
-        <div class="icon">{{icon:flask}}</div>
-        <h3>Model Lab</h3>
-        <p>Send one prompt to many models at once and compare their speed and answers side by side.</p>
-      </article>
-      <article class="card reveal">
-        <div class="icon">{{icon:book}}</div>
-        <h3>Reader</h3>
-        <p>Open any web page or file and read it with AI: summaries, questions, explanations.</p>
-      </article>
-      <article class="card reveal" data-delay="1">
-        <div class="icon">{{icon:tasks}}</div>
-        <h3>Notes &amp; Tasks</h3>
-        <p>Save the useful parts of a conversation as notes, turn plans into tasks, and keep it all next to your chats.</p>
-      </article>
-      <article class="card reveal" data-delay="2">
-        <div class="icon">{{icon:layers}}</div>
-        <h3>Knowledge files</h3>
-        <p>Add your own documents and the team uses them as context when it answers, in any chat or project.</p>
-      </article>
-    </div>
-    <p style="text-align:center;margin-top:36px"><a class="btn btn-ghost" href="{{root}}features.html">Explore every feature <span class="arrow">→</span></a></p>
-  </div>
-</section>
-
-<section class="section" id="tour">
-  <div class="wrap">
-    <div class="section-head center reveal">
-      <span class="eyebrow">Take the tour</span>
-      <h2 class="h2">Calm on the surface, <em class="accent">busy underneath.</em></h2>
-    </div>
-    <div data-tabs class="reveal">
-      <div class="tabs" role="tablist" aria-label="Screenshots">
-        <button class="tab" role="tab" id="t-chat" aria-controls="p-chat" aria-selected="true">Chat</button>
-        <button class="tab" role="tab" id="t-ws" aria-controls="p-ws" aria-selected="false" tabindex="-1">Workspace</button>
-        <button class="tab" role="tab" id="t-agent" aria-controls="p-agent" aria-selected="false" tabindex="-1">Agent</button>
-        <button class="tab" role="tab" id="t-lab" aria-controls="p-lab" aria-selected="false" tabindex="-1">Model Lab</button>
-        <button class="tab" role="tab" id="t-light" aria-controls="p-light" aria-selected="false" tabindex="-1">Light theme</button>
-      </div>
-      <div class="tab-panel active" id="p-chat" role="tabpanel" aria-labelledby="t-chat">
-        <div class="frame"><img src="{{root}}assets/img/shots/home-dark.webp" width="1440" height="900" alt="The Astro AI chat home screen in dark theme" loading="lazy"></div>
-        <p class="cap">Chat with the whole team, or pick one model. Change modes, response language and voice right from the composer.</p>
-      </div>
-      <div class="tab-panel" id="p-ws" role="tabpanel" aria-labelledby="t-ws">
-        <div class="frame"><img src="{{root}}assets/img/shots/workspace.webp" width="1440" height="900" alt="The Workspace with a C++ file open and its output below" loading="lazy"></div>
-        <p class="cap">Edit, run and preview code. The team sees your project, its memory and git status, then writes complete files.</p>
-      </div>
-      <div class="tab-panel" id="p-agent" role="tabpanel" aria-labelledby="t-agent">
-        <div class="frame"><img src="{{root}}assets/img/shots/agent.webp" width="1440" height="900" alt="The Agent screen with sessions on the left, the job in the middle and changes on the right" loading="lazy"></div>
-        <p class="cap">Hand over a whole job. Changes, files, terminal and preview stay visible the entire time.</p>
-      </div>
-      <div class="tab-panel" id="p-lab" role="tabpanel" aria-labelledby="t-lab">
-        <div class="frame"><img src="{{root}}assets/img/shots/model-lab.webp" width="1440" height="900" alt="Model Lab listing free models grouped by provider" loading="lazy"></div>
-        <p class="cap">Test any model against any other and export the results.</p>
-      </div>
-      <div class="tab-panel" id="p-light" role="tabpanel" aria-labelledby="t-light">
-        <div class="frame"><img src="{{root}}assets/img/shots/chat-light.webp" width="1440" height="900" alt="A team answer shown in the light theme" loading="lazy"></div>
-        <p class="cap">Prefer daylight? Switch between light and dark with one click.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section">
-  <div class="wrap split flip">
-    <div class="reveal">
-      <span class="eyebrow">Installs in seconds</span>
-      <h2 class="h2">An installer that <em class="accent">feels like liftoff.</em></h2>
-      <p>On Windows, Astro AI has its own installer, built from scratch. The moon's orbit is the progress bar. It installs just for you, without admin rights, and removes itself completely when you uninstall.</p>
-      <ul class="ticks">
-        <li>Per-user install: no administrator prompt</li>
-        <li>Silent install for IT: <code class="mono small">Setup.exe /S</code></li>
-        <li>Clean uninstall, with an option to remove your data too</li>
-      </ul>
-    </div>
-    <div class="reveal" data-delay="1">
-      <div class="frame"><img src="{{root}}assets/img/shots/installer-1-welcome-clean.webp" width="860" height="560" alt="The Astro AI installer welcome screen: Ready for liftoff" loading="lazy"></div>
-    </div>
-  </div>
-</section>
-
 <section class="section" id="platforms">
   <div class="wrap">
     <div class="section-head center reveal">
-      <span class="eyebrow">Download</span>
+      <span class="eyebrow"><span class="no">06 /</span> Download</span>
       <h2 class="h2">For the computer <em class="accent">you already have.</em></h2>
       <p>The models run in the cloud, so Astro AI stays light on your RAM, CPU and GPU.</p>
     </div>
@@ -247,23 +378,29 @@
 <section class="section" id="faq">
   <div class="wrap">
     <div class="section-head center reveal">
-      <span class="eyebrow">Questions</span>
+      <span class="eyebrow"><span class="no">07 /</span> Questions</span>
       <h2 class="h2">Good to <em class="accent">know.</em></h2>
     </div>
     <div class="faq reveal">
       <details><summary>Is Astro AI really free?</summary><div class="a">
         <p>Yes. The app is free, and so are the models it uses out of the box. They come from providers' free tiers, which have daily or per-minute limits. When one provider hits its limit, the rest of the team keeps going.</p>
         <p>You can add free API keys from more providers in Settings. Nothing in Astro AI asks you to pay.</p></div></details>
-      <details><summary>Do I need an account?</summary><div class="a"><p>No. There is no Astro AI account and no sign-in. Install it and start chatting. Some providers ask you to sign up to get a free key, but that's optional.</p></div></details>
-      <details><summary>Where do my chats go?</summary><div class="a">
-        <p>Chats, notes, tasks, projects and keys are stored on your computer. When you ask a question, the text goes to the AI providers that answer it, and each provider has its own privacy policy. Astro AI has no analytics and no telemetry. <a href="{{root}}privacy.html">Read the privacy page</a>.</p></div></details>
-      <details><summary>Why is a One Brain answer slower than other chatbots?</summary><div class="a">
-        <p>Because it waits for the whole team, then reviews and merges their answers. That usually takes a few minutes. You can press <strong>Answer now</strong> at any time, or pick a single model for quick replies.</p></div></details>
+      <details><summary>Is it safe to let the agent work in my own folders?</summary><div class="a">
+        <p>Folders you open start in <strong>Ask</strong> mode: the agent can read, but every file change and command waits for your approval. <strong>Plan</strong> mode is read-only. In <strong>Auto</strong> the agent works on its own, but a checkpoint is saved first so you can undo the whole run.</p>
+        <p>It's still an AI, so review changes before you ship them, and keep your work in git.</p></div></details>
+      <details><summary>Can I use my Claude Code, Cursor or OpenCode setup?</summary><div class="a">
+        <p>Yes. Astro reads AGENTS.md, CLAUDE.md and other rule files, skills, slash commands, subagents, hooks and MCP configs from the places those tools use, and installs Claude Code plugins from GitHub. If the CLIs are installed, the agent can also hand work to them.</p></div></details>
+      <details><summary>Do MCP servers and plugins run automatically?</summary><div class="a">
+        <p>No. MCP servers from a project's config and project hooks only run after you trust them, because they can run code on your computer. You can stop or untrust them at any time in the Extensions panel.</p></div></details>
+      <details><summary>Do I need an account?</summary><div class="a"><p>Not for the app. There's no sign-in: install it and start. An account is optional and only needed for the <a href="{{root}}api.html">Astro API</a>.</p></div></details>
+      <details><summary>Where does my code go?</summary><div class="a">
+        <p>Your projects, chats and keys stay on your computer. When you ask for something, the relevant text and code go to the AI providers that answer it, and each provider has its own privacy policy. Astro AI has no analytics and no telemetry. <a href="{{root}}privacy.html">Read the privacy page</a>.</p></div></details>
+      <details><summary>Why does the agent take a while to finish?</summary><div class="a">
+        <p>After the work is done, the whole team reviews it, which can take a few minutes. Press <strong>■</strong> to skip the review, or switch the composer to <strong>Fast</strong> for quick single-model replies.</p></div></details>
       <details><summary>Is this AGI?</summary><div class="a">
         <p>No. Astro AI combines existing language models, and teamwork tends to catch more mistakes than any one model alone. But the models can still be wrong, so double-check anything important.</p></div></details>
       <details><summary>Windows says it "protected my PC". Is that safe?</summary><div class="a">
         <p>The installer isn't code-signed yet, so Microsoft SmartScreen shows a warning for new apps. Click <strong>More info</strong>, then <strong>Run anyway</strong>. To be sure the file wasn't changed along the way, compare its SHA-256 checksum with the one on the <a href="{{root}}download.html#verify">download page</a>.</p></div></details>
-      <details><summary>Does it work offline?</summary><div class="a"><p>The editor, notes, tasks and calculator work offline, and so does running code with compilers you have installed. AI answers need an internet connection, because the models run in the cloud.</p></div></details>
     </div>
   </div>
 </section>
@@ -273,13 +410,14 @@
     <div class="cta reveal">
       <canvas data-orbit data-cx="0.5" data-cy="1.12" data-size="0.36" data-stars="0.7" data-mcx="0.5" data-mcy="1.1" data-msize="0.6" aria-hidden="true"></canvas>
       <span class="eyebrow">Ready for liftoff</span>
-      <h2 class="h2">Put a whole team of AI <em class="accent">on your desktop.</em></h2>
+      <h2 class="h2">Open a folder. <em class="accent">Give the team a job.</em></h2>
       <p>Free, no account, and ready the first time you open it.</p>
       <div class="hero-actions">
         <a class="btn btn-primary btn-lg" href="{{root}}download.html" data-os-primary
            data-href-windows="{{dl:windows-x64-Setup:href}}" data-href-linux="{{dl:_amd64:href}}" data-href-macos="{{root}}download.html#macos">{{icon:download}}<span class="label">Download Astro AI</span></a>
         <a class="btn btn-ghost btn-lg" href="{{root}}docs.html">Read the docs</a>
       </div>
+      <div class="term-line" aria-hidden="true"><span class="p">›</span> /init <span style="color:var(--text-3)">· writes AGENTS.md for your project</span></div>
     </div>
   </div>
 </section>

@@ -1,0 +1,68 @@
+<!--meta {"title": "Astro AI 1.1: a coding platform with a whole team inside", "description": "Astro AI 1.1 opens real folders, adds Plan / Ask / Auto permission modes, and reads the skills, rules, MCP servers and plugins you already use with Claude Code, Codex, Cursor and OpenCode.", "nav": "blog", "ogType": "article"} -->
+<section class="page-hero">
+  <div class="wrap article" style="padding-bottom:0">
+    <a class="back" href="index.html">← All posts</a>
+    <div class="post-meta"><span>Release</span><span>October 27, 2026</span><span>5 min read</span></div>
+    <h1 class="h2" style="margin-top:0">Astro AI 1.1: <em class="accent">a coding platform with a whole team inside.</em></h1>
+    <p class="lead">Open any folder, choose how much the agent may touch, and bring the skills, rules, MCP servers and plugins you already use.</p>
+  </div>
+</section>
+<div class="wrap article">
+  <figure class="cover frame bare"><img src="{{root}}assets/img/blog/astro-ai-1-1.webp" width="1600" height="900" alt="Astro AI 1.1: Build with a whole team of AI"></figure>
+  <div class="prose">
+    <p>Astro AI started as a chat app where a team of free models answers as one. People quickly started using the Workspace and the Agent for real code, and asked for the things they were used to from Claude Code, Codex, Cursor and OpenCode. Version 1.1 is our answer: Astro AI is now a coding platform.</p>
+
+    <h2>Open a real folder</h2>
+    <p>Until now, Workspace projects lived inside Astro AI's own data folder. In 1.1 you can <strong>open any folder on your computer</strong> from the project menu. The editor, terminal, Git panel and agent all work on your real files, in place. Closing a folder only removes it from the list. Your files stay where they are.</p>
+
+    <h2>Plan, Ask or Auto</h2>
+    <p>Letting an AI loose on your own code needs clear rules, so every folder now has a permission mode:</p>
+    <ul>
+      <li><strong>Plan</strong> is read-only. The agent can read, search and run safe commands, then hands you a plan. Writes are blocked.</li>
+      <li><strong>Ask</strong> is the default for folders you open. Reading is free, but every file change and command waits for you: allow once, allow for the whole run, deny, or tell it what to do instead.</li>
+      <li><strong>Auto</strong> lets the agent work on its own. It still logs every step, and a checkpoint is saved first so you can undo the whole run.</li>
+    </ul>
+    <p>Switch modes from the composer, or type <code>/mode plan</code>, <code>/mode ask</code> or <code>/mode auto</code>.</p>
+    <figure><img src="{{root}}assets/img/shots/v11-agent-approval.webp" width="528" height="500" alt="Ask mode: the agent asks before running mkdir -p src" loading="lazy" style="max-width:528px;margin-inline:auto;display:block"><figcaption>Ask mode in a real run: the agent waits before running a command.</figcaption></figure>
+
+    <h2>Your setup, as it is</h2>
+    <p>Astro now reads the files other coding tools already put in your repo:</p>
+    <ul>
+      <li><strong>Rules</strong>: <code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>GEMINI.md</code>, <code>.cursorrules</code>, <code>.cursor/rules</code> and <code>.github/copilot-instructions.md</code>, plus your global rules from <code>~/.claude</code>, <code>~/.codex</code> and OpenCode.</li>
+      <li><strong>Skills</strong>: <code>SKILL.md</code> files from <code>.claude/skills</code>, <code>.opencode/skill</code>, <code>.codex/skills</code> and <code>.agents/skills</code>. The agent sees each skill's name and description, and loads the full instructions only when they're relevant.</li>
+      <li><strong>Slash commands</strong> and <strong>subagents</strong> from <code>.claude</code>, <code>.opencode</code> and <code>.cursor</code> folders, including <code>$ARGUMENTS</code>.</li>
+      <li><strong>Hooks</strong> from <code>.claude/settings.json</code>. Project hooks only run after you trust them.</li>
+    </ul>
+    <p>Built-in commands cover the usual jobs: <code>/init</code> writes or improves AGENTS.md, and there's also <code>/plan</code>, <code>/review</code>, <code>/test</code>, <code>/commit</code>, <code>/compact</code>, <code>/skills</code>, <code>/mcp</code> and <code>/agents</code>.</p>
+
+    <h2>Extensions: MCP, plugins, themes</h2>
+    <p>A new <strong>Extensions</strong> panel sits next to your files.</p>
+    <ul>
+      <li><strong>MCP servers</strong> from <code>.mcp.json</code>, <code>.vscode/mcp.json</code>, <code>.cursor/mcp.json</code> or <code>opencode.json</code>, or straight from the official MCP registry. Both local (stdio) and remote (HTTP) servers work. Servers from a project only start after you trust them, because they can run code on your computer.</li>
+      <li><strong>Plugins</strong> in the Claude Code format, installed from GitHub, including plugin marketplaces. A plugin can bring skills, commands, agents, hooks and MCP servers at once.</li>
+      <li><strong>Themes and snippets</strong> from Open VSX, the open registry of VS Code extensions. We install colour themes and snippet packs only, never extensions that run code.</li>
+    </ul>
+    <figure><img src="{{root}}assets/img/shots/v11-ext-mcp.webp" width="1440" height="900" alt="The Extensions panel with the project-notes MCP server running" loading="lazy"><figcaption>A project's own MCP server, found in .mcp.json and trusted with one click.</figcaption></figure>
+
+    <h2>A better editor, too</h2>
+    <ul>
+      <li>A <strong>Problems</strong> panel that checks your code with the tools you have installed (node, tsc, gcc, cargo, go and more), with squiggles in the editor. The agent reads it after every edit.</li>
+      <li>Optional <strong>AI ghost text</strong>: inline suggestions as you type. <kbd>Tab</kbd> accepts.</li>
+      <li>An <strong>Agent Manager</strong>, inspired by Antigravity, that shows every agent session in the window so you can run jobs in parallel.</li>
+      <li>If you have <strong>Claude Code, Codex, OpenCode, Gemini CLI or DeepSeek Harness</strong> installed, the agent can hand sub-tasks to them, in the same permission mode.</li>
+    </ul>
+
+    <h2>Honest notes</h2>
+    <ul>
+      <li>The agent's final team review can take a few minutes. Press <strong>■</strong> to skip it.</li>
+      <li>DeepSeek Harness support is new and experimental.</li>
+      <li>Antigravity has no public extension format, so we borrowed its ideas (like the Agent Manager) rather than its files.</li>
+      <li>macOS is still a build kit that makes the app in about a minute.</li>
+      <li>The models are free tiers with limits, and they can be wrong. Review changes before you ship them, and keep your work in git.</li>
+    </ul>
+
+    <h2>Get it</h2>
+    <p>Astro AI 1.1 is free for Windows and Linux, with a build kit for macOS. <a href="{{root}}download.html">Download it here</a>, and see the <a href="{{root}}changelog.html">changelog</a> for every detail.</p>
+    <p><em>The Astro AI team</em></p>
+  </div>
+</div>

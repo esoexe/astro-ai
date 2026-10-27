@@ -3,7 +3,7 @@
   <div class="wrap">
     <span class="eyebrow">Version {{version}} · {{date}}</span>
     <h1 class="h2">Download <em class="accent">Astro AI.</em></h1>
-    <p class="lead">Free for Windows, Linux and macOS, with no account needed. You get 26 free models the first time you open it, and you can add more at any time.</p>
+    <p class="lead">The AI coding platform with a whole team inside. Free for Windows, Linux and macOS, with no account needed. You get 26 free models the first time you open it, and you can add more at any time.</p>
     <div class="hero-actions" style="justify-content:center;margin-top:32px">
       <a class="btn btn-primary btn-lg" href="#windows" data-os-primary
          data-href-windows="{{dl:windows-x64-Setup:href}}" data-href-linux="{{dl:_amd64:href}}" data-href-macos="#macos">{{icon:download}}<span class="label">Choose your system</span></a>
@@ -13,6 +13,7 @@
        data-note-linux="Debian and Ubuntu package · 64-bit · {{dl:_amd64:size}}"
        data-note-macos="macOS 11+ · build the app on your Mac in about a minute"
        data-note-mobile="Astro AI is a desktop app. Open this page on your computer to download it.">Pick your system below.</p>
+    <div class="tools-row" style="margin:30px 0 0"><a href="{{root}}blog/astro-ai-1-1-coding-platform.html"><span>New in {{version}}: open folders</span></a><a href="{{root}}index.html#modes"><span>Plan / Ask / Auto</span></a><a href="{{root}}features.html#extensions"><span>MCP · plugins · themes</span></a></div>
   </div>
 </section>
 
@@ -84,6 +85,21 @@
         <p style="margin-top:12px"><code class="mono small" style="color:var(--peach-hi)">xcode-select --install</code><br><code class="mono small" style="color:var(--peach-hi)">./build_mac.sh</code></p>
         <p style="margin-top:12px">Drag the app from the new <code class="mono small">.dmg</code> into Applications.</p>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Then, in under a minute</span>
+      <h2 class="h2">Your first <em class="accent">agent run.</em></h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><span class="n">01 · OPEN</span><h3>Open a folder</h3><p>Workspace → project menu → <strong>Open folder…</strong> and pick any project on your disk.</p><div class="bar"><i></i></div></div>
+      <div class="step reveal" data-delay="1"><span class="n">02 · INIT</span><h3>Type /init</h3><p>The agent reads the project and writes an AGENTS.md, or improves the one you have.</p><div class="bar"><i></i></div></div>
+      <div class="step reveal" data-delay="2"><span class="n">03 · ASK</span><h3>Give it a job</h3><p>Folders start in <strong>Ask</strong> mode, so you approve every change and command.</p><div class="bar"><i></i></div></div>
+      <div class="step reveal" data-delay="3"><span class="n">04 · EXTEND</span><h3>Plug things in</h3><p>Trust your project's MCP servers or add more from the registry in <strong>Extensions</strong>.</p><div class="bar"><i></i></div></div>
     </div>
   </div>
 </section>
