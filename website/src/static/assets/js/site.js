@@ -254,6 +254,9 @@
   }
   $$('canvas[data-orbit]').forEach(orbit);
 
+  /* ------------------------------------------------------------ account link */
+  try { if (localStorage.getItem('astro.session')) $('[data-account-link]').forEach((a) => { a.textContent = 'Account'; }); } catch {}
+
   /* footer year links etc. are static; nothing else to do */
   void ROOT;
 })();

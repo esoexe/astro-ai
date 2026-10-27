@@ -2,7 +2,9 @@
 
 <h1 align="center">Astro AI</h1>
 <p align="center"><b>One brain, many minds.</b> A free desktop app where a team of free AI models answers as one.</p>
-<p align="center"><a href="https://esoexe.github.io/astro-ai/">Website</a> · <a href="https://esoexe.github.io/astro-ai/download.html">Download</a> · <a href="https://esoexe.github.io/astro-ai/docs.html">Docs</a> · <a href="https://esoexe.github.io/astro-ai/changelog.html">Changelog</a></p>
+<p align="center"><a href="https://esoexe.github.io/astro-ai/">Website</a> · <a href="https://esoexe.github.io/astro-ai/download.html">Download</a> · <a href="https://esoexe.github.io/astro-ai/docs.html">Docs</a> · <a href="https://esoexe.github.io/astro-ai/api.html">Astro API</a> · <a href="https://esoexe.github.io/astro-ai/changelog.html">Changelog</a></p>
+
+<p align="center"><a href="https://esoexe.github.io/astro-ai/#trailer"><img src="website/src/static/assets/video/astro-ai-trailer-poster.jpg" width="860" alt="Watch the Astro AI trailer"></a><br><sub>▶ <a href="https://esoexe.github.io/astro-ai/#trailer">Watch the 60-second trailer</a> · <a href="https://esoexe.github.io/astro-ai/assets/video/astro-ai-trailer.mp4">MP4</a> · <a href="https://esoexe.github.io/astro-ai/assets/video/astro-ai-trailer-vertical.mp4">vertical cut</a></sub></p>
 
 <p align="center"><img src="website/src/static/assets/img/shots/chat-answer.webp" width="860" alt="Astro AI: a One Brain answer written by 19 models"></p>
 
@@ -281,7 +283,7 @@ The local model server must be running and expose a compatible `/chat/completion
 ## Website
 
 The official Astro AI website lives in `website/`: static HTML, CSS and JS with no dependencies.
-`node website/build.js` builds it into `website/public/`, the folder you deploy (Netlify, Cloudflare Pages, Vercel or GitHub Pages).
+`node website/build.js` builds it into `website/dist/`, the folder you deploy (Netlify, Cloudflare Pages, Vercel or GitHub Pages).
 Only the CLEAN desktop builds are copied into the site, and the build refuses to publish anything from the WITH-KEYS edition.
 See `website/README.md` for deploy steps. Set your domain in `website/site.json` first.
 

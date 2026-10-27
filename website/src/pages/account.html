@@ -1,0 +1,114 @@
+<!--meta {"title": "Account", "description": "Sign in to Astro AI to create your Astro API key: one key and one endpoint for every AI model you have access to.", "nav": "api", "scripts": ["account.js"], "noindex": true, "bodyClass": "page-account"} -->
+<section class="page-hero acct-hero">
+  <div class="wrap">
+    <span class="eyebrow">Astro AI account</span>
+    <h1 class="h2" id="acct-title">One key for <em class="accent">every model.</em></h1>
+    <p class="lead" id="acct-lead">Sign in to create your Astro API key. Add the provider keys you already have, and call all of their models through one OpenAI-compatible endpoint.</p>
+  </div>
+</section>
+
+<noscript><div class="wrap"><div class="callout warn"><div>Your account page needs JavaScript turned on.</div></div></div></noscript>
+
+<div class="wrap acct" id="acct">
+  <!-- signed out -->
+  <section class="auth-card card" id="auth" hidden>
+    <div class="auth-tabs" role="tablist" aria-label="Sign in or create an account">
+      <button type="button" role="tab" id="tab-in" aria-selected="true" data-mode="signin">Sign in</button>
+      <button type="button" role="tab" id="tab-up" aria-selected="false" data-mode="signup">Create account</button>
+    </div>
+
+    <button type="button" class="btn btn-ghost btn-block gh-btn" id="gh">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      Continue with GitHub
+    </button>
+    <div class="or"><span>or use email</span></div>
+
+    <form id="auth-form" novalidate>
+      <label class="field"><span>Email</span><input type="email" name="email" autocomplete="email" required maxlength="200" placeholder="you@example.com"></label>
+      <label class="field"><span>Password</span><input type="password" name="password" autocomplete="current-password" required minlength="8" maxlength="72" placeholder="At least 8 characters"></label>
+      <label class="field" id="confirm-wrap" hidden><span>Confirm password</span><input type="password" name="confirm" autocomplete="new-password" minlength="8" maxlength="72"></label>
+      <p class="form-msg" id="auth-msg" role="status" aria-live="polite"></p>
+      <button class="btn btn-primary btn-block" type="submit" id="auth-submit">Sign in</button>
+    </form>
+    <p class="small muted auth-foot" id="auth-foot">New here? <a href="#" data-switch="signup">Create a free account</a>.</p>
+    <p class="small muted">By continuing you agree to use the API within each provider's terms. See our <a href="{{root}}privacy.html#accounts">privacy notes</a>.</p>
+  </section>
+
+  <!-- loading -->
+  <div class="acct-loading" id="loading"><span class="spinner" aria-hidden="true"></span><span>Loading your account…</span></div>
+
+  <!-- signed in -->
+  <section id="dash" hidden>
+    <div class="dash-head">
+      <div class="who">
+        <span class="avatar" id="avatar" aria-hidden="true"></span>
+        <div><b id="who-email"></b><span class="small muted" id="who-via"></span></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" type="button" id="signout">Sign out</button>
+    </div>
+
+    <div class="dash-grid">
+      <article class="card dash-card span-2">
+        <h2 class="h3">Your endpoint</h2>
+        <p class="muted small">OpenAI-compatible. Use it anywhere you can set a base URL. <a href="{{root}}api.html">Read the API docs →</a></p>
+        <div class="endpoint"><code id="endpoint"></code><button class="btn btn-ghost btn-sm" type="button" data-copy-target="endpoint">Copy</button></div>
+        <div class="stats-row">
+          <div><b id="st-today">0</b><span>requests today</span></div>
+          <div><b id="st-limit">5,000</b><span>daily limit</span></div>
+          <div><b id="st-providers">0</b><span>providers connected</span></div>
+          <div><b id="st-keys">0</b><span>active Astro keys</span></div>
+        </div>
+        <div class="usage-bars" id="usage" aria-label="Requests over the last 14 days"></div>
+      </article>
+
+      <article class="card dash-card span-2" id="keys-card">
+        <div class="card-head">
+          <div><h2 class="h3">Astro API keys</h2><p class="muted small">Each key works with every provider you connect below. Keep keys secret, and revoke any that leak.</p></div>
+        </div>
+        <form class="inline-form" id="key-form">
+          <input name="name" maxlength="60" placeholder="Key name, e.g. laptop or my-app" aria-label="Key name" required>
+          <button class="btn btn-primary btn-sm" type="submit">Create key</button>
+        </form>
+        <div class="new-key" id="new-key" hidden>
+          <p><b>Copy your new key now.</b> For your safety it is shown only once.</p>
+          <div class="endpoint"><code id="new-key-value"></code><button class="btn btn-primary btn-sm" type="button" data-copy-target="new-key-value">Copy</button></div>
+          <button class="linkish small" type="button" id="new-key-done">I've saved it</button>
+        </div>
+        <div class="table" id="keys"></div>
+      </article>
+
+      <article class="card dash-card span-2" id="prov-card">
+        <div class="card-head">
+          <div><h2 class="h3">Your provider keys</h2><p class="muted small">Bring your own keys (free or paid). They are encrypted before they're stored, and only ever sent to that provider. Astro AI never pays for or shares model access.</p></div>
+        </div>
+        <div class="table" id="providers"></div>
+
+        <details class="add-prov" id="add-prov">
+          <summary>Add a provider</summary>
+          <div class="prov-pick">
+            <input type="search" id="prov-search" placeholder="Search 79 providers… (Groq, OpenAI, Anthropic, Mistral)" aria-label="Search providers">
+            <label class="check small"><input type="checkbox" id="prov-free" checked> Free tiers first</label>
+          </div>
+          <div class="prov-list" id="prov-list" role="listbox" aria-label="Providers"></div>
+          <form id="prov-form" hidden>
+            <div class="prov-sel"><b id="pf-name"></b> <span class="badge" id="pf-badge"></span> <a id="pf-signup" target="_blank" rel="noopener">Get a key ↗</a></div>
+            <label class="field"><span id="pf-keylabel">API key</span><input type="password" name="key" autocomplete="off" spellcheck="false" required maxlength="600"></label>
+            <div id="pf-extra"></div>
+            <p class="form-msg" id="pf-msg" role="status" aria-live="polite"></p>
+            <div class="row"><button class="btn btn-primary btn-sm" type="submit">Save and test</button><button class="btn btn-ghost btn-sm" type="button" id="pf-cancel">Cancel</button></div>
+          </form>
+        </details>
+      </article>
+
+      <article class="card dash-card span-2 danger">
+        <h2 class="h3">Delete account</h2>
+        <p class="muted small">This permanently deletes your account, all Astro keys, every saved provider key and your usage history. It can't be undone.</p>
+        <form class="inline-form" id="del-form">
+          <input name="confirm" placeholder="Type DELETE to confirm" aria-label="Type DELETE to confirm" autocomplete="off">
+          <button class="btn btn-danger btn-sm" type="submit">Delete my account</button>
+        </form>
+      </article>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>

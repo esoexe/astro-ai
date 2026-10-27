@@ -1529,13 +1529,13 @@ std::map<std::string, std::string> g_keys; // provider secrets; written before t
 
 struct Route {
     std::string id, label, name, kind, model, provider, provider_name, base_url, api_key;
-    bool shared_quota = false, in_auto = true, vision = false, trains = false;
+    bool shared_quota = false, in_auto = true, vision = false, trains = false, paid = false, local = false;
     int wait_seconds = 60, parallel = 0;
 };
 struct ProviderInfo {
-    std::string id, name, key, signup, limits, privacy, status;
+    std::string id, name, key, signup, limits, privacy, status, base_url_key, base_url_default;
     std::vector<std::string> requires_keys;
-    bool connected = false, keyless = false, trains = false;
+    bool connected = false, keyless = false, trains = false, paid = false, local = false, paid_on = false;
     int models = 0;
 };
 std::vector<Route> g_routes;            // built once at startup, read-only afterwards
@@ -1588,19 +1588,23 @@ bool json_bool(const Json& object, std::string_view key, bool fallback) {
 bool looks_like_chat_model(const std::string& id) {
     const std::string lower = lower_copy(id);
     for (const char* bad : {"embed", "whisper", "tts", "audio", "imagen", "image-", "-image", "veo", "guard", "moderation",
-                            "rerank", "transcribe", "-live", "aqa", "learnlm", "computer-use", "robotics", "lyria", "orpheus", "playai"})
+                            "rerank", "transcribe", "-live", "aqa", "learnlm", "computer-use", "robotics", "lyria", "orpheus", "playai",
+                            "babbage", "davinci", "dall-e", "sora", "realtime", "-search-api", "ocr"})
         if (lower.find(bad) != std::string::npos) return false;
     return true;
 }
 
 // GET {base}/models. Returns nullopt when the platform does not answer (then the listed models are used).
-std::optional<std::vector<std::string>> discover_models(const std::string& base_url, const std::string& key) {
+std::optional<std::vector<std::string>> discover_models(const std::string& base_url, const std::string& key,
+                                                       const std::vector<std::string>& extra_headers = {}) {
     CURL* curl = curl_easy_init();
     if (!curl) return std::nullopt;
     std::string response;
     struct curl_slist* headers = nullptr;
     const std::string auth = "Authorization: Bearer " + key;
-    headers = curl_slist_append(headers, auth.c_str());
+    if (!key.empty()) headers = curl_slist_append(headers, auth.c_str());
+    for (const auto& h : extra_headers) headers = curl_slist_append(headers, h.c_str());
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 4L);
     const std::string url = base_url + "/models";
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
@@ -1670,6 +1674,8 @@ void build_registry() {
         const auto vision_models = json_strings(p.get("vision_models"));
         const bool trains = json_bool(p, "trains", false);
         const int parallel = json_int(p, "parallel", 0);
+        // Paid platforms join Auto/Team only after the user opts in (Settings -> Providers).
+        const bool allow_auto = !info.paid || info.paid_on;
         int index = 0;
         for (const auto& m : models) {
             Route r;
@@ -1678,7 +1684,8 @@ void build_registry() {
             const Json* custom = labels ? labels->get(m) : nullptr;
             r.name = custom && custom->string_ptr() ? *custom->string_ptr() : short_model_name(m);
             r.label = r.name + " (" + info.name + ")";
-            r.base_url = base; r.api_key = key; r.shared_quota = shared; r.in_auto = index < auto_models; r.wait_seconds = wait;
+            r.base_url = base; r.api_key = key; r.shared_quota = shared; r.in_auto = allow_auto && index < auto_models; r.wait_seconds = wait;
+            r.paid = info.paid; r.local = info.local;
             r.vision = std::find(vision_models.begin(), vision_models.end(), m) != vision_models.end(); r.trains = trains; r.parallel = parallel;
             g_routes.push_back(std::move(r));
             ++index;
@@ -1693,6 +1700,12 @@ void build_registry() {
             info.id = get_string(p, "id"); info.name = get_string(p, "name", info.id); info.key = get_string(p, "key");
             info.signup = get_string(p, "signup"); info.limits = get_string(p, "limits"); info.privacy = get_string(p, "privacy");
             info.keyless = json_bool(p, "keyless", false); info.trains = json_bool(p, "trains", false); info.requires_keys = json_strings(p.get("requires"));
+            info.paid = json_bool(p, "paid", false); info.local = json_bool(p, "local", false);
+            info.base_url_key = get_string(p, "base_url_key"); info.base_url_default = get_string(p, "base_url");
+            if (info.paid) {
+                const std::string opted = "," + secret_value("ASTRO_PAID_PROVIDERS") + ",";
+                info.paid_on = opted.find("," + info.id + ",") != std::string::npos;
+            }
             const std::string kind = get_string(p, "kind", "openai");
             if (info.id.empty()) continue;
             if (std::getenv(("DISABLE_PROVIDER_" + info.id).c_str())) { info.status = "Disabled by environment"; g_providers.push_back(info); continue; }
@@ -1708,15 +1721,26 @@ void build_registry() {
                 if (key.empty() && !info.keyless) missing = info.key;
                 for (const auto& extra : json_strings(p.get("requires")))
                     if (secret_value(extra).empty()) missing += (missing.empty() ? "" : " + ") + extra;
-                const std::string base = expand_vars(get_string(p, "base_url"));
+                std::string base = expand_vars(get_string(p, "base_url"));
+                if (!info.base_url_key.empty()) {
+                    std::string custom = trim(secret_value(info.base_url_key));
+                    while (!custom.empty() && custom.back() == '/') custom.pop_back();
+                    if (!custom.empty()) base = custom;
+                }
                 if (!missing.empty()) info.status = "Add secret " + missing;
                 else if (base.empty()) info.status = "Base URL is not configured";
                 else {
                     std::vector<std::string> listed = json_strings(p.get("models"));
                     std::vector<std::string> models;
-                    if (json_bool(p, "discover", false) && !key.empty()) {
-                        if (auto found = discover_models(base, key)) {
+                    const int cap = std::clamp(json_int(p, "max_models", max_discovered), 1, 500);
+                    std::vector<std::string> extra_headers;
+                    if (const Json* hs = p.get("discover_headers"); hs && hs->object_ptr())
+                        for (const auto& [hk, hv] : *hs->object_ptr()) if (hv.string_ptr()) extra_headers.push_back(hk + ": " + *hv.string_ptr());
+                    bool unreachable = false;
+                    if (json_bool(p, "discover", false) && (!key.empty() || info.keyless)) {
+                        if (auto found = discover_models(base, key, extra_headers)) {
                             const std::string suffix = get_string(p, "discover_suffix");
+                            const std::string exclude_suffix = get_string(p, "discover_exclude_suffix");
                             const std::string contains = get_string(p, "discover_contains");
                             for (const auto& m : listed)
                                 if (std::find(found->begin(), found->end(), m) != found->end()) models.push_back(m);
@@ -1724,20 +1748,33 @@ void build_registry() {
                             for (const auto& m : *found) {
                                 if (std::find(models.begin(), models.end(), m) != models.end()) continue;
                                 if (!suffix.empty() && !m.ends_with(suffix)) continue;
+                                if (!exclude_suffix.empty() && m.ends_with(exclude_suffix)) continue;
                                 if (!contains.empty() && m.find(contains) == std::string::npos) continue;
                                 if (!looks_like_chat_model(m)) continue;
                                 extra.push_back(m);
                             }
                             std::sort(extra.begin(), extra.end());
-                            for (const auto& m : extra) if (static_cast<int>(models.size()) < max_discovered) models.push_back(m);
+                            // discover_prefer: substrings in priority order; matching models go first, newest (highest) first.
+                            const auto prefer = json_strings(p.get("discover_prefer"));
+                            if (!prefer.empty()) {
+                                auto rank = [&](const std::string& m) { for (std::size_t i = 0; i < prefer.size(); ++i) if (m.find(prefer[i]) != std::string::npos) return static_cast<int>(i); return static_cast<int>(prefer.size()); };
+                                std::stable_sort(extra.begin(), extra.end(), [&](const std::string& a, const std::string& b) {
+                                    const int ra = rank(a), rb = rank(b);
+                                    if (ra != rb) return ra < rb;
+                                    return ra < static_cast<int>(prefer.size()) ? a > b : false;
+                                });
+                            }
+                            for (const auto& m : extra) if (static_cast<int>(models.size()) < cap) models.push_back(m);
                         } else {
                             models = listed;
+                            unreachable = true;
                         }
                     } else {
                         models = listed;
                     }
                     add_routes(p, info, kind, models, base, key);
-                    if (models.empty()) info.status = "Key found, but no chat models were listed";
+                    if (models.empty() && info.local) info.status = unreachable ? "Not running on this computer (" + base + ")" : "Running, but no models are loaded";
+                    else if (models.empty()) info.status = "Key found, but no chat models were listed";
                 }
             }
             g_providers.push_back(info);
@@ -2123,6 +2160,7 @@ void handle_api(int fd, const HttpRequest& request) {
         for (const auto& route : g_routes) {
             Json::Object m; m["id"] = Json(route.id); m["label"] = Json(route.label); m["name"] = Json(route.name);
             m["provider"] = Json(route.provider); m["provider_name"] = Json(route.provider_name); m["auto"] = Json(route.in_auto);
+            m["paid"] = Json(route.paid); m["local"] = Json(route.local);
             m["kind"] = Json(route.kind); m["shared"] = Json(route.shared_quota);
             if (route.vision) m["vision"] = Json(true);
             if (route.trains) m["trains"] = Json(true);

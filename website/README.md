@@ -1,20 +1,20 @@
 # Astro AI website
 
 The official site for Astro AI: plain static HTML, CSS and JS with no frameworks, no trackers and no external requests.
-The deployable site is the **`public/`** folder (about 27 MB including the downloads).
+The deployable site is the **`dist/`** folder (about 27 MB including the downloads).
 
 ```
 website/
-├── public/            ← DEPLOY THIS FOLDER (generated, don't edit by hand)
+├── dist/            ← DEPLOY THIS FOLDER (generated, don't edit by hand)
 ├── src/
 │   ├── pages/         page bodies (*.html); shared header and footer are added by build.js
 │   │   └── blog/      blog index + posts
 │   └── static/        copied as-is: assets/css, assets/js, fonts, images, press kit, _headers, vercel.json
 ├── site.json          site URL, version, release date   ← EDIT url BEFORE DEPLOYING
-├── build.js           builds src/ → public/ (copies CLEAN downloads, writes checksums, sitemap, robots.txt)
+├── build.js           builds src/ → dist/ (copies CLEAN downloads, writes checksums, sitemap, robots.txt)
 ├── icons.js           inline SVG icons used as {{icon:name}}
 ├── serve.js           local preview server (node serve.js 3000)
-└── netlify.toml       tells Netlify to publish ./public
+└── netlify.toml       tells Netlify to publish ./dist
 ```
 
 Pages: Home · Features · Download · Docs · Changelog · Privacy · Press kit · Blog (3 posts) · 404.
@@ -37,14 +37,14 @@ node build.js
 The site must live at the **root** of its domain. The 404 page uses `/`-absolute links, which every host below supports.
 If you use GitHub Pages, use a user/organisation site or a custom domain, not a `/repo-name/` project path.
 
-## 2. Deploy `public/` (pick one)
+## 2. Deploy `dist/` (pick one)
 
 | Host | How |
 |---|---|
-| **Netlify** | Drag the `public` folder onto <https://app.netlify.com/drop>. Or, with the CLI: `npx netlify-cli deploy --prod --dir public` |
-| **Cloudflare Pages** | `npx wrangler pages deploy public --project-name astro-ai` (files must be under 25 MiB each; the largest is about 8 MB) |
-| **Vercel** | `npx vercel deploy public --prod` (`vercel.json` inside `public/` turns on clean URLs and headers) |
-| **GitHub Pages** | Push the *contents* of `public/` to the branch or folder Pages serves (`.nojekyll` is already included) |
+| **Netlify** | Drag the `dist` folder onto <https://app.netlify.com/drop>. Or, with the CLI: `npx netlify-cli deploy --prod --dir dist` |
+| **Cloudflare Pages** | `npx wrangler pages deploy dist --project-name astro-ai` (files must be under 25 MiB each; the largest is about 8 MB) |
+| **Vercel** | `npx vercel deploy dist --prod` (`vercel.json` inside `dist/` turns on clean URLs and headers) |
+| **GitHub Pages** | Push the *contents* of `dist/` to the branch or folder Pages serves (`.nojekyll` is already included) |
 
 Security and cache headers come preconfigured: `_headers` for Netlify and Cloudflare, `vercel.json` for Vercel.
 GitHub Pages ignores custom headers, and the site still works fine there.
@@ -55,7 +55,7 @@ GitHub Pages ignores custom headers, and the site still works fine there.
 2. Update `version`, `dateLabel` and `year` in `site.json`.
 3. Add a new `<article class="release">` at the top of `src/pages/changelog.html` (and move the `latest` class and badge to it).
 4. Run `node build.js`. Downloads, sizes and SHA-256 checksums on every page update automatically.
-5. Deploy `public/` again.
+5. Deploy `dist/` again.
 
 The download filenames are matched by pattern (`windows-x64-Setup`, `_amd64`, `linux-x64-portable`, …), so version
 numbers in filenames can change freely.
@@ -63,7 +63,7 @@ numbers in filenames can change freely.
 ## Safety: only the CLEAN edition is published
 
 `build.js` copies **only** files with `CLEAN` in the name from `desktop-builds/clean/`. It then refuses to finish
-(and deletes `public/`) if anything named `WITH-KEYS`, `seed-keys` or `gateway.env` ends up in the output.
+(and deletes `dist/`) if anything named `WITH-KEYS`, `seed-keys` or `gateway.env` ends up in the output.
 The personal WITH-KEYS build must never be uploaded to the website.
 
 ## Local preview

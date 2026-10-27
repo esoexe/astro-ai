@@ -252,7 +252,7 @@ void load_app_keys() {
     if (!g_app_keys.empty()) std::cout << "Loaded " << g_app_keys.size() << " provider key(s) saved in the app." << std::endl;
 }
 std::vector<std::string> known_key_names() {
-    std::vector<std::string> names = {"TAVILY_API_KEY", "BRAVE_API_KEY"};
+    std::vector<std::string> names = {"TAVILY_API_KEY", "BRAVE_API_KEY", "ASTRO_PAID_PROVIDERS"};
     const char* path_env = std::getenv("PROVIDERS_FILE");
     const auto txt = read_file_text(path_env && *path_env ? path_env : "providers.json");
     if (!txt) return names;
@@ -263,6 +263,8 @@ std::vector<std::string> known_key_names() {
                 const std::string k = get_string(p, "key");
                 if (!k.empty()) names.push_back(k);
                 for (const auto& r : json_strings(p.get("requires"))) names.push_back(r);
+                const std::string b = get_string(p, "base_url_key");
+                if (!b.empty()) names.push_back(b);
             }
     } catch (...) {}
     return names;
@@ -783,6 +785,11 @@ void send_keys_list(int fd) {
         o["key_source"] = Json(p.key.empty() ? std::string("") : g_app_keys.count(p.key) ? std::string("app") : g_keys.count(p.key) ? std::string("gateway") : std::getenv(p.key.c_str()) ? std::string("env") : std::string(""));
         Json::Array req; for (const auto& r : p.requires_keys) { Json::Object ro; ro["name"] = Json(r); ro["set"] = Json(!secret_value(r).empty()); req.emplace_back(std::move(ro)); }
         o["requires"] = Json(std::move(req));
+        o["paid"] = Json(p.paid); o["local"] = Json(p.local); o["paid_on"] = Json(p.paid_on);
+        if (!p.base_url_key.empty()) {
+            o["base_url_key"] = Json(p.base_url_key); o["base_url_default"] = Json(p.base_url_default);
+            o["base_url"] = Json(trim(secret_value(p.base_url_key)));
+        }
         list.emplace_back(std::move(o));
     }
     Json::Array search;

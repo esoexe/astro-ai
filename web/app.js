@@ -582,7 +582,7 @@
     for (const m of list) { if (m.id === exclude || !match(m)) continue; const k = m.provider_name || 'Models'; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(m); }
     for (const [name, items] of groups) {
       out.push({ title: name, aside: `${items.filter((m) => !m.blocked).length}/${items.length} ready` });
-      for (const m of items) out.push({ label: m.name || m.label, sub: m.blocked ? `Unavailable now · ${m.blocked}` : (m.auto ? 'Used by Auto' : ''), dot: m.blocked ? 'off' : 'on', dim: Boolean(m.blocked), tick: selected === m.id, tip: m.blocked || m.label, onClick: () => onPick(m.id) });
+      for (const m of items) out.push({ label: m.name || m.label, sub: m.blocked ? `Unavailable now · ${m.blocked}` : [m.paid ? 'Paid' : '', m.local ? 'On this computer' : '', m.auto ? 'Used by Auto' : ''].filter(Boolean).join(' · '), dot: m.blocked ? 'off' : 'on', dim: Boolean(m.blocked), tick: selected === m.id, tip: m.blocked || m.label, onClick: () => onPick(m.id) });
     }
     if (!out.length) out.push({ label: 'No models match', dim: true });
     return out;
@@ -1992,8 +1992,10 @@
     return voice ? Math.min(3, n) : n;
   }
   function brainEligible(all) {
-    // Paid routes are never used by One Brain (they would cost money on every message).
-    return models().filter((m) => !/paid/.test(m.provider || '') && (all || m.kind !== 'local') && (state.brain.allowTrain !== false || !m.trains));
+    // Paid routes cost money on every message: One Brain uses them only after the user opts in per platform
+    // (Settings -> Providers), and then only that platform's Auto models, never its whole catalog.
+    const paidOk = (m) => !(m.paid || /paid/.test(m.provider || '')) || (m.paid && m.auto);
+    return models().filter((m) => paidOk(m) && (all || (m.kind !== 'local' && !m.local)) && (state.brain.allowTrain !== false || !m.trains));
   }
   function pickMinds(n) {
     const all = !Number.isFinite(n);
@@ -2010,9 +2012,10 @@
       if (!patient && cap > 0 && list.length > cap) list.length = cap;
     }
     const lists = [...groups.values()];
-    const open = lists.filter((l) => !l[0].shared && l[0].kind !== 'local');
-    const shared = lists.filter((l) => l[0].shared);
-    const local = lists.filter((l) => l[0].kind === 'local');
+    const isLocal = (l) => l[0].kind === 'local' || l[0].local;
+    const open = lists.filter((l) => !l[0].shared && !isLocal(l));
+    const shared = lists.filter((l) => l[0].shared && !isLocal(l));
+    const local = lists.filter(isLocal);
     const out = [];
     for (let round = 0; out.length < n; round++) {
       let added = false;
@@ -3249,30 +3252,35 @@
       paintProviders();
     } catch (error) { const b = $('#prov-box'); if (b) b.innerHTML = `<p class="hint">Couldn't load providers: ${esc(error.message)}</p>`; }
   }
+  let provKind = 'all';
   function paintProviders() {
     const b = $('#prov-box');
     if (!b || !keysCache) return;
     const q = lower($('#prov-filter')?.value || '');
     const usage = new Map((usageCache?.providers || []).map((p) => [p.id, p]));
-    const list = (keysCache.providers || []).filter((p) => !q || lower(`${p.name} ${p.id} ${p.key}`).includes(q));
+    const kind = provKind;
+    const list = (keysCache.providers || []).filter((p) => (!q || lower(`${p.name} ${p.id} ${p.key}`).includes(q)) && (kind === 'all' || (kind === 'paid' ? p.paid : kind === 'local' ? p.local : !p.paid && !p.local)));
     const rank = (p) => (p.connected ? 0 : p.keyless ? 1 : 2);
     list.sort((a, c) => rank(a) - rank(c));
     const totals = (usageCache?.providers || []).reduce((t, p) => ({ req: t.req + p.requests, ok: t.ok + p.ok }), { req: 0, ok: 0 });
     const rows = list.map((p) => {
       const u = usage.get(p.id);
-      const link = /^https:\/\//.test(p.signup || '') ? `<a href="${esc(p.signup)}" target="_blank" rel="noopener noreferrer">Get a free key ↗</a>` : '';
-      const badge = p.connected ? '<span class="pbadge on">connected</span>' : p.keyless ? '<span class="pbadge">no key needed</span>' : '<span class="pbadge off">needs key</span>';
-      const trains = p.trains ? '<span class="pbadge warn" title="Prompts may be logged or used for training">may train</span>' : '';
+      const link = /^https:\/\//.test(p.signup || '') ? `<a href="${esc(p.signup)}" target="_blank" rel="noopener noreferrer">${p.local ? 'Download ↗' : p.paid ? 'Get a key ↗' : 'Get a free key ↗'}</a>` : '';
+      const badge = p.connected ? '<span class="pbadge on">connected</span>' : p.local ? '<span class="pbadge">not running</span>' : p.keyless ? '<span class="pbadge">no key needed</span>' : '<span class="pbadge off">needs key</span>';
+      const trains = (p.trains ? '<span class="pbadge warn" title="Prompts may be logged or used for training">may train</span>' : '') + (p.paid ? '<span class="pbadge paid" title="Billed by the provider to your own account">paid</span>' : '') + (p.local ? '<span class="pbadge local" title="Runs on your own computer">local</span>' : '');
+      const optin = p.paid ? `<label class="paid-optin"><input type="checkbox" data-paid-optin="${esc(p.id)}"${p.paid_on ? ' checked' : ''}> Use in Auto &amp; Team <small>(costs money on every message; off = only when you pick one of its models)</small></label>` : '';
+      const baseLine = p.base_url_key ? `<div class="key-line"><code>${esc(p.base_url_key)}</code><input class="input" type="url" autocomplete="off" data-key-name="${esc(p.base_url_key)}" placeholder="${esc(p.base_url || p.base_url_default || '')}"><button type="button" class="btn small" data-key-save="${esc(p.base_url_key)}">Save</button>${p.base_url ? `<button type="button" class="btn small ghost" data-key-clear="${esc(p.base_url_key)}">Default</button>` : ''}</div>` : '';
       const meter = u && u.requests ? `<small class="meter">Today: ${u.ok}/${u.requests} ok${u.limited ? ` · ${u.limited} rate-limited` : ''}${u.avg_ms ? ` · avg ${fmtSecs(u.avg_ms)}` : ''}${u.last_error ? ` · last error: ${esc(String(u.last_error).slice(0, 80))}` : ''}</small>` : '';
       const extra = (p.requires || []).map((r) => `<div class="key-line"><code>${esc(r.name)}</code><input class="input" type="password" autocomplete="off" data-key-name="${esc(r.name)}" placeholder="${r.set ? '•••••• saved' : 'Paste value'}"><button type="button" class="btn small" data-key-save="${esc(r.name)}">Save</button></div>`).join('');
-      const keyLine = p.key ? `<div class="key-line"><code>${esc(p.key)}</code><input class="input" type="password" autocomplete="off" data-key-name="${esc(p.key)}" placeholder="${p.key_set ? `•••••• saved (${esc(p.key_source || 'server')})` : 'Paste your free key'}"><button type="button" class="btn small" data-key-save="${esc(p.key)}">Save</button>${p.key_source === 'app' ? `<button type="button" class="btn small ghost" data-key-clear="${esc(p.key)}">Remove</button>` : ''}</div>` : '';
+      const keyLine = p.key ? `<div class="key-line"><code>${esc(p.key)}</code><input class="input" type="password" autocomplete="off" data-key-name="${esc(p.key)}" placeholder="${p.key_set ? `•••••• saved (${esc(p.key_source || 'server')})` : p.paid ? 'Paste your API key' : 'Paste your free key'}"><button type="button" class="btn small" data-key-save="${esc(p.key)}">Save</button>${p.key_source === 'app' ? `<button type="button" class="btn small ghost" data-key-clear="${esc(p.key)}">Remove</button>` : ''}</div>` : '';
       return `<li class="prov ${p.connected ? 'on' : 'off'}"><div class="prov-head"><span class="dot"></span><b>${esc(p.name)}</b>${badge}${trains}<span class="grow"></span>${p.connected ? `<button type="button" class="btn small" data-prov-test="${esc(p.id)}">${icon('i-bolt')}Test</button>` : link}</div>
         <small>${esc(p.status || '')}${p.models ? ` · ${p.models} model(s)` : ''}</small><small>${esc(p.limits || '')}</small>${p.privacy ? `<small>${esc(p.privacy)}</small>` : ''}${meter}
-        ${keyLine}${extra}<small class="test-out" id="test-${esc(p.id)}"></small></li>`;
+        ${keyLine}${extra}${baseLine}${optin}<small class="test-out" id="test-${esc(p.id)}"></small></li>`;
     }).join('');
     const search = (keysCache.search || []).map((s) => `<div class="key-line"><code>${esc(s.key)}</code><input class="input" type="password" autocomplete="off" data-key-name="${esc(s.key)}" placeholder="${s.key_set ? '•••••• saved' : 'Optional'}"><button type="button" class="btn small" data-key-save="${esc(s.key)}">Save</button></div>`).join('');
     b.innerHTML = `<div class="stat-grid"><div class="stat"><strong>${(keysCache.providers || []).filter((p) => p.connected).length}/${(keysCache.providers || []).length}</strong><span>platforms connected</span></div><div class="stat"><strong>${totals.ok}/${totals.req}</strong><span>requests ok today (UTC)</span></div><div class="stat"><strong>${readyCount()}</strong><span>models ready now</span></div></div>
       <div class="btn-row"><button type="button" class="btn" id="prov-test-all">${icon('i-bolt')}Test all connected</button><button type="button" class="btn ghost" id="prov-reload">${icon('i-redo')}Refresh</button></div>
+      <div class="prov-kinds" role="tablist">${[['all', 'All'], ['free', 'Free'], ['paid', 'Paid'], ['local', 'Local']].map(([k, l]) => `<button type="button" class="chip${provKind === k ? ' on' : ''}" data-prov-kind="${k}">${l} <small>${(keysCache.providers || []).filter((p) => k === 'all' || (k === 'paid' ? p.paid : k === 'local' ? p.local : !p.paid && !p.local)).length}</small></button>`).join('')}</div>
       <ul class="prov-list">${rows || '<li class="hint">No provider matches.</li>'}</ul>
       <div class="box"><h3>Web search keys (optional)</h3><p class="hint">Without keys Astro AI uses Brave's public results page, DuckDuckGo and Wikipedia. A free Tavily or Brave Search API key gives steadier results.</p>${search}</div>
       <p class="hint">Keys are saved only on your Astro AI server (file <code>.astro_keys.env</code>, readable only by the server) and are never sent back to a browser. Saving a key restarts the server for a few seconds. Use keys from <b>your own</b> free accounts; free limits change often and are never unlimited.</p>`;
@@ -3318,6 +3326,8 @@
       const test = e.target.closest('[data-prov-test]');
       if (test) { test.disabled = true; await testProvider(test.dataset.provTest); test.disabled = false; return; }
       if (e.target.closest('#prov-reload')) { loadProvidersTab(); refreshStatus(); return; }
+      const kindBtn = e.target.closest('[data-prov-kind]');
+      if (kindBtn) { provKind = kindBtn.dataset.provKind; paintProviders(); return; }
       if (e.target.closest('#prov-test-all')) {
         const btn = e.target.closest('#prov-test-all'); btn.disabled = true;
         const ids = (keysCache?.providers || []).filter((p) => p.connected && p.id !== 'local').map((p) => p.id);
@@ -3330,6 +3340,19 @@
       }
     };
     el.modal.addEventListener('click', el.modal._prov);
+    if (el.modal._provChange) el.modal.removeEventListener('change', el.modal._provChange);
+    el.modal._provChange = async (e) => {
+      const box = e.target.closest('[data-paid-optin]');
+      if (!box) return;
+      const id = box.dataset.paidOptin;
+      const on = new Set((keysCache?.providers || []).filter((p) => p.paid && p.paid_on).map((p) => p.id));
+      if (box.checked) {
+        if (!confirm('Use this paid platform in Auto and Team? Every Team message will then spend money on your account with this provider (only its first model joins the team).')) { box.checked = false; return; }
+        on.add(id);
+      } else on.delete(id);
+      await saveKey('ASTRO_PAID_PROVIDERS', [...on].join(','));
+    };
+    el.modal.addEventListener('change', el.modal._provChange);
   }
 
   // ---------- Account & sync (Settings) ----------

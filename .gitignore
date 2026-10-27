@@ -14,7 +14,7 @@ desktop-builds/
 # ---- build output ----
 /workspace_server
 /astro_measure
-website/public/
+website/dist/
 node_modules/
 .cache/
 *.o

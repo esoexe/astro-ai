@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Builds the Astro AI website into ./public (plain static files, deploy anywhere).
+// Builds the Astro AI website into ./dist (plain static files, deploy anywhere).
 //   node build.js            build
 //   node build.js --no-dl    build without copying the installers (faster while editing)
 //
@@ -10,7 +10,7 @@
 'use strict';
 const fs = require('fs'), path = require('path'), crypto = require('crypto');
 
-const ROOT = __dirname, SRC = path.join(ROOT, 'src'), OUT = path.join(ROOT, 'public');
+const ROOT = __dirname, SRC = path.join(ROOT, 'src'), OUT = path.join(ROOT, 'dist');
 const icon = require('./icons.js');
 const SITE = JSON.parse(fs.readFileSync(path.join(ROOT, 'site.json'), 'utf8'));
 // CI (GitHub Pages) passes the real address, e.g. https://you.github.io/astro-ai
@@ -74,6 +74,7 @@ const NAV = [
   ['features', 'Features', 'features.html'],
   ['download', 'Download', 'download.html'],
   ['docs', 'Docs', 'docs.html'],
+  ['api', 'API', 'api.html'],
   ['blog', 'Blog', 'blog/index.html'],
   ['changelog', 'Changelog', 'changelog.html'],
 ];
@@ -107,7 +108,7 @@ function layout(meta, body, rel, file) {
 <link rel="preload" href="${r}assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="${r}assets/fonts/instrument-serif.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${r}assets/css/site.css">
-<script defer src="${r}assets/js/site.js"></script>
+<script defer src="${r}assets/js/site.js"></script>${(meta.scripts || []).map((x) => `\n<script defer src="${r}assets/js/${x}"></script>`).join('')}
 </head>
 <body class="${meta.bodyClass || ''}" data-root="${r}">
 <a class="skip" href="#main">Skip to content</a>
@@ -116,6 +117,7 @@ function layout(meta, body, rel, file) {
     ${LOGO(r)}
     <nav class="nav-links" aria-label="Main">${nav}</nav>
     <div class="nav-cta">
+      <a class="btn btn-ghost btn-sm nav-signin" href="${r}account.html" data-account-link>Sign in</a>
       <a class="btn btn-primary btn-sm" href="${r}download.html" data-os-cta>Download</a>
       <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu"><span></span><span></span></button>
     </div>
@@ -123,6 +125,7 @@ function layout(meta, body, rel, file) {
   <div class="mobile-menu" id="mobile-menu" hidden>
     ${NAV.map(([id, label, href]) => `<a href="${r}${href}"${meta.nav === id ? ' aria-current="page"' : ''}>${label}</a>`).join('')}
     <a href="${r}press.html">Press kit</a>
+    <a href="${r}account.html" data-account-link>Sign in</a>
     <a class="btn btn-primary" href="${r}download.html">Download Astro AI</a>
   </div>
 </header>
@@ -137,7 +140,7 @@ ${body}
       <p class="mono small">v${SITE.version} · ${SITE.dateLabel}</p>
     </div>
     <div><h4>Product</h4><a href="${r}features.html">Features</a><a href="${r}download.html">Download</a><a href="${r}changelog.html">Changelog</a></div>
-    <div><h4>Resources</h4><a href="${r}docs.html">Docs</a><a href="${r}blog/index.html">Blog</a><a href="${r}press.html">Press kit</a>${SITE.repo ? `<a href="${SITE.repo}" rel="noopener">Source on GitHub</a>` : ''}</div>
+    <div><h4>Resources</h4><a href="${r}docs.html">Docs</a><a href="${r}api.html">Astro API</a><a href="${r}account.html">Account</a><a href="${r}blog/index.html">Blog</a><a href="${r}press.html">Press kit</a>${SITE.repo ? `<a href="${SITE.repo}" rel="noopener">Source on GitHub</a>` : ''}</div>
     <div><h4>Legal</h4><a href="${r}privacy.html">Privacy</a><a href="${r}assets/fonts/FONTS-LICENSE.txt">Font licenses</a></div>
   </div>
   <div class="wrap footer-base"><span>© ${SITE.year} Astro AI</span><span class="mono">Made for curious people · runs on free AI models, which can make mistakes</span></div>

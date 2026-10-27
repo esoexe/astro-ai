@@ -56,18 +56,22 @@ const shapes = [
   ['JWT', /eyJ[A-Za-z0-9_\-]{10,}\.eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}/],
 ];
 
+// ---- the Supabase project URL is public by design (the browser sign-in page must call it; data is protected by RLS).
+// Allow the project host ONLY in these website files; it is still flagged anywhere else.
+const PUBLIC_HOST_OK = new Set(['website/src/static/assets/js/account.js', 'website/src/pages/api.html', 'website/src/static/_headers', 'website/src/static/vercel.json', 'website/serve.js']);
+
 // ---- scan
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => {
   const p = path.join(d, e.name);
   if (e.isDirectory()) return e.name === '.git' ? [] : walk(p);
-  return [p];
+  return e.isFile() ? [p] : [];                                  // skip symlinks, sockets, ...
 });
 let problems = 0, files = 0;
 for (const f of walk(dir)) {
   files++;
   const buf = fs.readFileSync(f);
   const rel = path.relative(dir, f);
-  for (const s of known) if (buf.includes(s.value)) { problems++; console.log(`SECRET VALUE  ${rel}  <- ${s.name} (${s.value.length} chars)`); }
+  for (const s of known) if (buf.includes(s.value) && !(s.name.endsWith(' (host)') && PUBLIC_HOST_OK.has(rel.split(path.sep).join('/')))) { problems++; console.log(`SECRET VALUE  ${rel}  <- ${s.name} (${s.value.length} chars)`); }
   const isText = !buf.subarray(0, 8000).includes(0);
   if (isText) {
     const t = buf.toString('utf8');
