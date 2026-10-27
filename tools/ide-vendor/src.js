@@ -1,12 +1,13 @@
 // Astro AI Workspace editor + terminal bundle (CodeMirror 6 + xterm.js).
 // Built into web/vendor/ide.js as window.AstroIDE. Colours come from CSS variables (--cm-*),
 // so the editor follows the app's dark / light theme without rebuilding.
-import { EditorView, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter, drawSelection, dropCursor,
+import { EditorView, Decoration, WidgetType, ViewPlugin, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter, drawSelection, dropCursor,
   rectangularSelection, crosshairCursor, highlightSpecialChars } from '@codemirror/view';
-import { EditorState, Compartment, Prec, Text } from '@codemirror/state';
+import { EditorState, Compartment, Prec, Text, StateField, StateEffect } from '@codemirror/state';
 import { defaultKeymap, history, historyKeymap, indentWithTab, toggleComment, undo, redo, selectAll } from '@codemirror/commands';
 import { searchKeymap, highlightSelectionMatches, openSearchPanel, gotoLine, search, selectNextOccurrence } from '@codemirror/search';
-import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap, completeAnyWord, completeFromList, startCompletion } from '@codemirror/autocomplete';
+import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap, completeAnyWord, completeFromList, startCompletion, snippetCompletion } from '@codemirror/autocomplete';
+import { setDiagnostics, lintGutter } from '@codemirror/lint';
 import { foldGutter, foldKeymap, indentOnInput, bracketMatching, syntaxHighlighting, HighlightStyle, StreamLanguage, LanguageSupport,
   indentUnit, foldAll, unfoldAll } from '@codemirror/language';
 import { tags as t } from '@lezer/highlight';
@@ -137,6 +138,59 @@ const theme = EditorView.theme({
   '.cm-merge-a .cm-changedLine, .cm-deletedLine': { backgroundColor: 'var(--cm-del) !important' },
   '.cm-changedText': { background: 'var(--cm-chg-text) !important' },
   '.cm-collapsedLines': { background: 'var(--cm-active)', color: 'var(--cm-gutter)' },
+  '.cm-ghost': { color: 'var(--cm-gutter)', opacity: '0.85', fontStyle: 'italic', whiteSpace: 'pre' },
+  '.cm-diagnostic': { padding: '4px 8px', fontFamily: 'var(--mono, monospace)', fontSize: '12px' },
+  '.cm-lintRange-error': { backgroundImage: 'none', textDecoration: 'underline wavy var(--cm-err)', textUnderlineOffset: '3px' },
+  '.cm-lintRange-warning': { backgroundImage: 'none', textDecoration: 'underline wavy #d29922', textUnderlineOffset: '3px' },
+  '.cm-lintRange-info': { backgroundImage: 'none', textDecoration: 'underline dotted var(--cm-fn)', textUnderlineOffset: '3px' },
+});
+
+
+// ---- snippets (VS Code snippet JSON, e.g. from Open VSX extensions or the user's Extensions folder) ----
+// sets: [{ langs: ['js','ts'] or ['*'], items: { name: { prefix, body, description } } }]
+let snippetSets = [];
+function vscodeBody(body) {
+  let b = Array.isArray(body) ? body.join('\n') : String(body || '');
+  b = b.replace(/\$\{(\d+)\|([^|}]*)\|\}/g, (_m, n, opts) => '${' + n + ':' + opts.split(',')[0] + '}')
+    .replace(/\$\{(\d+)\}/g, (_m, n) => (n === '0' ? '${}' : '${' + n + '}'))
+    .replace(/\$(\d+)/g, (_m, n) => (n === '0' ? '${}' : '${' + n + '}'))
+    .replace(/\$\{[A-Z_]+(?::([^}]*))?\}/g, (_m, d) => d || '')
+    .replace(/\$[A-Z_]{3,}/g, '');
+  return b;
+}
+function snippetSource(ext) {
+  return (ctx) => {
+    const word = ctx.matchBefore(/[\w.\-@!#:]+$/);
+    if (!word && !ctx.explicit) return null;
+    const options = [];
+    for (const set of snippetSets) {
+      if (!set.langs.includes('*') && !set.langs.includes(ext)) continue;
+      for (const [name, sn] of Object.entries(set.items || {})) {
+        const prefixes = Array.isArray(sn.prefix) ? sn.prefix : [sn.prefix || name];
+        for (const p of prefixes) { try { options.push(snippetCompletion(vscodeBody(sn.body), { label: String(p), detail: sn.description || name, type: 'text', boost: -1 })); } catch (e) { console.warn('Astro snippet skipped:', p, e && e.message); } }
+      }
+    }
+    return options.length ? { from: word ? word.from : ctx.pos, options, validFor: /^[\w.\-@!#:]*$/ } : null;
+  };
+}
+function setSnippets(sets) { snippetSets = Array.isArray(sets) ? sets : []; }
+
+// ---- ghost text (AI inline suggestions): grey text at the cursor, Tab accepts, Esc dismisses ----
+const setGhost = StateEffect.define();
+class GhostWidget extends WidgetType {
+  constructor(text) { super(); this.text = text; }
+  eq(o) { return o.text === this.text; }
+  toDOM() { const s = document.createElement('span'); s.className = 'cm-ghost'; s.textContent = this.text; s.setAttribute('aria-hidden', 'true'); return s; }
+  ignoreEvent() { return true; }
+}
+const ghostField = StateField.define({
+  create: () => null,
+  update(v, tr) {
+    for (const e of tr.effects) if (e.is(setGhost)) return e.value;
+    if (v && (tr.docChanged || tr.selection)) return null;
+    return v;
+  },
+  provide: (f) => EditorView.decorations.from(f, (v) => (v ? Decoration.set([Decoration.widget({ widget: new GhostWidget(v.text), side: 1 }).range(v.pos)]) : Decoration.none)),
 });
 
 function foldMarker(open) {
@@ -152,8 +206,12 @@ function langExtensions(ext) {
   const lang = langFor(ext);
   if (lang) out.push(lang);
   out.push(EditorState.languageData.of(() => [{ autocomplete: completeAnyWord }]));
+  // Sources must be created once: CodeMirror tracks completion sources by identity, so a new function per lookup
+  // makes it drop the result and restart forever (the popup never shows those items).
+  const snip = snippetSource(ext);
+  out.push(EditorState.languageData.of(() => [{ autocomplete: snip }]));
   const kw = KEYWORDS[kwFor(ext)];
-  if (kw) out.push(EditorState.languageData.of(() => [{ autocomplete: completeFromList(kw.split(' ').map((label) => ({ label, type: 'keyword' }))) }]));
+  if (kw) { const kwSrc = completeFromList(kw.split(' ').map((label) => ({ label, type: 'keyword' }))); out.push(EditorState.languageData.of(() => [{ autocomplete: kwSrc }])); }
   return out;
 }
 
@@ -162,8 +220,11 @@ function createEditor(parent, handlers = {}) {
   const scrolls = new Map();
   let key = null;
   let wrap = Boolean(handlers.wrap);
+  let currentExt = 'txt';
   const wrapC = new Compartment();
   const roC = new Compartment();
+  const problems = new Map();   // file key -> [{line, col, endLine, endCol, severity, message, source}]
+  let inlineSuggest = handlers.inlineSuggest || null; let ghostTimer = 0; let ghostSeq = 0;
   const fire = (name, ...args) => { try { if (handlers[name]) handlers[name](...args); } catch (e) { console.error(e); } };
 
   function extensions(ext) {
@@ -173,11 +234,14 @@ function createEditor(parent, handlers = {}) {
       bracketMatching(), closeBrackets(), autocompletion({ activateOnTyping: true, maxRenderedOptions: 80, icons: true }),
       rectangularSelection(), crosshairCursor(), highlightActiveLine(), highlightSelectionMatches(), search({ top: true }),
       indentUnit.of(ext === 'go' || ext === 'makefile' ? '\t' : ext === 'py' || ext === 'java' || ext === 'rs' || ext === 'php' || ext === 'cs' ? '    ' : '  '),
-      EditorState.tabSize.of(4), wrapC.of(wrap ? EditorView.lineWrapping : []), roC.of(EditorState.readOnly.of(false)), theme,
+      EditorState.tabSize.of(4), wrapC.of(wrap ? EditorView.lineWrapping : []), roC.of(EditorState.readOnly.of(false)), theme, lintGutter(), ghostField,
       ...langExtensions(ext),
       Prec.highest(keymap.of([
         { key: 'Mod-s', preventDefault: true, run: () => { fire('onSave'); return true; } },
         { key: 'Mod-Enter', preventDefault: true, run: () => { fire('onRun'); return true; } },
+        { key: 'Tab', run: (v) => { const g = v.state.field(ghostField, false); if (!g) return false; v.dispatch({ changes: { from: g.pos, insert: g.text }, selection: { anchor: g.pos + g.text.length }, effects: setGhost.of(null) }); return true; } },
+        { key: 'Escape', run: (v) => { if (!v.state.field(ghostField, false)) return false; v.dispatch({ effects: setGhost.of(null) }); return true; } },
+        { key: 'Mod-i', preventDefault: true, run: (v) => { const sel = v.state.selection.main; const l1 = v.state.doc.lineAt(sel.from); const l2 = v.state.doc.lineAt(sel.to); fire('onInlineEdit', { from: sel.from, to: sel.to, text: v.state.sliceDoc(sel.from, sel.to), line: l1.number, endLine: l2.number }); return true; } },
         { key: 'Mod-/', run: toggleComment },
         { key: 'Mod-h', preventDefault: true, run: (v) => { openSearchPanel(v); setTimeout(() => v.dom.querySelector('.cm-search input[name=replace]')?.focus(), 0); return true; } },
         { key: 'Alt-z', preventDefault: true, run: () => { api.toggleWrap(); fire('onWrap', wrap); return true; } },
@@ -185,7 +249,7 @@ function createEditor(parent, handlers = {}) {
       ])),
       keymap.of([...closeBracketsKeymap, ...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...completionKeymap, indentWithTab, { key: 'Mod-g', run: gotoLine }]),
       EditorView.updateListener.of((u) => {
-        if (u.docChanged) fire('onChange', key, u.state.doc.toString());
+        if (u.docChanged) { fire('onChange', key, u.state.doc.toString()); if (inlineSuggest && u.transactions.some((tr) => tr.isUserEvent('input.type'))) scheduleGhost(); }
         if (u.selectionSet || u.docChanged) {
           const sel = u.state.selection.main; const line = u.state.doc.lineAt(sel.head);
           fire('onCursor', { line: line.number, col: sel.head - line.from + 1, cursors: u.state.selection.ranges.length, selected: sel.to - sel.from, lines: u.state.doc.lines });
@@ -201,12 +265,13 @@ function createEditor(parent, handlers = {}) {
     // Shows file `k`. Each file keeps its own state (undo history, selection, folds).
     open(k, doc, ext, opts = {}) {
       if (key !== null) { states.set(key, view.state); scrolls.set(key, [view.scrollDOM.scrollTop, view.scrollDOM.scrollLeft]); }
-      key = k;
+      key = k; currentExt = ext || 'txt';
       let st = states.get(k);
       if (!st || opts.reload) st = EditorState.create({ doc, extensions: extensions(ext) });
       view.setState(st);
       if (view.state.doc.toString() !== doc) view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: doc } });
       view.dispatch({ effects: [roC.reconfigure(EditorState.readOnly.of(Boolean(opts.readOnly))), wrapC.reconfigure(wrap ? EditorView.lineWrapping : [])] });
+      if (problems.has(k)) applyProblems();
       const sc = scrolls.get(k);
       requestAnimationFrame(() => { view.scrollDOM.scrollTop = sc ? sc[0] : 0; view.scrollDOM.scrollLeft = sc ? sc[1] : 0; });
       const sel = view.state.selection.main; const line = view.state.doc.lineAt(sel.head);
@@ -238,7 +303,44 @@ function createEditor(parent, handlers = {}) {
     complete: () => startCompletion(view),
     comment: () => toggleComment(view),
     destroy: () => view.destroy(),
+    // Compiler / linter problems for a file (shown as squiggles + gutter marks). list: [{line, col?, endLine?, endCol?, severity, message, source?}]
+    setProblems(k, list) { problems.set(k, list || []); if (k === key) applyProblems(); },
+    clearProblems() { problems.clear(); applyProblems(); },
+    setSnippets,
+    // AI ghost text: fn({ prefix, suffix, ext, path }) -> Promise<string>; null turns it off.
+    setInlineSuggest(fn) { inlineSuggest = fn || null; if (!fn) view.dispatch({ effects: setGhost.of(null) }); },
+    replaceRange(from, to, text) { view.dispatch({ changes: { from, to, insert: text }, selection: { anchor: from + text.length } }); view.focus(); },
+    getSelection() { const sel = view.state.selection.main; return { from: sel.from, to: sel.to, text: view.state.sliceDoc(sel.from, sel.to) }; },
   };
+  function applyProblems() {
+    const doc = view.state.doc; const list = problems.get(key) || [];
+    const diags = [];
+    for (const p of list) {
+      try {
+        const l = doc.line(Math.min(Math.max(1, p.line | 0), doc.lines));
+        const from = Math.min(l.from + Math.max(0, (p.col | 0) - 1), l.to);
+        let to = l.to;
+        if (p.endLine) { const l2 = doc.line(Math.min(Math.max(1, p.endLine | 0), doc.lines)); to = Math.min(l2.from + Math.max(0, (p.endCol | 0) - 1), l2.to); }
+        diags.push({ from, to: Math.max(from, to), severity: p.severity === 'warning' ? 'warning' : p.severity === 'info' ? 'info' : 'error', message: p.message, source: p.source });
+      } catch (_e) { /* line out of range */ }
+    }
+    view.dispatch(setDiagnostics(view.state, diags));
+  }
+  function scheduleGhost() {
+    clearTimeout(ghostTimer);
+    const seq = ++ghostSeq;
+    ghostTimer = setTimeout(async () => {
+      const st = view.state; const pos = st.selection.main.head;
+      if (!st.selection.main.empty) return;
+      const line = st.doc.lineAt(pos);
+      if (pos !== line.to && /\w/.test(st.sliceDoc(pos, pos + 1))) return;   // only at the end of a word / line
+      try {
+        const text = await inlineSuggest({ prefix: st.sliceDoc(Math.max(0, pos - 4000), pos), suffix: st.sliceDoc(pos, Math.min(st.doc.length, pos + 1500)), ext: currentExt, path: key });
+        if (seq !== ghostSeq || !text || view.state.selection.main.head !== pos || view.state.doc !== st.doc) return;
+        view.dispatch({ effects: setGhost.of({ pos, text: String(text).slice(0, 2000) }) });
+      } catch (_e) { /* no suggestion */ }
+    }, 700);
+  }
   return api;
 }
 
@@ -263,4 +365,4 @@ function diffStats(a = '', b = '') {
   return { added, removed };
 }
 
-export { createEditor, createDiff, diffStats, langFor, Terminal, FitAddon };
+export { createEditor, createDiff, diffStats, langFor, setSnippets, Terminal, FitAddon };

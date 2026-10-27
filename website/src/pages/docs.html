@@ -19,6 +19,8 @@
     <a href="#keys">Adding free keys</a>
     <a href="#workspace">Workspace</a>
     <a href="#agent">Agent</a>
+    <a href="#extensions">Folders, skills, MCP &amp; plugins</a>
+    <a href="#astro-key">Astro API key</a>
     <a href="#voice">Voice</a>
     <a href="#knowledge">Knowledge, notes &amp; tasks</a>
     <a href="#shortcuts">Shortcuts</a>
@@ -111,6 +113,14 @@ cd AstroAI-{{version}}-macos-source-CLEAN
     </table>
     <p>Astro AI supports more than 50 providers, and Settings lists all of them with sign-up links. Keys are saved only on your computer, in the <a href="#data">data folder</a>. Treat them like passwords: anyone with your key can use your quota.</p>
 
+    <h2 id="astro-key">Astro API key</h2>
+    <p>If you saved provider keys in your <a href="{{root}}account.html">Astro account</a>, you don't need to paste them into every computer. Create an Astro key in <strong>Account → API keys</strong> (it starts with <code>astro_sk_</code>) and paste it into the <strong>Astro API key</strong> card at the top of <strong>Settings → Providers &amp; keys</strong>, then press <strong>Test</strong>.</p>
+    <ul>
+      <li><strong>Astro auto</strong> answers through your saved free providers and fails over between them.</li>
+      <li><strong>Astro API: pick any model</strong> lists every model your account can reach, for manual picking.</li>
+      <li>Paid providers are used only if you turn them on for your account. The limit is 5,000 requests a day per account.</li>
+    </ul>
+
     <h2 id="workspace">Workspace</h2>
     <p>The Workspace is a code editor with an AI engineering team built in. Pick a project in the top-left menu (a starter <code>my-project</code> is included). Then:</p>
     <ul>
@@ -119,6 +129,8 @@ cd AstroAI-{{version}}-macos-source-CLEAN
       <li>Open the <strong>Terminal</strong> tab for a real shell in your project folder.</li>
       <li>Ask the team (right panel) to build, fix or explain something. Use <strong>Team</strong> for the best results, <strong>Fast</strong> for speed, or <strong>Agent</strong> to let it work on its own. Turn on <strong>Plan</strong> for multi-step goals and <strong>Auto-fix</strong> to retry failed runs.</li>
       <li>Every change is saved as a version first. Use the history button in the file panel to compare versions or undo.</li>
+      <li>Open the project menu and choose <strong>Open folder…</strong> to work on any folder on your computer (see <a href="#extensions">Folders, skills, MCP &amp; plugins</a>).</li>
+      <li>The <strong>Problems</strong> tab lists errors and warnings and underlines them in the editor. Press <kbd>Ctrl</kbd> + <kbd>K</kbd> and choose <strong>Turn on AI inline suggestions</strong> for grey ghost text (press <kbd>Tab</kbd> to accept), and select code and press <kbd>Ctrl</kbd> + <kbd>I</kbd> to edit it with AI.</li>
     </ul>
     <p>Running code uses the tools installed on your computer: Node.js for JavaScript, Python, a C/C++ compiler (gcc or clang), and a JDK for Java. HTML and CSS need nothing extra. On Windows, the terminal works best with <a href="https://git-scm.com/download/win" rel="noopener">Git for Windows</a> installed, because it provides <code>bash</code>.</p>
 
@@ -130,8 +142,29 @@ cd AstroAI-{{version}}-macos-source-CLEAN
       <li>search the web,</li>
       <li>check its results and fix its own errors until the job is done.</li>
     </ul>
-    <p>It runs automatically, without approval prompts. The side panel shows <strong>Changes</strong> (with a diff per file), <strong>Files</strong>, <strong>Terminal</strong> and <strong>Preview</strong>. A checkpoint is taken before each job, so you can roll back.</p>
+    <p>Choose a permission mode with the chip under the message box, or type <code>/mode</code>:</p>
+    <ul>
+      <li><strong>Plan</strong>: read-only. The agent inspects the project and writes a plan; press <strong>Run this plan</strong> to carry it out.</li>
+      <li><strong>Ask</strong>: you approve every file change and command with <strong>Allow</strong>, <strong>Allow all in this run</strong> or <strong>Deny</strong>. Folders you open start in this mode.</li>
+      <li><strong>Auto</strong>: the agent works on its own.</li>
+    </ul>
+    <p>Type <code>/</code> for commands: <code>/init</code> writes an <code>AGENTS.md</code>, and there are also <code>/plan</code>, <code>/review</code>, <code>/test</code>, <code>/commit</code>, <code>/compact</code>, <code>/skills</code>, <code>/mcp</code> and <code>/agents</code>. The side panel shows <strong>Changes</strong> (with a diff per file), <strong>Files</strong>, <strong>Terminal</strong> and <strong>Preview</strong>. A checkpoint is taken before each job, so you can roll back.</p>
     <div class="callout warn"><div><b>Use it with care.</b> The agent runs real commands on your computer. Give it a project folder you're happy for it to change, and keep backups of anything that matters.</div></div>
+
+    <h2 id="extensions">Folders, skills, MCP &amp; plugins</h2>
+    <p>Astro AI works with the setup files that other coding tools already use, so an existing project behaves the way it does in OpenCode, Claude Code, Codex, Cursor or VS Code.</p>
+    <ul>
+      <li><strong>Open folder.</strong> In the Workspace or Agent project menu, choose <strong>Open folder…</strong>, browse to a folder and open it. The files stay where they are. <strong>Close folder</strong> only removes it from the list.</li>
+      <li><strong>Rules.</strong> <code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>GEMINI.md</code>, <code>.cursorrules</code>, <code>.cursor/rules</code> and <code>.github/copilot-instructions.md</code> are given to the agent.</li>
+      <li><strong>Skills.</strong> Folders with a <code>SKILL.md</code> in <code>.claude/skills</code>, <code>.opencode/skill</code>, <code>.agents/skills</code> or your global Extensions folder. The agent loads a skill when it needs one, or you can run it as <code>/skill-name</code>.</li>
+      <li><strong>Commands and subagents.</strong> Markdown files in <code>.claude/commands</code> or <code>.opencode/command</code> become slash commands (<code></code> is replaced with what you type after the command). Files in <code>.claude/agents</code> become subagents.</li>
+      <li><strong>MCP servers.</strong> Open <strong>Extensions → MCP</strong> to add a server, browse the official registry, or edit <code>mcp.json</code>. Astro also reads a project's <code>.mcp.json</code>, <code>.cursor/mcp.json</code>, <code>.vscode/mcp.json</code> and <code>opencode.json</code>. Project servers run commands on your computer, so they start only after you press <strong>Trust and start</strong>.</li>
+      <li><strong>Plugins.</strong> <strong>Extensions → Plugins</strong> installs Claude Code plugins and marketplaces from a GitHub address. A plugin can add skills, commands, agents, hooks, MCP servers, themes and snippets.</li>
+      <li><strong>Themes and snippets.</strong> <strong>Extensions → Themes</strong> and <strong>Snippets</strong> search Open VSX and install VS Code colour themes and snippet packs.</li>
+      <li><strong>Hooks.</strong> Hooks from <code>.claude/settings.json</code> run your scripts before or after the agent's tools. Project hooks run only after you trust them.</li>
+      <li><strong>Coding CLIs.</strong> If Claude Code, Codex, OpenCode, Gemini CLI or DeepSeek Harness is installed, the agent can hand sub-tasks to it.</li>
+    </ul>
+    <div class="callout warn"><div><b>Only trust what you know.</b> MCP servers, hooks and plugins can run programs on your computer. Install them from sources you trust.</div></div>
 
     <h2 id="voice">Voice</h2>
     <p>Click the microphone to <strong>dictate</strong> a message, or the highlighted <strong>Live</strong> wave button for a spoken back-and-forth conversation. The speaker button under any answer reads it aloud. Voice uses your operating system's speech engine, so the available voices and languages depend on your system. The first time, allow microphone access when asked.</p>

@@ -58,7 +58,9 @@ const shapes = [
 
 // ---- the Supabase project URL is public by design (the browser sign-in page must call it; data is protected by RLS).
 // Allow the project host ONLY in these website files; it is still flagged anywhere else.
-const PUBLIC_HOST_OK = new Set(['website/src/static/assets/js/account.js', 'website/src/pages/api.html', 'website/src/static/_headers', 'website/src/static/vercel.json', 'website/serve.js']);
+const PUBLIC_HOST_OK = new Set(['website/src/static/assets/js/account.js', 'website/src/pages/api.html', 'website/src/static/_headers', 'website/src/static/vercel.json', 'website/serve.js',
+  // the Astro API gateway URL (same public host) for the built-in "astro" provider: the app needs it to use astro_sk_ keys
+  'providers.json', 'tools/providers_extra.json']);
 
 // ---- scan
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => {

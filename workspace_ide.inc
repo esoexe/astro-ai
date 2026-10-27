@@ -270,7 +270,7 @@ void ide_history(int fd, const std::string& action, const std::string& project, 
         if (before.empty()) { send_json(fd, 500, error_json("Could not save the current version first: " + error)); return; }
         // Remove current files (not dependency folders), then copy the checkpoint back.
         std::vector<fs::path> current;
-        walk_project(base, [&](const std::string&, const fs::path& abs) { current.push_back(abs); });
+        walk_project(base, [&](const std::string&, const fs::path& abs) { std::error_code e2; const auto sz = fs::file_size(abs, e2); if (!e2 && sz <= 10'000'000) current.push_back(abs); });   // files over 10 MB are never in a checkpoint, so never delete them
         for (const auto& p : current) fs::remove(p, ec);
         std::size_t restored = 0;
         walk_project(snap, [&](const std::string& rel, const fs::path& abs) {
@@ -921,6 +921,7 @@ bool serve_app_proxy(int fd, const HttpRequest& request) {
 // ---------- router ----------
 #include "workspace_intel.inc"
 #include "workspace_agent.inc"
+#include "astro_dev.inc"
 
 bool handle_ide_api(int fd, const HttpRequest& request) {
     const std::string& path = request.path;

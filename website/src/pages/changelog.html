@@ -9,8 +9,50 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
-    <article class="release latest reveal" id="v1-0-0">
-      <header><h2>1.0.0</h2><span class="badge">Latest</span><time datetime="2026-10-27">October 27, 2026</time></header>
+    <article class="release latest reveal" id="v1-1-0">
+      <header><h2>1.1.0</h2><span class="badge">Latest</span><time datetime="2026-10-27">October 27, 2026</time></header>
+      <p class="muted">Astro AI becomes a full coding platform, with the features of OpenCode, Claude Code, Codex, Cursor, VS Code, Antigravity and DeepSeek Harness. <a href="{{root}}features.html">See the features →</a></p>
+
+      <h3>Projects</h3>
+      <ul class="ticks">
+        <li><strong>Open folder</strong>: work on any folder on your computer in place; closing it never deletes files</li>
+        <li>Agent permission modes: <strong>Plan</strong> (read-only), <strong>Ask</strong> (approve each change and command) and <strong>Auto</strong>. Opened folders start in Ask</li>
+        <li>Reads <code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>GEMINI.md</code>, Cursor rules and Copilot instructions</li>
+      </ul>
+
+      <h3>Agent</h3>
+      <ul class="ticks">
+        <li>Slash commands: <code>/init</code>, <code>/plan</code>, <code>/review</code>, <code>/test</code>, <code>/commit</code>, <code>/compact</code>, <code>/skills</code>, <code>/mcp</code>, <code>/agents</code>, plus your own commands</li>
+        <li>New tools: glob, diagnostics, a live to-do list, skills, MCP tools and subagents</li>
+        <li>Hands sub-tasks to Claude Code, Codex, OpenCode, Gemini CLI or DeepSeek Harness when they are installed</li>
+        <li>Hooks run your scripts before and after tools; errors are checked automatically after each edit</li>
+        <li>Agent Manager shows every session at once</li>
+        <li>If a model only describes what it will do, the next model takes over</li>
+      </ul>
+
+      <h3>Extensions</h3>
+      <ul class="ticks">
+        <li><strong>MCP</strong>: add servers, browse the official registry and use project <code>.mcp.json</code> files (trusted first)</li>
+        <li><strong>Plugins</strong>: install Claude Code plugins and marketplaces from GitHub</li>
+        <li><strong>Themes and snippets</strong> from Open VSX</li>
+        <li><strong>Skills</strong> from <code>SKILL.md</code> folders</li>
+      </ul>
+
+      <h3>Editor</h3>
+      <ul class="ticks">
+        <li>Problems panel with live error squiggles</li>
+        <li>AI inline suggestions (ghost text) and <span class="mono small">Ctrl I</span> inline edit</li>
+        <li>Snippet completions; fixed completion sources that could disappear while typing</li>
+      </ul>
+
+      <h3>Astro API</h3>
+      <ul class="ticks">
+        <li>Paste your <code>astro_sk_</code> key once to use every provider saved in your Astro account, with free failover</li>
+      </ul>
+    </article>
+
+    <article class="release reveal" id="v1-0-0">
+      <header><h2>1.0.0</h2><time datetime="2026-10-27">October 27, 2026</time></header>
       <p class="muted">The first public release of the Astro AI desktop app. <a href="{{root}}blog/introducing-astro-ai.html">Read the announcement →</a></p>
 
       <h3>One Brain</h3>

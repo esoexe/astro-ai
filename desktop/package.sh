@@ -10,7 +10,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
-VER="1.0.0"
+VER="1.1.0"
 OUT="$ROOT/desktop-builds"
 WORK="$ROOT/.cache/pkg"
 TP="$ROOT/desktop/third_party"
@@ -31,7 +31,7 @@ x86_64-w64-mingw32-gcc-posix -O2 -c desktop/src/win_compat.c -o "$WORK/win_compa
 x86_64-w64-mingw32-g++-posix -std=c++20 -O2 -DCURL_STATICLIB -I"$C/include" workspace_server.cpp "$WORK/win_compat.o" \
     -o "$WORK/bin/astro-server.exe" -static -static-libgcc -static-libstdc++ -L"$C/lib" -lcurl -lnghttp3 -lngtcp2_crypto_libressl \
     -lngtcp2 -lnghttp2 -lssh2 -lssl -lcrypto -lpsl -lbrotlidec -lbrotlicommon -lzstd -lz -lws2_32 -lcrypt32 -lbcrypt -lwldap32 \
-    -liphlpapi -lsecur32 -lnormaliz -ladvapi32 -luser32 -s &
+    -liphlpapi -lsecur32 -lnormaliz -ladvapi32 -luser32 -s  # sequential: two parallel mingw compiles need ~1.5 GB RAM
 x86_64-w64-mingw32-g++-posix -std=c++17 -O2 -Wno-unknown-pragmas -I"$TP/mingw-compat" -I"$TP/webview/include" -I"$TP/webview2/include" \
     desktop/src/astro_desktop.cpp "$WORK/astro_desktop_res.o" -o "$WORK/bin/AstroAI.exe" -mwindows -static -static-libgcc -static-libstdc++ \
     -lole32 -lshell32 -lshlwapi -lversion -luser32 -ladvapi32 -lws2_32 -luuid -s

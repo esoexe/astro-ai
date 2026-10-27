@@ -50,6 +50,7 @@
 #  include <fcntl.h>
 #  include <signal.h>
 #  include <poll.h>
+extern char** environ;   // the process environment (used to start MCP servers with the user's environment)
 #  include <cerrno>
 #  if defined(__APPLE__)
 #    include <util.h>

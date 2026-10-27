@@ -17,8 +17,8 @@ IDR_FONT_MONO    RCDATA  "fonts/JetBrainsMono-Regular.ttf"
 IDR_LOGO         RCDATA  SETUP_LOGO
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1,0,0,0
-PRODUCTVERSION 1,0,0,0
+FILEVERSION 1,1,0,0
+PRODUCTVERSION 1,1,0,0
 FILEOS VOS_NT_WINDOWS32
 FILETYPE VFT_APP
 BEGIN
@@ -28,9 +28,9 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "Astro AI"
       VALUE "FileDescription", APP_NAME_A " Setup"
-      VALUE "FileVersion", "1.0.0"
+      VALUE "FileVersion", "1.1.0"
       VALUE "ProductName", APP_NAME_A
-      VALUE "ProductVersion", "1.0.0"
+      VALUE "ProductVersion", "1.1.0"
       VALUE "LegalCopyright", "Astro AI"
       VALUE "OriginalFilename", "Setup.exe"
     END

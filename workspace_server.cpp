@@ -523,7 +523,7 @@ std::string brain_prompt_extra(const std::string& stage, bool voice, bool agent,
                "HOW TO ACT: each reply = one or two short sentences saying what you do next and why (no filler), then one or more tool calls. "
                "A tool call is a fenced block whose info line is the word tool, containing ONE JSON object, exactly like:\n"
                "```tool\n{\"tool\":\"bash\",\"command\":\"ls -la\"}\n```\n"
-               "You may put up to 5 independent tool calls in one reply; they run in order and ALL results come back in the next message as TOOL RESULTS. "
+               "You may put up to 6 independent tool calls in one reply; they run in order and ALL results come back in the next message as TOOL RESULTS. "
                "Never invent, guess or pre-write tool results: stop after your tool calls and wait.\n"
                "FILES: to create or completely rewrite a file, output it as a fenced block whose info line is the language and the path, with the COMPLETE content (never placeholders):\n"
                "```js path=src/app.js\n<complete file>\n```\n"
@@ -548,6 +548,16 @@ std::string brain_prompt_extra(const std::string& stage, bool voice, bool agent,
                "- ask_user {question, options?}: ask the user and wait for the answer. Only when a decision truly blocks progress; otherwise choose sensibly and say what you chose.\n"
                "- remember {fact}: save a lasting project convention or decision to the project memory.\n"
                "- present {path}: show a finished file or web page to the user (opens in their viewer / preview).\n"
+               "- glob {pattern}: project files matching a glob such as src/**/*.ts or *.md.\n"
+               "- diagnostics {paths?}: compiler and linter problems (syntax and type errors) for the project or the listed files. Run it after editing code.\n"
+               "- todo {items:[{text, status}]}: write or update your task list for this job (status: todo, doing, done). Use it for multi-step jobs and keep it current.\n"
+               "- skill {name}: load a skill (expert instructions listed under SKILLS in the job) and follow it. Load one only when the job matches its description.\n"
+               "- mcp {server, name, arguments}: call a tool of a connected MCP server (listed under MCP TOOLS in the job, with their input schemas).\n"
+               "- task {prompt, agent?}: hand a focused sub-task (research, review, an isolated change) to a subagent and get its report back. "
+               "agent = one of the AGENTS listed in the job (custom subagents or installed coding CLIs such as claude, codex, opencode, gemini, dsh); omit it for a general research subagent.\n"
+               "PROJECT CONTEXT: the job may include PROJECT RULES (AGENTS.md, CLAUDE.md, .cursorrules and similar: obey them), SKILLS, MCP TOOLS, AGENTS and a MODE. "
+               "In PLAN mode you are read-only: inspect with read-only tools, then reply with a numbered implementation plan and the done block; do not change files. "
+               "In ASK mode Astro shows the user an approval prompt before each change runs, so just call the tool (never use ask_user to ask for permission); if they deny one, choose another approach.\n"
                "WORKFLOW: 1) for an existing project inspect first (list_files, read the key files); 2) build in small, verified increments; "
                "3) after writing code ALWAYS run, compile or test it (bash, or start_server then curl) and read the output; "
                "4) on any error find the root cause, fix it and re-run (self-healing); never repeat the same failing command unchanged and do not give up after one failure; "
@@ -2158,6 +2168,7 @@ void handle_api(int fd, const HttpRequest& request) {
     }
     if (handle_workspace_api(fd, request)) return;
     if (handle_ide_api(fd, request)) return;
+    if (handle_dev_api(fd, request)) return;
     if (handle_astro_api(fd, request)) return;
     if (request.method == "GET" && request.path == "/api/status") {
         const auto config = model_config();

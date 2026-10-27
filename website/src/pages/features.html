@@ -35,6 +35,8 @@
         <li>Output, live preview and a real terminal in the same window</li>
         <li>Every change is saved as a version first, so you can diff it or undo it</li>
         <li>Team, Fast and Agent modes, plus <strong>Plan</strong> for multi-step goals and <strong>Auto-fix</strong></li>
+        <li><strong>Open any folder</strong> on your computer and work on it in place</li>
+        <li>Problems panel with live error squiggles, AI ghost-text completions and <span class="mono small">Ctrl I</span> inline edits</li>
       </ul>
     </div>
     <div class="reveal" data-delay="1"><div class="frame"><img src="{{root}}assets/img/shots/workspace.webp" width="1440" height="900" alt="The Workspace running a C++ program" loading="lazy"></div></div>
@@ -48,14 +50,36 @@
       <h2 class="h2">Hand over <em class="accent">the whole job.</em></h2>
       <p>Describe what you want built, fixed, researched or tested. The team of models plans the work and reviews it. A fast model carries out each step: it runs commands, writes and edits files, searches the web, starts servers and checks the results.</p>
       <ul class="ticks">
-        <li>Runs on its own, without stopping to ask for approval</li>
+        <li>Three permission modes: <strong>Plan</strong> (read-only), <strong>Ask</strong> (you approve each change and command) and <strong>Auto</strong></li>
+        <li>Slash commands, a live to-do list, subagents, skills and MCP tools</li>
         <li>Every step is logged, with a diff for every file it touches</li>
         <li>A checkpoint before each job, so you can roll everything back</li>
         <li>Changes, files, terminal and preview in a side panel</li>
       </ul>
-      <div class="callout warn" style="margin-top:22px"><div>The agent can run commands on your computer. Point it at a project folder you're comfortable with it changing, and keep backups of anything important.</div></div>
+      <div class="callout warn" style="margin-top:22px"><div>The agent can run commands on your computer. Folders you open start in <strong>Ask</strong> mode, so nothing changes without your approval. Keep backups of anything important.</div></div>
     </div>
     <div class="reveal" data-delay="1"><div class="frame"><img src="{{root}}assets/img/shots/agent.webp" width="1440" height="900" alt="The Agent screen" loading="lazy"></div></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="eyebrow">{{icon:layers}} Coding platform</span>
+      <h2 class="h2">Bring your tools, <em class="accent">skills and servers.</em></h2>
+      <p class="lead">The features you know from OpenCode, Claude Code, Codex, Cursor, VS Code, Antigravity and DeepSeek Harness, in one app. Astro reads the setup files those tools already use, so an existing project works as it is.</p>
+    </div>
+    <div class="grid-3">
+      <div class="card reveal"><div class="icon">{{icon:code}}</div><h3>Open folder</h3><p>Open any folder on your computer. The editor, terminal, Git and agent work on your real files. Closing the folder never deletes anything.</p></div>
+      <div class="card reveal" data-delay="1"><div class="icon">{{icon:shield}}</div><h3>Plan, Ask, Auto</h3><p>Choose how much the agent may do: inspect and plan only, ask before each change and command, or work on its own. A checkpoint is saved before every run.</p></div>
+      <div class="card reveal" data-delay="2"><div class="icon">{{icon:spark}}</div><h3>Skills &amp; rules</h3><p>Reads <span class="mono small">AGENTS.md</span>, <span class="mono small">CLAUDE.md</span>, Cursor rules and Copilot instructions, plus <span class="mono small">SKILL.md</span> skills, custom slash commands and subagents.</p></div>
+      <div class="card reveal"><div class="icon">{{icon:terminal}}</div><h3>MCP servers</h3><p>Connect Model Context Protocol servers from the official registry, or your own <span class="mono small">.mcp.json</span>. Project servers run only after you trust them.</p></div>
+      <div class="card reveal" data-delay="1"><div class="icon">{{icon:download}}</div><h3>Plugins</h3><p>Install Claude Code plugins and plugin marketplaces straight from GitHub. They can bundle skills, commands, agents, hooks and MCP servers.</p></div>
+      <div class="card reveal" data-delay="2"><div class="icon">{{icon:palette}}</div><h3>Themes &amp; snippets</h3><p>Browse Open VSX and install VS Code colour themes and snippet packs, then switch themes with one click.</p></div>
+      <div class="card reveal"><div class="icon">{{icon:command}}</div><h3>Slash commands</h3><p><span class="mono small">/init</span>, <span class="mono small">/plan</span>, <span class="mono small">/review</span>, <span class="mono small">/test</span>, <span class="mono small">/commit</span>, <span class="mono small">/compact</span> and your own commands, with <span class="mono small"></span>.</p></div>
+      <div class="card reveal" data-delay="1"><div class="icon">{{icon:bot}}</div><h3>Subagents &amp; CLIs</h3><p>The agent can hand a sub-task to a subagent, or to Claude Code, Codex, OpenCode, Gemini CLI or DeepSeek Harness if you have them installed.</p></div>
+      <div class="card reveal" data-delay="2"><div class="icon">{{icon:flask}}</div><h3>Problems &amp; hooks</h3><p>A Problems panel checks your code as you type and after every agent edit. Hooks run your own scripts before and after tools.</p></div>
+    </div>
   </div>
 </section>
 

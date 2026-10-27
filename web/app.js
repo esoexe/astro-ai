@@ -1927,6 +1927,7 @@
       { label: 'Settings', icon: 'i-gear', run: () => openSettings('general') },
       { label: 'Keyboard shortcuts', icon: 'i-keyboard', run: () => openSettings('shortcuts') },
       ...Object.entries(MODES).map(([id, m]) => ({ label: `Mode: ${m.label}`, icon: m.icon, run: () => setMode(id) })),
+      ...(window.AstroDev?.paletteItems?.() || []),
     ];
     const query = q.trim().toLowerCase();
     const has = (s) => s.toLowerCase().includes(query);
@@ -1994,7 +1995,7 @@
   function brainEligible(all) {
     // Paid routes cost money on every message: One Brain uses them only after the user opts in per platform
     // (Settings -> Providers), and then only that platform's Auto models, never its whole catalog.
-    const paidOk = (m) => !(m.paid || /paid/.test(m.provider || '')) || (m.paid && m.auto);
+    const paidOk = (m) => m.provider !== 'astro-all' && (!(m.paid || /paid/.test(m.provider || '')) || (m.paid && m.auto));   // astro-all = manual picking only
     return models().filter((m) => paidOk(m) && (all || (m.kind !== 'local' && !m.local)) && (state.brain.allowTrain !== false || !m.trains));
   }
   function pickMinds(n) {
@@ -3259,7 +3260,7 @@
     const q = lower($('#prov-filter')?.value || '');
     const usage = new Map((usageCache?.providers || []).map((p) => [p.id, p]));
     const kind = provKind;
-    const list = (keysCache.providers || []).filter((p) => (!q || lower(`${p.name} ${p.id} ${p.key}`).includes(q)) && (kind === 'all' || (kind === 'paid' ? p.paid : kind === 'local' ? p.local : !p.paid && !p.local)));
+    const list = (keysCache.providers || []).filter((p) => (q || (p.id !== 'astro' && p.id !== 'astro-all')) && (!q || lower(`${p.name} ${p.id} ${p.key}`).includes(q)) && (kind === 'all' || (kind === 'paid' ? p.paid : kind === 'local' ? p.local : !p.paid && !p.local)));
     const rank = (p) => (p.connected ? 0 : p.keyless ? 1 : 2);
     list.sort((a, c) => rank(a) - rank(c));
     const totals = (usageCache?.providers || []).reduce((t, p) => ({ req: t.req + p.requests, ok: t.ok + p.ok }), { req: 0, ok: 0 });
@@ -3278,7 +3279,11 @@
         ${keyLine}${extra}${baseLine}${optin}<small class="test-out" id="test-${esc(p.id)}"></small></li>`;
     }).join('');
     const search = (keysCache.search || []).map((s) => `<div class="key-line"><code>${esc(s.key)}</code><input class="input" type="password" autocomplete="off" data-key-name="${esc(s.key)}" placeholder="${s.key_set ? '•••••• saved' : 'Optional'}"><button type="button" class="btn small" data-key-save="${esc(s.key)}">Save</button></div>`).join('');
-    b.innerHTML = `<div class="stat-grid"><div class="stat"><strong>${(keysCache.providers || []).filter((p) => p.connected).length}/${(keysCache.providers || []).length}</strong><span>platforms connected</span></div><div class="stat"><strong>${totals.ok}/${totals.req}</strong><span>requests ok today (UTC)</span></div><div class="stat"><strong>${readyCount()}</strong><span>models ready now</span></div></div>
+    const ap = (keysCache.providers || []).find((p) => p.id === 'astro');
+    const astroCard = ap ? `<div class="box astro-key-card"><div class="prov-head">${icon('i-spark')}<h3>Astro API key</h3>${ap.connected ? '<span class="pbadge on">connected</span>' : '<span class="pbadge off">not set</span>'}<span class="grow"></span>${ap.connected ? '<button type="button" class="btn small" data-prov-test="astro">' + icon('i-bolt') + 'Test</button>' : ''}</div>
+      <p class="hint">One key for every provider you saved in your <a href="${esc(ap.signup || 'https://esoexe.github.io/astro-ai/account.html')}" target="_blank" rel="noopener noreferrer">Astro account</a> (Account → API keys → Create key; it starts with <code>astro_sk_</code>). <b>Astro auto</b> fails over across your free providers, and <b>Astro API: pick any model</b> lists all of your account's models for manual picking. Limit: 5,000 requests/day.</p>
+      <div class="key-line"><code>ASTRO_API_KEY</code><input class="input" type="password" autocomplete="off" data-key-name="ASTRO_API_KEY" placeholder="${ap.key_set ? '•••••• saved (' + esc(ap.key_source || 'server') + ')' : 'astro_sk_…'}"><button type="button" class="btn small" data-key-save="ASTRO_API_KEY">Save</button>${ap.key_source === 'app' ? '<button type="button" class="btn small ghost" data-key-clear="ASTRO_API_KEY">Remove</button>' : ''}</div><small class="test-out" id="test-astro"></small></div>` : '';
+    b.innerHTML = `${astroCard}<div class="stat-grid"><div class="stat"><strong>${(keysCache.providers || []).filter((p) => p.connected).length}/${(keysCache.providers || []).length}</strong><span>platforms connected</span></div><div class="stat"><strong>${totals.ok}/${totals.req}</strong><span>requests ok today (UTC)</span></div><div class="stat"><strong>${readyCount()}</strong><span>models ready now</span></div></div>
       <div class="btn-row"><button type="button" class="btn" id="prov-test-all">${icon('i-bolt')}Test all connected</button><button type="button" class="btn ghost" id="prov-reload">${icon('i-redo')}Refresh</button></div>
       <div class="prov-kinds" role="tablist">${[['all', 'All'], ['free', 'Free'], ['paid', 'Paid'], ['local', 'Local']].map(([k, l]) => `<button type="button" class="chip${provKind === k ? ' on' : ''}" data-prov-kind="${k}">${l} <small>${(keysCache.providers || []).filter((p) => k === 'all' || (k === 'paid' ? p.paid : k === 'local' ? p.local : !p.paid && !p.local)).length}</small></button>`).join('')}</div>
       <ul class="prov-list">${rows || '<li class="hint">No provider matches.</li>'}</ul>
@@ -3717,6 +3722,8 @@
               <button type="button" data-side="history" title="Versions and undo">${icon('i-history')}<span>History</span></button>
               <button type="button" data-side="git" title="Git: changes, commits, branches, review">${icon('i-git')}<span>Git</span></button>
               <button type="button" data-side="context" title="Context: project memory, repository index, outline, knowledge map">${icon('i-brain')}<span>Context</span></button>
+              <button type="button" data-side="ext" title="Extensions: skills, MCP servers, plugins, themes, snippets, rules, hooks">${icon('i-puzzle')}<span>Extensions</span></button>
+              <button type="button" data-side="problems" title="Problems: compiler and linter errors">${icon('i-alert')}<span>Problems</span><i class="ws-side-count" id="ws-prob-count" hidden></i></button>
             </div>
             <div class="ws-side" data-sidepane="files">
               <div class="ws-head"><span class="ws-head-title">Files</span><span class="grow"></span>
@@ -3750,6 +3757,8 @@
             </div>
             <div class="ws-side" data-sidepane="git" hidden><div class="ws-git" id="ws-git"></div></div>
             <div class="ws-side" data-sidepane="context" hidden><div class="ws-ctx" id="ws-ctx"><div id="ws-ctx-mem"></div><div id="ws-ctx-idx"></div></div></div>
+            <div class="ws-side" data-sidepane="ext" hidden><div class="dev-ext" id="ws-ext"></div></div>
+            <div class="ws-side" data-sidepane="problems" hidden><div class="dev-probs" id="ws-probs"></div></div>
           </aside>
           <section class="ws-center" id="ws-center">
             <div class="ws-tabs" id="ws-tabs" role="tablist"></div>
@@ -4102,17 +4111,19 @@
     wsProcRefresh();
     if (ws.side === 'history') wsLoadVersions();
     if (ws.side === 'search' && ws.srch.q) wsSearch();
+    window.AstroDev?.projectChanged?.(name);
   }
   function wsRenderAll() { wsRenderTree(); wsRenderTabs(); wsRenderEditor(); wsRenderResults(); wsRenderTeam(); wsRenderBar(); wsRenderSide(); wsLayout(); }
 
   // ---------- projects ----------
   function wsProjectMenu(anchor) {
     const items = [{ title: 'Projects', aside: String(ws.projects.length) },
-      ...ws.projects.map((p) => ({ label: p.name, icon: 'i-folder', tick: p.name === ws.project, onClick: () => { if (p.name !== ws.project) wsSwitch(p.name); } })),
+      ...ws.projects.map((p) => ({ label: p.name, icon: p.linked ? 'i-folder-open' : 'i-folder', sub: p.linked || '', tick: p.name === ws.project, onClick: () => { if (p.name !== ws.project) wsSwitch(p.name); } })),
       'sep',
+      { label: 'Open folder…', icon: 'i-folder-open', sub: 'Work on a folder on this computer, in place', onClick: () => window.AstroDev?.openFolder?.() },
       { label: 'New project', icon: 'i-plus', sub: 'Empty, or with a small starter', onClick: wsNewProject },
       { label: 'Rename project', icon: 'i-edit', onClick: wsRenameProject },
-      { label: 'Delete project', icon: 'i-trash', danger: true, onClick: wsDeleteProject }];
+      ws.projects.find((p) => p.name === ws.project)?.linked ? { label: 'Close folder', icon: 'i-x', sub: 'Removes it from Astro AI; your files stay', onClick: wsDeleteProject } : { label: 'Delete project', icon: 'i-trash', danger: true, onClick: wsDeleteProject }];
     openMenu(anchor, items, { width: 280 });
   }
   async function wsNewProject() {
@@ -4136,7 +4147,9 @@
     await wsSwitch(clean, true);
   }
   async function wsDeleteProject() {
-    const ok = await wsDialog({ title: `Delete “${ws.project}”?`, text: 'All its files are deleted from the server. This cannot be undone.', ok: 'Delete', danger: true, input: false });
+    const linked = ws.projects.find((p) => p.name === ws.project)?.linked;
+    const ok = linked ? await wsDialog({ title: `Close “${ws.project}”?`, text: `Astro AI stops showing this folder. Your files in ${linked} are not touched.`, ok: 'Close folder', input: false })
+      : await wsDialog({ title: `Delete “${ws.project}”?`, text: 'All its files are deleted from the server. This cannot be undone.', ok: 'Delete', danger: true, input: false });
     if (!ok) return;
     try { await wsApi('/api/fs/project/delete'); } catch (err) { toast(err.message, 'error'); return; }
     ls.del(teamKey()); ls.del(openKey());
@@ -4866,7 +4879,7 @@
   // ===========================================================================================
   // IDE: editor engine, status bar, search, versions, diff, terminal, app servers, console
   // ===========================================================================================
-  const IDE_V = '2';
+  const IDE_V = '4';
   const wsSleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const wsB64 = (s) => { const bin = atob(s); const out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out; };
   const wsIsNarrow = () => matchMedia('(max-width: 900px)').matches;
@@ -4925,8 +4938,10 @@
         onRun: () => wsRun(),
         onCursor: (c) => { ws.cursor = c; cancelAnimationFrame(ws.stFrame); ws.stFrame = requestAnimationFrame(wsRenderStatus); },
         onWrap: (w) => { ws.wrap = w; ls.set(`${WS}:wrap`, w ? '1' : '0'); wsRenderStatus(); },
+        onInlineEdit: (sel) => window.AstroDev?.inlineEdit?.(sel),
       });
       $('#ws-ed').classList.add('use-cm');
+      window.AstroDev?.editorReady?.(ws.cm);
     } catch (err) { console.error(err); ws.cm = null; toast('The advanced editor failed to start; using the simple editor', 'error'); }
   }
   function wsFocusEditor() { if (ws.cm) ws.cm.focus(); else $('.ed-ta')?.focus(); }
@@ -4960,6 +4975,7 @@
     if (name === 'search') { setTimeout(() => $('#ws-sq')?.focus(), 30); if (ws.srch.q && !ws.srch.res) wsSearch(); }
     if (name === 'git') wsGitRefresh();
     if (name === 'context') wsCtxLoad();
+    if (name === 'ext' || name === 'problems') window.AstroDev?.side?.(name, true);
   }
   function wsRenderSide() {
     $$('[data-side]').forEach((b) => b.classList.toggle('on', b.dataset.side === ws.side));
@@ -4969,6 +4985,7 @@
     if (ws.side === 'git') { if (ws.project && ws.git?.project !== ws.project && !ws.gitBusy) wsGitRefresh(); else wsRenderGit(); }
     if (ws.side === 'context') { if (ws.project && (ws.memory?.project !== ws.project || ws.index?.project !== ws.project) && !ws.ctxBusy) wsCtxLoad(); else wsRenderCtx(); }
     if (ws.mapOpen && ws.mapGraph && ws.index?.project !== ws.project) wsCloseMap();
+    if (ws.side === 'ext' || ws.side === 'problems') window.AstroDev?.side?.(ws.side, false);
   }
 
   // ---------- search across files ----------
@@ -5796,9 +5813,11 @@
     web_search: ['i-globe', 'Searched the web'], fetch_page: ['i-read', 'Read page'], start_server: ['i-server', 'Started server'],
     server_logs: ['i-server', 'Server logs'], stop_server: ['i-stop', 'Stopped server'], ask_user: ['i-hand', 'Asked you'],
     remember: ['i-memory', 'Remembered'], present: ['i-eye', 'Presented'], _bad: ['i-x', 'Unreadable tool call'],
+    glob: ['i-folder', 'Found files'], diagnostics: ['i-alert', 'Checked problems'], todo: ['i-task', 'Updated to-dos'], skill: ['i-spark', 'Loaded skill'],
+    mcp: ['i-puzzle', 'MCP tool'], task: ['i-sparkles', 'Subagent'],
   };
   const agDur = (ms) => (ms > 0 && ms < 1000 ? `${Math.round(ms)}ms` : fmtSecs(ms || 0));
-  const AG_RUNNING = { bash: 'Running', read_file: 'Reading', write_file: 'Writing', edit_file: 'Editing', delete_file: 'Deleting', list_files: 'Listing files', search: 'Searching code', web_search: 'Searching the web', fetch_page: 'Reading page', start_server: 'Starting server', server_logs: 'Reading logs', stop_server: 'Stopping server', ask_user: 'Question for you', remember: 'Remembering', present: 'Presenting' };
+  const AG_RUNNING = { bash: 'Running', read_file: 'Reading', write_file: 'Writing', edit_file: 'Editing', delete_file: 'Deleting', list_files: 'Listing files', search: 'Searching code', web_search: 'Searching the web', fetch_page: 'Reading page', start_server: 'Starting server', server_logs: 'Reading logs', stop_server: 'Stopping server', ask_user: 'Question for you', remember: 'Remembering', present: 'Presenting', glob: 'Finding files', diagnostics: 'Checking for problems', todo: 'Updating to-dos', skill: 'Loading skill', mcp: 'Calling MCP tool', task: 'Subagent working' };
   const AG_ALIAS = {
     shell: 'bash', run: 'bash', exec: 'bash', terminal: 'bash', command: 'bash', sh: 'bash', run_command: 'bash', execute: 'bash',
     create_file: 'write_file', write: 'write_file', save_file: 'write_file', read: 'read_file', cat: 'read_file', open_file: 'read_file',
@@ -5807,6 +5826,8 @@
     read_url: 'fetch_page', open_url: 'fetch_page', fetch: 'fetch_page', browse: 'fetch_page', search_web: 'web_search', google: 'web_search',
     start_process: 'start_server', serve: 'start_server', stop_process: 'stop_server', logs: 'server_logs', process_output: 'server_logs',
     ask: 'ask_user', question: 'ask_user', memory: 'remember', show: 'present', present_file: 'present', open: 'present',
+    find_files: 'glob', lint: 'diagnostics', problems: 'diagnostics', check: 'diagnostics', todowrite: 'todo', todo_write: 'todo', todos: 'todo',
+    use_skill: 'skill', load_skill: 'skill', mcp_call: 'mcp', call_mcp: 'mcp', subagent: 'task', agent: 'task', delegate: 'task',
   };
   let agSeq = 0;
   const agId = () => `${Date.now().toString(36)}${(agSeq++).toString(36)}`;
@@ -6134,6 +6155,7 @@
         throw new Error(call.cut ? 'Your reply was cut off in the middle of a tool call or file (too long). Write big files in smaller parts (several files, or edit_file), then continue.'
           : `Could not read this tool call as JSON: ${agClip(call.raw, 200)}. Put exactly one JSON object in each \`\`\`tool block.`);
       default:
+        if (window.AstroDev?.tools?.[t]) return window.AstroDev.tools[t](s, call, item, signal);
         throw new Error(`Unknown tool "${t}". Tools: ${Object.keys(AG_TOOLS).filter((k) => k !== '_bad').join(', ')}.`);
     }
   }
@@ -6165,7 +6187,8 @@
     try { files = (await agApi(s, '/api/fs/tree', {})).files || []; } catch (_e) { /* empty */ }
     const mem = await agReadOrNull(s, '.workspace/memory.md');
     const list = files.slice(0, 120).map((f) => `${f.path} (${fmtBytes(f.size || 0)})`).join('\n');
-    return { count: files.length, text: `PROJECT "${s.project}" — ${files.length ? `${files.length} files${files.length > 120 ? ' (first 120)' : ''}:\n${list}` : 'empty folder'}${mem ? `\n\nPROJECT MEMORY (obey):\n${agClip(mem, 3000)}` : ''}` };
+    let dev = ''; try { dev = (await window.AstroDev?.brief?.(s)) || ''; } catch (_e) { /* extensions unavailable */ }
+    return { count: files.length, text: `PROJECT "${s.project}" — ${files.length ? `${files.length} files${files.length > 120 ? ' (first 120)' : ''}:\n${list}` : 'empty folder'}${mem ? `\n\nPROJECT MEMORY (obey):\n${agClip(mem, 3000)}` : ''}${dev ? `\n\n${dev}` : ''}` };
   }
   async function agTeamDraft(s, item, content, signal) {
     const d = { id: makeId(), content: '', thinking: '', notice: '', status: 'streaming', requested: 'auto', started: performance.now() };
@@ -6181,6 +6204,7 @@
   async function agSend(s, text) {
     if (agBusy(s)) { toast('The agent is still working'); return; }
     text = String(text || '').trim(); if (!text) return;
+    if (window.AstroDev?.agentInput) { const x = await window.AstroDev.agentInput(s, text); if (!x) { agPaint(s); agSave(s); return; } text = x; }
     if (!s.items.length) s.title = agClip(text.replace(/\s+/g, ' '), 70);
     agPush(s, { kind: 'user', text });
     await agRun(s, text);
@@ -6217,7 +6241,7 @@
         if (s.convo.length) s.convo.push({ role: 'user', content: job }); else s.convo = [{ role: 'user', content: job }];
       }
       const limit = opts.limit || AG_MAX;
-      let noCall = 0; let fails = new Map();
+      let noCall = 0; let fails = new Map(); let toolsUsed = 0;
       for (let step = 0; step < limit; step++) {
         if (signal.aborted) throw new DOMException('stopped', 'AbortError');
         if (planJob && planJob.ready && !planJob.sent && planJob.text) {
@@ -6237,11 +6261,14 @@
         if (!say.text && parsed.calls.length) { s.items.splice(s.items.indexOf(say), 1); }
         s.convo.push({ role: 'assistant', content: reply });
         if (!parsed.calls.length) {
-          if (parsed.done || ++noCall >= 2) { finished = true; report = parsed.text || parsed.done?.summary || ''; if (say.text && parsed.done) say.final = true; break; }
+          // A model that only describes what it will do (no tool call, no done block) before acting at all hands over to
+          // the next model, with one extra try, so a chatty model cannot end the job with nothing done.
+          if (parsed.done || ++noCall >= (toolsUsed ? 2 : 3)) { finished = true; report = parsed.text || parsed.done?.summary || ''; if (say.text && parsed.done) say.final = true; break; }
           s.convo.push({ role: 'user', content: 'TOOL RESULTS: (none — your reply had no tool call.) Continue the job with tool calls in ```tool blocks, or, if the job is completely done and verified, reply with the report and the ```done block.' });
+          if (!toolsUsed) s.pref = ((s.pref || 0) + 1) % Math.max(1, agCands().length);
           agPaint(s); continue;
         }
-        noCall = 0;
+        noCall = 0; toolsUsed++;
         const results = [];
         for (const [i, call] of parsed.calls.slice(0, 6).entries()) {
           if (signal.aborted) break;
@@ -6249,8 +6276,13 @@
           const t0 = performance.now();
           let res = '';
           try {
-            res = await agExec(s, call, ti, signal);
-            ti.status = ti.ok === false ? 'err' : 'ok';
+            const gate = window.AstroDev?.beforeTool ? await window.AstroDev.beforeTool(s, call, ti, signal) : null;
+            if (gate?.block) { ti.status = 'err'; ti.error = gate.block; res = `BLOCKED: ${gate.block}`; }
+            else {
+              res = await agExec(s, call, ti, signal);
+              ti.status = ti.ok === false ? 'err' : 'ok';
+              if (window.AstroDev?.afterTool) { const extra = await window.AstroDev.afterTool(s, call, ti, res).catch(() => ''); if (extra) res += `\n${extra}`; }
+            }
           } catch (err) {
             if (err?.name === 'AbortError' || signal.aborted) { ti.status = 'err'; ti.error = 'Stopped'; ti.v++; break; }
             ti.status = 'err'; ti.error = err.message || String(err); res = `ERROR: ${ti.error}`;
@@ -6259,7 +6291,7 @@
           if (ti.status === 'err' && (call.tool === 'bash' || ti.error)) ti.open = true;
           if (call.tool === 'ask_user' || call.tool === 'present') ti.open = true;
           ti.v++; s.tools++;
-          if (['write_file', 'edit_file', 'delete_file', 'bash', 'remember'].includes(call.tool)) agChangesDirty(s);
+          if (['write_file', 'edit_file', 'delete_file', 'bash', 'remember', 'mcp', 'task'].includes(call.tool)) agChangesDirty(s);
           const sig = `${call.tool}|${call.command || call.path || ''}`;
           if (ti.status === 'err') { const n = (fails.get(sig) || 0) + 1; fails.set(sig, n); if (n >= 3) res += '\nNOTE: this exact action has now failed 3 times. Stop repeating it: read the error, change the approach.'; }
           results.push(`### [${i + 1}] ${agCallShort(call)}\n${res}`);
@@ -6298,13 +6330,26 @@
           }
         }
       }
+      if (finished && window.AstroDev?.onStop && !signal.aborted && (s._stopRounds || 0) < 2) {
+        const again = await window.AstroDev.onStop(s, report).catch(() => null);
+        if (again?.continue) {
+          s._stopRounds = (s._stopRounds || 0) + 1;
+          agPush(s, { kind: 'note', text: `A Stop hook asked the agent to keep going: ${agClip(again.continue, 200)}` });
+          s.convo.push({ role: 'user', content: `STOP HOOK — the project's Stop hook blocked finishing:\n${agClip(again.continue, 3000)}\nFix this, verify, then finish again with the report and the done block.` });
+          s.ms += Math.round(performance.now() - s._started);
+          AG.runs.delete(s.id);
+          return agRun(s, text, { resume: true, limit: 16, noReview: true });
+        }
+      }
       if (finished) {
+        s._stopRounds = 0;
         const changes = await agChangeList(s);
         s.files = changes.length;
         const dup = [...s.items].reverse().find((it) => it.kind === 'say' && it.final);
         let via = '';
         if (dup && report && dup.text.trim() === String(report).trim()) { via = dup.model || ''; s.items.splice(s.items.indexOf(dup), 1); }
         agPush(s, { kind: 'done', text: report, files: changes.length, steps: s.steps, ms: Math.round(s.ms + performance.now() - s._started), model: via });
+        if (window.AstroDev?.mode?.(s) === 'plan') agPush(s, { kind: 'note', text: 'Plan mode: nothing was changed. Review the plan, then run it.', runPlan: true });
         s.status = 'done';
       }
     } catch (err) {
@@ -6323,7 +6368,7 @@
   }
   function agArgsForView(c) {
     const o = {};
-    for (const k of ['command', 'path', 'query', 'url', 'question', 'fact', 'timeout', 'cwd', 'offset', 'limit', 'regex']) if (c[k] !== undefined && c[k] !== '') o[k] = typeof c[k] === 'string' ? agClip(c[k], 4000) : c[k];
+    for (const k of ['command', 'path', 'query', 'url', 'question', 'fact', 'timeout', 'cwd', 'offset', 'limit', 'regex', 'pattern', 'server', 'name', 'prompt', 'agent']) if (c[k] !== undefined && c[k] !== '') o[k] = typeof c[k] === 'string' ? agClip(c[k], 4000) : c[k];
     if (c.tool === 'edit_file') { o.old_text = agClip(c.old_text, 4000); o.new_text = agClip(c.new_text, 4000); }
     if (c.tool === '_bad') o.raw = c.raw;
     return o;
@@ -6385,6 +6430,10 @@
     if (a.url) return hostOf(a.url) + agClip(String(a.url).replace(/^https?:\/\/[^/]+/, ''), 40);
     if (a.question) return a.question;
     if (a.fact) return a.fact;
+    if (it.tool === 'mcp') return `${a.server || '?'} · ${a.name || ''}`;
+    if (it.tool === 'task') return `${a.agent ? `[${a.agent}] ` : ''}${a.prompt || ''}`;
+    if (it.tool === 'skill') return a.name || '';
+    if (it.tool === 'glob') return a.pattern || '';
     return '';
   }
   function agToolStat(it) {
@@ -6398,6 +6447,7 @@
   }
   function agToolBody(s, it) {
     const a = it.args || {}; const m = it.meta || {}; let h = '';
+    if (it.approve && it.status === 'run') return `<div class="ag-ask ag-approve"><div class="ag-q">${esc(it.approve)}</div>${it.preview ? `<pre class="ag-pre">${esc(agClip(it.preview, 4000))}</pre>` : ''}<div class="ag-opts">${['Allow', 'Allow all in this run', 'Deny'].map((o) => `<button type="button" class="ws-chip${o === 'Deny' ? ' ghost' : ''}" data-agans="${o}" data-ag-item="${it.id}">${o}</button>`).join('')}</div><form class="ag-ans-form" data-ag-item="${it.id}"><input type="text" placeholder="Or tell the agent what to do instead…" aria-label="Instead"><button type="submit" class="ws-chip">Send</button></form></div>`;
     if (it.error) h += `<div class="ag-err">${esc(it.error)}</div>`;
     if (it.tool === 'bash') h += `<pre class="ag-pre"><span class="ag-ps">$ ${esc(a.command || '')}</span>\n${esc(it.out || (it.status === 'run' ? 'running…' : ''))}</pre>`;
     else if (it.tool === 'write_file' && it.out) h += `<pre class="ag-pre code">${HL(agClip(it.out, 12000), extOf(a.path))}</pre>`;
@@ -6424,7 +6474,7 @@
     if (it.kind === 'tool') {
       const [ic, verb] = AG_TOOLS[it.tool] || ['i-bolt', it.tool];
       const st = it.status === 'run' ? '<span class="ag-spin"></span>' : it.status === 'ok' ? `<span class="ag-ok">${icon('i-check')}</span>` : `<span class="ag-bad">${icon('i-x')}</span>`;
-      const open = it.open || (it.tool === 'ask_user' && it.status === 'run');
+      const open = it.open || (it.tool === 'ask_user' && it.status === 'run') || (it.approve && it.status === 'run');
       return `<div class="ag-it ag-tool st-${it.status}${open ? ' open' : ''}" data-agi="${it.id}"><button type="button" class="ag-th" data-agtoggle="${it.id}" aria-expanded="${open}"><span class="ag-ti">${icon(ic)}</span><b>${esc(it.status === 'run' ? AG_RUNNING[it.tool] || verb : verb)}</b><code dir="auto">${esc(agClip(agToolSummary(it), 160))}</code><span class="ag-stat">${agToolStat(it)}${it.ms && it.status !== 'run' && it.tool !== 'ask_user' ? `<span class="ag-ms">${agDur(it.ms)}</span>` : ''}</span>${st}<span class="ag-chev">${icon('i-chev')}</span></button>${open ? `<div class="ag-tb">${agToolBody(s, it)}</div>` : ''}</div>`;
     }
     if (it.kind === 'plan' || it.kind === 'review') {
@@ -6435,6 +6485,9 @@
     }
     if (it.kind === 'done') return `<div class="ag-it ag-done" data-agi="${it.id}"><div class="ag-done-h"><span class="ag-ok">${icon('i-check')}</span><b>Done</b><span class="ag-sub">${it.steps} steps · ${fmtSecs(it.ms || 0)}</span>${it.files ? `<button type="button" class="ag-act" data-agchanges>${icon('i-diff')}${it.files} file${it.files === 1 ? '' : 's'} changed</button>` : ''}</div>${it.text ? `<div class="md ag-md" dir="auto">${renderMarkdown(it.text)}</div>` : ''}${it.model ? `<div class="ag-via">${esc(it.model)}</div>` : ''}</div>`;
     if (it.kind === 'error') return `<div class="ag-it ag-note bad" data-agi="${it.id}">${icon('i-x')}<span>${esc(it.text)}</span></div>`;
+    if (it.kind === 'todo') return `<div class="ag-it ag-todo" data-agi="${it.id}"><div class="ag-todo-h">${icon('i-task')}<b>To-dos</b><span class="ag-sub">${(it.items || []).filter((x) => x.status === 'done').length}/${(it.items || []).length} done</span></div><ul>${(it.items || []).map((x) => `<li class="td-${esc(x.status)}"><i>${x.status === 'done' ? icon('i-check') : x.status === 'doing' ? '<span class="ag-spin"></span>' : ''}</i><span>${esc(x.text)}</span></li>`).join('')}</ul></div>`;
+    if (it.kind === 'dev') return `<div class="ag-it ag-note ag-dev" data-agi="${it.id}">${icon(it.icon || 'i-spark')}<div class="md ag-md">${renderMarkdown(it.text || '')}</div></div>`;
+    if (it.runPlan) return `<div class="ag-it ag-note ag-runplan" data-agi="${it.id}">${icon('i-plan')}<span>${esc(it.text)}</span>${agBusy(s) ? '' : `<button type="button" class="ws-chip" data-devrunplan="${esc(s.id)}">${icon('i-play')}Run this plan</button>`}</div>`;
     return `<div class="ag-it ag-note" data-agi="${it.id}">${icon('i-hand')}<span>${esc(it.text)}</span></div>`;
   }
   function agFootHtml(s) {
@@ -6549,6 +6602,7 @@
             <textarea id="ag-in" rows="1" placeholder="Give the agent a job: build, fix, research, test…" aria-label="Message the agent"></textarea>
             <div class="ag-row">
               <button type="button" class="ws-chip ag-team-chip" id="ag-team" title="The whole team of models writes the plan first and reviews the result at the end (slower, stronger). Steps in between run on the best fast model.">${icon('i-brain')}<span>Team plan &amp; review</span></button>
+              <button type="button" class="ws-chip ag-mode-chip" data-devmode title="Permission mode: Plan (read-only), Ask (approve each change) or Auto">${icon('i-hand')}<span>Mode</span></button>
               <span class="ag-hint" id="ag-hint"></span><span class="grow"></span>
               <button type="submit" class="ws-send" id="ag-send" title="Send (Enter)">${icon('i-send')}</button>
             </div>
@@ -7081,6 +7135,14 @@
     },
     toast,
   };
+  // Internals used by web/dev.js (folders, extensions, MCP, skills, modes, hooks). Same page, same trust level.
+  window.AstroAgent = {
+    ws, AG, state, apiJson, toast, esc, icon, wsDialog, showModal, closeModal: () => (typeof closeModal === 'function' ? closeModal() : null), openMenu, renderMarkdown,
+    agPush, agPaint, agSave, agSend, agApi, agClip, agRead, agReadOrNull, agCands, agCurSession, agStop, agRun, streamDraft, makeId, okPath, cleanPath,
+    wsSwitch, wsShow, wsOpen, wsGoto, wsLoadTree, wsSide, wsRenderSide, wsSaveAll, wsApi, extOf, switchView, openSettings, fmtBytes, ls,
+    get project() { return ws.project; },
+  };
+  window.AstroDev?.init?.();
   switchView('assistant');
   setGenerating(false);
   refreshStatus();

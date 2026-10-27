@@ -1162,6 +1162,42 @@
       "privacy": "Self-hosted on Free.ai GPUs; see Free.ai terms"
     },
     {
+      "id": "astro",
+      "name": "Astro API (your Astro account)",
+      "kind": "openai",
+      "base_url": "https://vgtucdfretcvojcfvbzk.supabase.co/functions/v1/astro-api/v1",
+      "key": "ASTRO_API_KEY",
+      "signup": "https://esoexe.github.io/astro-ai/account.html",
+      "limits": "5,000 requests/day per account; uses the provider keys saved in your Astro account",
+      "privacy": "Requests pass through your Astro account gateway to the providers you saved",
+      "wait_seconds": 120,
+      "models": [
+        "astro/auto"
+      ],
+      "discover": false,
+      "auto_models": 1,
+      "parallel": 1,
+      "description": "One key for every provider saved in your Astro account. astro/auto fails over across your free providers."
+    },
+    {
+      "id": "astro-all",
+      "name": "Astro API: pick any model",
+      "kind": "openai",
+      "base_url": "https://vgtucdfretcvojcfvbzk.supabase.co/functions/v1/astro-api/v1",
+      "key": "ASTRO_API_KEY",
+      "signup": "https://esoexe.github.io/astro-ai/account.html",
+      "limits": "5,000 requests/day per account; uses the provider keys saved in your Astro account",
+      "privacy": "Requests pass through your Astro account gateway to the providers you saved",
+      "wait_seconds": 120,
+      "models": [],
+      "discover": true,
+      "max_models": 300,
+      "auto_models": 0,
+      "parallel": 1,
+      "manual_only": true,
+      "description": "Every model from your Astro account, for manual picking only (not used in One Brain or Team)."
+    },
+    {
       "kind": "openai",
       "id": "openai",
       "name": "OpenAI",

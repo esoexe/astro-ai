@@ -1,5 +1,5 @@
 {
-  "_comment": "Hand-verified paid cloud platforms and local model servers, merged into providers.json by tools/build_providers.js (and tools/merge_providers.js). Paid platforms (\"paid\": true) are never used by Auto or Team until the user opts in per platform in Settings -> Providers (key ASTRO_PAID_PROVIDERS); they always work when picked by hand. Local servers (\"local\": true) need no key and are found by asking http://127.0.0.1:<port>/v1/models; the address can be changed with the key named in base_url_key. Base URLs checked against each provider's docs in October 2026.",
+  "_comment": "Hand-verified paid cloud platforms and local model servers, merged into providers.json by tools/build_providers.js (and tools/merge_providers.js). Paid platforms (\"paid\": true) are never used by Auto or Team until the user opts in per platform in Settings -> Providers (key ASTRO_PAID_PROVIDERS); they always work when picked by hand. Local servers (\"local\": true) need no key and are found by asking http://127.0.0.1:<port>/v1/models; the address can be changed with the key named in base_url_key. Base URLs checked against each provider's docs in October 2026. astro: Astro API gateway entries (ASTRO_API_KEY), placed after the free platforms.",
   "paid": [
     {
       "id": "openai",
@@ -490,6 +490,44 @@
       "base_url_key": "DOCKER_MODELS_URL",
       "signup": "https://docs.docker.com/ai/model-runner/",
       "hint": "docker desktop enable model-runner --tcp 12434"
+    }
+  ],
+  "astro": [
+    {
+      "id": "astro",
+      "name": "Astro API (your Astro account)",
+      "kind": "openai",
+      "base_url": "https://vgtucdfretcvojcfvbzk.supabase.co/functions/v1/astro-api/v1",
+      "key": "ASTRO_API_KEY",
+      "signup": "https://esoexe.github.io/astro-ai/account.html",
+      "limits": "5,000 requests/day per account; uses the provider keys saved in your Astro account",
+      "privacy": "Requests pass through your Astro account gateway to the providers you saved",
+      "wait_seconds": 120,
+      "models": [
+        "astro/auto"
+      ],
+      "discover": false,
+      "auto_models": 1,
+      "parallel": 1,
+      "description": "One key for every provider saved in your Astro account. astro/auto fails over across your free providers."
+    },
+    {
+      "id": "astro-all",
+      "name": "Astro API: pick any model",
+      "kind": "openai",
+      "base_url": "https://vgtucdfretcvojcfvbzk.supabase.co/functions/v1/astro-api/v1",
+      "key": "ASTRO_API_KEY",
+      "signup": "https://esoexe.github.io/astro-ai/account.html",
+      "limits": "5,000 requests/day per account; uses the provider keys saved in your Astro account",
+      "privacy": "Requests pass through your Astro account gateway to the providers you saved",
+      "wait_seconds": 120,
+      "models": [],
+      "discover": true,
+      "max_models": 300,
+      "auto_models": 0,
+      "parallel": 1,
+      "manual_only": true,
+      "description": "Every model from your Astro account, for manual picking only (not used in One Brain or Team)."
     }
   ]
 }

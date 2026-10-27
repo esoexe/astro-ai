@@ -51,6 +51,41 @@ bool skip_dir(const std::string& name) {
     return name == ".git" || name == "node_modules" || name == ".build" || name == "__pycache__" || name == ".venv" || name == ".cache";
 }
 
+// Linked projects ("Open folder"): a symlink, or a directory junction on Windows, pointing at a real folder.
+// Closing / deleting such a project removes ONLY the link, never the user's files.
+void mcp_forget_project(const std::string& project);   // astro_dev.inc
+bool project_is_link(const fs::path& p) {
+    std::error_code ec;
+    if (fs::is_symlink(fs::symlink_status(p, ec))) return true;
+#ifdef _WIN32
+    const DWORD a = GetFileAttributesW(p.wstring().c_str());
+    return a != INVALID_FILE_ATTRIBUTES && (a & FILE_ATTRIBUTE_REPARSE_POINT);
+#else
+    return false;
+#endif
+}
+bool remove_dir_link(const fs::path& p) {
+#ifdef _WIN32
+    if (RemoveDirectoryW(p.wstring().c_str())) return true;
+    return DeleteFileW(p.wstring().c_str()) != 0;
+#else
+    std::error_code ec; return fs::remove(p, ec);
+#endif
+}
+fs::path links_file() { return fs::path(data_dir()) / ".astro_linked.json"; }
+Json::Object load_links() {
+    if (auto t = read_file_text(links_file().string())) { try { Json j = JsonParser(*t).parse(); if (auto* o = j.object_ptr()) return *o; } catch (...) {} }
+    return {};
+}
+void save_links(const Json::Object& o) { write_file_private(links_file().string(), dump_json(Json(o))); }
+std::string link_target_of(const std::string& name, const fs::path& link) {
+    std::error_code ec;
+    if (fs::is_symlink(fs::symlink_status(link, ec))) { auto t = fs::read_symlink(link, ec); if (!ec) return t.string(); }
+    const auto links = load_links();
+    if (auto it = links.find(name); it != links.end() && project_is_link(link)) return it->second.string_or();
+    return "";
+}
+
 void write_starter_project(const fs::path& dir) {
     std::error_code ec; fs::create_directories(dir, ec);
     auto put = [&](const std::string& name, const std::string& text) { std::ofstream(dir / name, std::ios::binary) << text; };
@@ -457,6 +492,7 @@ bool handle_workspace_api(int fd, const HttpRequest& request) {
             const std::string name = e.path().filename().string();
             if (!e.is_directory(ec) || !valid_project_name(name)) continue;
             Json::Object o; o["name"] = Json(name);
+            if (const std::string lt = link_target_of(name, e.path()); !lt.empty()) o["linked"] = Json(lt);
             const auto t = fs::last_write_time(e.path(), ec);
             o["mtime"] = Json(static_cast<double>(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::file_clock::to_sys(t).time_since_epoch()).count()));
             list.emplace_back(std::move(o));
@@ -487,14 +523,16 @@ bool handle_workspace_api(int fd, const HttpRequest& request) {
     if (!fs::is_directory(base, ec)) { send_json(fd, 404, error_json("Project not found.")); return true; }
     // Checkpoints and agent sessions live outside the project folder; they follow the project on delete and rename.
     const auto side_dirs = [](const std::string& name) { return std::vector<fs::path>{fs::path(data_dir()) / ".astro_history" / name, fs::path(data_dir()) / ".astro_agent" / name}; };
-    if (path == "/api/fs/project/delete") { fs::remove_all(base, ec); for (const auto& d : side_dirs(project)) fs::remove_all(d, ec); ok(); return true; }
+    if (path == "/api/fs/project/delete") { mcp_forget_project(project); if (project_is_link(base)) { remove_dir_link(base); auto links = load_links(); links.erase(project); save_links(links); } else fs::remove_all(base, ec); for (const auto& d : side_dirs(project)) fs::remove_all(d, ec); ok(); return true; }
     if (path == "/api/fs/project/rename") {
         const std::string to = get_string(body, "to");
         if (!valid_project_name(to)) { send_json(fd, 400, error_json("Invalid new name.")); return true; }
         const fs::path dest = fs::path(projects_root()) / to;
         if (fs::exists(dest, ec)) { send_json(fd, 409, error_json("That name is taken.")); return true; }
+        mcp_forget_project(project);
         fs::rename(base, dest, ec);
         if (ec) { send_json(fd, 500, error_json(ec.message())); return true; }
+        { auto links = load_links(); if (auto it = links.find(project); it != links.end()) { links[to] = it->second; links.erase(project); save_links(links); } }
         { const auto from = side_dirs(project), to_dirs = side_dirs(to); for (std::size_t i = 0; i < from.size(); ++i) { std::error_code e2; if (fs::exists(from[i], e2)) { fs::remove_all(to_dirs[i], e2); fs::rename(from[i], to_dirs[i], e2); } } }
         ok(); return true;
     }
