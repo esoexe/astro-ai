@@ -54,7 +54,10 @@ cd astro-ai-clean-{{version}}-linux-x64-CLEAN
     <p>Requirements: 64-bit, glibc 2.35 or newer (Ubuntu 22.04+, Debian 12+, Fedora 36+), and WebKitGTK 4.1 (<code>libwebkit2gtk-4.1-0</code>, or <code>webkit2gtk4.1</code> on Fedora).</p>
 
     <h2 id="install-macos">Install on macOS</h2>
-    <p>For now, the Mac version comes as a small build kit that you compile on your own Mac. It takes about a minute and makes a universal app that runs natively on both Apple Silicon and Intel.</p>
+    <p>Download the <a href="{{dl:macos-universal:href}}">disk image</a> (<code>{{dl:macos-universal:file}}</code>). It's one universal app that runs natively on Apple Silicon and Intel. Open it and drag <strong>Astro AI Clean</strong> into Applications.</p>
+    <p>The app isn't notarized by Apple yet, so the first time you open it, macOS says it can't check the app. Right-click (or Control-click) <strong>Astro AI Clean</strong> in Applications and choose <strong>Open</strong>, then <strong>Open</strong> again. On newer macOS versions, go to <strong>System Settings › Privacy &amp; Security</strong> and click <strong>Open Anyway</strong>. You only do this once.</p>
+    <h3>Or build it yourself</h3>
+    <p>If you'd rather compile it on your own Mac, use the build kit. It takes about a minute, and macOS opens an app you built yourself without the warning.</p>
     <ol>
       <li>Install Apple's free command line tools (skip this if you already have Xcode):
 <pre><code>xcode-select --install</code></pre></li>

@@ -6,12 +6,12 @@
     <p class="lead">The AI coding platform with a whole team inside. Free for Windows, Linux and macOS, with no account needed. You get 26 free models the first time you open it, and you can add more at any time.</p>
     <div class="hero-actions" style="justify-content:center;margin-top:32px">
       <a class="btn btn-primary btn-lg" href="#windows" data-os-primary
-         data-href-windows="{{dl:windows-x64-Setup:href}}" data-href-linux="{{dl:_amd64:href}}" data-href-macos="#macos">{{icon:download}}<span class="label">Choose your system</span></a>
+         data-href-windows="{{dl:windows-x64-Setup:href}}" data-href-linux="{{dl:_amd64:href}}" data-href-macos="{{dl:macos-universal:href}}">{{icon:download}}<span class="label">Choose your system</span></a>
     </div>
     <p class="muted small" style="margin-top:14px" data-os-note
        data-note-windows="Windows 10 and 11 · 64-bit · {{dl:windows-x64-Setup:size}}"
        data-note-linux="Debian and Ubuntu package · 64-bit · {{dl:_amd64:size}}"
-       data-note-macos="macOS 11+ · build the app on your Mac in about a minute"
+       data-note-macos="macOS 11+ · Apple Silicon and Intel · {{dl:macos-universal:size}}"
        data-note-mobile="Astro AI is a desktop app. Open this page on your computer to download it.">Pick your system below.</p>
     <div class="tools-row" style="margin:30px 0 0"><a href="{{root}}blog/astro-ai-1-1-coding-platform.html"><span>New in {{version}}: open folders</span></a><a href="{{root}}index.html#modes"><span>Plan / Ask / Auto</span></a><a href="{{root}}features.html#extensions"><span>MCP · plugins · themes</span></a></div>
   </div>
@@ -46,13 +46,15 @@
 
       <article class="card platform reveal" data-delay="2" id="macos" data-os-card="macos">
         <div class="os">{{icon:macos}}<h3>macOS</h3><span class="badge for-you" hidden>For you</span></div>
-        <p>macOS 11 or newer, on Apple Silicon or Intel. One script builds a universal <code class="mono small">.app</code> and <code class="mono small">.dmg</code> on your own Mac.</p>
+        <p>macOS 11 or newer, on Apple Silicon or Intel. A universal disk image, built on GitHub's Macs from the public source.</p>
         <div class="files">
-          <a class="dl primary" href="{{dl:macos-source:href}}" download><span class="t"><b>macOS build kit</b><span>{{dl:macos-source:file}}</span></span><span class="go">{{icon:download}}</span></a>
+          <a class="dl primary" href="{{dl:macos-universal:href}}" download><span class="t"><b>Disk image</b><span>{{dl:macos-universal:file}}</span></span><span class="go">{{icon:download}}</span></a>
+          <div class="sha"><code title="SHA-256">{{dl:macos-universal:sha}}</code><button class="copy" type="button" data-copy="{{dl:macos-universal:sha}}">Copy</button></div>
+          <a class="dl" href="{{dl:macos-source:href}}" download><span class="t"><b>Or build it yourself</b><span>{{dl:macos-source:file}}</span></span><span class="go">{{icon:download}}</span></a>
           <div class="sha"><code title="SHA-256">{{dl:macos-source:sha}}</code><button class="copy" type="button" data-copy="{{dl:macos-source:sha}}">Copy</button></div>
           <a class="dl" href="{{root}}docs.html#install-macos"><span class="t"><b>Step-by-step guide</b><span>Needs the Xcode Command Line Tools</span></span><span class="go">{{icon:arrow}}</span></a>
         </div>
-        <p class="small muted">Build kit {{dl:macos-source:size}}. Signed, ready-made Mac builds are planned.</p>
+        <p class="small muted">.dmg {{dl:macos-universal:size}} · build kit {{dl:macos-source:size}}. Not notarized yet: the first time, right-click the app and choose <b>Open</b>, or allow it in System Settings › Privacy &amp; Security.</p>
       </article>
     </div>
   </div>
@@ -118,7 +120,7 @@
 <h3>Linux</h3>
 <pre><code>sha256sum -c SHA256SUMS.txt --ignore-missing</code></pre>
 <h3>macOS</h3>
-<pre><code>shasum -a 256 {{dl:macos-source:file}}</code></pre>
+<pre><code>shasum -a 256 {{dl:macos-universal:file}}</code></pre>
     </div>
   </div>
 </section>

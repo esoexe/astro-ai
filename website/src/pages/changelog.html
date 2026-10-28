@@ -33,7 +33,8 @@
       <h3>Builds and safety</h3>
       <ul class="ticks">
         <li>Tests run on every push (GitHub Actions), with a secret scan and a check for private files</li>
-        <li>Desktop builds for Windows, Linux and macOS can be built on GitHub Actions, with optional code signing. Only the Clean edition is ever built there</li>
+        <li>A ready-made macOS app: a universal .dmg built on GitHub's Macs (not notarized yet, so right-click › Open the first time). Windows and Linux builds are also made on GitHub Actions, with optional code signing. Only the Clean edition is ever built there</li>
+        <li>Fixed: the macOS server did not link (a declaration problem in the code runner). The new Mac build found it</li>
         <li>Fixed: the source kit and the repository were missing a file (<code>astro_dev.inc</code>), so building from source failed in 1.1.1</li>
       </ul>
     </article>

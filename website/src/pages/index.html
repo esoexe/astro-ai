@@ -364,10 +364,10 @@ export function limit({ max = 100 } = {}) {
       </article>
       <article class="card platform reveal" data-delay="2" data-os-card="macos">
         <div class="os">{{icon:macos}}<h3>macOS</h3><span class="badge for-you" hidden>For you</span></div>
-        <p>macOS 11 or newer, on Apple Silicon or Intel. For now you build the app yourself with one script. It takes about a minute.</p>
+        <p>macOS 11 or newer, on Apple Silicon or Intel. One universal disk image.</p>
         <div class="files">
-          <a class="dl primary" href="{{dl:macos-source:href}}" download><span class="t"><b>Build kit (.tar.gz)</b><span>{{dl:macos-source:size}} · makes a universal .app + .dmg</span></span><span class="go">{{icon:download}}</span></a>
-          <a class="dl" href="{{root}}docs.html#install-macos"><span class="t"><b>How to build it</b><span>Xcode Command Line Tools</span></span><span class="go">{{icon:arrow}}</span></a>
+          <a class="dl primary" href="{{dl:macos-universal:href}}" download><span class="t"><b>Disk image (.dmg)</b><span>{{dl:macos-universal:size}} · Apple Silicon + Intel</span></span><span class="go">{{icon:download}}</span></a>
+          <a class="dl" href="{{root}}docs.html#install-macos"><span class="t"><b>First launch on a Mac</b><span>Not notarized yet: right-click › Open</span></span><span class="go">{{icon:arrow}}</span></a>
         </div>
       </article>
     </div>
