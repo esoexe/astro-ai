@@ -2031,6 +2031,9 @@ body { background: var(--bg); letter-spacing: -.003em; }
 
 /* Astro AI Library (Extensions → Library) */
 .lib-search { display: flex; gap: 6px; }
+.lib-chk { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-2); cursor: pointer; margin-left: 4px; }
+.lib-more { display: block; margin: 10px auto; }
+#lib-status:empty { display: none; }
 .lib-search .input { flex: 1; min-width: 0; }
 .lib-kinds { flex-wrap: wrap; }
 .lib-kinds small { opacity: .65; margin-left: 2px; }

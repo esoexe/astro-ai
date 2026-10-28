@@ -5,7 +5,7 @@
     <h1 class="h2">One key. <em class="accent">Every model.</em></h1>
     <p class="lead">Connect the provider keys you already have (Groq, Gemini, OpenAI, Anthropic, Mistral, OpenRouter and 70+ more). Then call every one of their models with a single Astro key, through one OpenAI-compatible endpoint.</p>
     <div class="hero-actions">
-      <a class="btn btn-primary" href="{{root}}account.html?mode=signup">Get your Astro key <span class="arrow">→</span></a>
+      <a class="btn btn-primary" href="{{root}}profile?mode=signup">Get your Astro key <span class="arrow">→</span></a>
       <a class="btn btn-ghost" href="#quickstart">Quick start</a>
     </div>
   </div>
@@ -34,7 +34,7 @@
     <h2 id="how">How it works</h2>
     <p>The Astro API is a small, open-source gateway. It never pays for or resells model access. Instead it uses <strong>your own provider keys</strong> (this is called BYOK, "bring your own key"):</p>
     <ol>
-      <li>You save a key for each provider you use, in your <a href="{{root}}account.html">account</a>. Each key is encrypted before it's stored.</li>
+      <li>You save a key for each provider you use, in your <a href="{{root}}profile">account</a>. Each key is encrypted before it's stored.</li>
       <li>You create an <strong>Astro key</strong> (it starts with <code>astro_sk_</code>).</li>
       <li>Your apps send OpenAI-style requests to Astro. Astro picks the right provider key, forwards the request to that provider, and streams the answer back.</li>
     </ol>
@@ -42,7 +42,7 @@
 
     <h2 id="quickstart">Quick start</h2>
     <ol>
-      <li><a href="{{root}}account.html?mode=signup">Create an account</a> with email, or continue with GitHub.</li>
+      <li><a href="{{root}}profile?mode=signup">Create an account</a> with email, or continue with GitHub.</li>
       <li>Under <strong>Your provider keys</strong>, add at least one key. Groq, Google Gemini, Mistral, Cerebras and OpenRouter all have free tiers.</li>
       <li>Under <strong>Astro API keys</strong>, create a key and copy it. It's shown only once.</li>
       <li>Point any OpenAI-compatible client at the base URL below.</li>
@@ -170,6 +170,6 @@ console.log(r.headers.get("x-astro-provider"), (await r.json()).choices[0].messa
     <h3>Can I use it with my coding tools?</h3>
     <p>Anything that accepts a custom OpenAI base URL works. Set the base URL above and use your Astro key as the API key.</p>
     <h3>How do I delete my data?</h3>
-    <p>Use <strong>Delete account</strong> at the bottom of your <a href="{{root}}account.html">account page</a>. Your keys, provider keys and usage history are removed immediately.</p>
+    <p>Use <strong>Delete account</strong> at the bottom of your <a href="{{root}}profile">account page</a>. Your keys, provider keys and usage history are removed immediately.</p>
   </article>
 </div>

@@ -1,4 +1,4 @@
-/* Astro AI Console (account.html). Loaded after site.css; everything here is scoped to body.console. */
+/* Astro AI Console (/profile). Loaded after site.css; everything here is scoped to body.console. */
 body.console {
   --c-bg: #09090b; --c-panel: #0f0f12; --c-panel-2: #141418; --c-hover: rgba(255,255,255,.045); --c-active: rgba(255,255,255,.07);
   --c-line: rgba(255,255,255,.075); --c-line-2: rgba(255,255,255,.12); --c-line-3: rgba(255,255,255,.2);
@@ -35,7 +35,7 @@ body.console svg.orbit-svg { stroke: none; }
   background: transparent; transition: background .15s, border-color .15s, color .15s, opacity .15s; text-decoration: none !important; }
 .cx-btn svg { width: 16px; height: 16px; }
 .cx-btn:disabled, .cx-btn[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
-.cx-btn-primary { background: var(--c-text); color: #0b0b0d; }
+.cx-btn-primary, .console a.cx-btn-primary { background: var(--c-text); color: #0b0b0d; }
 .cx-btn-primary:hover:not(:disabled) { background: #fff; }
 .cx-btn-accent { background: linear-gradient(180deg, var(--c-accent-2), var(--c-accent)); color: #1a0e06; }
 .cx-btn-accent:hover:not(:disabled) { filter: brightness(1.05); }
@@ -471,6 +471,9 @@ body.console .stat b { font: inherit; display: inline; letter-spacing: inherit; 
 .lib-trust-i b { font-size: 13.5px; font-weight: 600; }
 .lib-trust-i p { margin: 3px 0 0; font-size: 12.5px; color: var(--c-text-2); line-height: 1.5; }
 .lib-kinds { display: flex; gap: 6px; flex-wrap: wrap; }
+.lib-chk { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--c-text-2); cursor: pointer; padding: 0 6px; }
+.lib-chk input { accent-color: var(--c-accent); }
+body.console .lib-kinds + .lib-kinds { margin-top: 8px; }
 .lib-n { margin-left: 6px; opacity: .65; font-variant-numeric: tabular-nums; }
 .lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
 .lib-card { display: flex; flex-direction: column; gap: 8px; text-align: left; padding: 16px; border: 1px solid var(--c-line); border-radius: var(--c-r-lg); background: var(--c-panel); color: var(--c-text); font: inherit; cursor: pointer; transition: border-color .15s, background .15s, transform .15s; min-width: 0; }

@@ -11,7 +11,7 @@ ManifestDPIAware true
 !include "LogicLib.nsh"
 !include "x64.nsh"
 
-!define VERSION "1.2.0"
+!define VERSION "1.3.0"
 !define UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_ID}"
 !define WV2_KEY "Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
 
@@ -20,7 +20,7 @@ OutFile "${OUT}"
 InstallDir "$LOCALAPPDATA\Programs\${APP_NAME}"
 InstallDirRegKey HKCU "Software\${APP_ID}" "InstallDir"
 BrandingText "${APP_NAME} ${VERSION}"
-VIProductVersion "1.2.0.0"
+VIProductVersion "1.3.0.0"
 VIAddVersionKey "ProductName" "${APP_NAME}"
 VIAddVersionKey "FileDescription" "${APP_NAME} installer"
 VIAddVersionKey "FileVersion" "${VERSION}"

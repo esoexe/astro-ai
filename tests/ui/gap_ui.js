@@ -43,7 +43,7 @@ const ok = (name, cond, extra = '') => { if (cond) { pass++; console.log('  ok  
   // 5. Website console library (guest)
   const p2 = await ctx.newPage(); const e2 = [];
   p2.on('pageerror', (e) => e2.push(String(e)));
-  await p2.goto(SITE + '/account.html#library'); await p2.waitForTimeout(3000);
+  await p2.goto(SITE + '/profile#library'); await p2.waitForTimeout(3000);
   const t2 = await p2.evaluate(() => document.body.innerText);
   ok('console library lists items', /Context7|Playwright|DeepWiki/i.test(t2), t2.slice(0, 300));
   ok('console library has install action', /Install|Open in Astro AI|Copy/i.test(t2));

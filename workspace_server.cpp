@@ -2389,6 +2389,7 @@ int main() {
     load_runtime_credentials();
     load_app_keys();
     build_registry();
+    lib_tools_path_refresh();   // command-line tools installed from the Library
     const int port = parse_port();
     const int server = static_cast<int>(socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0));
     if (server < 0) { std::cerr << "socket: " << std::strerror(errno) << '\n'; return 1; }

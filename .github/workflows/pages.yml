@@ -1,4 +1,6 @@
 # Builds website/ and publishes it to GitHub Pages on every push to main that touches the site.
+# The community Library (every MCP server in the official registry, skills and plugins from public GitHub repos,
+# AI tools) is re-indexed once a day; pushes reuse the last published index so they stay fast.
 name: Website
 
 on:
@@ -6,6 +8,13 @@ on:
     branches: [main]
     paths: ['website/**', 'library/**', '.github/workflows/pages.yml']
   workflow_dispatch:
+    inputs:
+      reindex:
+        description: Re-index the community Library now
+        type: boolean
+        default: false
+  schedule:
+    - cron: '17 3 * * *'
 
 permissions:
   contents: read
@@ -15,11 +24,12 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 345
     steps:
       - uses: actions/checkout@v7
       - id: pages
@@ -33,6 +43,13 @@ jobs:
         run: node website/build.js
         env:
           ASTRO_SITE_URL: ${{ steps.pages.outputs.base_url }}
+      - name: Community library
+        run: >
+          node --max-old-space-size=6144 library/import/index_all.js website/dist/library/v2
+          --reviewed website/dist/library/index.json --live "${{ steps.pages.outputs.base_url }}/library/v2/"
+          ${{ (github.event_name == 'schedule' || inputs.reindex) && '--budget-min 260 --jobs 16' || '--mode reuse --budget-min 40 --jobs 16' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-pages-artifact@v5
         with:
           path: website/dist

@@ -22,6 +22,7 @@ test: $(TARGET)
 	node tests/code_detect_test.js
 	node library/build_library.js --check
 	bash tests/library_e2e.sh
+	bash tests/library_v2_e2e.sh
 	bash tests/quality_test.sh
 
 clean:

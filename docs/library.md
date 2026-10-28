@@ -1,8 +1,13 @@
 # The Astro AI Library
 
-The Library is a reviewed catalog of **MCP servers**, **skills** and **plugins**. You can browse it in two places:
+The Library has two parts:
 
-* **Console** on the website (`account.html` > Library). You don't need to sign in. Each item has *Open in Astro AI*, a copyable config for Claude Code, Cursor, VS Code and OpenCode, and a zip download.
+* **Reviewed items**: a small catalog of MCP servers, skills and plugins checked by the Astro AI team (`library/catalog.json`, schema 1).
+* **Community catalog** (schema 2): every MCP server in the [official MCP Registry](https://registry.modelcontextprotocol.io), Agent Skills and Claude Code plugins found in public GitHub repositories, AI command-line tools (npm and PyPI), and a directory of AI apps and sites taken from open "awesome" lists. It is built by `library/import/index_all.js` and re-indexed every day by the Website workflow. Community items are labelled *Community* and are not reviewed by hand.
+
+You can browse it in two places:
+
+* **Console** on the website (`/profile` > Library). You don't need to sign in. Each item has *Open in Astro AI*, a copyable config for Claude Code, Cursor, VS Code and OpenCode, and a zip download.
 * **Astro AI Desktop**: Workspace > Extensions > Library. Each item installs with one click.
 
 ## Installing
@@ -28,6 +33,37 @@ The installer runs in the C++ server (`astro_library.inc`). The website and the 
 | Local MCP servers start with a cleaned environment, without Astro AI's provider keys. They only get the variables the item declares | env scrub in `astro_dev.inc` |
 | Ids are `[a-z0-9-]{1,48}`. Deep links with anything else are ignored | desktop launcher + web app |
 
+## How the community catalog is built
+
+`library/import/index_all.js` writes `library/v2/` on the website:
+
+| File | What it holds |
+|---|---|
+| `manifest.json` | Counts per kind, the list of shard files, and the sources with their counts |
+| `list/<kind>-<n>.json` | Compact rows for browsing and search: `[id, name, summary, publisher, flags, tags, extra, stars]`, 5,000 per file |
+| `detail/<hh>.json` | Everything needed to install, keyed by id. `hh` is the first two hex characters of `sha256(id)` |
+| `state.json` | Which commit of each GitHub repo was indexed, so unchanged repos are not cloned again |
+
+Sources (`library/import/sources.json`):
+
+* **MCP servers**: the official MCP Registry API. A server gets one-click setup when it has a Streamable HTTP remote, or an npm, PyPI or OCI (Docker) package. Packages are pinned to the version the registry lists (`npx -y pkg@x.y.z`, `uvx pkg==x.y.z`, `docker run -i --rm image:tag`). Environment variables, headers and URL values the registry declares become fields in the install dialog.
+* **Skills and plugins**: shallow, blob-less `git clone`s of public GitHub repos (official repos first, then repos linked from open awesome lists, then repos found by GitHub topic search such as `claude-skills` and `claude-code-plugin`). Every folder with a `SKILL.md` is a skill; every folder with `.claude-plugin/plugin.json` is a plugin. The catalog records the commit and the SHA-256 of every file. When the same skill appears in several repos, the most trusted repo wins.
+* **AI tools**: `library/import/cli_tools.json` (versions resolved from npm and PyPI at build time) plus open awesome lists of AI apps.
+
+Directories that ask not to be crawled (`/api/` in their robots.txt) are not used.
+
+## Community install rules
+
+| Rule | Where it is enforced |
+|---|---|
+| MCP packages run at an exact version; `docker` refuses `:latest`, `--privileged`, host networking and device flags | indexer **and** `lib_install_community` |
+| Skill and plugin files are downloaded from `raw.githubusercontent.com/<repo>/<commit>/…` and must match their SHA-256 | installer |
+| Text files only (an allowlist of source and document extensions, no NUL bytes). Size caps per file and per item | both |
+| No hooks (`hooks/`, `hooks.json`, the `hooks` key in `plugin.json`), no Astro plugin UI code (`main.js`, `style.css`) | both |
+| Community plugins keep only remote `https` MCP servers; local ones are listed in the install result for you to add by hand | installer |
+| Skill scripts are saved as text. They only run if the agent runs them, under your permission mode (Plan / Ask / Auto) | agent |
+| Command-line tools install into `ext/tools/<id>` (npm `--prefix`, or a Python venv; never system-wide). Only the commands the tool declares are linked into `ext/tools/.bin`, which is added to PATH for the agent, terminal and MCP servers, so a tool's dependencies never shadow your own programs | installer |
+
 ## Adding an item
 
 1. Add the item to `library/catalog.json`:
@@ -49,4 +85,6 @@ The installer runs in the C++ server (`astro_library.inc`). The website and the 
 
 The launcher accepts only `astroai://library/<id>` and turns it into `#library=<id>` for the web app. That opens the item's dialog; it never installs anything on its own.
 
-Set `ASTRO_LIBRARY_URL` to test with a different catalog, for example `http://127.0.0.1:3000/library/index.json` from `website/serve.js`.
+Set `ASTRO_LIBRARY_URL` to test with a different catalog, for example `http://127.0.0.1:3000/library/index.json` from `website/serve.js`. The community catalog is read from `v2/` next to it. `ASTRO_LIBRARY_RAW_BASE` replaces `https://raw.githubusercontent.com/` (tests only).
+
+To rebuild the community catalog yourself: `node library/import/index_all.js out/v2 --reviewed website/dist/library/index.json` (set `GITHUB_TOKEN` to include GitHub topic search).

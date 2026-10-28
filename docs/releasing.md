@@ -13,6 +13,7 @@ make && make test
 | `tests/code_detect_test.js` | Code-request detection |
 | `library/build_library.js --check` | Library rules |
 | `tests/library_e2e.sh` | Library install and uninstall against a local catalog |
+| `tests/library_v2_e2e.sh` | Community catalog installs (skills, plugins, MCP servers, AI tools) and the fingerprint and hook rules |
 | `tests/quality_test.sh` | Background code check, model health, feedback |
 
 UI tests (Playwright, optional): `tests/ui/gap_ui.js` and `tests/ui/chat_ui.js`.

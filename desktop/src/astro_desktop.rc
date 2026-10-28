@@ -6,8 +6,8 @@
 1 24 "astro_desktop.manifest"
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1,2,0,0
-PRODUCTVERSION 1,2,0,0
+FILEVERSION 1,3,0,0
+PRODUCTVERSION 1,3,0,0
 FILEOS VOS_NT_WINDOWS32
 FILETYPE VFT_APP
 BEGIN
@@ -17,9 +17,9 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "Astro AI"
       VALUE "FileDescription", "Astro AI desktop"
-      VALUE "FileVersion", "1.2.0"
+      VALUE "FileVersion", "1.3.0"
       VALUE "ProductName", "Astro AI"
-      VALUE "ProductVersion", "1.2.0"
+      VALUE "ProductVersion", "1.3.0"
       VALUE "OriginalFilename", "AstroAI.exe"
     END
   END

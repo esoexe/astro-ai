@@ -9,8 +9,28 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
-    <article class="release latest reveal" id="v1-2-0">
-      <header><h2>1.2.0</h2><span class="badge">Latest</span><time datetime="2026-10-28">October 28, 2026</time></header>
+    <article class="release latest reveal" id="v1-3-0">
+      <header><h2>1.3.0</h2><span class="badge">Latest</span><time datetime="2026-10-28">October 28, 2026</time></header>
+      <p class="muted">The Library now lists every MCP server, agent skill, plugin and AI tool we can index, and the Console moved to <a href="{{root}}profile">/profile</a>.</p>
+
+      <h3>The whole ecosystem in the Library</h3>
+      <ul class="ticks">
+        <li>Every server in the official MCP Registry (50,000+), plus thousands of agent skills and Claude Code plugins from public GitHub repos and marketplaces</li>
+        <li>AI tools: command-line coding agents and helpers from npm and PyPI that install in one click, and a directory of thousands of AI apps and sites collected from open awesome lists</li>
+        <li>The catalog rebuilds itself every day. Filter by kind, search everything, or tick <b>Reviewed only</b> to see just the items the Astro AI team checked</li>
+        <li>Community items are labelled with their source and install with one click. The same rules still apply: MCP packages are pinned to exact versions, skills and plugins are pinned to a git commit and every file is checked against its SHA-256, and hooks, binaries and local plugin servers are never installed</li>
+        <li>Installed AI tools get their own folder. Only the commands they declare are added to the agent's and terminal's PATH, so they never replace programs you already have</li>
+      </ul>
+
+      <h3>Website</h3>
+      <ul class="ticks">
+        <li>The Console now lives at <code>/profile</code>. Old <code>account.html</code> links still work and keep their page (for example <code>#library</code>)</li>
+        <li>Fixed: the "Open in Astro AI" button in the Library had invisible text</li>
+      </ul>
+    </article>
+
+    <article class="release reveal" id="v1-2-0">
+      <header><h2>1.2.0</h2><time datetime="2026-10-28">October 28, 2026</time></header>
       <p class="muted">The Astro AI Library, tested code fixes, smarter model picking and safer builds.</p>
 
       <h3>Astro AI Library</h3>

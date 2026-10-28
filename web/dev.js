@@ -609,57 +609,116 @@
       ${by.size ? [...by].map(([path, list]) => `<div class="dev-pfile"><b>${esc(path)}</b><i>${list.length}</i></div>${list.map((p) => `<button type="button" class="dev-prob sev-${esc(p.severity)}" data-pgo="${esc(JSON.stringify([p.path, p.line, p.col]))}"><span class="dot"></span><span class="msg">${esc(p.message)}</span><em>${esc(p.source || '')} ${p.line}:${p.col}</em></button>`).join('')}`).join('') : `<div class="git-empty">${D.probBusy ? 'Checking…' : D.probProject === A().ws.project && D.checkers ? 'No problems found.' : 'Press “Check project” to find errors.'}</div>`}`;
   }
 
-  // ---------- Astro AI Library (official MCP servers, skills and plugins) ----------
-  // The server downloads and checks everything (SHA-256 against the catalog); this panel only browses,
-  // shows exactly what an item will run or write, and asks for the values it needs.
-  const LIB_KINDS = [['all', 'All'], ['mcp', 'MCP'], ['skill', 'Skills'], ['plugin', 'Plugins']];
+  // ---------- Astro AI Library ----------
+  // Reviewed items (schema 1) plus the community catalog (schema 2): every MCP server in the official MCP Registry,
+  // skills and plugins from public GitHub repos, AI command-line tools and an AI app directory. The server downloads
+  // and checks everything (exact versions, pinned commits, SHA-256 per file); this panel browses, shows exactly what
+  // an item will run or write, and asks for the values it needs.
+  const LIB_KINDS = [['all', 'All'], ['mcp', 'MCP'], ['skill', 'Skills'], ['plugin', 'Plugins'], ['tool', 'AI tools']];
+  const LIB_KIND_LABEL = { mcp: 'MCP', skill: 'skill', plugin: 'plugin', tool: 'AI tool' };
   const LIB_PERMS = { network: 'Talks to an online service', 'local-process': 'Runs a program on this computer', filesystem: 'Reads and writes files in a folder you choose', browser: 'Opens and controls a browser', account: 'Uses your account with a token you give it' };
+  const L2 = { man: null, manErr: '', rows: { mcp: [], skill: [], plugin: [], tool: [] }, loaded: {}, loading: {} };
   async function libLoad(force) {
     if (!force && D.lib?.data && Date.now() - D.lib.at < 60000) return D.lib.data;
     const data = await dev('library/index', { refresh: Boolean(force) });
     D.lib = { ...(D.lib || {}), data, at: Date.now() };
+    if (!L2.man || force) { try { L2.man = await dev('library/v2', { file: 'manifest.json', refresh: Boolean(force) }); L2.manErr = ''; if (force) { L2.rows = { mcp: [], skill: [], plugin: [], tool: [] }; L2.loaded = {}; L2.loading = {}; } } catch (err) { L2.manErr = err.message; } }
     return data;
+  }
+  function libLoadKind(kind, onProgress) {
+    if (L2.loaded[kind] || !L2.man) return Promise.resolve();
+    if (L2.loading[kind]) return L2.loading[kind];
+    const shards = (L2.man.kinds[kind] || {}).shards || [];
+    L2.loading[kind] = (async () => {
+      for (const f of shards) {
+        try { const j = await dev('library/v2', { file: f }); for (const r of j.rows || []) L2.rows[kind].push(r); } catch {}
+        onProgress && onProgress();
+      }
+      L2.loaded[kind] = true;
+    })();
+    return L2.loading[kind];
   }
   function libCmd(it) {
     const m = it.mcp || {};
     return m.type === 'http' ? m.url : [m.command, ...(m.args || [])].join(' ');
   }
-  function libMatches(it, q, kind) {
-    if (kind && kind !== 'all' && it.kind !== kind) return false;
-    if (!q) return true;
-    return `${it.id} ${it.name} ${it.summary} ${(it.tags || []).join(' ')} ${it.publisher || ''}`.toLowerCase().includes(q);
+  const libKindsInView = (kind) => (kind === 'all' ? ['mcp', 'skill', 'plugin', 'tool'] : [kind]);
+  function libFlagBadge(f, kind) {
+    const b = (t, cls) => `<span class="dev-scope${cls ? ' ' + cls : ''}">${esc(t)}</span>`;
+    if (f.includes('h') || f.includes('e')) return b('remote');
+    if (f.includes('n') || f.includes('p') || f.includes('d')) return b(kind === 'tool' ? (f.includes('n') ? 'npm' : 'PyPI') : 'runs locally', 's-project');
+    if (f.includes('l')) return b(kind === 'tool' ? 'app / site' : 'link only');
+    if (f.includes('g')) return b(f.includes('c') ? 'text + scripts' : 'text only');
+    return '';
+  }
+  function libMatches(kind, q) {
+    const data = D.lib?.data || {}; const reviewed = data.items || [];
+    const ids = new Set(reviewed.map((x) => x.id));
+    const words = q ? q.split(/\s+/).filter(Boolean) : [];
+    const out = [];
+    for (const it of reviewed) {
+      if (kind !== 'all' && it.kind !== kind) continue;
+      const hay = `${it.id} ${it.name} ${it.summary} ${(it.tags || []).join(' ')} ${it.publisher || ''}`.toLowerCase();
+      if (words.every((w) => hay.includes(w))) out.push({ it });
+    }
+    if (!lsGet('lib-reviewed', '')) for (const k of libKindsInView(kind)) for (const r of L2.rows[k]) {
+      if (ids.has(r[0])) continue;
+      if (words.length) { const hay = r._s || (r._s = `${r[0]} ${r[1]} ${r[2]} ${r[3]} ${r[5]} ${r[6]}`.toLowerCase()); if (!words.every((w) => hay.includes(w))) continue; }
+      out.push({ r, k });
+    }
+    return out;
+  }
+  function libCard(m, inst) {
+    if (m.it) {
+      const it = m.it; const have = inst[it.id]; const upd = have && have.version !== it.version;
+      return `<div class="dev-item lib-card"><div class="dev-it-h"><b>${esc(it.name)}</b><span class="dev-scope">${esc(it.kind === 'mcp' ? 'MCP' : it.kind)}</span><span class="dev-scope s-global">reviewed</span>${it.runs === 'local' ? '<span class="dev-scope s-project">runs locally</span>' : ''}${have ? `<span class="dev-scope s-global">${upd ? 'update available' : 'installed'}</span>` : ''}</div>
+        <p>${esc(clip(it.summary, 200))}</p>
+        <div class="dev-it-a"><button type="button" class="ag-act" data-x="lib-open" data-id="${esc(it.id)}">${icon('i-eye')}Details</button>${have ? `${upd ? `<button type="button" class="ag-act" data-x="lib-open" data-id="${esc(it.id)}">${icon('i-refresh')}Update</button>` : ''}<button type="button" class="ag-act" data-x="lib-remove" data-id="${esc(it.id)}">${icon('i-trash')}Remove</button>` : `<button type="button" class="ag-act" data-x="lib-open" data-id="${esc(it.id)}">${icon('i-download')}Install</button>`}<span class="grow"></span><small>${esc(it.publisher || '')}</small></div></div>`;
+    }
+    const [id, name, summary, publisher, flags] = m.r; const have = inst[id]; const link = flags.includes('l');
+    return `<div class="dev-item lib-card"><div class="dev-it-h"><b>${esc(name)}</b><span class="dev-scope">${esc(LIB_KIND_LABEL[m.k])}</span>${libFlagBadge(flags, m.k)}${flags.includes('x') ? '<span class="dev-scope s-project">deprecated</span>' : ''}${have ? '<span class="dev-scope s-global">installed</span>' : ''}</div>
+      <p>${esc(clip(summary || '', 200))}</p>
+      <div class="dev-it-a"><button type="button" class="ag-act" data-x="lib-open" data-id="${esc(id)}">${icon(link ? 'i-globe' : have ? 'i-eye' : 'i-download')}${link ? 'Open' : have ? 'Details' : 'Install'}</button>${have ? `<button type="button" class="ag-act" data-x="lib-remove" data-id="${esc(id)}">${icon('i-trash')}Remove</button>` : ''}<span class="grow"></span><small>${m.r[7] ? '★ ' + Number(m.r[7]).toLocaleString() + ' · ' : ''}${esc(publisher || '')}</small></div></div>`;
+  }
+  function libRenderList() {
+    const box = document.getElementById('lib-list'); if (!box) return;
+    const kind = lsGet('lib-kind', 'all'); const q = (D.lib?.q || '').toLowerCase().trim();
+    const inst = D.lib?.data?.installed || {};
+    const all = libMatches(kind, q);
+    const shown = D.lib?.shown || 60;
+    const loading = L2.man && !lsGet('lib-reviewed', '') && libKindsInView(kind).some((k) => !L2.loaded[k]);
+    box.innerHTML = all.slice(0, shown).map((m) => libCard(m, inst)).join('') + (all.length > shown ? `<button type="button" class="ws-btn sm lib-more" data-x="lib-more">Show more (${(all.length - shown).toLocaleString()} left)</button>` : '') || (loading ? '' : '<div class="git-empty">Nothing matches.</div>');
+    const st = document.getElementById('lib-status');
+    if (st) {
+      const got = libKindsInView(kind).reduce((s, k) => s + L2.rows[k].length, 0), want = libKindsInView(kind).reduce((s, k) => s + (((L2.man || {}).kinds || {})[k]?.count || 0), 0);
+      st.textContent = loading ? `Loading the catalog… ${got.toLocaleString()} of ${want.toLocaleString()}. Results update as it loads.` : `${all.length.toLocaleString()} match${all.length === 1 ? '' : 'es'}`;
+    }
+  }
+  let libPaintTimer = 0;
+  const libPaintSoon = () => { if (libPaintTimer) return; libPaintTimer = setTimeout(() => { libPaintTimer = 0; libRenderList(); }, 350); };
+  function libStartLoading() {
+    if (lsGet('lib-reviewed', '')) return;
+    for (const k of libKindsInView(lsGet('lib-kind', 'all'))) libLoadKind(k, libPaintSoon).then(libPaintSoon);
   }
   async function libBody(force) {
     let data;
     try { data = await libLoad(force); } catch (err) { return `<div class="ws-note error">${esc(err.message)}</div>`; }
-    const kind = lsGet('lib-kind', 'all'); const q = (D.lib?.q || '').toLowerCase();
-    const inst = data.installed || {};
-    const items = (data.items || []);
-    const card = (it) => {
-      const have = inst[it.id]; const upd = have && have.version !== it.version;
-      return `<div class="dev-item lib-card" data-lib-card="${esc(it.id)}" data-lib-text="${esc(`${it.id} ${it.name} ${it.summary} ${(it.tags || []).join(' ')} ${it.publisher || ''}`.toLowerCase())}" data-lib-kind="${esc(it.kind)}">
-        <div class="dev-it-h"><b>${esc(it.name)}</b><span class="dev-scope">${esc(it.kind === 'mcp' ? 'MCP' : it.kind)}</span>${it.runs === 'local' ? '<span class="dev-scope s-project">runs locally</span>' : ''}${have ? `<span class="dev-scope s-global">${upd ? 'update available' : 'installed'}</span>` : ''}</div>
-        <p>${esc(clip(it.summary, 200))}</p>
-        <div class="dev-it-a"><button type="button" class="ag-act" data-x="lib-open" data-id="${esc(it.id)}">${icon('i-eye')}Details</button>${have ? `${upd ? `<button type="button" class="ag-act" data-x="lib-open" data-id="${esc(it.id)}">${icon('i-refresh')}Update</button>` : ''}<button type="button" class="ag-act" data-x="lib-remove" data-id="${esc(it.id)}">${icon('i-trash')}Remove</button>` : `<button type="button" class="ag-act" data-x="lib-open" data-id="${esc(it.id)}">${icon('i-download')}Install</button>`}<span class="grow"></span><small>${esc(it.publisher || '')}</small></div></div>`;
-    };
-    const shown = items.filter((it) => libMatches(it, q, kind));
-    return `<div class="dev-inst lib-search"><input class="input" id="lib-q" placeholder="Search ${items.length} servers, skills and plugins" value="${esc(D.lib?.q || '')}" spellcheck="false" aria-label="Search the library"><button type="button" class="ws-btn sm" data-x="lib-refresh" title="Refresh">${icon('i-refresh')}</button></div>
-      <div class="dev-acts lib-kinds">${LIB_KINDS.map(([k, l]) => `<button type="button" class="ws-btn sm${k === kind ? ' primary' : ''}" data-x="lib-kind" data-kind="${k}">${l} <small>${k === 'all' ? items.length : items.filter((x) => x.kind === k).length}</small></button>`).join('')}</div>
-      <div class="dev-hint">The official Astro AI Library. Every file is checked against its SHA-256 fingerprint before it is saved, skills and plugins are text only (no scripts or hooks), and MCP packages are pinned to exact versions. Tokens you enter stay in this computer's private <code>mcp.json</code>.${data.error ? '' : ` <a href="https://esoexe.github.io/astro-ai/account.html#library" target="_blank" rel="noopener">Open on the website</a>`}</div>
-      ${data.error ? `<div class="ws-note error">${esc(data.error)}</div>` : ''}
-      ${!data.node && items.some((x) => x.runs === 'local') ? '<div class="ws-note">Servers marked “runs locally” need Node.js (npx). Install it from nodejs.org; remote servers, skills and plugins work without it.</div>' : ''}
-      <div id="lib-list">${shown.map(card).join('') || '<div class="git-empty">Nothing matches.</div>'}</div>`;
-  }
-  function libFilter() {
-    const q = (D.lib?.q || '').toLowerCase(); const kind = lsGet('lib-kind', 'all');
-    let n = 0;
-    document.querySelectorAll('#lib-list [data-lib-card]').forEach((c) => { const on = (!q || c.dataset.libText.includes(q)) && (kind === 'all' || c.dataset.libKind === kind); c.hidden = !on; if (on) n++; });
-    return n;
+    const kind = lsGet('lib-kind', 'all');
+    const items = data.items || [];
+    const count = (k) => (L2.man ? (k === 'all' ? L2.man.total : (L2.man.kinds[k] || {}).count || 0) : (k === 'all' ? items.length : items.filter((x) => x.kind === k).length));
+    setTimeout(() => { libRenderList(); libStartLoading(); }, 0);
+    return `<div class="dev-inst lib-search"><input class="input" id="lib-q" placeholder="Search ${count('all').toLocaleString()} MCP servers, skills, plugins and AI tools" value="${esc(D.lib?.q || '')}" spellcheck="false" aria-label="Search the library"><button type="button" class="ws-btn sm" data-x="lib-refresh" title="Refresh">${icon('i-refresh')}</button></div>
+      <div class="dev-acts lib-kinds">${LIB_KINDS.map(([k, l]) => `<button type="button" class="ws-btn sm${k === kind ? ' primary' : ''}" data-x="lib-kind" data-kind="${k}">${l} <small>${count(k).toLocaleString()}</small></button>`).join('')}<label class="lib-chk"><input type="checkbox" data-x="lib-reviewed" ${lsGet('lib-reviewed', '') ? 'checked' : ''}> Reviewed only</label></div>
+      <div class="dev-hint">MCP packages run at exact versions; skills and plugins are pinned to a git commit and every file is checked against its SHA-256. No hooks. No binaries. Everything readable. <b>Reviewed</b> items were checked by the Astro AI team; the rest are indexed automatically from the official MCP Registry and public GitHub repos, so read what an item does before installing. Tokens you enter stay in this computer's private <code>mcp.json</code>. <a href="https://esoexe.github.io/astro-ai/profile#library" target="_blank" rel="noopener">Open on the website</a></div>
+      ${data.error ? `<div class="ws-note error">${esc(data.error)}</div>` : ''}${L2.manErr ? `<div class="ws-note">The community catalog could not be loaded (${esc(L2.manErr)}). Showing reviewed items.</div>` : ''}
+      ${!data.node ? '<div class="ws-note">Items marked “runs locally” or npm need Node.js. Install it from nodejs.org; remote servers, skills and plugins work without it.</div>' : ''}
+      <div class="dev-hint" id="lib-status"></div>
+      <div id="lib-list"></div>`;
   }
   async function libOpen(id) {
     const data = await libLoad();
     const it = (data.items || []).find((x) => x.id === id);
-    if (!it) throw new Error('That item is not in the library any more.');
+    if (!it) return libOpenCommunity(id);
     const have = (data.installed || {})[id];
     const perms = (it.permissions || []).map((p) => `<li>${esc(LIB_PERMS[p] || p)}</li>`).join('') || '<li>Nothing: it only adds instructions for the agent</li>';
     const what = it.kind === 'mcp'
@@ -668,31 +727,71 @@
     const inputs = (it.inputs || []).map((inp) => `<label class="lib-in"><span>${esc(inp.label || inp.name)}${inp.required ? ' *' : ''}</span><input class="input" data-lib-in="${esc(inp.name)}" type="${inp.secret ? 'password' : 'text'}" autocomplete="off" spellcheck="false" placeholder="${esc(inp.kind === 'arg' && inp.name === 'FOLDER' ? (A().ws.projectPath || 'Full path, e.g. /home/you/project') : inp.secret ? 'Paste here (stored only on this computer)' : '')}">${inp.help ? `<small><a href="${esc(inp.help)}" target="_blank" rel="noopener">Where do I get this?</a></small>` : ''}</label>`).join('');
     A().showModal(`<h2 id="modal-title">${esc(it.name)}</h2>
       <p class="hint">${esc(it.summary)}</p>
-      <p class="hint">${esc(it.publisher || '')}${it.license ? ` · ${esc(it.license)}` : ''}${it.homepage ? ` · <a href="${esc(it.homepage)}" target="_blank" rel="noopener">Homepage</a>` : ''} · version ${esc(it.version || '')}</p>
+      <p class="hint">Reviewed by Astro AI · ${esc(it.publisher || '')}${it.license ? ` · ${esc(it.license)}` : ''}${it.homepage ? ` · <a href="${esc(it.homepage)}" target="_blank" rel="noopener">Homepage</a>` : ''} · version ${esc(it.version || '')}</p>
       <div class="dev-sec">What it can do</div><ul class="lib-perms">${perms}</ul>
       ${what}
       ${inputs ? `<div class="dev-sec">Settings</div>${inputs}` : ''}
       ${it.runs === 'local' ? '<p class="hint">This server runs on your computer with your user rights. Only install it if you trust the publisher.</p>' : ''}
       <div class="btn-row"><button type="button" class="btn primary" id="lib-go">${have ? (have.version !== it.version ? 'Update' : 'Reinstall') : 'Install'}</button><button type="button" class="btn ghost" id="modal-close">Cancel</button></div>`);
+    libWireInstall(id, it.name, it.kind, it.runs === 'local');
+  }
+  function libWireInstall(id, name, kind, local) {
     document.getElementById('modal-content')?.classList.add('wide');
     document.getElementById('modal-close').onclick = () => A().closeModal();
-    document.getElementById('lib-go').onclick = async (ev) => {
-      const btn = ev.currentTarget; btn.disabled = true; btn.textContent = 'Installing…';
+    const go = document.getElementById('lib-go'); if (!go) return;
+    go.onclick = async (ev) => {
+      const btn = ev.currentTarget; const label = btn.textContent; btn.disabled = true; btn.textContent = kind === 'tool' ? 'Installing… (this can take a minute)' : 'Installing…';
       const vals = {}; document.querySelectorAll('[data-lib-in]').forEach((i) => { if (i.value.trim()) vals[i.dataset.libIn] = i.value.trim(); });
       try {
         let r;
         try { r = await dev('library/install', { id, inputs: vals }); } catch (err) {
           if (!/did not come from the library/.test(err.message)) throw err;
           const ok = await A().wsDialog({ title: 'Replace your own item?', text: `${err.message} Replace it with the library version?`, ok: 'Replace', danger: true, input: false });
-          if (!ok) { btn.disabled = false; btn.textContent = 'Install'; return; }
+          if (!ok) { btn.disabled = false; btn.textContent = label; return; }
           r = await dev('library/install', { id, inputs: vals, replace: true });
         }
         A().closeModal(); invalidate(); D.lib.at = 0;
-        A().toast(`${it.name} ${r.updated ? 'updated' : 'installed'}${it.kind === 'mcp' ? ' · find it under MCP' : it.kind === 'plugin' ? ' · its commands and skills are ready' : ' · the agent can use it now'}`);
-        if (it.kind === 'mcp' && it.runs !== 'local') dev('mcp/restart', { project: A().ws.project, server: id }).catch(() => {});
+        A().toast(`${name} ${r.updated ? 'updated' : 'installed'}${kind === 'mcp' ? ' · find it under MCP' : kind === 'plugin' ? ' · its commands and skills are ready' : kind === 'tool' ? ' · ready in the agent and terminal' : ' · the agent can use it now'}${(r.notes || []).length ? ' · ' + r.notes.join(' ') : ''}`);
+        if (kind === 'mcp' && !local) dev('mcp/restart', { project: A().ws.project, server: id }).catch(() => {});
         renderExt(true);
-      } catch (err) { btn.disabled = false; btn.textContent = 'Install'; A().toast(err.message, 'error'); }
+      } catch (err) { btn.disabled = false; btn.textContent = label; A().toast(err.message, 'error'); }
     };
+  }
+  async function libOpenCommunity(id) {
+    const { item: d, installed } = await dev('library/detail', { id });
+    const k = d.k;
+    const safe = (u) => (/^https?:\/\/[^\s"'<>]+$/i.test(String(u || '')) ? String(u) : '');
+    const links = [d.web && safe(d.web) ? `<a href="${esc(d.web)}" target="_blank" rel="noopener noreferrer">${k === 'skill' || k === 'plugin' ? 'Files on GitHub' : 'Website'}</a>` : '', d.repo && k === 'mcp' && safe(d.repo) && d.repo !== d.web ? `<a href="${esc(d.repo)}" target="_blank" rel="noopener noreferrer">Source</a>` : ''].filter(Boolean).join(' · ');
+    const src = k === 'mcp' ? 'Official MCP Registry' : d.repo ? `GitHub · ${d.repo}` : d.src ? `listed in ${d.src}` : (d.t === 'npm' ? 'npm' : 'PyPI');
+    const head = `<h2 id="modal-title">${esc(d.n || id)}</h2><p class="hint">${esc(d.d || '')}</p>
+      <p class="hint">Community · ${esc(src)}${d.lic && d.lic !== 'see repo' ? ' · ' + esc(d.lic) : ''}${d.v ? ' · version ' + esc(d.v) : ''}${d.stars ? ' · ★ ' + Number(d.stars).toLocaleString() : ''}${links ? ' · ' + links : ''}</p>
+      <p class="hint">Indexed automatically, not reviewed by the Astro AI team. Read what it does before you install it.</p>`;
+    const field = (name, label, req, secret, def) => `<label class="lib-in"><span>${esc(name)}${req ? ' *' : ''}${label && label !== name ? ` <small>${esc(label)}</small>` : ''}</span><input class="input" data-lib-in="${esc(name)}" type="${secret ? 'password' : 'text'}" autocomplete="off" spellcheck="false" value="${esc(def && !secret ? def : '')}" placeholder="${secret ? 'Paste here (stored only on this computer)' : req ? '' : 'optional'}"></label>`;
+    if (k === 'tool' && d.t === 'link') {
+      A().showModal(`${head}<div class="btn-row">${safe(d.url) ? `<a class="btn primary" href="${esc(d.url)}" target="_blank" rel="noopener noreferrer">Open ${esc(String(d.url).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a>` : ''}<button type="button" class="btn ghost" id="modal-close">Close</button></div>`);
+      document.getElementById('modal-close').onclick = () => A().closeModal();
+      return;
+    }
+    let what = '', inputs = '', warn = '';
+    if (k === 'mcp') {
+      const i = d.i;
+      if (!i) {
+        A().showModal(`${head}<div class="ws-note">This server has no one-click setup yet (its package type isn't supported). Use its website or source to set it up.</div><div class="btn-row"><button type="button" class="btn ghost" id="modal-close">Close</button></div>`);
+        document.getElementById('modal-close').onclick = () => A().closeModal(); return;
+      }
+      what = `<div class="dev-sec">${i.t === 'stdio' ? 'Runs this command' : 'Connects to'}</div><code class="dev-cmd">${esc(i.t === 'stdio' ? [i.cmd, ...(i.args || [])].join(' ') : i.url)}</code>`;
+      inputs = [...(d.in || []).map((x) => field(x.name, x.label, x.req, x.secret, x.def)), ...(i.env || []).map((x) => field(x.name, x.label, x.req, x.secret, x.def)), ...(i.headers || []).filter((x) => !x.value).map((x) => field(x.h, x.label, x.req, x.secret || /auth|key|token/i.test(x.h), ''))].join('');
+      if (i.t === 'stdio') warn = `<p class="hint">This server runs on your computer with your user rights${i.cmd === 'docker' ? ' (inside Docker)' : ''}. Only install it if you trust the publisher.</p>`;
+    } else if (k === 'skill' || k === 'plugin') {
+      what = `<div class="dev-sec">Files it adds (${(d.f || []).length}) · pinned to commit ${esc(String(d.c || '').slice(0, 7))}</div><div class="lib-files">${(d.f || []).map((f) => `<div><code>${esc(f[0])}</code><small title="SHA-256 ${esc(f[1])}">${esc(f[1].slice(0, 12))}… · ${Number(f[2] || 0).toLocaleString()} B</small></div>`).join('')}</div>`;
+      if ((d.f || []).some((f) => /\.(py|sh|js|mjs|ts|ps1|rb|bat|cmd)$/i.test(f[0]))) warn = '<p class="hint">It includes scripts. They are saved as text and only run if the agent runs them, under your permission mode.</p>';
+      if (k === 'plugin') warn += '<p class="hint">Hooks and local MCP servers in community plugins are not installed.</p>';
+    } else if (k === 'tool') {
+      what = `<div class="dev-sec">Installs</div><code class="dev-cmd">${esc(d.pkg)}</code><p class="hint">Into Astro's own folder (not system-wide), then adds ${esc((d.bins || []).join(', ') || 'its commands')} to PATH for the agent and terminal. Needs ${d.t === 'npm' ? 'Node.js (npm)' : 'Python 3'}. The package's install script runs, as with a normal install.</p>`;
+    }
+    A().showModal(`${head}${what}${inputs ? `<div class="dev-sec">Settings</div>${inputs}` : ''}${warn}
+      <div class="btn-row"><button type="button" class="btn primary" id="lib-go">${installed ? 'Reinstall' : 'Install'}</button><button type="button" class="btn ghost" id="modal-close">Cancel</button></div>`);
+    libWireInstall(id, d.n || id, k, k === 'mcp' && d.i && d.i.t === 'stdio');
   }
   async function openLibrary(id) {
     D.extTab = 'library'; lsSet('ext-tab', 'library');
@@ -765,7 +864,7 @@
     }
     box.innerHTML = `<div class="dev-tabs" role="tablist">${EXT_TABS.map(([id, label, ic]) => `<button type="button" class="${id === tab ? 'on' : ''}" data-xtab="${id}" title="${label}">${icon(ic)}<span>${label}</span></button>`).join('')}</div><div class="dev-body">${body}</div>`;
     const lq = box.querySelector('#lib-q');
-    if (lq) lq.addEventListener('input', () => { D.lib = { ...(D.lib || {}), q: lq.value }; libFilter(); });
+    if (lq) { let t = 0; lq.addEventListener('input', () => { D.lib = { ...(D.lib || {}), q: lq.value, shown: 60 }; clearTimeout(t); t = setTimeout(libRenderList, 140); }); }
   }
   function onExtClick(e) {
     const t = e.target.closest('[data-xtab]');
@@ -778,6 +877,7 @@
     if (b.dataset.x === 'plugin-toggle') extAction('plugin-toggle', { name: b.dataset.name, on: b.checked }).catch((err) => A().toast(err.message, 'error'));
     if (b.dataset.x === 'plugin-script') { lsSet(`script:${b.dataset.name}`, b.checked ? '1' : null); A().toast(b.checked ? 'The plugin script runs after a reload' : 'Plugin script turned off (reload to unload it)'); }
     if (b.dataset.x === 'agent-lint') lsSet('agent-lint', b.checked ? '1' : '0');
+    if (b.dataset.x === 'lib-reviewed') extAction('lib-reviewed', {}).catch((err) => A().toast(err.message, 'error'));
   }
   function onExtSubmit(e) {
     const f = e.target.closest('form[data-x]'); if (!f) return;
@@ -806,7 +906,9 @@
     switch (act) {
       case 'view': editorModal(d.path, await readExt(d.scope, d.path), null, true); return;
       case 'lib-open': await libOpen(d.id); return;
-      case 'lib-kind': lsSet('lib-kind', d.kind); renderExt(); return;
+      case 'lib-kind': lsSet('lib-kind', d.kind); if (D.lib) D.lib.shown = 60; renderExt(); return;
+      case 'lib-more': D.lib = { ...(D.lib || {}), shown: (D.lib?.shown || 60) + 120 }; libRenderList(); return;
+      case 'lib-reviewed': lsSet('lib-reviewed', lsGet('lib-reviewed', '') ? '' : '1'); renderExt(); return;
       case 'lib-refresh': await libLoad(true); renderExt(); return;
       case 'lib-remove': {
         const ok = await a.wsDialog({ title: `Remove ${d.id}?`, text: 'Only the files the library installed are removed; anything you added stays.', ok: 'Remove', danger: true, input: false });
@@ -1182,7 +1284,7 @@
     return [
       { label: 'Open folder…', icon: 'i-folder-open', sub: 'Work on a folder on this computer', run: openFolder },
       { label: 'Extensions: skills, MCP, plugins, themes', icon: 'i-puzzle', run: () => showSide('ext') },
-      { label: 'Astro AI Library: install MCP servers, skills and plugins', icon: 'i-download', sub: 'Official, checked, one click', run: () => openLibrary() },
+      { label: 'Astro AI Library: install MCP servers, skills, plugins and AI tools', icon: 'i-download', sub: 'Reviewed and community items, one click', run: () => openLibrary() },
       { label: 'Problems: check the project for errors', icon: 'i-alert', run: () => { showSide('problems'); checkProblems(); } },
       { label: 'MCP servers', icon: 'i-puzzle', run: () => { D.extTab = 'mcp'; showSide('ext'); } },
       { label: 'Browse the MCP registry', icon: 'i-globe', run: () => mcpRegistry() },

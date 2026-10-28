@@ -121,7 +121,7 @@ function layout(meta, body, rel, file) {
     <a class="nav-ver" href="${r}changelog.html" title="What's new in ${SITE.version}">v${SITE.version.split('.').slice(0, 2).join('.')}</a>
     <nav class="nav-links" aria-label="Main">${nav}</nav>
     <div class="nav-cta">
-      <a class="btn btn-ghost btn-sm nav-signin" href="${r}account.html" data-account-link>Sign in</a>
+      <a class="btn btn-ghost btn-sm nav-signin" href="${r}profile" data-account-link>Sign in</a>
       <a class="btn btn-primary btn-sm" href="${r}download.html" data-os-cta>Download</a>
       <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu"><span></span><span></span></button>
     </div>
@@ -129,7 +129,7 @@ function layout(meta, body, rel, file) {
   <div class="mobile-menu" id="mobile-menu" hidden>
     ${NAV.map(([id, label, href]) => `<a href="${r}${href}"${meta.nav === id ? ' aria-current="page"' : ''}>${label}</a>`).join('')}
     <a href="${r}press.html">Press kit</a>
-    <a href="${r}account.html" data-account-link>Sign in</a>
+    <a href="${r}profile" data-account-link>Sign in</a>
     <a class="btn btn-primary" href="${r}download.html">Download Astro AI</a>
   </div>
 </header>
@@ -144,7 +144,7 @@ ${body}
       <span class="footer-status"><i></i>v${SITE.version} · ${SITE.dateLabel}</span>
     </div>
     <div><h4>Product</h4><a href="${r}features.html">Features</a><a href="${r}features.html#extensions">Extensions</a><a href="${r}download.html">Download</a><a href="${r}changelog.html">Changelog</a></div>
-    <div><h4>Resources</h4><a href="${r}docs.html">Docs</a><a href="${r}api.html">Astro API</a><a href="${r}account.html">Account</a><a href="${r}blog/index.html">Blog</a><a href="${r}press.html">Press kit</a>${SITE.repo ? `<a href="${SITE.repo}" rel="noopener">Source on GitHub</a>` : ''}</div>
+    <div><h4>Resources</h4><a href="${r}docs.html">Docs</a><a href="${r}api.html">Astro API</a><a href="${r}profile">Account</a><a href="${r}blog/index.html">Blog</a><a href="${r}press.html">Press kit</a>${SITE.repo ? `<a href="${SITE.repo}" rel="noopener">Source on GitHub</a>` : ''}</div>
     <div><h4>Legal</h4><a href="${r}privacy.html">Privacy</a><a href="${r}assets/fonts/FONTS-LICENSE.txt">Font licenses</a></div>
   </div>
   <div class="wrap footer-word" aria-hidden="true">Astro <em>AI</em></div>
@@ -210,6 +210,12 @@ for (const f of pages) {
   fs.writeFileSync(out, (meta.layout === 'app' ? appLayout : layout)(meta, src, rel, f.split(path.sep).join('/')));
   if (!meta.noindex) sitemap.push(f.split(path.sep).join('/').replace(/index\.html$/, ''));
 }
+// The Console moved from account.html to /profile. Old links (and their #section or ?mode=) keep working.
+fs.writeFileSync(path.join(OUT, 'account.html'), `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Astro AI Console</title><meta name="robots" content="noindex">
+<script src="assets/js/moved.js"></script>
+<link rel="canonical" href="profile"><noscript><meta http-equiv="refresh" content="0; url=profile"></noscript></head>
+<body><p>The Console moved to <a href="profile">/profile</a>.</p></body></html>
+`);
 const base = SITE.url.replace(/\/$/, '');
 fs.writeFileSync(path.join(OUT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

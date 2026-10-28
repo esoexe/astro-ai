@@ -334,7 +334,8 @@ void run_stream(int fd, const fs::path& dir, const std::string& command, const s
     const std::string home = "HOME=" + home_dir.string();
     const fs::path measure_file = home_dir / (".measure-" + random_hex(8) + ".json");
     const std::string measure_env = "ASTRO_MEASURE_OUT=" + measure_file.string();
-    const std::string path_env = "PATH=" + dir_s + "/node_modules/.bin:" + home_dir.string() + "/.local/bin:/usr/local/bin:/usr/bin:/bin";
+    const char* tool_bin = std::getenv("ASTRO_TOOL_BIN");   // AI tools installed from the Library
+    const std::string path_env = "PATH=" + dir_s + "/node_modules/.bin:" + (tool_bin && *tool_bin ? std::string(tool_bin) + ":" : std::string()) + home_dir.string() + "/.local/bin:/usr/local/bin:/usr/bin:/bin";
     const auto started = std::chrono::steady_clock::now();
     const pid_t pid = fork();
     if (pid == 0) {

@@ -45,11 +45,15 @@ std::vector<std::string> ide_env(const fs::path& dir, const std::vector<std::str
     return win_child_env(dir, home, more);
 #endif
     std::vector<std::string> env = {
-        "PATH=" + dir.string() + "/node_modules/.bin:" + home + "/.local/bin:/usr/local/bin:/usr/bin:/bin",
+        "PATH=" + dir.string() + "/node_modules/.bin:" + (std::getenv("ASTRO_TOOL_BIN") && *std::getenv("ASTRO_TOOL_BIN") ? std::string(std::getenv("ASTRO_TOOL_BIN")) + ":" : std::string()) + home + "/.local/bin:/usr/local/bin:/usr/bin:/bin",
         "HOME=" + home, "LANG=C.UTF-8", "LC_ALL=C.UTF-8", "PYTHONUNBUFFERED=1", "PYTHONDONTWRITEBYTECODE=1",
         "PIP_USER=1", "PIP_DISABLE_PIP_VERSION_CHECK=1", "PIP_BREAK_SYSTEM_PACKAGES=1", "NPM_CONFIG_UPDATE_NOTIFIER=false",
         "NPM_CONFIG_FUND=false", "NPM_CONFIG_AUDIT=false"};
-    env.insert(env.end(), extra.begin(), extra.end());
+    for (const auto& e : extra) {   // an extra NAME=value replaces the default for NAME
+        const std::string key = e.substr(0, e.find('=') + 1);
+        std::erase_if(env, [&](const std::string& x) { return x.rfind(key, 0) == 0; });
+        env.push_back(e);
+    }
     return env;
 }
 
