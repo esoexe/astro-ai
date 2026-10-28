@@ -1,0 +1,19 @@
+{
+  "about": "Reference solutions, used only by `node bench/run.js --self-test` to prove every check fails on the starting files and passes on a correct solution. Never shown to the agent.",
+  "js-off-by-one": { "utils.js": "function range(a, b) {\n  const out = [];\n  for (let i = a; i <= b; i++) out.push(i);\n  return out;\n}\nmodule.exports = { range };\n" },
+  "js-add-slugify": { "strings.js": "function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }\nfunction slugify(text) {\n  return String(text).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');\n}\nmodule.exports = { capitalize, slugify };\n" },
+  "js-async-foreach": { "loader.js": "const sleep = (ms) => new Promise((r) => setTimeout(r, ms));\nasync function load(id) { await sleep(10 * (3 - id)); return { id }; }\nasync function fetchAll(ids) { return Promise.all(ids.map((id) => load(id))); }\nmodule.exports = { fetchAll, load };\n" },
+  "js-make-tests-pass": { "stack.js": "class Stack {\n  constructor() { this.items = []; }\n  get size() { return this.items.length; }\n  push(x) { this.items.push(x); }\n  peek() { return this.items[this.items.length - 1]; }\n  pop() { if (!this.items.length) throw new Error('Stack is empty'); return this.items.pop(); }\n}\nmodule.exports = Stack;\n" },
+  "js-rename-across-files": {
+    "users.js": "function getUser(id) { return { id, name: 'user' + id }; }\nmodule.exports = { getUser };\n",
+    "api.js": "const { getUser } = require('./users');\nfunction handler(id) { return getUser(id).name; }\nmodule.exports = { handler };\n",
+    "main.js": "const { handler } = require('./api');\nconst { getUser } = require('./users');\nconsole.log(handler(1), getUser(2).id);\n"
+  },
+  "js-cli-flag": { "cli.js": "const argv = process.argv.slice(2);\nif (argv.includes('--verbose')) console.log('verbose on');\nconst args = argv.filter((a) => !a.startsWith('--'));\nconsole.log('hello ' + (args[0] || 'world'));\n" },
+  "json-package-script": { "package.json": "{\n  \"name\": \"demo\",\n  \"version\": \"1.1.0\",\n  \"private\": true,\n  \"scripts\": {\n    \"start\": \"node index.js\",\n    \"test\": \"node test.js\"\n  },\n  \"dependencies\": {\n    \"left-pad\": \"1.3.0\"\n  }\n}\n" },
+  "html-signup-form": { "index.html": "<!doctype html>\n<html lang=\"en\"><head><meta charset=\"utf-8\"><title>Sign up</title></head>\n<body>\n<form id=\"signup\">\n  <label for=\"email\">Email</label>\n  <input type=\"email\" id=\"email\" name=\"email\" required>\n  <label for=\"password\">Password</label>\n  <input type=\"password\" id=\"password\" name=\"password\" minlength=\"8\">\n  <button type=\"submit\">Create account</button>\n</form>\n</body></html>\n" },
+  "c-reverse-bug": { "strutil.c": "#include <string.h>\n#include \"strutil.h\"\nvoid reverse(char *s) {\n    size_t n = strlen(s);\n    if (n < 2) return;\n    for (size_t i = 0, j = n - 1; i < j; i++, j--) { char t = s[i]; s[i] = s[j]; s[j] = t; }\n}\n" },
+  "c-makefile": { "Makefile": "CC ?= cc\nhello: hello.o greet.o\n\t$(CC) -o $@ $^\n%.o: %.c greet.h\n\t$(CC) -c $< -o $@\nclean:\n\trm -f hello *.o\n.PHONY: clean\n" },
+  "sh-count-lines": { "count.sh": "#!/usr/bin/env bash\nif [ $# -lt 1 ]; then echo \"usage: count.sh FILE\" >&2; exit 2; fi\ngrep -c '[^[:space:]]' \"$1\"\n" },
+  "js-debug-from-error": { "math.js": "function total(values) {\n  return values.reduce((sum, v) => sum + v, 0);\n}\nmodule.exports = { total };\n" }
+}

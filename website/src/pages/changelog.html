@@ -9,8 +9,38 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
-    <article class="release latest reveal" id="v1-3-0">
-      <header><h2>1.3.0</h2><span class="badge">Latest</span><time datetime="2026-10-28">October 28, 2026</time></header>
+    <article class="release latest reveal" id="v1-4-0">
+      <header><h2>1.4.0</h2><span class="badge">Latest</span><time datetime="2026-10-28">October 28, 2026</time></header>
+      <p class="muted">Astro AI in your terminal, agents that run in the background and in parallel, a VS Code extension, project tools, an SDK and a benchmark.</p>
+
+      <h3>Terminal app: <code>astro</code></h3>
+      <ul class="ticks">
+        <li><code>astro</code> in any folder starts an interactive agent session, with <code>/mode</code>, <code>/model</code>, <code>/review</code>, <code>/sessions</code>, <code>/diff</code>, <code>/undo</code> and more. Ctrl+C stops the agent within about a second</li>
+        <li><code>astro -p "task"</code> is for scripts and CI. Progress goes to stderr and the report to stdout. <code>--json</code> prints one event per line, and the exit codes are 0 done, 1 error, 2 stopped, 3 paused</li>
+        <li>Plan, Ask and Auto modes work in the terminal too. In Ask mode you approve each change inline. With no one watching, changes are blocked instead of waiting forever</li>
+        <li>Included in every desktop download. The .deb installs <code>/usr/bin/astro</code> and Windows Setup adds it to your PATH. When the app is closed, <code>astro</code> starts the app's engine itself</li>
+      </ul>
+
+      <h3>Background and parallel agents</h3>
+      <ul class="ticks">
+        <li>A new agent engine runs agents inside the Astro AI server, so they keep working when you close the window. Up to 8 run at once, and the rest wait in a queue</li>
+        <li><strong>Isolated copies.</strong> Each parallel agent works in its own git worktree, including your uncommitted and untracked files, or in a copy of the folder. Your project is untouched until you merge</li>
+        <li><strong>Safe merge.</strong> Review the diff, then merge or discard. Merging stops when a file was also changed in the project after the agent started. You can merge the rest, or apply the agent's version. Every merge can be undone</li>
+        <li>In the app: the <strong>Parallel</strong> chip on the Agent page. In the terminal: <code>astro parallel "A" "B" --merge</code>, <code>astro agents</code>, <code>astro diff</code>, <code>astro merge</code></li>
+      </ul>
+
+      <h3>For developers</h3>
+      <ul class="ticks">
+        <li><strong>VS Code extension</strong> (<code>.vsix</code>, also for VSCodium, Cursor and Windsurf). It can run the agent on the open folder or the selection, run parallel agents, follow, diff, merge and undo</li>
+        <li><strong>Project tools.</strong> JSON files in <code>.astro/tools/</code> give the agent your own commands, with shell-quoted arguments. Plan and Ask modes apply to them too</li>
+        <li><strong>Engine HTTP API and JavaScript SDK</strong> (<code>sdk/js</code>) to drive agents from your own tools</li>
+        <li><strong>Benchmark</strong> (<code>bench/</code>): 12 small repository tasks with hidden checks, in JavaScript, C, shell, HTML and JSON. Each check is proven to fail before a change and pass on a reference solution</li>
+        <li>First run, with the default choice of free models: 12 of 12 tasks passed, averaging 40 s and 4 steps per task. That was one run on one day, and results change as free models change. <code>node bench/run.js</code> runs it yourself</li>
+      </ul>
+    </article>
+
+    <article class="release reveal" id="v1-3-0">
+      <header><h2>1.3.0</h2><time datetime="2026-10-28">October 28, 2026</time></header>
       <p class="muted">The Library now lists every MCP server, agent skill, plugin and AI tool we can index, and the Console moved to <a href="{{root}}profile">/profile</a>.</p>
 
       <h3>The whole ecosystem in the Library</h3>

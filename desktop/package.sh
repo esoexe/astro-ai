@@ -10,7 +10,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
-VER="1.3.0"
+VER="1.4.0"
 OUT="$ROOT/desktop-builds"
 WORK="$ROOT/.cache/pkg"
 TP="$ROOT/desktop/third_party"
@@ -24,6 +24,8 @@ g++ -std=c++20 -O2 -pthread workspace_server.cpp -o "$WORK/bin/astro-server" $(p
 g++ -std=c++17 -O2 -I"$TP/webview/include" desktop/src/astro_desktop.cpp -o "$WORK/bin/astro-desktop" \
     $(pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.1) -ldl -pthread "${COMPAT[@]}"
 wait
+# The terminal app (astro): a small client of the engine's agent API
+g++ -std=c++20 -O2 cli/astro.cpp -o "$WORK/bin/astro" $(pkg-config --cflags --libs libcurl) "${COMPAT[@]}"
 
 echo "==> Windows binaries"
 x86_64-w64-mingw32-gcc-posix -O2 -c desktop/src/win_compat.c -o "$WORK/win_compat.o"
@@ -35,6 +37,10 @@ x86_64-w64-mingw32-g++-posix -std=c++20 -O2 -DCURL_STATICLIB -I"$C/include" work
 x86_64-w64-mingw32-g++-posix -std=c++17 -O2 -Wno-unknown-pragmas -I"$TP/mingw-compat" -I"$TP/webview/include" -I"$TP/webview2/include" \
     desktop/src/astro_desktop.cpp "$WORK/astro_desktop_res.o" -o "$WORK/bin/AstroAI.exe" -mwindows -static -static-libgcc -static-libstdc++ \
     -lole32 -lshell32 -lshlwapi -lversion -luser32 -ladvapi32 -lws2_32 -luuid -s
+x86_64-w64-mingw32-g++-posix -std=c++20 -O2 -DCURL_STATICLIB -I"$C/include" cli/astro.cpp "$WORK/win_compat.o" -o "$WORK/bin/astro.exe" \
+    -static -static-libgcc -static-libstdc++ -L"$C/lib" -lcurl -lnghttp3 -lngtcp2_crypto_libressl -lngtcp2 -lnghttp2 -lssh2 -lssl -lcrypto \
+    -lpsl -lbrotlidec -lbrotlicommon -lzstd -lz -lws2_32 -lcrypt32 -lbcrypt -lwldap32 -liphlpapi -lsecur32 -lnormaliz -ladvapi32 -luser32 \
+    -lole32 -luuid -lshell32 -s
 wait
 
 # ------------------------------------------------------------------------------------------------
@@ -100,10 +106,10 @@ if [ -n "${CI:-}${GITHUB_ACTIONS:-}" ] && [[ " $EDITIONS " == *" personal "* ]];
 fi
 for ed in $EDITIONS; do
     if [ "$ed" = personal ]; then
-        TAG="WITH-KEYS"; DEST="$OUT/with-keys"; APP="Astro AI"; ID="AstroAI"; EXE="AstroAI.exe"; PKG="astro-ai"
+        TAG="WITH-KEYS"; DEST="$OUT/with-keys"; APP="Astro AI"; ID="AstroAI"; EXE="AstroAI.exe"; PKG="astro-ai"; CLI="astro-personal"
         NOTE="PERSONAL EDITION: this build contains your API keys."
     else
-        TAG="CLEAN"; DEST="$OUT/clean"; APP="Astro AI Clean"; ID="AstroAIClean"; EXE="AstroAI-Clean.exe"; PKG="astro-ai-clean"
+        TAG="CLEAN"; DEST="$OUT/clean"; APP="Astro AI Clean"; ID="AstroAIClean"; EXE="AstroAI-Clean.exe"; PKG="astro-ai-clean"; CLI="astro"
         NOTE="CLEAN EDITION: no API keys included. Add your own in Settings > Keys."
     fi
     echo "==> $APP ($TAG)"
@@ -113,7 +119,7 @@ for ed in $EDITIONS; do
     # ---------------- Windows: portable zip + installer ----------------
     WD="$WORK/AstroAI-$VER-windows-x64-$TAG"; mkdir -p "$WD"
     cp -r "$PAY/." "$WD/"
-    cp "$WORK/bin/AstroAI.exe" "$WD/$EXE"; cp "$WORK/bin/astro-server.exe" "$WD/"
+    cp "$WORK/bin/AstroAI.exe" "$WD/$EXE"; cp "$WORK/bin/astro-server.exe" "$WD/"; cp "$WORK/bin/astro.exe" "$WD/$CLI.exe"
     readme "$ed" "windows x64" "$WD/README.txt"
     (cd "$WORK" && zip -qr9 "$DEST/AstroAI-$VER-windows-x64-portable-$TAG.zip" "$(basename "$WD")")
     # Custom Astro AI installer (desktop/setup): payload = the same files as the portable zip.
@@ -123,10 +129,11 @@ for ed in $EDITIONS; do
     # ---------------- Linux: .deb ----------------
     DEB="$WORK/deb-$ed"; L="$DEB/usr/lib/$PKG"
     mkdir -p "$L" "$DEB/usr/bin" "$DEB/usr/share/applications" "$DEB/DEBIAN" "$DEB/usr/share/doc/$PKG"
-    cp -r "$PAY/." "$L/"; cp "$WORK/bin/astro-desktop" "$WORK/bin/astro-server" "$L/"
-    chmod 755 "$L/astro-desktop" "$L/astro-server"; [ -f "$L/seed-keys.env" ] && chmod 644 "$L/seed-keys.env"
+    cp -r "$PAY/." "$L/"; cp "$WORK/bin/astro-desktop" "$WORK/bin/astro-server" "$L/"; cp "$WORK/bin/astro" "$L/$CLI"
+    chmod 755 "$L/astro-desktop" "$L/astro-server" "$L/$CLI"; [ -f "$L/seed-keys.env" ] && chmod 644 "$L/seed-keys.env"
     [ -f "$L/gateway.env" ] && chmod 644 "$L/gateway.env"
     ln -s "/usr/lib/$PKG/astro-desktop" "$DEB/usr/bin/$PKG"
+    ln -s "/usr/lib/$PKG/$CLI" "$DEB/usr/bin/$CLI"   # terminal app: astro (clean) / astro-personal (with keys)
     for s in 16 24 32 48 64 128 256 512; do
         mkdir -p "$DEB/usr/share/icons/hicolor/${s}x${s}/apps"; cp "desktop/assets/icon-$s.png" "$DEB/usr/share/icons/hicolor/${s}x${s}/apps/$PKG.png"
     done
@@ -184,6 +191,7 @@ EOF
     # ---------------- macOS: source kit ----------------
     MK="$WORK/AstroAI-$VER-macos-source-$TAG"; mkdir -p "$MK/src/server" "$MK/src/desktop" "$MK/src/webview" "$MK/assets" "$MK/payload"
     cp workspace_server.cpp platform.h ./*.inc "$MK/src/server/"
+    mkdir -p "$MK/src/cli"; cp cli/astro.cpp cli/json.h "$MK/src/cli/"; echo "$CLI" > "$MK/payload/cli-name"
     cp desktop/src/astro_desktop.cpp "$MK/src/desktop/"
     cp -r "$TP/webview/include" "$MK/src/webview/"
     cp desktop/assets/icon-mac-1024.png "$MK/assets/"
@@ -192,6 +200,18 @@ EOF
     readme "$ed" "macos (build on a Mac)" "$MK/README.txt"
     (cd "$WORK" && tar -czf "$DEST/AstroAI-$VER-macos-source-$TAG.tar.gz" "$(basename "$MK")")
 done
+
+# ------------------------------------------------------------------------------------------------
+# VS Code extension (same for both editions; it contains no keys): shipped with the clean downloads.
+# ------------------------------------------------------------------------------------------------
+if [[ " $EDITIONS " == *" clean "* ]]; then
+    echo "==> VS Code extension"
+    if (cd ide/vscode && npx -y @vscode/vsce@3 package --allow-missing-repository -o "$OUT/clean/astro-ai-vscode-$VER.vsix" >/dev/null 2>&1); then
+        echo "   astro-ai-vscode-$VER.vsix"
+    else
+        echo "   (skipped: npx/vsce not available)"
+    fi
+fi
 
 # ------------------------------------------------------------------------------------------------
 # Safety check: the clean edition must not contain any key value from the personal one.

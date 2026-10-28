@@ -19,6 +19,7 @@
     <a href="#keys">Adding free keys</a>
     <a href="#workspace">Workspace</a>
     <a href="#agent">Agent</a>
+    <a href="#terminal">Terminal &amp; parallel agents</a>
     <a href="#extensions">Folders, skills, MCP &amp; plugins</a>
     <a href="#astro-key">Astro API key</a>
     <a href="#voice">Voice</a>
@@ -153,6 +154,16 @@ cd AstroAI-{{version}}-macos-source-CLEAN
     </ul>
     <p>Type <code>/</code> for commands: <code>/init</code> writes an <code>AGENTS.md</code>, and there are also <code>/plan</code>, <code>/review</code>, <code>/test</code>, <code>/commit</code>, <code>/compact</code>, <code>/skills</code>, <code>/mcp</code> and <code>/agents</code>. The side panel shows <strong>Changes</strong> (with a diff per file), <strong>Files</strong>, <strong>Terminal</strong> and <strong>Preview</strong>. A checkpoint is taken before each job, so you can roll back.</p>
     <div class="callout warn"><div><b>Use it with care.</b> The agent runs real commands on your computer. Give it a project folder you're happy for it to change, and keep backups of anything that matters.</div></div>
+
+    <h2 id="terminal">Terminal &amp; parallel agents</h2>
+    <p>The desktop downloads include <code>astro</code>, the Astro AI agent for your terminal. It is <code>/usr/bin/astro</code> with the Linux .deb. On Windows, Setup adds it to your PATH, so open a new terminal after installing. On macOS it is inside the app, and the installer prints the one-line link command. If the app is closed, <code>astro</code> uses the app's engine and starts it when needed.</p>
+    <ul>
+      <li><code>cd my-project &amp;&amp; astro</code> starts an interactive session on that folder. Type <code>/help</code> for commands, press Ctrl+C to stop the agent and use <code>/undo</code> to put the folder back.</li>
+      <li><code>astro -p "fix the failing test"</code> runs once for scripts and CI. Add <code>--json</code> for one JSON event per line, and <code>--plan</code>, <code>--ask</code> or <code>--auto</code> to choose the mode.</li>
+      <li><code>astro parallel "add dark mode" "write tests" --merge</code> runs several agents at once, each in an <strong>isolated copy</strong> of the project: a git worktree in a repository, or a copy otherwise. Your files are not touched until you merge.</li>
+      <li><code>astro agents</code>, <code>astro diff &lt;id&gt;</code>, <code>astro merge &lt;id&gt;</code>, <code>astro discard &lt;id&gt;</code> and <code>astro undo &lt;id&gt;</code> review and apply the work. <code>merge</code> stops if a file was also changed in the project after the agent started. Use <code>--partial</code> to merge everything else, or <code>--force</code> to apply the agent's version anyway.</li>
+    </ul>
+    <p>In the app, the <strong>Parallel</strong> chip on the Agent page does the same: one task per line, follow each agent live, answer its questions, look at the diff and merge. These agents run in the engine, so they keep working when you close the window. The Clean downloads also include a <strong>VS Code extension</strong> (<code>.vsix</code>) with the same commands. A project can give the agent its own tools with JSON files in <code>.astro/tools/</code>. The full reference, including the HTTP API, is in <a href="https://github.com/esoexe/astro-ai/blob/main/docs/cli.md">docs/cli.md</a>.</p>
 
     <h2 id="extensions">Folders, skills, MCP &amp; plugins</h2>
     <p>Astro AI works with the setup files that other coding tools already use, so an existing project behaves the way it does in OpenCode, Claude Code, Codex, Cursor or VS Code.</p>

@@ -2050,3 +2050,43 @@ body { background: var(--bg); letter-spacing: -.003em; }
 .byok-card { display: grid; gap: 6px; margin-top: 8px; padding: 12px 14px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--accent, #f3a679) 40%, transparent); background: color-mix(in srgb, var(--accent, #f3a679) 8%, var(--surface)); font-size: 14px; line-height: 1.55; color: var(--text-2); }
 .byok-card b { color: var(--text); }
 .byok-card .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+
+/* ---------- Background & parallel agents (agents.js) ---------- */
+.bg-new { display: grid; gap: 8px; margin: 6px 0 14px; }
+.bg-new textarea { resize: vertical; min-height: 64px; font: inherit; }
+.bg-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 13px; }
+.bg-opts label { display: inline-flex; align-items: center; gap: 6px; }
+.bg-opts .grow, .bg-dhead .grow { flex: 1; }
+.bg-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 46vh; overflow: auto; }
+.bg-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid var(--border-strong); border-radius: 12px; background: var(--surface); }
+.bg-main { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.bg-main b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bg-main small { color: var(--text-2); font-size: 12px; }
+.bg-acts { display: flex; gap: 6px; }
+.bg-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--text-2); flex: none; opacity: .6; }
+.bg-dot.running, .bg-dot.queued { background: var(--accent); opacity: 1; animation: bgpulse 1.2s ease-in-out infinite; }
+.bg-dot.waiting { background: var(--warn); opacity: 1; }
+.bg-dot.done { background: var(--ok); opacity: 1; }
+.bg-dot.error { background: var(--danger); opacity: 1; }
+@keyframes bgpulse { 50% { opacity: .35; } }
+.bg-dhead { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.bg-dhead small { color: var(--text-2); }
+.bg-tl { max-height: 44vh; overflow: auto; display: grid; gap: 6px; padding: 10px; border: 1px solid var(--border-strong); border-radius: 12px; background: var(--surface-2); font-size: 13.5px; }
+.bg-ev.user { font-weight: 600; }
+.bg-ev.say p { margin: 4px 0; }
+.bg-ev.live { opacity: .7; font-style: italic; }
+.bg-ev.tool { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; }
+.bg-ev.tool.ok > span { color: var(--ok); }
+.bg-ev.tool.err > span, .bg-ev.err { color: var(--danger); }
+.bg-ev.tool.blocked > span { color: var(--warn); }
+.bg-ev.tool small { display: block; color: var(--text-2); margin-left: 18px; white-space: pre-wrap; }
+.bg-ev .add { color: var(--ok); font-style: normal; } .bg-ev .del { color: var(--danger); font-style: normal; }
+.bg-ev.note { color: var(--text-2); font-size: 12.5px; }
+.bg-ev.done, .bg-ev.review { border-top: 1px dashed var(--border-strong); padding-top: 6px; }
+.bg-ev.done ul { margin: 4px 0 0; padding-left: 18px; }
+.bg-wait { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--warn); border-radius: 12px; }
+.bg-wait pre, .bg-diffpre { max-height: 30vh; overflow: auto; font-size: 12px; background: var(--surface-2); padding: 8px; border-radius: 8px; white-space: pre-wrap; }
+.bg-wait .btn-row { flex-wrap: wrap; align-items: center; }
+.bg-follow { display: flex; gap: 8px; margin-top: 10px; }
+.bg-follow .input { flex: 1; }
+.bg-diffpre .add { color: var(--ok); } .bg-diffpre .del { color: var(--danger); } .bg-diffpre .at { color: var(--accent); } .bg-diffpre .h { font-weight: 700; }

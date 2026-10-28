@@ -1,0 +1,11 @@
+{
+  "name": "astro-ai-sdk",
+  "version": "1.4.0",
+  "description": "Client for the Astro AI agent engine: start agents, stream their events, run parallel agents in isolated copies, diff, merge and undo.",
+  "type": "module",
+  "main": "index.mjs",
+  "exports": "./index.mjs",
+  "license": "(MIT OR Apache-2.0 OR GPL-3.0)",
+  "engines": { "node": ">=18" },
+  "repository": { "type": "git", "url": "https://github.com/esoexe/astro-ai", "directory": "sdk/js" }
+}

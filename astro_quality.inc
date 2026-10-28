@@ -253,7 +253,7 @@ void handle_feedback(int fd, const Json& body) {
             const std::string url = u && *u ? u : "https://vgtucdfretcvojcfvbzk.supabase.co/rest/v1/astro_feedback";
             Json::Object row;
             row["kind"] = e["kind"]; row["question"] = e["question"]; row["answer"] = e["answer"]; row["model"] = e["model"];
-            row["mode"] = e["mode"]; row["note"] = e["note"]; row["lang"] = e["lang"]; row["app_version"] = Json(truncate(get_string(body, "app_version", "1.3.0"), 20));
+            row["mode"] = e["mode"]; row["note"] = e["note"]; row["lang"] = e["lang"]; row["app_version"] = Json(truncate(get_string(body, "app_version", "1.4.0"), 20));
             const std::string post = dump_json(Json(std::move(row)));
             const FetchResult r = http_fetch(url, {"Content-Type: application/json", "Prefer: return=minimal",
                                                    "apikey: sb_publishable_E2ZGJpsa3Bqbunemq7qUPw_W3g5LSol"}, &post, 15, 100000, true);

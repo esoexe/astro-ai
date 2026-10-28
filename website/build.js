@@ -53,7 +53,7 @@ if (!NO_DL) {
   fs.mkdirSync(dlDir, { recursive: true });
   if (!fs.existsSync(DL_SRC)) throw new Error('Missing ' + DL_SRC + ' (run desktop/package.sh first, or put the CLEAN files in website/downloads)');
   for (const f of fs.readdirSync(DL_SRC)) {
-    if (!/CLEAN/.test(f) || /WITH-KEYS/i.test(f)) continue;           // belt and braces
+    if (!(/CLEAN/.test(f) || /^astro-ai-vscode-[\d.]+\.vsix$/.test(f)) || /WITH-KEYS/i.test(f)) continue;           // belt and braces
     fs.copyFileSync(path.join(DL_SRC, f), path.join(dlDir, f));
   }
 }

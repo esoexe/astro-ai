@@ -24,7 +24,7 @@ UI tests (Playwright, optional): `tests/ui/gap_ui.js` and `tests/ui/chat_ui.js`.
 |---|---|---|
 | `ci.yml` | Every push and pull request | Fails on tracked private files, runs the secret scan, then `make`, `make test` and the website build |
 | `pages.yml` | Changes to `website/**` or `library/**` | Builds and deploys the site and library |
-| `desktop.yml` | A `v*` tag, or run by hand | Builds the **Clean** edition for Windows (installer and zip), Linux (`.deb`, `tar.gz`) and macOS (universal `.dmg`). Tags also create a GitHub release with `SHA256SUMS.txt` |
+| `desktop.yml` | A `v*` tag, or run by hand | Builds the **Clean** edition for Windows (installer and zip), Linux (`.deb`, `tar.gz`) and macOS (universal `.dmg`), each with the `astro` terminal app inside, plus the VS Code extension (`.vsix`). Tags also create a GitHub release with `SHA256SUMS.txt` |
 
 ## Code signing (optional)
 

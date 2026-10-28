@@ -1,0 +1,197 @@
+{
+  "meta": {
+    "date": "2026-10-28T21:01:08.136Z",
+    "mode": "auto",
+    "review": false,
+    "repeat": 1,
+    "tasks": 12,
+    "astro": "astro 1.4.0"
+  },
+  "results": [
+    {
+      "task": "js-off-by-one",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 3,
+      "tools": 5,
+      "tool_errors": 1,
+      "ms": 15139,
+      "models_used": [
+        "deepseek-v4-pro (Router9)",
+        "deepseek-v4-flash (ElectronHub)"
+      ]
+    },
+    {
+      "task": "js-async-foreach",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 4,
+      "tools": 4,
+      "tool_errors": 0,
+      "ms": 16698,
+      "models_used": [
+        "deepseek-v4-pro (Router9)",
+        "Qwen3.5-397B-A17B (OVHcloud AI Endpoints)",
+        "deepseek-v4-flash (ElectronHub)",
+        "gpt-oss-120b (OVHcloud AI Endpoints)"
+      ]
+    },
+    {
+      "task": "js-rename-across-files",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 3,
+      "tools": 3,
+      "tool_errors": 0,
+      "ms": 8042,
+      "models_used": [
+        "deepseek-v4-flash (Routeway)"
+      ]
+    },
+    {
+      "task": "js-add-slugify",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 3,
+      "tools": 3,
+      "tool_errors": 0,
+      "ms": 94003,
+      "models_used": [
+        "Meta-Llama-3_3-70B-Instruct (OVHcloud AI Endpoints)"
+      ]
+    },
+    {
+      "task": "js-make-tests-pass",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 5,
+      "tools": 7,
+      "tool_errors": 1,
+      "ms": 81686,
+      "models_used": [
+        "deepseek-v4-flash (Routeway)",
+        "deepseek-v4-flash-0731free (BazaarLink)"
+      ]
+    },
+    {
+      "task": "js-cli-flag",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 5,
+      "tools": 9,
+      "tool_errors": 3,
+      "ms": 116771,
+      "models_used": [
+        "Meta-Llama-3_3-70B-Instruct (OVHcloud AI Endpoints)",
+        "deepseek-v4-flash-0731free (BazaarLink)",
+        "flint-v1.0 (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "c-reverse-bug",
+      "lang": "c",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 6,
+      "tools": 11,
+      "tool_errors": 5,
+      "ms": 8591,
+      "models_used": [
+        "codestral-latest (Mistral)"
+      ]
+    },
+    {
+      "task": "html-signup-form",
+      "lang": "html",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 4,
+      "tools": 4,
+      "tool_errors": 0,
+      "ms": 54778,
+      "models_used": [
+        "Meta-Llama-3_3-70B-Instruct (OVHcloud AI Endpoints)",
+        "codestral-latest (Mistral)"
+      ]
+    },
+    {
+      "task": "sh-count-lines",
+      "lang": "shell",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 2,
+      "tools": 4,
+      "tool_errors": 0,
+      "ms": 2657,
+      "models_used": []
+    },
+    {
+      "task": "c-makefile",
+      "lang": "c",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 4,
+      "tools": 8,
+      "tool_errors": 1,
+      "ms": 4389,
+      "models_used": []
+    },
+    {
+      "task": "js-debug-from-error",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 3,
+      "tools": 5,
+      "tool_errors": 0,
+      "ms": 3223,
+      "models_used": [
+        "codestral-latest (Mistral)"
+      ]
+    },
+    {
+      "task": "json-package-script",
+      "lang": "json",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 7,
+      "tools": 11,
+      "tool_errors": 3,
+      "ms": 68223,
+      "models_used": [
+        "Meta-Llama-3_3-70B-Instruct (OVHcloud AI Endpoints)",
+        "codestral-latest (Mistral)"
+      ]
+    }
+  ]
+}

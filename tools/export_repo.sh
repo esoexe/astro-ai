@@ -13,7 +13,7 @@ rm -rf "$OUT"; mkdir -p "$OUT"
 
 ALLOW=(
   workspace_server.cpp platform.h astro_ext.inc workspace_code.inc workspace_intel.inc workspace_ide.inc workspace_agent.inc
-  astro_dev.inc astro_library.inc astro_quality.inc library .github docs
+  astro_dev.inc astro_library.inc astro_quality.inc astro_engine.inc cli ide sdk bench library .github docs
   providers.json Makefile Dockerfile .dockerignore .env.example README.md
   LICENSE LICENSE-MIT LICENSE-APACHE LICENSE-GPL THIRD-PARTY-NOTICES.md
   start_workspace.sh start_local_ai.sh start_opencode.sh
@@ -29,6 +29,7 @@ rm -f "$OUT/website/netlify.toml"
 # the website's downloads: CLEAN edition only
 mkdir -p "$OUT/website/downloads"
 cp desktop-builds/clean/*CLEAN* "$OUT/website/downloads/"
+cp desktop-builds/clean/astro-ai-vscode-*.vsix "$OUT/website/downloads/"
 
 # point the site at GitHub Pages
 node -e '
@@ -74,6 +75,8 @@ desktop-builds/
 # ---- build output ----
 /workspace_server
 /astro_measure
+/astro
+/ide/vscode/*.vsix
 website/dist/
 node_modules/
 .cache/

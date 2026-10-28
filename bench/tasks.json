@@ -1,0 +1,157 @@
+{
+  "about": "Astro AI coding benchmark: small, realistic repository tasks. Each task starts from 'files', the agent gets 'prompt', then the runner copies 'check_files' in (the agent never sees them) and runs 'check' in the folder: exit code 0 = pass.",
+  "version": 1,
+  "tasks": [
+    {
+      "id": "js-off-by-one",
+      "lang": "javascript",
+      "prompt": "range(a, b) in utils.js should include both ends: range(1, 4) must return [1, 2, 3, 4]. Fix it without changing its signature.",
+      "files": {
+        "utils.js": "// Numbers from a to b.\nfunction range(a, b) {\n  const out = [];\n  for (let i = a; i < b; i++) out.push(i);\n  return out;\n}\nmodule.exports = { range };\n"
+      },
+      "check_files": {
+        ".check.js": "const a=require('assert');const {range}=require('./utils');a.deepStrictEqual(range(1,4),[1,2,3,4]);a.deepStrictEqual(range(5,5),[5]);a.deepStrictEqual(range(-1,1),[-1,0,1]);"
+      },
+      "check": "node .check.js"
+    },
+    {
+      "id": "js-add-slugify",
+      "lang": "javascript",
+      "prompt": "Add a slugify(text) function to strings.js and export it: lowercase, accents removed, runs of anything that is not a-z or 0-9 become a single '-', no leading or trailing '-'. Keep capitalize working.",
+      "files": {
+        "strings.js": "function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }\nmodule.exports = { capitalize };\n"
+      },
+      "check_files": {
+        ".check.js": "const a=require('assert');const m=require('./strings');a.strictEqual(m.capitalize('hi'),'Hi');a.strictEqual(m.slugify('Hello, World!'),'hello-world');a.strictEqual(m.slugify('  Crème brûlée  recipe '),'creme-brulee-recipe');a.strictEqual(m.slugify('--A__b--'),'a-b');"
+      },
+      "check": "node .check.js"
+    },
+    {
+      "id": "js-async-foreach",
+      "lang": "javascript",
+      "prompt": "fetchAll in loader.js returns an empty array because of how it awaits. Fix it so it returns all results in the input order.",
+      "files": {
+        "loader.js": "const sleep = (ms) => new Promise((r) => setTimeout(r, ms));\nasync function load(id) { await sleep(10 * (3 - id)); return { id }; }\nasync function fetchAll(ids) {\n  const results = [];\n  ids.forEach(async (id) => { results.push(await load(id)); });\n  return results;\n}\nmodule.exports = { fetchAll, load };\n"
+      },
+      "check_files": {
+        ".check.js": "const a=require('assert');require('./loader').fetchAll([0,1,2]).then((r)=>{a.deepStrictEqual(r.map((x)=>x.id),[0,1,2]);}).catch((e)=>{console.error(e);process.exit(1);});"
+      },
+      "check": "node .check.js"
+    },
+    {
+      "id": "js-make-tests-pass",
+      "lang": "javascript",
+      "prompt": "Implement stack.js so that `node test.js` passes. Do not edit test.js.",
+      "files": {
+        "test.js": "const assert = require('assert');\nconst Stack = require('./stack');\nconst s = new Stack();\nassert.strictEqual(s.size, 0);\nassert.strictEqual(s.peek(), undefined);\ns.push(1); s.push(2);\nassert.strictEqual(s.size, 2);\nassert.strictEqual(s.peek(), 2);\nassert.strictEqual(s.pop(), 2);\nassert.strictEqual(s.pop(), 1);\nassert.throws(() => s.pop(), /empty/);\nconsole.log('ok');\n",
+        "stack.js": "// TODO\n"
+      },
+      "check_files": {
+        "test.js": "const assert = require('assert');\nconst Stack = require('./stack');\nconst s = new Stack();\nassert.strictEqual(s.size, 0);\nassert.strictEqual(s.peek(), undefined);\ns.push(1); s.push(2);\nassert.strictEqual(s.size, 2);\nassert.strictEqual(s.peek(), 2);\nassert.strictEqual(s.pop(), 2);\nassert.strictEqual(s.pop(), 1);\nassert.throws(() => s.pop(), /empty/);\nconsole.log('ok');\n"
+      },
+      "check": "node test.js"
+    },
+    {
+      "id": "js-rename-across-files",
+      "lang": "javascript",
+      "prompt": "Rename the function getUsr to getUser everywhere in this project (definition, export and every call). Behaviour must stay the same.",
+      "files": {
+        "users.js": "function getUsr(id) { return { id, name: 'user' + id }; }\nmodule.exports = { getUsr };\n",
+        "api.js": "const { getUsr } = require('./users');\nfunction handler(id) { return getUsr(id).name; }\nmodule.exports = { handler };\n",
+        "main.js": "const { handler } = require('./api');\nconst { getUsr } = require('./users');\nconsole.log(handler(1), getUsr(2).id);\n"
+      },
+      "check_files": {
+        ".check.js": "const a=require('assert');const fs=require('fs');for(const f of ['users.js','api.js','main.js'])a.ok(!/getUsr\\b/.test(fs.readFileSync(f,'utf8')),f);a.strictEqual(require('./users').getUser(3).name,'user3');a.strictEqual(require('./api').handler(4),'user4');a.strictEqual(require('child_process').execSync('node main.js').toString().trim(),'user1 2');"
+      },
+      "check": "node .check.js"
+    },
+    {
+      "id": "js-cli-flag",
+      "lang": "javascript",
+      "prompt": "Add a --verbose flag to cli.js: when present, print 'verbose on' (on its own line) before the normal output. Without the flag the output must not change.",
+      "files": {
+        "cli.js": "const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));\nconsole.log('hello ' + (args[0] || 'world'));\n"
+      },
+      "check_files": {
+        ".check.js": "const a=require('assert');const x=(s)=>require('child_process').execSync('node cli.js '+s).toString();a.strictEqual(x(''),'hello world\\n');a.strictEqual(x('bob'),'hello bob\\n');a.strictEqual(x('--verbose bob'),'verbose on\\nhello bob\\n');a.strictEqual(x('bob --verbose'),'verbose on\\nhello bob\\n');"
+      },
+      "check": "node .check.js"
+    },
+    {
+      "id": "json-package-script",
+      "lang": "json",
+      "prompt": "In package.json add an npm script named test that runs `node test.js`, and set the version to 1.1.0. Keep everything else as it is.",
+      "files": {
+        "package.json": "{\n  \"name\": \"demo\",\n  \"version\": \"1.0.0\",\n  \"private\": true,\n  \"scripts\": {\n    \"start\": \"node index.js\"\n  },\n  \"dependencies\": {\n    \"left-pad\": \"1.3.0\"\n  }\n}\n"
+      },
+      "check_files": {
+        ".check.js": "const a=require('assert');const p=JSON.parse(require('fs').readFileSync('package.json','utf8'));a.strictEqual(p.version,'1.1.0');a.strictEqual(p.scripts.test,'node test.js');a.strictEqual(p.scripts.start,'node index.js');a.deepStrictEqual(p.dependencies,{'left-pad':'1.3.0'});a.strictEqual(p.private,true);"
+      },
+      "check": "node .check.js"
+    },
+    {
+      "id": "html-signup-form",
+      "lang": "html",
+      "prompt": "Create index.html with a form whose id is signup. It needs a required email input named email with a <label> linked to it, a password input named password with minlength 8, and a submit button with the text 'Create account'.",
+      "files": {
+        "README.md": "# Signup page\n"
+      },
+      "check_files": {
+        ".check.js": "const a=require('assert');const h=require('fs').readFileSync('index.html','utf8');a.ok(/<form[^>]*id=[\"']signup[\"']/i.test(h),'form');const em=h.match(/<input[^>]*name=[\"']email[\"'][^>]*>/i);a.ok(em&&/type=[\"']email[\"']/i.test(em[0])&&/required/i.test(em[0]),'email');const id=(em[0].match(/id=[\"']([^\"']+)/)||[])[1];a.ok(id&&new RegExp('<label[^>]*for=[\"\\']'+id).test(h),'label');const pw=h.match(/<input[^>]*name=[\"']password[\"'][^>]*>/i);a.ok(pw&&/type=[\"']password[\"']/i.test(pw[0])&&/minlength=[\"']?8/i.test(pw[0]),'password');a.ok(/<button[^>]*>\\s*Create account\\s*<\\/button>|<input[^>]*type=[\"']submit[\"'][^>]*value=[\"']Create account/i.test(h),'button');"
+      },
+      "check": "node .check.js"
+    },
+    {
+      "id": "c-reverse-bug",
+      "lang": "c",
+      "prompt": "reverse() in strutil.c corrupts strings with an odd length and crashes on empty strings. Fix it. `cc -o t main.c strutil.c && ./t` should print the reversed words.",
+      "files": {
+        "strutil.c": "#include <string.h>\n#include \"strutil.h\"\nvoid reverse(char *s) {\n    size_t n = strlen(s);\n    for (size_t i = 0; i <= n / 2; i++) { char t = s[i]; s[i] = s[n - i]; s[n - i] = t; }\n}\n",
+        "strutil.h": "#ifndef STRUTIL_H\n#define STRUTIL_H\nvoid reverse(char *s);\n#endif\n",
+        "main.c": "#include <stdio.h>\n#include \"strutil.h\"\nint main(void) { char a[] = \"hello\", b[] = \"ab\", c[] = \"\"; reverse(a); reverse(b); reverse(c); printf(\"%s %s [%s]\\n\", a, b, c); return 0; }\n"
+      },
+      "check_files": {
+        ".check.c": "#include <stdio.h>\n#include <string.h>\n#include \"strutil.h\"\nint main(void){char a[]=\"abc\",b[]=\"abcd\",c[]=\"\",d[]=\"x\";reverse(a);reverse(b);reverse(c);reverse(d);return !(strcmp(a,\"cba\")==0&&strcmp(b,\"dcba\")==0&&c[0]==0&&strcmp(d,\"x\")==0);}\n"
+      },
+      "check": "cc -o .chk .check.c strutil.c && ./.chk"
+    },
+    {
+      "id": "c-makefile",
+      "lang": "c",
+      "prompt": "Write a Makefile so that `make` builds the program hello from hello.c and greet.c, and `make clean` removes the binary and object files.",
+      "files": {
+        "hello.c": "#include \"greet.h\"\nint main(void) { greet(\"make\"); return 0; }\n",
+        "greet.c": "#include <stdio.h>\n#include \"greet.h\"\nvoid greet(const char *who) { printf(\"hello %s\\n\", who); }\n",
+        "greet.h": "void greet(const char *who);\n"
+      },
+      "check_files": {},
+      "check": "make clean >/dev/null 2>&1; make >/dev/null && [ \"$(./hello)\" = \"hello make\" ] && make clean >/dev/null && [ ! -e hello ] && ! ls *.o >/dev/null 2>&1"
+    },
+    {
+      "id": "sh-count-lines",
+      "lang": "shell",
+      "prompt": "Write count.sh: `bash count.sh FILE` prints only the number of non-empty lines in FILE (lines with only spaces count as empty). With no argument it prints a usage message to stderr and exits with code 2.",
+      "files": {
+        "sample.txt": "one\n\ntwo\n   \nthree\n"
+      },
+      "check_files": {
+        ".t.txt": "a\n\n \n\tb\nc"
+      },
+      "check": "[ \"$(bash count.sh sample.txt)\" = 3 ] && [ \"$(bash count.sh .t.txt)\" = 3 ] && { bash count.sh >/dev/null 2>.err; [ $? -eq 2 ] && [ -s .err ]; }"
+    },
+    {
+      "id": "js-debug-from-error",
+      "lang": "javascript",
+      "prompt": "Running `node report.js` crashes. Find out why and fix the bug so it prints the total.",
+      "files": {
+        "report.js": "const { total } = require('./math');\nconst orders = require('./orders.json');\nconsole.log('Total: ' + total(orders.map((o) => o.amount)).toFixed(2));\n",
+        "math.js": "function total(values) {\n  return values.reduce((sum, v) => sum + v);\n}\nmodule.exports = { totl: total };\n",
+        "orders.json": "[{\"amount\": 12.5}, {\"amount\": 7.25}, {\"amount\": 0.25}]\n"
+      },
+      "check_files": {
+        ".check.js": "const a=require('assert');a.strictEqual(require('child_process').execSync('node report.js').toString().trim(),'Total: 20.00');"
+      },
+      "check": "node .check.js"
+    }
+  ]
+}

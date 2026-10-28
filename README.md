@@ -159,6 +159,19 @@ The **Agent** works on its own, like Arena.ai's Agent Mode. You give it a job an
   - `POST /api/ide/agent/list | load | save | delete` manage sessions.
 - **Tests**: `tests/agent_ui_test.js` and `tests/agent_ws_test.js` (browser tests that run real agent jobs). Example: `BASE=http://127.0.0.1:4096 TEAM=0 node tests/agent_ui_test.js`.
 
+## Terminal app and parallel agents
+
+`astro` runs the Astro AI agent in your terminal:
+
+```bash
+cd my-project && astro                                   # interactive
+astro -p "fix the failing test" --json                    # scripts and CI
+astro parallel "add dark mode" "write tests" --merge      # several agents, each in an isolated copy
+astro agents · astro diff <id> · astro merge <id> · astro undo <id>
+```
+
+Agents run in the server's **agent engine**, not in the browser tab, so they keep going when you close the window. Up to 8 run at once. With **isolate**, each agent works in a git worktree, or in a copy of the folder, which you review and then merge or discard. Merging stops when a file was also changed in the project after the agent started. In the app, the same engine is the **Parallel** chip on the Agent page. The desktop installers include `astro`. From source, run `make astro`. See [docs/cli.md](docs/cli.md), which also documents the `/api/agent/*` HTTP API.
+
 ## Free providers
 
 The list is in `providers.json` (regenerate it with `node tools/build_providers.js`). Settings → Providers & keys shows each platform's limits, privacy notes, sign-up link, key field and today's usage.
@@ -274,6 +287,8 @@ The local model server must be running and expose a compatible `/chat/completion
 | Path | Contents |
 |---|---|
 | `workspace_server.cpp` | HTTP server, JSON, streaming, brain routing, providers, documents, calculator |
+| `astro_engine.inc` | Agent engine: background and parallel agents, isolated copies, merge and undo, `/api/agent/*` |
+| `cli/astro.cpp`, `cli/json.h` | The terminal app `astro` |
 | `astro_ext.inc` | Login, keys, usage, web search and reader (SSRF-safe), vision, sync, static files |
 | `web/` | `index.html`, `styles.css`, `orbit.css` (Orbit design layer), `app.js`, `sw.js`, `manifest.webmanifest`, `icon.svg`, `vendor/` (libraries and fonts) |
 | `providers.json`, `tools/build_providers.js`, `tools/free_catalog.json` | Provider registry and generator |

@@ -156,6 +156,30 @@ static bool regSetDword(const std::wstring& key, const wchar_t* name, DWORD v) {
     HKEY h; if (RegCreateKeyExW(HKEY_CURRENT_USER, key.c_str(), 0, nullptr, 0, KEY_WRITE, nullptr, &h, nullptr) != ERROR_SUCCESS) return false;
     LONG r = RegSetValueExW(h, name, 0, REG_DWORD, (const BYTE*)&v, sizeof(v)); RegCloseKey(h); return r == ERROR_SUCCESS;
 }
+// The terminal app (astro.exe / astro-personal.exe) lives in the install folder: put that folder on the user's PATH.
+static std::wstring lowerW(std::wstring s) { for (auto& c : s) c = towlower(c); return s; }
+static void userPathEdit(const std::wstring& dir, bool add) {
+    HKEY h; if (RegCreateKeyExW(HKEY_CURRENT_USER, L"Environment", 0, nullptr, 0, KEY_READ | KEY_WRITE, nullptr, &h, nullptr) != ERROR_SUCCESS) return;
+    std::vector<wchar_t> buf(32768); DWORD sz = DWORD(buf.size() * sizeof(wchar_t)), type = 0;
+    std::wstring cur;
+    if (RegQueryValueExW(h, L"Path", nullptr, &type, (BYTE*)buf.data(), &sz) == ERROR_SUCCESS && (type == REG_SZ || type == REG_EXPAND_SZ)) cur.assign(buf.data());
+    else type = REG_EXPAND_SZ;
+    std::vector<std::wstring> parts; bool found = false;
+    for (size_t i = 0; i <= cur.size();) {
+        size_t j = cur.find(L';', i); if (j == std::wstring::npos) j = cur.size();
+        std::wstring p = cur.substr(i, j - i); i = j + 1;
+        if (p.empty()) continue;
+        std::wstring q = p; while (!q.empty() && (q.back() == L'\\' || q.back() == L'/')) q.pop_back();
+        if (lowerW(q) == lowerW(dir)) { found = true; if (!add) continue; }
+        parts.push_back(p);
+    }
+    if (add && !found) parts.push_back(dir);
+    if (add == found) { RegCloseKey(h); return; }   // nothing to change
+    std::wstring out; for (auto& p : parts) { if (!out.empty()) out += L';'; out += p; }
+    RegSetValueExW(h, L"Path", 0, type, (const BYTE*)out.c_str(), DWORD((out.size() + 1) * sizeof(wchar_t)));
+    RegCloseKey(h);
+    DWORD_PTR res; SendMessageTimeoutW(HWND_BROADCAST, WM_SETTINGCHANGE, 0, (LPARAM)L"Environment", SMTO_ABORTIFHUNG, 2000, &res);
+}
 static const std::wstring UNINST_KEY = std::wstring(L"Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\") + APP_ID_W;
 static const std::wstring APP_KEY = std::wstring(L"Software\\") + APP_ID_W;
 
@@ -345,6 +369,7 @@ static void installWork() {
     regSetStr(L"Software\\Classes\\astroai\\DefaultIcon", nullptr, L"\"" + exe + L"\",0");
     regSetStr(L"Software\\Classes\\astroai\\shell\\open\\command", nullptr, L"\"" + exe + L"\" \"%1\"");
     mark(L"Registered in Installed apps");
+    userPathEdit(dir, true); mark(L"Terminal app (astro) added to your PATH");
     g_prog = 1.0f; g_state = 1;
     CoUninitialize();
 }
@@ -373,6 +398,7 @@ static void uninstallWork() {
     deleteTree(sm, L"", nullptr, 0, 0, 0); RemoveDirectoryW(sm.c_str()); mark(L"Shortcuts");
     g_prog = 0.9f; g_stage = 3;
     RegDeleteTreeW(HKEY_CURRENT_USER, UNINST_KEY.c_str()); RegDeleteTreeW(HKEY_CURRENT_USER, APP_KEY.c_str()); mark(L"Installed apps entry");
+    userPathEdit(dir, false);
     // Remove the astroai:// handler only if it still points at this install (the other edition may own it).
     if (lower(regGet(HKEY_CURRENT_USER, L"Software\\Classes\\astroai\\shell\\open\\command", nullptr)).find(lower(dir)) != std::wstring::npos)
         RegDeleteTreeW(HKEY_CURRENT_USER, L"Software\\Classes\\astroai");

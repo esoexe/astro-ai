@@ -2205,6 +2205,7 @@ void load_runtime_credentials() {
 #include "workspace_code.inc"
 #include "workspace_ide.inc"
 #include "astro_quality.inc"
+#include "astro_engine.inc"
 
 void handle_api(int fd, const HttpRequest& request) {
     if (request.path.rfind("/api/auth/", 0) == 0) { handle_auth(fd, request); return; }
@@ -2217,6 +2218,7 @@ void handle_api(int fd, const HttpRequest& request) {
     if (handle_ide_api(fd, request)) return;
     if (handle_dev_api(fd, request)) return;
     if (handle_quality_api(fd, request)) return;
+    if (handle_engine_api(fd, request)) return;
     if (handle_astro_api(fd, request)) return;
     if (request.method == "GET" && request.path == "/api/status") {
         const auto config = model_config();

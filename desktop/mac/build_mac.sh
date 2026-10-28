@@ -18,6 +18,9 @@ echo "==> Building the server (C++20)"
 clang++ -std=c++20 -O2 $ARCHS $MIN -Isrc/server src/server/workspace_server.cpp -o "$W/astro-server" -lcurl
 echo "==> Building the desktop window (WKWebView)"
 clang++ -std=c++17 -O2 $ARCHS $MIN -Isrc/webview/include src/desktop/astro_desktop.cpp -o "$W/astro-desktop" -framework WebKit -framework Cocoa
+CLI="$(cat payload/cli-name 2>/dev/null || echo astro)"
+echo "==> Building the terminal app ($CLI)"
+clang++ -std=c++20 -O2 $ARCHS $MIN src/cli/astro.cpp -o "$W/astro-cli" -lcurl
 
 echo "==> Icon"
 ICONSET="$W/astro.iconset"; mkdir -p "$ICONSET"
@@ -33,9 +36,11 @@ APP="$NAME.app"; rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$W/astro-desktop" "$APP/Contents/MacOS/astro-desktop"
 cp "$W/astro-server" "$APP/Contents/Resources/astro-server"
+cp "$W/astro-cli" "$APP/Contents/Resources/$CLI"
 cp "$W/astro.icns" "$APP/Contents/Resources/astro.icns"
 cp -R payload/. "$APP/Contents/Resources/"
-chmod 755 "$APP/Contents/MacOS/astro-desktop" "$APP/Contents/Resources/astro-server"
+chmod 755 "$APP/Contents/MacOS/astro-desktop" "$APP/Contents/Resources/astro-server" "$APP/Contents/Resources/$CLI"
+rm -f "$APP/Contents/Resources/cli-name"
 [ -f "$APP/Contents/Resources/seed-keys.env" ] && chmod 600 "$APP/Contents/Resources/seed-keys.env"
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -47,8 +52,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleExecutable</key><string>astro-desktop</string>
   <key>CFBundleIconFile</key><string>astro.icns</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>1.3.0</string>
-  <key>CFBundleVersion</key><string>1.3.0</string>
+  <key>CFBundleShortVersionString</key><string>1.4.0</string>
+  <key>CFBundleVersion</key><string>1.4.0</string>
   <key>LSMinimumSystemVersion</key><string>11.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.developer-tools</string>
   <key>NSHighResolutionCapable</key><true/>
@@ -61,6 +66,7 @@ if [ -n "${SIGN_IDENTITY:-}" ]; then
     # Developer ID signing (CI sets SIGN_IDENTITY from repository secrets). Hardened runtime is required for notarization.
     echo "==> Signing with ${SIGN_IDENTITY%% (*}…"
     codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP/Contents/Resources/astro-server"
+    codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP/Contents/Resources/$CLI"
     cat > "$W/ent.plist" <<'ENT'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -77,3 +83,5 @@ echo "==> Disk image"
 rm -f "$NAME.dmg"
 hdiutil create -volname "$NAME" -srcfolder "$APP" -ov -format UDZO "$NAME.dmg" >/dev/null && echo "   $NAME.dmg"
 echo "Done: $(pwd)/$APP   (drag it to Applications, or open the .dmg)"
+echo "Terminal app: after moving the app to Applications, run once:"
+echo "   sudo ln -sf \"/Applications/$APP/Contents/Resources/$CLI\" /usr/local/bin/$CLI"

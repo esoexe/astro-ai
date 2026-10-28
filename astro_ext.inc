@@ -155,8 +155,10 @@ void send_session(int fd, const HttpRequest& r, const std::string& token) {
     send_all(fd, h.str());
     send_all(fd, body);
 }
+// Requests the agent engine makes to the server itself (astro_engine.inc) are already authorised.
+thread_local bool t_internal_call = false;
 bool auth_ok(const HttpRequest& r) {
-    if (auth_disabled()) return true;
+    if (t_internal_call || auth_disabled()) return true;
     std::lock_guard<std::mutex> lock(g_auth_mutex);
     auth_load_locked();
     if (g_auth.hash.empty()) return false;
