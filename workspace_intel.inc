@@ -234,8 +234,7 @@ Captured run_capture(const std::vector<std::string>& args, const fs::path& cwd, 
         for (int f = 3; f < 4096; ++f) close(f);
         if (chdir(cwd_s.c_str()) != 0) _exit(127);
 #if defined(__APPLE__)
-        extern char** environ;
-        environ = envp.data();
+        ::environ = envp.data();   // the global one declared in platform.h (a local extern here would get internal linkage)
         execvp(argv[0], argv.data());
 #else
         execvpe(argv[0], argv.data(), envp.data());
