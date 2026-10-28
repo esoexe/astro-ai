@@ -45,7 +45,7 @@ node -e '
     "<p align=\"center\"><b>One brain, many minds.</b> A free desktop app where a team of free AI models answers as one.</p>",
     "<p align=\"center\"><a href=\"" + site + "/\">Website</a> · <a href=\"" + site + "/download.html\">Download</a> · <a href=\"" + site + "/docs.html\">Docs</a> · <a href=\"" + site + "/api.html\">Astro API</a> · <a href=\"" + site + "/changelog.html\">Changelog</a></p>",
     "",
-    "<p align=\"center\"><a href=\"" + site + "/#trailer\"><img src=\"website/src/static/assets/video/astro-ai-trailer-poster.jpg\" width=\"860\" alt=\"Watch the Astro AI trailer\"></a><br><sub>▶ <a href=\"" + site + "/#trailer\">Watch the 60-second trailer</a> · <a href=\"" + site + "/assets/video/astro-ai-trailer.mp4\">MP4</a> · <a href=\"" + site + "/assets/video/astro-ai-trailer-vertical.mp4\">vertical cut</a></sub></p>",
+    "<p align=\"center\"><a href=\"" + site + "/#trailer\"><img src=\"website/src/static/assets/video/astro-ai-trailer-poster.jpg\" width=\"860\" alt=\"Watch the Astro AI trailer\"></a><br><sub>▶ <a href=\"" + site + "/#trailer\">Watch the 90-second trailer</a> (real app footage) · <a href=\"" + site + "/assets/video/astro-ai-trailer.mp4\">MP4</a><br>Music: “Clean Soul” by Kevin MacLeod (incompetech.com), CC BY 4.0</sub></p>",
     "",
     "<p align=\"center\"><img src=\"website/src/static/assets/img/shots/chat-answer.webp\" width=\"860\" alt=\"Astro AI: a One Brain answer written by 19 models\"></p>",
     "",

@@ -5898,6 +5898,24 @@
     const m = out.match(/\{[\s\S]*\}/); if (m && m[0] !== out) { try { return JSON.parse(m[0]); } catch (_e) { /* no */ } }
     return null;
   }
+  // Several tool calls in one block ({…} {…} or a JSON array) are split into separate calls.
+  function agJsonAll(body) {
+    const src = String(body || '').trim().replace(/^json\s*\n/i, '');
+    const one = agJson(src);
+    if (Array.isArray(one)) return one.filter((c) => c && typeof c === 'object');
+    if (one) return [one];
+    const parts = []; let depth = 0; let start = -1; let inStr = false; let escp = false;
+    for (let i = 0; i < src.length; i++) {
+      const ch = src[i];
+      if (inStr) { if (escp) escp = false; else if (ch === '\\') escp = true; else if (ch === '"') inStr = false; continue; }
+      if (ch === '"') inStr = true;
+      else if (ch === '{') { if (depth === 0) start = i; depth++; }
+      else if (ch === '}' && depth > 0) { depth--; if (depth === 0 && start >= 0) { parts.push(src.slice(start, i + 1)); start = -1; } }
+    }
+    if (parts.length < 2) return [];
+    const out = parts.map((p) => agJson(p));
+    return out.every(Boolean) ? out : [];
+  }
   function agNorm(c) {
     const o = { ...c }; let t = String(o.tool || o.name || o.action || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
     if (o.arguments && typeof o.arguments === 'object') Object.assign(o, o.arguments);
@@ -5921,8 +5939,9 @@
       const info = m[1].trim(); const body = m[2]; const closed = m[3] === '```'; const low = info.toLowerCase();
       narrative += text.slice(last, m.index); last = re.lastIndex;
       if (low === 'tool' || low === 'tool_call' || low === 'json tool' || low.startsWith('tool ')) {
-        const c = agJson(body);
-        calls.push(c && (c.tool || c.name) ? agNorm(c) : { tool: '_bad', raw: body.slice(0, 600), cut: !closed });
+        const all = agJsonAll(body).filter((c) => c.tool || c.name);
+        if (all.length) for (const c of all) calls.push(agNorm(c));
+        else calls.push({ tool: '_bad', raw: body.slice(0, 600), cut: !closed });
       } else if (low === 'done' || low.startsWith('done ')) {
         done = agJson(body) || { summary: body.trim().slice(0, 300) };
       } else {
@@ -5994,6 +6013,7 @@
     }
     throw new Error(`No model could answer (${lastErr}).`);
   }
+  function gateBlocked(ti) { return /^BLOCKED/.test(String(ti?.error || '')) || ti?.blocked === true; }
   function agCallShort(c) {
     const t = c.tool;
     if (t === 'bash') return `bash \`${agClip(String(c.command).split('\n')[0], 80)}\``;
@@ -6045,6 +6065,8 @@
       }
       case 'write_file': {
         const p = pathOk(call.path);
+        // Never wipe a file because a model forgot the content.
+        if (!String(call.content ?? '').trim()) throw new Error(`write_file for ${p} has no "content". Put the whole new file in "content" (use edit_file for small changes).`);
         const content = String(call.content ?? '').replace(/\n?$/, '\n');
         const old = await agReadOrNull(s, p);
         await agApi(s, '/api/fs/write', { path: p, content });
@@ -6242,6 +6264,9 @@
       }
       const limit = opts.limit || AG_MAX;
       let noCall = 0; let fails = new Map(); let toolsUsed = 0;
+      // Verification guard: files changed since the last command ran → the job is not checked yet.
+      let unverified = false; let verifyNudges = 0;
+      const VERIFY_MSG = 'VERIFY FIRST: you changed files but have not run anything since, so nothing is checked yet. Run the tests or the program now (for example the project\'s test command) with bash and read the output. Fix what fails. Only send the ```done block after a real run shows it works, and report the real result.';
       for (let step = 0; step < limit; step++) {
         if (signal.aborted) throw new DOMException('stopped', 'AbortError');
         if (planJob && planJob.ready && !planJob.sent && planJob.text) {
@@ -6263,13 +6288,14 @@
         if (!parsed.calls.length) {
           // A model that only describes what it will do (no tool call, no done block) before acting at all hands over to
           // the next model, with one extra try, so a chatty model cannot end the job with nothing done.
+          if (parsed.done && unverified && verifyNudges < 2) { verifyNudges++; s.convo.push({ role: 'user', content: VERIFY_MSG }); agPush(s, { kind: 'note', text: 'Checking the work before finishing.' }); agPaint(s); continue; }
           if (parsed.done || ++noCall >= (toolsUsed ? 2 : 3)) { finished = true; report = parsed.text || parsed.done?.summary || ''; if (say.text && parsed.done) say.final = true; break; }
           s.convo.push({ role: 'user', content: 'TOOL RESULTS: (none — your reply had no tool call.) Continue the job with tool calls in ```tool blocks, or, if the job is completely done and verified, reply with the report and the ```done block.' });
           if (!toolsUsed) s.pref = ((s.pref || 0) + 1) % Math.max(1, agCands().length);
           agPaint(s); continue;
         }
         noCall = 0; toolsUsed++;
-        const results = [];
+        const results = []; let batchErr = false;
         for (const [i, call] of parsed.calls.slice(0, 6).entries()) {
           if (signal.aborted) break;
           const ti = agPush(s, { kind: 'tool', tool: call.tool, args: agArgsForView(call), status: 'run', open: false });
@@ -6291,6 +6317,9 @@
           if (ti.status === 'err' && (call.tool === 'bash' || ti.error)) ti.open = true;
           if (call.tool === 'ask_user' || call.tool === 'present') ti.open = true;
           ti.v++; s.tools++;
+          if (ti.status === 'err') batchErr = true;
+          if (['write_file', 'edit_file', 'delete_file'].includes(call.tool) && ti.status === 'ok') unverified = true;
+          if (call.tool === 'bash' && ti.status !== 'err' && !gateBlocked(ti)) unverified = false;
           if (['write_file', 'edit_file', 'delete_file', 'bash', 'remember', 'mcp', 'task'].includes(call.tool)) agChangesDirty(s);
           const sig = `${call.tool}|${call.command || call.path || ''}`;
           if (ti.status === 'err') { const n = (fails.get(sig) || 0) + 1; fails.set(sig, n); if (n >= 3) res += '\nNOTE: this exact action has now failed 3 times. Stop repeating it: read the error, change the approach.'; }
@@ -6299,7 +6328,16 @@
         }
         if (parsed.calls.length > 6) results.push(`(Only the first 6 tool calls ran; send the rest in the next reply.)`);
         s.convo.push({ role: 'user', content: `TOOL RESULTS:\n${results.join('\n\n')}` });
-        if (parsed.done && !signal.aborted) { finished = true; report = parsed.text; if (say.text) say.final = true; break; }
+        if (parsed.done && !signal.aborted) {
+          // A done block sent together with tool calls was written before the model saw their results: never accept it as is.
+          if (verifyNudges < 2) {
+            verifyNudges++;
+            const early = 'NOT DONE YET: you sent the ```done block in the same reply as tool calls, before you could see their results, so your report is a guess.';
+            s.convo.push({ role: 'user', content: batchErr ? 'NOT DONE YET: some of the actions above failed (see TOOL RESULTS). Fix them, run the tests or the program, and only then send the ```done block.' : unverified ? VERIFY_MSG : `${early} Read the TOOL RESULTS above, check the work for real, and send the report with the \`\`\`done block in a reply of its own.` });
+            agPush(s, { kind: 'note', text: 'Checking the work before finishing.' }); agPaint(s); continue;
+          }
+          finished = true; report = parsed.text; if (say.text) say.final = true; break;
+        }
       }
       if (planJob && !planJob.ready) {
         planJob.sent = 'late'; planJob.ctrl.abort();

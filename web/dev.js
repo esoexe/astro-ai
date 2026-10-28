@@ -939,7 +939,13 @@
     const get = (p) => entries.find((e) => e.name === p);
     const pkgE = get('extension/package.json'); if (!pkgE) throw new Error('Not a VS Code extension.');
     const pkg = jsonc(await unzipText(u, pkgE));
+    // VS Code extensions keep display names in package.nls.json ("%themeLabel%" → "Night Owl").
+    let nls = {}; const nlsE = get('extension/package.nls.json');
+    if (nlsE) { try { nls = jsonc(await unzipText(u, nlsE)) || {}; } catch (_e) { nls = {}; } }
+    const L = (s) => { if (typeof s !== 'string') return s; const m = s.match(/^%(.+)%$/); if (!m) return s; const v = nls[m[1]]; return typeof v === 'string' ? v : (v && typeof v.message === 'string' ? v.message : s.slice(1, -1)); };
+    pkg.displayName = L(pkg.displayName); pkg.description = L(pkg.description);
     const c = pkg.contributes || {};
+    for (const t of c.themes || []) t.label = L(t.label);
     const norm = (base, p) => { const parts = `${base}/${String(p).replace(/^\.\//, '')}`.split('/'); const out = []; for (const x of parts) { if (x === '..') out.pop(); else if (x && x !== '.') out.push(x); } return out.join('/'); };
     let n = 0;
     for (const t of c.themes || []) {
