@@ -87,6 +87,20 @@ extern char** environ;   // the process environment (used to start MCP servers w
 #endif
 
 // ------------------------------------------------------------------------------------------------
+// Secrets of the Astro AI server itself (model keys, service tokens). Programs it starts - MCP servers,
+// project code, terminals - never inherit them; a server that needs a key gets it from its own "env" settings.
+// ------------------------------------------------------------------------------------------------
+inline bool astro_secret_env(const std::string& name_in) {
+    std::string n;
+    for (char ch : name_in) n.push_back(static_cast<char>(ch >= 'a' && ch <= 'z' ? ch - 32 : ch));
+    auto starts = [&](const char* s) { return n.rfind(s, 0) == 0; };
+    auto ends = [&](const char* s) { const std::size_t l = std::strlen(s); return n.size() >= l && n.compare(n.size() - l, l, s) == 0; };
+    return starts("LLM_") || starts("FALLBACK_") || starts("ASTRO_KEY") || n == "OPENCODE_SERVER_PASSWORD" || n == "SUPABASE_SERVICE_ROLE_KEY" ||
+           n == "ASTRO_KMS_KEY" || n == "GH_TOKEN" || n == "GITHUB_TOKEN" || ends("_API_KEY") || ends("_API_TOKEN") || ends("_SECRET_KEY") ||
+           ends("_ACCESS_TOKEN");
+}
+
+// ------------------------------------------------------------------------------------------------
 // crypto (random bytes, SHA-256, PBKDF2-HMAC-SHA256, constant-time compare)
 // ------------------------------------------------------------------------------------------------
 inline bool astro_rand_bytes(unsigned char* out, std::size_t n) {
@@ -304,6 +318,7 @@ inline std::wstring env_block(const std::vector<std::string>& overrides) {
             std::wstring kv(p);
             const auto eq = kv.find(L'=', 1);
             if (eq == std::wstring::npos) continue;
+            if (astro_secret_env(narrow(kv.substr(0, eq)))) continue;
             vars[up(kv.substr(0, eq))] = {kv.substr(0, eq), kv.substr(eq + 1)};
         }
         FreeEnvironmentStringsW(env);

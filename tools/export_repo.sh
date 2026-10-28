@@ -13,6 +13,7 @@ rm -rf "$OUT"; mkdir -p "$OUT"
 
 ALLOW=(
   workspace_server.cpp platform.h astro_ext.inc workspace_code.inc workspace_intel.inc workspace_ide.inc workspace_agent.inc
+  astro_dev.inc astro_library.inc astro_quality.inc library .github docs
   providers.json Makefile Dockerfile .dockerignore .env.example README.md
   LICENSE LICENSE-MIT LICENSE-APACHE LICENSE-GPL THIRD-PARTY-NOTICES.md
   start_workspace.sh start_local_ai.sh start_opencode.sh
@@ -79,52 +80,7 @@ node_modules/
 *.o
 EOF
 
-mkdir -p "$OUT/.github/workflows"
-cat > "$OUT/.github/workflows/pages.yml" <<'EOF'
-# Builds website/ and publishes it to GitHub Pages on every push to main that touches the site.
-name: Website
-
-on:
-  push:
-    branches: [main]
-    paths: ['website/**', '.github/workflows/pages.yml']
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-  actions: read
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - id: pages
-        uses: actions/configure-pages@v6
-      - name: Build the site
-        run: node website/build.js
-        env:
-          ASTRO_SITE_URL: ${{ steps.pages.outputs.base_url }}
-      - uses: actions/upload-pages-artifact@v5
-        with:
-          path: website/dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v5
-EOF
+# GitHub Actions workflows (website, CI, desktop builds) are copied from .github/ with the allowlist above.
 
 chmod +x "$OUT"/*.sh "$OUT"/tests/*.sh "$OUT"/desktop/package.sh "$OUT"/desktop/mac/build_mac.sh "$OUT"/desktop/setup/build_setup.sh "$OUT"/tools/*.sh 2>/dev/null || true
 

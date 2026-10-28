@@ -47,6 +47,7 @@
     alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/>',
     x: '<path d="M18 6 6 18M6 6l12 12"/>',
     ext: '<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+    puzzle: '<path d="M19.44 12.06a2.5 2.5 0 1 0-3.5-3.5L14 6.6V4a1 1 0 0 0-1-1h-3a1 1 0 0 0-1 1v1.5a2 2 0 1 1-4 0V4H4a1 1 0 0 0-1 1v3h1.5a2 2 0 1 1 0 4H3v7a1 1 0 0 0 1 1h7v-1.5a2 2 0 1 1 4 0V20h3a1 1 0 0 0 1-1v-3h-.56a2.5 2.5 0 0 1 0-3.94z"/>',
     download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
     zap: '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>',
     refresh: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
@@ -300,7 +301,7 @@
   };
 
   /* ================================================================ app state */
-  let state = null, me = null;
+  let state = null, me = null, guest = false;
   const tests = {};            // provider id -> last test result (this page load only)
   let modelsCache = null;      // GET /v1/models result for the session key
   let playKey = sessionStorage.getItem(PLAYKEY) || '';
@@ -312,7 +313,7 @@
   const connected = () => state.providers.map((p) => ({ ...p, cat: catById(p.provider) }));
   const isConnected = (id) => state.providers.some((p) => p.provider === id);
   const meta = () => (me && me.user_metadata) || {};
-  const displayName = () => meta().display_name || meta().full_name || meta().name || meta().user_name || (state.user.email || '').split('@')[0] || 'there';
+  const displayName = () => guest ? 'Guest' : meta().display_name || meta().full_name || meta().name || meta().user_name || (state.user.email || '').split('@')[0] || 'there';
   const avatarUrl = () => { const u = meta().avatar_url || ''; return /^https:\/\/avatars\.githubusercontent\.com\//.test(u) ? u : ''; };
   const avatarEl = () => {
     const a = h('span', { class: 'avatar' });
@@ -335,6 +336,8 @@
     { id: 'models', label: 'Models', icon: 'box' },
     { id: 'usage', label: 'Usage', icon: 'chart' },
     { id: 'playground', label: 'Playground', icon: 'terminal' },
+    { group: 'Build' },
+    { id: 'library', label: 'Library', icon: 'puzzle', guest: true, count: () => (libData ? libData.items.length : null) },
     { group: 'Account' },
     { id: 'settings/profile', label: 'Profile', icon: 'user' },
     { id: 'settings/security', label: 'Security', icon: 'shield' },
@@ -358,7 +361,7 @@
   });
   const signOut = async (scope) => {
     try { const s = await fresh(); if (s) await fetch(`${SB}/auth/v1/logout${scope ? '?scope=' + scope : ''}`, { method: 'POST', headers: { apikey: PK, authorization: 'Bearer ' + s.access_token } }); } catch {}
-    session = save(null); state = null; me = null; modelsCache = null; playKey = ''; sessionStorage.removeItem(PLAYKEY); chat.messages = [];
+    session = save(null); state = null; me = null; guest = false; modelsCache = null; playKey = ''; sessionStorage.removeItem(PLAYKEY); chat.messages = [];
     history.replaceState(null, '', location.pathname);
     showAuth();
   };
@@ -367,6 +370,7 @@
   const paintChrome = () => {
     const nav = $('#side-nav'); nav.textContent = '';
     for (const it of NAV) {
+      if (guest && !it.guest) continue;
       if (it.group) { nav.append(h('div', { class: 'side-group', text: it.group })); continue; }
       const c = it.count ? it.count() : null;
       nav.append(h('a', { href: '#/' + it.id, 'data-route': it.id }, ico(it.icon), h('span', { text: it.label }), c ? h('span', { class: 'count', text: c }) : null));
@@ -379,7 +383,9 @@
     $('#ws-av').textContent = initial();
     $('#ws-name').textContent = displayName();
     $('#um-name').textContent = displayName();
-    $('#um-email').textContent = state.user.email || '';
+    $('#um-email').textContent = guest ? 'Not signed in' : (state.user.email || '');
+    $('#signout').textContent = guest ? 'Sign in' : 'Sign out';
+    if (guest) nav.append(h('div', { class: 'side-group', text: 'Account' }), h('a', { href: '#', onclick: (e) => { e.preventDefault(); signOut(); } }, ico('user'), h('span', { text: 'Sign in for API keys' })));
     markNav();
   };
   const markNav = () => document.querySelectorAll('#side-nav a').forEach((a) => {
@@ -394,6 +400,7 @@
   const render = () => {
     if (!state) return;
     let r = route();
+    if (guest && r !== 'library') { r = 'library'; history.replaceState(null, '', '#/library'); }
     if (!r) { r = localStorage.getItem(HOME) || 'overview'; if (!PAGES[r]) r = 'overview'; history.replaceState(null, '', '#/' + r); }
     closeFloat(); setDrawer(false);
     const p = PAGES[r];
@@ -858,6 +865,127 @@
         h('td', { class: 'actions' }, b));
     }))));
 
+  /* ---------------------------------------------------------------- library (works signed out) */
+  let libData = null, libQuery = '', libKind = 'all';
+  const LIB_PERMS = { network: 'Talks to an online service', 'local-process': 'Runs a program on your computer', filesystem: 'Reads and writes files in a folder you choose', browser: 'Opens and controls a browser', account: 'Uses your account through a token you give it' };
+  const LIB_KINDS = [['all', 'All'], ['mcp', 'MCP servers'], ['skill', 'Skills'], ['plugin', 'Plugins']];
+  const libKindLabel = (k) => (k === 'mcp' ? 'MCP' : k === 'skill' ? 'Skill' : 'Plugin');
+  const fetchLibrary = async () => {
+    if (libData) return libData;
+    const r = await fetch(ROOT + 'library/index.json', { cache: 'no-cache' });
+    if (!r.ok) throw new Error('The library could not be loaded (HTTP ' + r.status + ').');
+    libData = await r.json();
+    return libData;
+  };
+  // Config snippets for other apps. Secrets are placeholders: nothing personal is ever put in a snippet.
+  const libPlaceholder = (inp) => (inp.kind === 'arg' && inp.name === 'FOLDER' ? '/path/to/your/project' : `<${inp.name}>`);
+  const libServer = (it) => {
+    const m = it.mcp || {}; const ins = it.inputs || [];
+    const env = {}, headers = {};
+    for (const i of ins) { if (i.kind === 'env') env[i.name] = libPlaceholder(i); if (i.kind === 'header') headers[i.header] = (i.prefix || '') + libPlaceholder(i); }
+    const args = (m.args || []).map((a) => { const x = /^\{([A-Z0-9_]+)\}$/.exec(a); const i = x && ins.find((n) => n.name === x[1]); return i ? libPlaceholder(i) : a; });
+    return { m, env, headers, args };
+  };
+  const libSnippets = (it) => {
+    const { m, env, headers, args } = libServer(it);
+    const J = (o) => JSON.stringify(o, null, 2);
+    const http = m.type === 'http';
+    const base = http ? { type: 'http', url: m.url, ...(Object.keys(headers).length ? { headers } : {}) } : { command: m.command, args, ...(Object.keys(env).length ? { env } : {}) };
+    const claudeDesktop = http
+      ? { command: 'npx', args: ['-y', 'mcp-remote@0.15.2', m.url, ...Object.entries(headers).flatMap(([k, v]) => ['--header', `${k}:${v}`])] }
+      : base;
+    return [
+      ['Astro AI', 'Settings → Extensions → MCP → Edit mcp.json', J({ mcpServers: { [it.id]: base } })],
+      ['Claude Code', 'Run in a terminal', http ? `claude mcp add --transport http ${it.id} ${m.url}${Object.entries(headers).map(([k, v]) => ` --header "${k}: ${v}"`).join('')}` : `claude mcp add ${it.id}${Object.entries(env).map(([k, v]) => ` -e ${k}=${v}`).join('')} -- ${m.command} ${args.join(' ')}`],
+      ['Claude Desktop', 'claude_desktop_config.json', J({ mcpServers: { [it.id]: claudeDesktop } })],
+      ['Cursor', '~/.cursor/mcp.json or .cursor/mcp.json', J({ mcpServers: { [it.id]: http ? { url: m.url, ...(Object.keys(headers).length ? { headers } : {}) } : base } })],
+      ['VS Code', '.vscode/mcp.json', J({ servers: { [it.id]: http ? { type: 'http', url: m.url, ...(Object.keys(headers).length ? { headers } : {}) } : { type: 'stdio', ...base } } })],
+      ['OpenCode', 'opencode.json', J({ $schema: 'https://opencode.ai/config.json', mcp: { [it.id]: http ? { type: 'remote', url: m.url, enabled: true, ...(Object.keys(headers).length ? { headers } : {}) } : { type: 'local', command: [m.command, ...args], enabled: true, ...(Object.keys(env).length ? { environment: env } : {}) } } })],
+    ];
+  };
+  const libInstallPaths = (it) => it.kind === 'skill'
+    ? [['Astro AI', `Extensions folder → skills/${it.id}/ (or .astro/skills/${it.id}/ in a project)`], ['Claude Code', `~/.claude/skills/${it.id}/`], ['Codex', `~/.codex/skills/${it.id}/`], ['OpenCode', `~/.config/opencode/skill/${it.id}/`]]
+    : [['Astro AI', `Extensions folder → plugins/${it.id}/`], ['Claude Code', 'Unzip, then /plugin install from the folder (Claude Code plugin format)']];
+  const libDeepLink = (id) => `astroai://library/install?id=${encodeURIComponent(id)}`;
+  const libDetail = (it) => {
+    const tabs = h('div', { class: 'lib-tabs', role: 'tablist' });
+    const pane = h('div', { class: 'lib-pane' });
+    const perms = (it.permissions || []);
+    const body = [
+      h('div', { class: 'row', style: { gap: '6px' } }, h('span', { class: 'pill accent', text: libKindLabel(it.kind) }), it.runs === 'local' ? h('span', { class: 'pill warn', text: 'Runs on your computer' }) : it.runs === 'remote' ? h('span', { class: 'pill', text: 'Remote service' }) : h('span', { class: 'pill ok', text: 'Instructions only' }), it.verified ? h('span', { class: 'pill ok' }, ico('check'), 'Checked by Astro AI') : null,
+        h('span', { class: 'faint', text: `${it.publisher || ''}${it.license ? ' · ' + it.license : ''} · v${it.version || ''}` })),
+      h('p', { class: 'muted', style: { margin: '12px 0' } }, it.summary, it.homepage ? [' ', h('a', { href: it.homepage, target: '_blank', rel: 'noopener', text: 'Homepage' })] : null),
+      h('h3', { class: 'lib-h', text: 'What it can do' }),
+      h('ul', { class: 'lib-perms' }, perms.length ? perms.map((p) => h('li', { text: LIB_PERMS[p] || p })) : h('li', { text: 'Nothing on its own. It only adds instructions the agent reads.' })),
+    ];
+    if (it.kind === 'mcp') {
+      const { m, args } = libServer(it);
+      body.push(h('h3', { class: 'lib-h', text: m.type === 'http' ? 'Connects to' : 'Runs this command' }), codeBlock(m.type === 'http' ? m.url : [m.command, ...args].join(' ')));
+      if ((it.inputs || []).length) body.push(h('h3', { class: 'lib-h', text: 'You will need' }), h('ul', { class: 'lib-perms' }, it.inputs.map((i) => h('li', {}, i.label || i.name, i.required ? '' : ' (optional)', i.help ? [' · ', h('a', { href: i.help, target: '_blank', rel: 'noopener', text: 'get one' })] : null))));
+    } else {
+      body.push(h('h3', { class: 'lib-h', text: `Files (${(it.files || []).length}) · each one is checked against its SHA-256 before it is installed` }),
+        h('div', { class: 'lib-files' }, (it.files || []).map((f) => h('div', {}, h('code', { text: f.path }), h('span', { class: 'faint mono', title: 'SHA-256 ' + f.sha256, text: f.sha256.slice(0, 16) + '… · ' + nf(f.size) + ' B' })))));
+    }
+    const sections = [['astro', 'Astro AI desktop']];
+    if (it.kind === 'mcp') sections.push(['other', 'Other apps']); else sections.push(['zip', 'Download']);
+    let cur = 'astro';
+    const paint = () => {
+      tabs.replaceChildren(...sections.map(([id, label]) => h('button', { type: 'button', role: 'tab', 'aria-selected': String(id === cur), class: id === cur ? 'on' : '', onclick: () => { cur = id; paint(); } }, label)));
+      if (cur === 'astro') pane.replaceChildren(
+        h('p', { class: 'muted' }, 'One click opens Astro AI and shows what this item will do before anything is installed. The app downloads the files itself and checks every fingerprint.'),
+        h('div', { class: 'row' }, linkBtn('Open in Astro AI', libDeepLink(it.id), 'cx-btn-primary', 'download'), linkBtn('Get Astro AI', ROOT + 'download.html', 'cx-btn-outline', 'monitor')),
+        h('p', { class: 'faint', style: { marginTop: '10px' } }, 'Button does nothing? Open Astro AI, then Workspace → Extensions → Library and search for ', h('code', { text: it.id }), ' (needs Astro AI 1.2 or newer).'));
+      else if (cur === 'other') pane.replaceChildren(...libSnippets(it).map(([app, where, code]) => h('div', { class: 'lib-snip' }, h('div', { class: 'lib-snip-h' }, h('b', { text: app }), h('span', { class: 'faint', text: where })), codeBlock(code))),
+        h('p', { class: 'faint', text: 'Replace the <PLACEHOLDERS> with your own values. Keep tokens out of shared project files.' }));
+      else pane.replaceChildren(
+        h('div', { class: 'row' }, linkBtn(`Download ${it.id}.zip`, ROOT + 'library/' + it.zip.path, 'cx-btn-primary', 'download'), h('span', { class: 'faint', text: nf(it.zip.size) + ' bytes' })),
+        h('p', { class: 'faint', style: { margin: '10px 0 4px' } }, 'SHA-256 of the zip'), copyField(it.zip.sha256),
+        h('h3', { class: 'lib-h', text: 'Where to unzip it' }), h('ul', { class: 'lib-perms' }, libInstallPaths(it).map(([a, p]) => h('li', {}, h('b', { text: a + ': ' }), p))));
+    };
+    paint();
+    body.push(h('h3', { class: 'lib-h', text: 'Install' }), tabs, pane);
+    modal({ title: it.name, desc: null, wide: true, body });
+  };
+  PAGES.library = {
+    title: 'Library',
+    render(v) {
+      v.append(pageHead('Library', 'MCP servers, skills and plugins for Astro AI, checked by the Astro AI team. Install them in the desktop app with one click, or use them in Claude Code, Cursor, VS Code and OpenCode.',
+        [linkBtn('Get Astro AI', ROOT + 'download.html', 'cx-btn-outline', 'download')]));
+      v.append(h('div', { class: 'lib-trust' },
+        [['shield', 'Checked files', 'Every file has a SHA-256 fingerprint. Astro AI refuses anything that does not match.'],
+          ['lock', 'Your tokens stay local', 'Keys you enter are saved only in the app on your computer, never sent to us.'],
+          ['code', 'No hidden code', 'Skills and plugins are plain text. No scripts, no hooks. MCP packages are pinned to exact versions.']]
+          .map(([i, t, d]) => h('div', { class: 'lib-trust-i' }, ico(i), h('div', {}, h('b', { text: t }), h('p', { text: d }))))));
+      const holder = h('section', { class: 'mt-16' }, h('div', { class: 'lib-grid' }, [1, 2, 3, 4, 5, 6].map(() => h('div', { class: 'skel', style: { height: '120px' } }))));
+      v.append(holder);
+      fetchLibrary().then((lib) => {
+        if (!holder.isConnected) return;
+        const items = lib.items || [];
+        const q = h('input', { type: 'search', placeholder: `Search ${items.length} items`, value: libQuery, 'aria-label': 'Search the library' });
+        const kinds = h('div', { class: 'lib-kinds', role: 'group', 'aria-label': 'Filter by type' });
+        const grid = h('div', { class: 'lib-grid' }); const count = h('span', { class: 'faint' });
+        const paint = () => {
+          kinds.replaceChildren(...LIB_KINDS.map(([k, l]) => h('button', { type: 'button', class: 'cx-btn cx-btn-sm ' + (k === libKind ? 'cx-btn-primary' : 'cx-btn-outline'), 'aria-pressed': String(k === libKind), onclick: () => { libKind = k; paint(); } }, l, h('span', { class: 'lib-n', text: k === 'all' ? items.length : items.filter((x) => x.kind === k).length }))));
+          const s = libQuery.toLowerCase();
+          const rows = items.filter((it) => (libKind === 'all' || it.kind === libKind) && (!s || `${it.id} ${it.name} ${it.summary} ${(it.tags || []).join(' ')} ${it.publisher || ''}`.toLowerCase().includes(s)));
+          count.textContent = `${rows.length} item${rows.length === 1 ? '' : 's'}`;
+          grid.replaceChildren(...rows.map((it) => h('button', { type: 'button', class: 'lib-card', onclick: () => libDetail(it) },
+            h('div', { class: 'lib-card-h' }, h('b', { text: it.name }), h('span', { class: 'pill' + (it.kind === 'mcp' ? ' accent' : ''), text: libKindLabel(it.kind) })),
+            h('p', { text: it.summary }),
+            h('div', { class: 'lib-card-f' }, it.runs === 'local' ? h('span', { class: 'pill warn', text: 'Runs locally' }) : it.runs === 'remote' ? h('span', { class: 'pill', text: 'Remote' }) : h('span', { class: 'pill ok', text: 'Text only' }),
+              (it.tags || []).slice(0, 3).map((t) => h('span', { class: 'lib-tag', text: '#' + t })), h('span', { class: 'spacer' }), h('span', { class: 'faint', text: it.publisher || '' })))));
+          if (!rows.length) grid.replaceChildren(empty('search', 'Nothing matches', 'Try another word or type.'));
+        };
+        q.oninput = debounce(() => { libQuery = q.value; paint(); }, 80);
+        holder.replaceChildren(h('div', { class: 'toolbar' }, h('div', { class: 'search' }, ico('search'), q), kinds, h('div', { class: 'spacer' }), count), grid,
+          h('p', { class: 'faint', style: { marginTop: '18px' } }, 'Want something added? The library lives in the open-source repo: ', h('a', { href: (document.querySelector('meta[name="astro-repo"]')?.content || 'https://github.com/esoexe/astro-ai') + '/tree/main/library', target: '_blank', rel: 'noopener', text: 'library/' }), '. Third-party servers belong to their publishers; Astro AI checks the package and version, not the service behind it.'));
+        paint();
+        const want = (location.hash.split('?')[1] || '').match(/(?:^|&)id=([a-z0-9-]{1,48})/);
+        if (want) { const it = items.find((x) => x.id === want[1]); if (it) libDetail(it); }
+      }).catch((e) => { if (holder.isConnected) holder.replaceChildren(banner('warn', 'alert', e.message, btn('Try again', 'cx-btn-outline cx-btn-sm', () => { libData = null; render(); }))); });
+    },
+  };
+
   /* ---------------------------------------------------------------- usage */
   let usageRange = 30;
   PAGES.usage = {
@@ -1159,10 +1287,21 @@
       boot.replaceChildren(h('p', { class: 'muted', text: 'We couldn\u2019t load your account. ' + err.message }), h('div', { class: 'row' }, btn('Try again', 'cx-btn-primary', () => location.reload()), btn('Sign out', 'cx-btn-outline', () => signOut())));
       return;
     }
+    guest = false;
     boot.hidden = true; appEl.hidden = false;
     paintChrome(); render();
     if (fromLogin) toast(`Signed in as ${state.user.email || displayName()}.`);
   };
 
-  if (session) showApp(!!hash0.get('access_token')); else showAuth();
+  const showGuestLibrary = () => {
+    guest = true; me = null;
+    state = { guest: true, user: { email: '' }, keys: [], providers: [], usage: [], today: 0, catalog: [] };
+    boot.hidden = true; authEl.hidden = true; appEl.hidden = false;
+    if (!/^#\/library/.test(location.hash)) history.replaceState(null, '', '#/library');
+    paintChrome(); render();
+  };
+  $('#auth-library')?.addEventListener('click', (e) => { e.preventDefault(); showGuestLibrary(); });
+  if (session) showApp(!!hash0.get('access_token'));
+  else if (/^#\/library/.test(location.hash) || /^#library/.test(location.hash)) { if (/^#library/.test(location.hash)) history.replaceState(null, '', '#/library'); showGuestLibrary(); }
+  else showAuth();
 })();

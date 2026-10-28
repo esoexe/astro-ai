@@ -11,7 +11,7 @@ ManifestDPIAware true
 !include "LogicLib.nsh"
 !include "x64.nsh"
 
-!define VERSION "1.1.1"
+!define VERSION "1.2.0"
 !define UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_ID}"
 !define WV2_KEY "Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
 
@@ -20,7 +20,7 @@ OutFile "${OUT}"
 InstallDir "$LOCALAPPDATA\Programs\${APP_NAME}"
 InstallDirRegKey HKCU "Software\${APP_ID}" "InstallDir"
 BrandingText "${APP_NAME} ${VERSION}"
-VIProductVersion "1.1.1.0"
+VIProductVersion "1.2.0.0"
 VIAddVersionKey "ProductName" "${APP_NAME}"
 VIAddVersionKey "FileDescription" "${APP_NAME} installer"
 VIAddVersionKey "FileVersion" "${VERSION}"
@@ -91,6 +91,11 @@ Section "Install"
   WriteRegStr HKCU "${UNINST_KEY}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
   WriteRegDWORD HKCU "${UNINST_KEY}" "NoModify" 1
   WriteRegDWORD HKCU "${UNINST_KEY}" "NoRepair" 1
+  ; astroai:// links from the website Library ("Open in Astro AI")
+  WriteRegStr HKCU "Software\Classes\astroai" "" "URL:Astro AI"
+  WriteRegStr HKCU "Software\Classes\astroai" "URL Protocol" ""
+  WriteRegStr HKCU "Software\Classes\astroai\DefaultIcon" "" '"$INSTDIR\${EXE_NAME}",0'
+  WriteRegStr HKCU "Software\Classes\astroai\shell\open\command" "" '"$INSTDIR\${EXE_NAME}" "%1"'
 SectionEnd
 
 Section "Uninstall"
@@ -101,6 +106,9 @@ Section "Uninstall"
   RMDir /r "$INSTDIR"
   DeleteRegKey HKCU "${UNINST_KEY}"
   DeleteRegKey HKCU "Software\${APP_ID}"
+  ReadRegStr $0 HKCU "Software\Classes\astroai\shell\open\command" ""
+  StrCmp $0 '"$INSTDIR\${EXE_NAME}" "%1"' 0 +2
+    DeleteRegKey HKCU "Software\Classes\astroai"
   MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "Also delete your ${APP_NAME} data (chats, projects, settings and saved API keys) in$\r$\n$APPDATA\${APP_NAME} ?" /SD IDNO IDNO keep
     RMDir /r "$APPDATA\${APP_NAME}"
     RMDir /r "$APPDATA\${EXE_NAME}"

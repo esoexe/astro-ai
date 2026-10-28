@@ -1,0 +1,7 @@
+{
+  "name": "git-flow",
+  "version": "1.0.0",
+  "description": "Commit, pull request and changelog commands that write from the real git history.",
+  "author": { "name": "The Astro AI team", "url": "https://github.com/esoexe/astro-ai" },
+  "license": "MIT"
+}

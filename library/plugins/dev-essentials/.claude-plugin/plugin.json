@@ -1,0 +1,7 @@
+{
+  "name": "dev-essentials",
+  "version": "1.0.0",
+  "description": "Everyday coding commands (/review, /test, /fix, /explain) and reviewer and tester subagents.",
+  "author": { "name": "The Astro AI team", "url": "https://github.com/esoexe/astro-ai" },
+  "license": "MIT"
+}

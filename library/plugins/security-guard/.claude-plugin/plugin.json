@@ -1,0 +1,7 @@
+{
+  "name": "security-guard",
+  "version": "1.0.0",
+  "description": "A security scan command and a security reviewer subagent.",
+  "author": { "name": "The Astro AI team", "url": "https://github.com/esoexe/astro-ai" },
+  "license": "MIT"
+}

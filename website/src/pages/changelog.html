@@ -9,8 +9,37 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
-    <article class="release latest reveal" id="v1-1-1">
-      <header><h2>1.1.1</h2><span class="badge">Latest</span><time datetime="2026-10-28">October 28, 2026</time></header>
+    <article class="release latest reveal" id="v1-2-0">
+      <header><h2>1.2.0</h2><span class="badge">Latest</span><time datetime="2026-10-28">October 28, 2026</time></header>
+      <p class="muted">The Astro AI Library, tested code fixes, smarter model picking and safer builds.</p>
+
+      <h3>Astro AI Library</h3>
+      <ul class="ticks">
+        <li>A reviewed library of MCP servers, skills and plugins, in the website Console (no sign-in needed) and in the desktop app under Workspace › Extensions › Library</li>
+        <li>One-click install from the website with <code>astroai://</code> links (Windows and Linux). The app always shows what an item does before you install it</li>
+        <li>Every file is checked against its SHA-256 fingerprint. Skills and plugins are plain text only, and MCP packages are pinned to exact versions</li>
+        <li>Tokens you type stay in the app on your computer. Local MCP servers no longer see Astro AI's own provider keys</li>
+      </ul>
+
+      <h3>Answers that work</h3>
+      <ul class="ticks">
+        <li>Background code check: after a coding answer appears, Astro AI quietly compiles or runs the code (self-contained code only, 6 s limit). If it fails, a coder model fixes it, and the fix is added only if it passes. You can turn it off in Settings › Brain</li>
+        <li>Model picking learns from real results: models that keep failing or slowing down are moved back, and coding benchmark results raise the strongest coders</li>
+        <li>The Agent says clearly when it changed files without running a check, and stray "analysis…" text from some models no longer leaks into answers</li>
+        <li>👎 now asks what went wrong. Your note is saved on your computer and shared with the team only if you tick Share</li>
+        <li>When the shared free limits run out, Astro AI explains this and offers a one-minute way to add your own free key</li>
+      </ul>
+
+      <h3>Builds and safety</h3>
+      <ul class="ticks">
+        <li>Tests run on every push (GitHub Actions), with a secret scan and a check for private files</li>
+        <li>Desktop builds for Windows, Linux and macOS can be built on GitHub Actions, with optional code signing. Only the Clean edition is ever built there</li>
+        <li>Fixed: the source kit and the repository were missing a file (<code>astro_dev.inc</code>), so building from source failed in 1.1.1</li>
+      </ul>
+    </article>
+
+    <article class="release reveal" id="v1-1-1">
+      <header><h2>1.1.1</h2><time datetime="2026-10-28">October 28, 2026</time></header>
       <p class="muted">Better code from the free models, plus agent fixes. New installers for Windows, Linux and macOS.</p>
 
       <h3>Coding quality</h3>

@@ -10,7 +10,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
-VER="1.1.1"
+VER="1.2.0"
 OUT="$ROOT/desktop-builds"
 WORK="$ROOT/.cache/pkg"
 TP="$ROOT/desktop/third_party"
@@ -92,7 +92,13 @@ It produces the .app and a .dmg (universal: Apple Silicon + Intel).";;
     } > "$f"
 }
 
-for ed in personal clean; do
+# EDITIONS="clean" builds only the shareable edition. The personal (with-keys) edition is never built on CI
+# or any shared machine: it would bake whatever keys exist there into a downloadable file.
+EDITIONS="${EDITIONS:-personal clean}"
+if [ -n "${CI:-}${GITHUB_ACTIONS:-}" ] && [[ " $EDITIONS " == *" personal "* ]]; then
+    echo "Refusing to build the WITH-KEYS edition on CI. Use EDITIONS=clean." >&2; exit 1
+fi
+for ed in $EDITIONS; do
     if [ "$ed" = personal ]; then
         TAG="WITH-KEYS"; DEST="$OUT/with-keys"; APP="Astro AI"; ID="AstroAI"; EXE="AstroAI.exe"; PKG="astro-ai"
         NOTE="PERSONAL EDITION: this build contains your API keys."
@@ -130,12 +136,13 @@ Type=Application
 Name=$APP
 GenericName=AI workspace
 Comment=Chat, code Workspace and Agent powered by one brain of free AI models
-Exec=/usr/bin/$PKG
+Exec=/usr/bin/$PKG %u
 Icon=$PKG
 Terminal=false
 Categories=Development;Utility;
 Keywords=AI;chat;assistant;code;agent;
 StartupWMClass=$PKG
+MimeType=x-scheme-handler/astroai;
 EOF
     readme "$ed" "linux x86_64" "$DEB/usr/share/doc/$PKG/README.txt"
     cat > "$DEB/DEBIAN/control" <<EOF
@@ -164,10 +171,11 @@ set -e
 D="\$(cd "\$(dirname "\$0")" && pwd)"
 mkdir -p ~/.local/share/applications ~/.local/share/icons/hicolor/256x256/apps
 cp "\$D/icon.png" ~/.local/share/icons/hicolor/256x256/apps/$PKG.png
-sed -e "s|^Exec=.*|Exec=\"\$D/astro-desktop\"|" > ~/.local/share/applications/$PKG.desktop <<'DESK'
+sed -e "s|^Exec=.*|Exec=\"\$D/astro-desktop\" %u|" > ~/.local/share/applications/$PKG.desktop <<'DESK'
 $(cat "$DEB/usr/share/applications/$PKG.desktop")
 DESK
 update-desktop-database ~/.local/share/applications 2>/dev/null || true
+xdg-mime default $PKG.desktop x-scheme-handler/astroai 2>/dev/null || true
 echo "$APP added to your applications menu. You can also run: \$D/astro-desktop"
 EOF
     chmod 755 "$LT/install.sh"
@@ -175,7 +183,7 @@ EOF
 
     # ---------------- macOS: source kit ----------------
     MK="$WORK/AstroAI-$VER-macos-source-$TAG"; mkdir -p "$MK/src/server" "$MK/src/desktop" "$MK/src/webview" "$MK/assets" "$MK/payload"
-    cp workspace_server.cpp platform.h astro_ext.inc workspace_*.inc "$MK/src/server/"
+    cp workspace_server.cpp platform.h ./*.inc "$MK/src/server/"
     cp desktop/src/astro_desktop.cpp "$MK/src/desktop/"
     cp -r "$TP/webview/include" "$MK/src/webview/"
     cp desktop/assets/icon-mac-1024.png "$MK/assets/"
@@ -217,4 +225,4 @@ Both can be installed side by side: separate app names, folders, data and ports 
 Windows: *-Setup-*.exe (installer) or *-portable-*.zip | Linux: *.deb or *.tar.gz | macOS: *-macos-source-*.tar.gz -> ./build_mac.sh
 EOF
 echo "==> Done"
-ls -la "$OUT"/with-keys "$OUT"/clean
+ls -la "$OUT"/clean "$OUT"/with-keys 2>/dev/null || true

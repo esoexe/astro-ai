@@ -338,6 +338,12 @@ static void installWork() {
     regSetDword(UNINST_KEY, L"EstimatedSize", DWORD(g_payloadBytes / 1024 + 1024));
     regSetDword(UNINST_KEY, L"NoModify", 1);
     regSetDword(UNINST_KEY, L"NoRepair", 1);
+    // astroai:// links from the website ("Open in Astro AI" in the Library). The app only accepts
+    // astroai://library/install?id=<catalog id> and always shows what an item does before installing it.
+    regSetStr(L"Software\\Classes\\astroai", nullptr, L"URL:Astro AI");
+    regSetStr(L"Software\\Classes\\astroai", L"URL Protocol", L"");
+    regSetStr(L"Software\\Classes\\astroai\\DefaultIcon", nullptr, L"\"" + exe + L"\",0");
+    regSetStr(L"Software\\Classes\\astroai\\shell\\open\\command", nullptr, L"\"" + exe + L"\" \"%1\"");
     mark(L"Registered in Installed apps");
     g_prog = 1.0f; g_state = 1;
     CoUninitialize();
@@ -367,6 +373,9 @@ static void uninstallWork() {
     deleteTree(sm, L"", nullptr, 0, 0, 0); RemoveDirectoryW(sm.c_str()); mark(L"Shortcuts");
     g_prog = 0.9f; g_stage = 3;
     RegDeleteTreeW(HKEY_CURRENT_USER, UNINST_KEY.c_str()); RegDeleteTreeW(HKEY_CURRENT_USER, APP_KEY.c_str()); mark(L"Installed apps entry");
+    // Remove the astroai:// handler only if it still points at this install (the other edition may own it).
+    if (lower(regGet(HKEY_CURRENT_USER, L"Software\\Classes\\astroai\\shell\\open\\command", nullptr)).find(lower(dir)) != std::wstring::npos)
+        RegDeleteTreeW(HKEY_CURRENT_USER, L"Software\\Classes\\astroai");
     if (g_purge) {
         std::wstring ra = knownFolder(FOLDERID_RoamingAppData), la = knownFolder(FOLDERID_LocalAppData);
         for (std::wstring d : { ra + L"\\" APP_NAME_W, ra + L"\\" EXE_NAME_W, la + L"\\" EXE_NAME_W }) {

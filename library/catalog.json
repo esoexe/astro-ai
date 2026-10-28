@@ -1,0 +1,835 @@
+{
+  "name": "Astro AI Library",
+  "description": "MCP servers, skills and plugins reviewed by the Astro AI team. Every file is pinned by SHA-256; MCP packages are pinned to an exact version.",
+  "schema": 1,
+  "items": [
+    {
+      "id": "deepwiki",
+      "kind": "mcp",
+      "name": "DeepWiki",
+      "summary": "Ask questions about any public GitHub repository and read its generated docs.",
+      "publisher": "Cognition",
+      "homepage": "https://docs.devin.ai/work-with-devin/deepwiki-mcp",
+      "license": "Hosted service",
+      "tags": [
+        "docs",
+        "github",
+        "research"
+      ],
+      "runs": "remote",
+      "permissions": [
+        "network"
+      ],
+      "mcp": {
+        "type": "http",
+        "url": "https://mcp.deepwiki.com/mcp"
+      }
+    },
+    {
+      "id": "context7",
+      "kind": "mcp",
+      "name": "Context7",
+      "summary": "Up-to-date, version-specific library documentation and code examples, pulled into the prompt.",
+      "publisher": "Upstash",
+      "homepage": "https://github.com/upstash/context7",
+      "license": "MIT",
+      "tags": [
+        "docs",
+        "coding"
+      ],
+      "runs": "remote",
+      "permissions": [
+        "network"
+      ],
+      "mcp": {
+        "type": "http",
+        "url": "https://mcp.context7.com/mcp"
+      },
+      "inputs": [
+        {
+          "name": "CONTEXT7_API_KEY",
+          "label": "Context7 API key (optional, raises rate limits)",
+          "kind": "header",
+          "header": "CONTEXT7_API_KEY",
+          "secret": true,
+          "required": false,
+          "help": "https://context7.com/dashboard"
+        }
+      ]
+    },
+    {
+      "id": "microsoft-learn",
+      "kind": "mcp",
+      "name": "Microsoft Learn Docs",
+      "summary": "Search and read official Microsoft and Azure documentation and code samples.",
+      "publisher": "Microsoft",
+      "homepage": "https://github.com/MicrosoftDocs/mcp",
+      "license": "Hosted service",
+      "tags": [
+        "docs",
+        "azure",
+        "dotnet"
+      ],
+      "runs": "remote",
+      "permissions": [
+        "network"
+      ],
+      "mcp": {
+        "type": "http",
+        "url": "https://learn.microsoft.com/api/mcp"
+      }
+    },
+    {
+      "id": "cloudflare-docs",
+      "kind": "mcp",
+      "name": "Cloudflare Docs",
+      "summary": "Search Cloudflare's developer documentation (Workers, Pages, R2, D1 and more).",
+      "publisher": "Cloudflare",
+      "homepage": "https://github.com/cloudflare/mcp-server-cloudflare",
+      "license": "Apache-2.0",
+      "tags": [
+        "docs",
+        "cloud"
+      ],
+      "runs": "remote",
+      "permissions": [
+        "network"
+      ],
+      "mcp": {
+        "type": "http",
+        "url": "https://docs.mcp.cloudflare.com/mcp"
+      }
+    },
+    {
+      "id": "huggingface",
+      "kind": "mcp",
+      "name": "Hugging Face",
+      "summary": "Search models, datasets, Spaces and papers on the Hugging Face Hub.",
+      "publisher": "Hugging Face",
+      "homepage": "https://huggingface.co/settings/mcp",
+      "license": "Hosted service",
+      "tags": [
+        "ai",
+        "research"
+      ],
+      "runs": "remote",
+      "permissions": [
+        "network"
+      ],
+      "mcp": {
+        "type": "http",
+        "url": "https://huggingface.co/mcp"
+      },
+      "inputs": [
+        {
+          "name": "HF_TOKEN",
+          "label": "Hugging Face token (optional, read access is enough)",
+          "kind": "header",
+          "header": "Authorization",
+          "prefix": "Bearer ",
+          "secret": true,
+          "required": false,
+          "help": "https://huggingface.co/settings/tokens"
+        }
+      ]
+    },
+    {
+      "id": "exa-search",
+      "kind": "mcp",
+      "name": "Exa Search",
+      "summary": "Web search and code search built for AI agents.",
+      "publisher": "Exa Labs",
+      "homepage": "https://github.com/exa-labs/exa-mcp-server",
+      "license": "Hosted service",
+      "tags": [
+        "search",
+        "web"
+      ],
+      "runs": "remote",
+      "permissions": [
+        "network"
+      ],
+      "mcp": {
+        "type": "http",
+        "url": "https://mcp.exa.ai/mcp"
+      }
+    },
+    {
+      "id": "gitmcp-docs",
+      "kind": "mcp",
+      "name": "GitMCP",
+      "summary": "Reads the documentation of any GitHub project so the agent stops guessing APIs.",
+      "publisher": "GitMCP",
+      "homepage": "https://gitmcp.io",
+      "license": "Apache-2.0",
+      "tags": [
+        "docs",
+        "github"
+      ],
+      "runs": "remote",
+      "permissions": [
+        "network"
+      ],
+      "mcp": {
+        "type": "http",
+        "url": "https://gitmcp.io/docs"
+      }
+    },
+    {
+      "id": "github",
+      "kind": "mcp",
+      "name": "GitHub",
+      "summary": "Issues, pull requests, code search and repository files through GitHub's official remote server.",
+      "publisher": "GitHub",
+      "homepage": "https://github.com/github/github-mcp-server",
+      "license": "MIT",
+      "tags": [
+        "github",
+        "coding"
+      ],
+      "runs": "remote",
+      "permissions": [
+        "network",
+        "account"
+      ],
+      "mcp": {
+        "type": "http",
+        "url": "https://api.githubcopilot.com/mcp/"
+      },
+      "inputs": [
+        {
+          "name": "GITHUB_TOKEN",
+          "label": "GitHub personal access token (fine-grained, only the repos you need)",
+          "kind": "header",
+          "header": "Authorization",
+          "prefix": "Bearer ",
+          "secret": true,
+          "required": true,
+          "help": "https://github.com/settings/personal-access-tokens/new"
+        }
+      ]
+    },
+    {
+      "id": "filesystem",
+      "kind": "mcp",
+      "name": "Filesystem",
+      "summary": "Read and write files inside one folder you choose, and nowhere else.",
+      "publisher": "Model Context Protocol",
+      "homepage": "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem",
+      "license": "MIT",
+      "tags": [
+        "files",
+        "official"
+      ],
+      "runs": "local",
+      "permissions": [
+        "files"
+      ],
+      "requires": [
+        "node"
+      ],
+      "mcp": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-filesystem@2.0.1",
+          "{FOLDER}"
+        ]
+      },
+      "inputs": [
+        {
+          "name": "FOLDER",
+          "label": "Folder the server may use (full path)",
+          "kind": "arg",
+          "secret": false,
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "memory",
+      "kind": "mcp",
+      "name": "Memory",
+      "summary": "A small knowledge graph the agent can remember facts in between sessions.",
+      "publisher": "Model Context Protocol",
+      "homepage": "https://github.com/modelcontextprotocol/servers/tree/main/src/memory",
+      "license": "MIT",
+      "tags": [
+        "memory",
+        "official"
+      ],
+      "runs": "local",
+      "permissions": [
+        "files"
+      ],
+      "requires": [
+        "node"
+      ],
+      "mcp": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-memory@2.0.0"
+        ]
+      }
+    },
+    {
+      "id": "sequential-thinking",
+      "kind": "mcp",
+      "name": "Sequential Thinking",
+      "summary": "A structured scratchpad for breaking hard problems into revisable steps.",
+      "publisher": "Model Context Protocol",
+      "homepage": "https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking",
+      "license": "MIT",
+      "tags": [
+        "reasoning",
+        "official"
+      ],
+      "runs": "local",
+      "permissions": [],
+      "requires": [
+        "node"
+      ],
+      "mcp": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-sequential-thinking@2.0.0"
+        ]
+      }
+    },
+    {
+      "id": "playwright",
+      "kind": "mcp",
+      "name": "Playwright Browser",
+      "summary": "Drive a real browser: open pages, click, type, read the accessibility tree and take screenshots.",
+      "publisher": "Microsoft",
+      "homepage": "https://github.com/microsoft/playwright-mcp",
+      "license": "Apache-2.0",
+      "tags": [
+        "browser",
+        "testing"
+      ],
+      "runs": "local",
+      "permissions": [
+        "network",
+        "browser"
+      ],
+      "requires": [
+        "node"
+      ],
+      "mcp": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "@playwright/mcp@0.0.83",
+          "--isolated"
+        ]
+      }
+    },
+    {
+      "id": "chrome-devtools",
+      "kind": "mcp",
+      "name": "Chrome DevTools",
+      "summary": "Inspect, debug and profile pages in Chrome: console, network, performance traces.",
+      "publisher": "Google Chrome",
+      "homepage": "https://github.com/ChromeDevTools/chrome-devtools-mcp",
+      "license": "Apache-2.0",
+      "tags": [
+        "browser",
+        "debugging"
+      ],
+      "runs": "local",
+      "permissions": [
+        "network",
+        "browser"
+      ],
+      "requires": [
+        "node",
+        "chrome"
+      ],
+      "mcp": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "chrome-devtools-mcp@1.12.0",
+          "--isolated"
+        ]
+      }
+    },
+    {
+      "id": "supabase",
+      "kind": "mcp",
+      "name": "Supabase (read-only)",
+      "summary": "Query your Supabase projects, tables, logs and docs. Installed in read-only mode.",
+      "publisher": "Supabase",
+      "homepage": "https://github.com/supabase-community/supabase-mcp",
+      "license": "Apache-2.0",
+      "tags": [
+        "database",
+        "backend"
+      ],
+      "runs": "local",
+      "permissions": [
+        "network",
+        "account"
+      ],
+      "requires": [
+        "node"
+      ],
+      "mcp": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "@supabase/mcp-server-supabase@0.14.0",
+          "--read-only"
+        ]
+      },
+      "inputs": [
+        {
+          "name": "SUPABASE_ACCESS_TOKEN",
+          "label": "Supabase personal access token",
+          "kind": "env",
+          "secret": true,
+          "required": true,
+          "help": "https://supabase.com/dashboard/account/tokens"
+        }
+      ]
+    },
+    {
+      "id": "notion",
+      "kind": "mcp",
+      "name": "Notion",
+      "summary": "Search, read and update the Notion pages you share with an integration.",
+      "publisher": "Notion",
+      "homepage": "https://github.com/makenotion/notion-mcp-server",
+      "license": "MIT",
+      "tags": [
+        "notes",
+        "productivity"
+      ],
+      "runs": "local",
+      "permissions": [
+        "network",
+        "account"
+      ],
+      "requires": [
+        "node"
+      ],
+      "mcp": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "@notionhq/notion-mcp-server@2.6.0"
+        ]
+      },
+      "inputs": [
+        {
+          "name": "NOTION_TOKEN",
+          "label": "Notion internal integration token",
+          "kind": "env",
+          "secret": true,
+          "required": true,
+          "help": "https://www.notion.so/profile/integrations"
+        }
+      ]
+    },
+    {
+      "id": "brave-search",
+      "kind": "mcp",
+      "name": "Brave Search",
+      "summary": "Private web, news and image search through the Brave Search API.",
+      "publisher": "Brave",
+      "homepage": "https://github.com/brave/brave-search-mcp-server",
+      "license": "MIT",
+      "tags": [
+        "search",
+        "web"
+      ],
+      "runs": "local",
+      "permissions": [
+        "network",
+        "account"
+      ],
+      "requires": [
+        "node"
+      ],
+      "mcp": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "@brave/brave-search-mcp-server@2.1.4"
+        ]
+      },
+      "inputs": [
+        {
+          "name": "BRAVE_API_KEY",
+          "label": "Brave Search API key (free plan available)",
+          "kind": "env",
+          "secret": true,
+          "required": true,
+          "help": "https://api-dashboard.search.brave.com/"
+        }
+      ]
+    },
+    {
+      "id": "tavily",
+      "kind": "mcp",
+      "name": "Tavily",
+      "summary": "Search, extract and crawl the web with results shaped for agents.",
+      "publisher": "Tavily",
+      "homepage": "https://github.com/tavily-ai/tavily-mcp",
+      "license": "MIT",
+      "tags": [
+        "search",
+        "web"
+      ],
+      "runs": "local",
+      "permissions": [
+        "network",
+        "account"
+      ],
+      "requires": [
+        "node"
+      ],
+      "mcp": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "tavily-mcp@0.2.22"
+        ]
+      },
+      "inputs": [
+        {
+          "name": "TAVILY_API_KEY",
+          "label": "Tavily API key (free plan available)",
+          "kind": "env",
+          "secret": true,
+          "required": true,
+          "help": "https://app.tavily.com/"
+        }
+      ]
+    },
+    {
+      "id": "firecrawl",
+      "kind": "mcp",
+      "name": "Firecrawl",
+      "summary": "Turn websites into clean markdown: scrape, crawl, map and extract.",
+      "publisher": "Firecrawl",
+      "homepage": "https://github.com/firecrawl/firecrawl-mcp-server",
+      "license": "MIT",
+      "tags": [
+        "web",
+        "scraping"
+      ],
+      "runs": "local",
+      "permissions": [
+        "network",
+        "account"
+      ],
+      "requires": [
+        "node"
+      ],
+      "mcp": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "firecrawl-mcp@3.36.0"
+        ]
+      },
+      "inputs": [
+        {
+          "name": "FIRECRAWL_API_KEY",
+          "label": "Firecrawl API key",
+          "kind": "env",
+          "secret": true,
+          "required": true,
+          "help": "https://www.firecrawl.dev/app/api-keys"
+        }
+      ]
+    },
+    {
+      "id": "figma",
+      "kind": "mcp",
+      "name": "Figma Context",
+      "summary": "Give the agent the layout and styles of a Figma file so it can build the UI from it.",
+      "publisher": "Framelink (community)",
+      "homepage": "https://github.com/GLips/Figma-Context-MCP",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "frontend"
+      ],
+      "runs": "local",
+      "permissions": [
+        "network",
+        "account"
+      ],
+      "requires": [
+        "node"
+      ],
+      "mcp": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "figma-developer-mcp@0.13.2",
+          "--stdio"
+        ]
+      },
+      "inputs": [
+        {
+          "name": "FIGMA_API_KEY",
+          "label": "Figma personal access token (read-only scopes)",
+          "kind": "env",
+          "secret": true,
+          "required": true,
+          "help": "https://www.figma.com/developers/api#access-tokens"
+        }
+      ]
+    },
+    {
+      "id": "everything",
+      "kind": "mcp",
+      "name": "MCP Test Server",
+      "summary": "The protocol's reference test server: tools, prompts and resources for trying MCP out.",
+      "publisher": "Model Context Protocol",
+      "homepage": "https://github.com/modelcontextprotocol/servers/tree/main/src/everything",
+      "license": "MIT",
+      "tags": [
+        "testing",
+        "official"
+      ],
+      "runs": "local",
+      "permissions": [],
+      "requires": [
+        "node"
+      ],
+      "mcp": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-everything@2.0.1"
+        ]
+      }
+    },
+    {
+      "id": "code-review",
+      "kind": "skill",
+      "name": "Code review",
+      "summary": "A structured review that finds real bugs first, then security, performance and readability, with severities.",
+      "tags": [
+        "coding",
+        "quality"
+      ]
+    },
+    {
+      "id": "write-tests",
+      "kind": "skill",
+      "name": "Write tests",
+      "summary": "Adds focused tests in the project's own framework, covering the edge cases that actually break.",
+      "tags": [
+        "coding",
+        "testing"
+      ]
+    },
+    {
+      "id": "debug-detective",
+      "kind": "skill",
+      "name": "Debug detective",
+      "summary": "Reproduce, isolate, prove the root cause, fix it, and add a test so it stays fixed.",
+      "tags": [
+        "coding",
+        "debugging"
+      ]
+    },
+    {
+      "id": "refactor-safely",
+      "kind": "skill",
+      "name": "Refactor safely",
+      "summary": "Behaviour-preserving refactors in small, checked steps.",
+      "tags": [
+        "coding",
+        "quality"
+      ]
+    },
+    {
+      "id": "commit-message",
+      "kind": "skill",
+      "name": "Commit messages",
+      "summary": "Clear Conventional Commits messages written from the real diff.",
+      "tags": [
+        "git"
+      ]
+    },
+    {
+      "id": "pr-description",
+      "kind": "skill",
+      "name": "Pull request writer",
+      "summary": "PR descriptions with the why, the what, how it was tested and the risks.",
+      "tags": [
+        "git",
+        "writing"
+      ]
+    },
+    {
+      "id": "release-notes",
+      "kind": "skill",
+      "name": "Release notes",
+      "summary": "Turns git history into a changelog people actually read.",
+      "tags": [
+        "git",
+        "writing"
+      ]
+    },
+    {
+      "id": "security-audit",
+      "kind": "skill",
+      "name": "Security audit",
+      "summary": "Checks for injection, broken auth, leaked secrets, unsafe deserialization and risky dependencies.",
+      "tags": [
+        "security"
+      ]
+    },
+    {
+      "id": "api-design",
+      "kind": "skill",
+      "name": "API design",
+      "summary": "Designs and reviews HTTP APIs: resources, errors, pagination, versioning and an OpenAPI sketch.",
+      "tags": [
+        "backend",
+        "design"
+      ]
+    },
+    {
+      "id": "sql-helper",
+      "kind": "skill",
+      "name": "SQL helper",
+      "summary": "Writes correct, index-friendly SQL and explains query plans.",
+      "tags": [
+        "database"
+      ]
+    },
+    {
+      "id": "docs-writer",
+      "kind": "skill",
+      "name": "Docs writer",
+      "summary": "READMEs, guides and doc comments that match how the code really works.",
+      "tags": [
+        "writing",
+        "docs"
+      ]
+    },
+    {
+      "id": "frontend-polish",
+      "kind": "skill",
+      "name": "Frontend polish",
+      "summary": "Accessibility, responsive layout, loading/empty/error states and visual consistency.",
+      "tags": [
+        "frontend",
+        "design"
+      ]
+    },
+    {
+      "id": "explain-codebase",
+      "kind": "skill",
+      "name": "Explain a codebase",
+      "summary": "Maps an unfamiliar repository: entry points, modules, data flow and where to make a change.",
+      "tags": [
+        "coding",
+        "onboarding"
+      ]
+    },
+    {
+      "id": "performance-tuning",
+      "kind": "skill",
+      "name": "Performance tuning",
+      "summary": "Measure first, find the real hotspot, fix it, and prove the gain.",
+      "tags": [
+        "coding",
+        "performance"
+      ]
+    },
+    {
+      "id": "dependency-upgrade",
+      "kind": "skill",
+      "name": "Dependency upgrades",
+      "summary": "Upgrades packages one step at a time, reading changelogs for breaking changes.",
+      "tags": [
+        "coding",
+        "maintenance"
+      ]
+    },
+    {
+      "id": "regex-builder",
+      "kind": "skill",
+      "name": "Regex builder",
+      "summary": "Builds regular expressions with a table of matching and non-matching examples.",
+      "tags": [
+        "coding"
+      ]
+    },
+    {
+      "id": "dev-essentials",
+      "kind": "plugin",
+      "name": "Dev Essentials",
+      "summary": "/review, /test, /fix and /explain commands, plus reviewer and tester subagents.",
+      "tags": [
+        "coding",
+        "starter"
+      ]
+    },
+    {
+      "id": "git-flow",
+      "kind": "plugin",
+      "name": "Git Flow",
+      "summary": "/commit, /pr and /changelog commands with the matching writing skills.",
+      "tags": [
+        "git"
+      ]
+    },
+    {
+      "id": "web-quality",
+      "kind": "plugin",
+      "name": "Web Quality",
+      "summary": "/a11y and /perf-audit commands and a UI reviewer subagent for web projects.",
+      "tags": [
+        "frontend"
+      ]
+    },
+    {
+      "id": "security-guard",
+      "kind": "plugin",
+      "name": "Security Guard",
+      "summary": "/secure-scan command and a security reviewer subagent.",
+      "tags": [
+        "security"
+      ]
+    },
+    {
+      "id": "docs-research",
+      "kind": "plugin",
+      "name": "Docs Research",
+      "summary": "Bundles the DeepWiki, Context7 and Microsoft Learn remote servers with a /docs command. Nothing runs on your computer.",
+      "tags": [
+        "docs",
+        "research"
+      ],
+      "runs": "remote",
+      "permissions": [
+        "network"
+      ]
+    }
+  ]
+}

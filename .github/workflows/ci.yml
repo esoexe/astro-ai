@@ -1,0 +1,40 @@
+# Builds the C++ server and runs every test on each push and pull request.
+# Also refuses any commit that contains an API key or a private build.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Install build tools
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq g++ make pkg-config libcurl4-openssl-dev libssl-dev
+      - name: No private files in the repository
+        run: |
+          bad=$(git ls-files | grep -E '(^|/)(\.workspace\.env|\.astro_keys\.env|\.astro_auth\.json|seed-keys\.env|gateway\.env)$|^desktop-builds/with-keys/|^outreach/|^uploads/|WITH-KEYS' || true)
+          if [ -n "$bad" ]; then echo "::error::Private files are tracked:"; echo "$bad"; exit 1; fi
+      - name: Secret scan (key shapes)
+        run: node tools/scan_secrets.js .
+      - name: Build
+        run: make -j2
+      - name: Test
+        run: make test
+      - name: Website builds
+        run: node website/build.js --no-dl

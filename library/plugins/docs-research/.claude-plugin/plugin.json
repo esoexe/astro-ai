@@ -1,0 +1,7 @@
+{
+  "name": "docs-research",
+  "version": "1.0.0",
+  "description": "Remote documentation MCP servers (DeepWiki, Context7, Microsoft Learn) and a /docs command.",
+  "author": { "name": "The Astro AI team", "url": "https://github.com/esoexe/astro-ai" },
+  "license": "MIT"
+}

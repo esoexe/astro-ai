@@ -1953,6 +1953,9 @@ bool patient_retry(int fd, const Route& route, AttemptResult& result, int tryno)
     return true;
 }
 
+void model_stats_record(const std::string& id, bool ok, long long ms);     // astro_quality.inc
+void model_stats_reorder(std::vector<Route>& routes, std::size_t keep_first);
+
 void stream_chat(int fd,
                  const std::vector<std::pair<std::string, std::string>>& messages,
                  const std::string& context,
@@ -1978,6 +1981,7 @@ void stream_chat(int fd,
         for (const auto& r : g_routes)
             if (r.in_auto && (routes.empty() || r.id != routes.front().id)) routes.push_back(r);
     const bool has_choice = !routes.empty() && preferred != "auto" && routes.front().id == preferred;
+    if (!t_strict) model_stats_reorder(routes, has_choice ? 1 : 0);   // models failing right now move to the back
     const auto oc = opencode_settings();
     const int max_attempts = env_int("AUTO_MAX_ATTEMPTS", 6, 1, 50);
     int attempts = 0;
@@ -2035,7 +2039,10 @@ void stream_chat(int fd,
             }
         }
         if (!result.client_gone || result.saw_delta)
+        {
             usage_record(route.provider, result.finished || result.saw_delta, result.http_status, result.error, now_ms() - attempt_started);
+            model_stats_record(route.id, result.finished || result.saw_delta, now_ms() - attempt_started);
+        }
         if (t_patient && patient_retry(fd, route, result, tryno)) continue;
         break;
         }
@@ -2197,6 +2204,7 @@ void load_runtime_credentials() {
 #include "astro_ext.inc"
 #include "workspace_code.inc"
 #include "workspace_ide.inc"
+#include "astro_quality.inc"
 
 void handle_api(int fd, const HttpRequest& request) {
     if (request.path.rfind("/api/auth/", 0) == 0) { handle_auth(fd, request); return; }
@@ -2208,6 +2216,7 @@ void handle_api(int fd, const HttpRequest& request) {
     if (handle_workspace_api(fd, request)) return;
     if (handle_ide_api(fd, request)) return;
     if (handle_dev_api(fd, request)) return;
+    if (handle_quality_api(fd, request)) return;
     if (handle_astro_api(fd, request)) return;
     if (request.method == "GET" && request.path == "/api/status") {
         const auto config = model_config();

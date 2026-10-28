@@ -47,8 +47,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleExecutable</key><string>astro-desktop</string>
   <key>CFBundleIconFile</key><string>astro.icns</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>1.1.1</string>
-  <key>CFBundleVersion</key><string>1.1.1</string>
+  <key>CFBundleShortVersionString</key><string>1.2.0</string>
+  <key>CFBundleVersion</key><string>1.2.0</string>
   <key>LSMinimumSystemVersion</key><string>11.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.developer-tools</string>
   <key>NSHighResolutionCapable</key><true/>
@@ -57,8 +57,21 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 </dict></plist>
 PLIST
 
-echo "==> Signing (ad-hoc, for this Mac)"
-codesign --force --deep --sign - "$APP" || echo "   (codesign failed; the app still runs when built on this Mac)"
+if [ -n "${SIGN_IDENTITY:-}" ]; then
+    # Developer ID signing (CI sets SIGN_IDENTITY from repository secrets). Hardened runtime is required for notarization.
+    echo "==> Signing with ${SIGN_IDENTITY%% (*}…"
+    codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP/Contents/Resources/astro-server"
+    cat > "$W/ent.plist" <<'ENT'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict><key>com.apple.security.device.audio-input</key><true/></dict></plist>
+ENT
+    codesign --force --options runtime --timestamp --entitlements "$W/ent.plist" --sign "$SIGN_IDENTITY" "$APP"
+    codesign --verify --strict --verbose=1 "$APP"
+else
+    echo "==> Signing (ad-hoc, for this Mac)"
+    codesign --force --deep --sign - "$APP" || echo "   (codesign failed; the app still runs when built on this Mac)"
+fi
 
 echo "==> Disk image"
 rm -f "$NAME.dmg"

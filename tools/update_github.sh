@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Pushes the current secret-free export as a new commit on top of the existing GitHub repo.
 #   tools/update_github.sh "commit message"
-# Token: $GH_TOKEN_FILE (default ~/.cache/gh/token, mode 600). Never printed or stored in .git/config.
+# Token: $GH_TOKEN_FILE (default ~/.config/astro-ai/gh_token, mode 600; kept across sandbox resets). Never printed or stored in .git/config.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 MSG="${1:-Update Astro AI}"
 REPO="${REPO:-astro-ai}"
-TOKEN_FILE="${GH_TOKEN_FILE:-$HOME/.cache/gh/token}"
+TOKEN_FILE="${GH_TOKEN_FILE:-$HOME/.config/astro-ai/gh_token}"
 WORK="$HOME/.cache/gh"; mkdir -p "$WORK"; chmod 700 "$WORK"; umask 077
 [ -s "$TOKEN_FILE" ] || { echo "missing token file $TOKEN_FILE"; exit 1; }
 HDR="$WORK/auth.hdr"; printf 'Authorization: Bearer %s\n' "$(tr -d ' \r\n' < "$TOKEN_FILE")" > "$HDR"

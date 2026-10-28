@@ -1,0 +1,7 @@
+{
+  "name": "web-quality",
+  "version": "1.0.0",
+  "description": "Accessibility and performance audits for web projects, plus a UI reviewer subagent.",
+  "author": { "name": "The Astro AI team", "url": "https://github.com/esoexe/astro-ai" },
+  "license": "MIT"
+}

@@ -6,10 +6,10 @@ const grab = (name) => { const i = src.indexOf(`  function ${name}(`); if (i < 0
 const alias = src.match(/const AG_ALIAS = (\{[\s\S]*?\});/);
 const code = `${alias ? 'const AG_ALIAS = ' + alias[1] + ';' : 'const AG_ALIAS = {};'}
 const cleanPath = (p) => String(p || '').replace(/^\\.?\\//, '');
-${grab('agJson')}${grab('agJsonAll')}${grab('agNorm')}${grab('agParse')}
-module.exports = { agParse };`;
+${grab('stripReasoningLeak')}${grab('agJson')}${grab('agJsonAll')}${grab('agNorm')}${grab('agParse')}
+module.exports = { agParse, stripReasoningLeak };`;
 const m = { exports: {} }; new Function('module', code)(m);
-const { agParse } = m.exports;
+const { agParse, stripReasoningLeak } = m.exports;
 let pass = 0, fail = 0; const ok = (c, msg) => { if (c) { pass++; console.log('  ok  ' + msg); } else { fail++; console.log('  FAIL ' + msg); } };
 const T = '```';
 let r = agParse(`Plan.\n${T}tool\n{"tool":"read_file","path":"a.js"}\n${T}`);
@@ -26,4 +26,6 @@ r = agParse(`${T}tool\n{"tool":"write_file","path":"a.js"}\n${T}`);
 ok(r.calls.length === 1 && r.calls[0].tool === 'write_file' && r.calls[0].content === '', 'write_file without content parses (guard rejects it at run time)');
 ok(/has no "content"/.test(src) && /Never wipe a file/.test(src), 'write_file guard present');
 ok(/let unverified = false/.test(src) && /VERIFY FIRST/.test(src) && /so your report is a guess/.test(src), 'done is held back until changed files were checked by a run, and never accepted in the same reply as tool calls');
+ok(stripReasoningLeak('analysisThe user wants a file. assistantfinalHere you go.') === 'Here you go.', 'gpt-oss reasoning leak is removed');
+ok(stripReasoningLeak('Normal answer about analysis.') === 'Normal answer about analysis.', 'normal text is untouched');
 console.log(`${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

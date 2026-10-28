@@ -609,8 +609,105 @@
       ${by.size ? [...by].map(([path, list]) => `<div class="dev-pfile"><b>${esc(path)}</b><i>${list.length}</i></div>${list.map((p) => `<button type="button" class="dev-prob sev-${esc(p.severity)}" data-pgo="${esc(JSON.stringify([p.path, p.line, p.col]))}"><span class="dot"></span><span class="msg">${esc(p.message)}</span><em>${esc(p.source || '')} ${p.line}:${p.col}</em></button>`).join('')}`).join('') : `<div class="git-empty">${D.probBusy ? 'Checking…' : D.probProject === A().ws.project && D.checkers ? 'No problems found.' : 'Press “Check project” to find errors.'}</div>`}`;
   }
 
+  // ---------- Astro AI Library (official MCP servers, skills and plugins) ----------
+  // The server downloads and checks everything (SHA-256 against the catalog); this panel only browses,
+  // shows exactly what an item will run or write, and asks for the values it needs.
+  const LIB_KINDS = [['all', 'All'], ['mcp', 'MCP'], ['skill', 'Skills'], ['plugin', 'Plugins']];
+  const LIB_PERMS = { network: 'Talks to an online service', 'local-process': 'Runs a program on this computer', filesystem: 'Reads and writes files in a folder you choose', browser: 'Opens and controls a browser', account: 'Uses your account with a token you give it' };
+  async function libLoad(force) {
+    if (!force && D.lib?.data && Date.now() - D.lib.at < 60000) return D.lib.data;
+    const data = await dev('library/index', { refresh: Boolean(force) });
+    D.lib = { ...(D.lib || {}), data, at: Date.now() };
+    return data;
+  }
+  function libCmd(it) {
+    const m = it.mcp || {};
+    return m.type === 'http' ? m.url : [m.command, ...(m.args || [])].join(' ');
+  }
+  function libMatches(it, q, kind) {
+    if (kind && kind !== 'all' && it.kind !== kind) return false;
+    if (!q) return true;
+    return `${it.id} ${it.name} ${it.summary} ${(it.tags || []).join(' ')} ${it.publisher || ''}`.toLowerCase().includes(q);
+  }
+  async function libBody(force) {
+    let data;
+    try { data = await libLoad(force); } catch (err) { return `<div class="ws-note error">${esc(err.message)}</div>`; }
+    const kind = lsGet('lib-kind', 'all'); const q = (D.lib?.q || '').toLowerCase();
+    const inst = data.installed || {};
+    const items = (data.items || []);
+    const card = (it) => {
+      const have = inst[it.id]; const upd = have && have.version !== it.version;
+      return `<div class="dev-item lib-card" data-lib-card="${esc(it.id)}" data-lib-text="${esc(`${it.id} ${it.name} ${it.summary} ${(it.tags || []).join(' ')} ${it.publisher || ''}`.toLowerCase())}" data-lib-kind="${esc(it.kind)}">
+        <div class="dev-it-h"><b>${esc(it.name)}</b><span class="dev-scope">${esc(it.kind === 'mcp' ? 'MCP' : it.kind)}</span>${it.runs === 'local' ? '<span class="dev-scope s-project">runs locally</span>' : ''}${have ? `<span class="dev-scope s-global">${upd ? 'update available' : 'installed'}</span>` : ''}</div>
+        <p>${esc(clip(it.summary, 200))}</p>
+        <div class="dev-it-a"><button type="button" class="ag-act" data-x="lib-open" data-id="${esc(it.id)}">${icon('i-eye')}Details</button>${have ? `${upd ? `<button type="button" class="ag-act" data-x="lib-open" data-id="${esc(it.id)}">${icon('i-refresh')}Update</button>` : ''}<button type="button" class="ag-act" data-x="lib-remove" data-id="${esc(it.id)}">${icon('i-trash')}Remove</button>` : `<button type="button" class="ag-act" data-x="lib-open" data-id="${esc(it.id)}">${icon('i-download')}Install</button>`}<span class="grow"></span><small>${esc(it.publisher || '')}</small></div></div>`;
+    };
+    const shown = items.filter((it) => libMatches(it, q, kind));
+    return `<div class="dev-inst lib-search"><input class="input" id="lib-q" placeholder="Search ${items.length} servers, skills and plugins" value="${esc(D.lib?.q || '')}" spellcheck="false" aria-label="Search the library"><button type="button" class="ws-btn sm" data-x="lib-refresh" title="Refresh">${icon('i-refresh')}</button></div>
+      <div class="dev-acts lib-kinds">${LIB_KINDS.map(([k, l]) => `<button type="button" class="ws-btn sm${k === kind ? ' primary' : ''}" data-x="lib-kind" data-kind="${k}">${l} <small>${k === 'all' ? items.length : items.filter((x) => x.kind === k).length}</small></button>`).join('')}</div>
+      <div class="dev-hint">The official Astro AI Library. Every file is checked against its SHA-256 fingerprint before it is saved, skills and plugins are text only (no scripts or hooks), and MCP packages are pinned to exact versions. Tokens you enter stay in this computer's private <code>mcp.json</code>.${data.error ? '' : ` <a href="https://esoexe.github.io/astro-ai/account.html#library" target="_blank" rel="noopener">Open on the website</a>`}</div>
+      ${data.error ? `<div class="ws-note error">${esc(data.error)}</div>` : ''}
+      ${!data.node && items.some((x) => x.runs === 'local') ? '<div class="ws-note">Servers marked “runs locally” need Node.js (npx). Install it from nodejs.org; remote servers, skills and plugins work without it.</div>' : ''}
+      <div id="lib-list">${shown.map(card).join('') || '<div class="git-empty">Nothing matches.</div>'}</div>`;
+  }
+  function libFilter() {
+    const q = (D.lib?.q || '').toLowerCase(); const kind = lsGet('lib-kind', 'all');
+    let n = 0;
+    document.querySelectorAll('#lib-list [data-lib-card]').forEach((c) => { const on = (!q || c.dataset.libText.includes(q)) && (kind === 'all' || c.dataset.libKind === kind); c.hidden = !on; if (on) n++; });
+    return n;
+  }
+  async function libOpen(id) {
+    const data = await libLoad();
+    const it = (data.items || []).find((x) => x.id === id);
+    if (!it) throw new Error('That item is not in the library any more.');
+    const have = (data.installed || {})[id];
+    const perms = (it.permissions || []).map((p) => `<li>${esc(LIB_PERMS[p] || p)}</li>`).join('') || '<li>Nothing: it only adds instructions for the agent</li>';
+    const what = it.kind === 'mcp'
+      ? `<div class="dev-sec">${it.mcp?.type === 'http' ? 'Connects to' : 'Runs this command'}</div><code class="dev-cmd">${esc(libCmd(it))}</code>`
+      : `<div class="dev-sec">Files it adds (${(it.files || []).length})</div><div class="lib-files">${(it.files || []).map((f) => `<div><code>${esc(f.path)}</code><small title="SHA-256 ${esc(f.sha256)}">${esc(f.sha256.slice(0, 12))}… · ${Number(f.size || 0).toLocaleString()} B</small></div>`).join('')}</div>`;
+    const inputs = (it.inputs || []).map((inp) => `<label class="lib-in"><span>${esc(inp.label || inp.name)}${inp.required ? ' *' : ''}</span><input class="input" data-lib-in="${esc(inp.name)}" type="${inp.secret ? 'password' : 'text'}" autocomplete="off" spellcheck="false" placeholder="${esc(inp.kind === 'arg' && inp.name === 'FOLDER' ? (A().ws.projectPath || 'Full path, e.g. /home/you/project') : inp.secret ? 'Paste here (stored only on this computer)' : '')}">${inp.help ? `<small><a href="${esc(inp.help)}" target="_blank" rel="noopener">Where do I get this?</a></small>` : ''}</label>`).join('');
+    A().showModal(`<h2 id="modal-title">${esc(it.name)}</h2>
+      <p class="hint">${esc(it.summary)}</p>
+      <p class="hint">${esc(it.publisher || '')}${it.license ? ` · ${esc(it.license)}` : ''}${it.homepage ? ` · <a href="${esc(it.homepage)}" target="_blank" rel="noopener">Homepage</a>` : ''} · version ${esc(it.version || '')}</p>
+      <div class="dev-sec">What it can do</div><ul class="lib-perms">${perms}</ul>
+      ${what}
+      ${inputs ? `<div class="dev-sec">Settings</div>${inputs}` : ''}
+      ${it.runs === 'local' ? '<p class="hint">This server runs on your computer with your user rights. Only install it if you trust the publisher.</p>' : ''}
+      <div class="btn-row"><button type="button" class="btn primary" id="lib-go">${have ? (have.version !== it.version ? 'Update' : 'Reinstall') : 'Install'}</button><button type="button" class="btn ghost" id="modal-close">Cancel</button></div>`);
+    document.getElementById('modal-content')?.classList.add('wide');
+    document.getElementById('modal-close').onclick = () => A().closeModal();
+    document.getElementById('lib-go').onclick = async (ev) => {
+      const btn = ev.currentTarget; btn.disabled = true; btn.textContent = 'Installing…';
+      const vals = {}; document.querySelectorAll('[data-lib-in]').forEach((i) => { if (i.value.trim()) vals[i.dataset.libIn] = i.value.trim(); });
+      try {
+        let r;
+        try { r = await dev('library/install', { id, inputs: vals }); } catch (err) {
+          if (!/did not come from the library/.test(err.message)) throw err;
+          const ok = await A().wsDialog({ title: 'Replace your own item?', text: `${err.message} Replace it with the library version?`, ok: 'Replace', danger: true, input: false });
+          if (!ok) { btn.disabled = false; btn.textContent = 'Install'; return; }
+          r = await dev('library/install', { id, inputs: vals, replace: true });
+        }
+        A().closeModal(); invalidate(); D.lib.at = 0;
+        A().toast(`${it.name} ${r.updated ? 'updated' : 'installed'}${it.kind === 'mcp' ? ' · find it under MCP' : it.kind === 'plugin' ? ' · its commands and skills are ready' : ' · the agent can use it now'}`);
+        if (it.kind === 'mcp' && it.runs !== 'local') dev('mcp/restart', { project: A().ws.project, server: id }).catch(() => {});
+        renderExt(true);
+      } catch (err) { btn.disabled = false; btn.textContent = 'Install'; A().toast(err.message, 'error'); }
+    };
+  }
+  async function openLibrary(id) {
+    D.extTab = 'library'; lsSet('ext-tab', 'library');
+    await showSide('ext');
+    if (id && /^[a-z0-9][a-z0-9-]{0,47}$/.test(id)) libOpen(id).catch((err) => A().toast(err.message, 'error'));
+  }
+  function libFromHash() {
+    const m = String(location.hash || '').match(/^#library(?:=([a-z0-9-]{1,48}))?$/);
+    if (!m) return;
+    history.replaceState(null, '', location.pathname + location.search);
+    setTimeout(() => openLibrary(m[1]).catch(() => {}), 400);
+  }
+
   // ---------- Extensions panel ----------
-  const EXT_TABS = [['skills', 'Skills', 'i-spark'], ['mcp', 'MCP', 'i-puzzle'], ['plugins', 'Plugins', 'i-puzzle'], ['themes', 'Themes', 'i-moon'], ['snippets', 'Snippets', 'i-code'], ['commands', 'Commands', 'i-keyboard'], ['agents', 'Agents', 'i-sparkles'], ['rules', 'Rules & hooks', 'i-read']];
+  const EXT_TABS = [['library', 'Library', 'i-download'], ['skills', 'Skills', 'i-spark'], ['mcp', 'MCP', 'i-puzzle'], ['plugins', 'Plugins', 'i-puzzle'], ['themes', 'Themes', 'i-moon'], ['snippets', 'Snippets', 'i-code'], ['commands', 'Commands', 'i-keyboard'], ['agents', 'Agents', 'i-sparkles'], ['rules', 'Rules & hooks', 'i-read']];
   async function renderExt(force) {
     const box = document.getElementById('ws-ext'); if (!box || box.closest('[hidden]')) return;
     const project = A().ws.project;
@@ -618,7 +715,9 @@
     const tab = D.extTab;
     let body = '';
     const scopeBadge = (x) => `<span class="dev-scope s-${esc(x.scope)}">${x.scope === 'user' ? 'your tools' : esc(x.scope)}${x.owner ? ` · ${esc(x.owner)}` : ''}</span>`;
-    if (tab === 'skills') {
+    if (tab === 'library') {
+      body = await libBody(force);
+    } else if (tab === 'skills') {
       body = `<div class="dev-acts"><button type="button" class="ws-btn sm" data-x="new-skill">${icon('i-plus')}<span>New skill</span></button></div>
         <div class="dev-hint">Skills are folders with a SKILL.md (name, description, instructions). The agent sees every skill's description and loads one when a job matches. Astro reads <code>.astro/skills</code>, Claude Code <code>.claude/skills</code>, Codex <code>.codex/skills</code>, OpenCode and Cursor skill folders, in the project, in Extensions, and in your home folder.</div>
         ${scan.skills.map((k) => `<div class="dev-item"><div class="dev-it-h"><b>${esc(k.name)}</b>${scopeBadge(k)}</div><p>${esc(clip(k.description, 220))}</p><div class="dev-it-a"><button type="button" class="ag-act" data-x="view" data-scope="${esc(k.scope)}" data-path="${esc(k.path)}">${icon('i-eye')}View</button>${k.scope !== 'user' && !k.owner ? `<button type="button" class="ag-act" data-x="edit" data-scope="${esc(k.scope)}" data-path="${esc(k.path)}">${icon('i-edit')}Edit</button><button type="button" class="ag-act" data-x="del" data-scope="${esc(k.scope)}" data-path="${esc(k.path.replace(/\/SKILL\.md$|\/skill\.md$/i, ''))}">${icon('i-trash')}Delete</button>` : ''}</div></div>`).join('') || '<div class="git-empty">No skills yet.</div>'}`;
@@ -665,6 +764,8 @@
           : `<div class="dev-item"><div class="dev-it-h"><b>${esc(t.data.name || baseName(t.path))}</b><span class="dev-scope">${esc((t.data.language || '*'))}</span><span class="dev-scope">${Object.keys(t.data.items || {}).length} snippets</span></div><div class="dev-it-a"><button type="button" class="ag-act" data-x="edit" data-scope="global" data-path="${esc(t.path)}">${icon('i-edit')}Edit</button><button type="button" class="ag-act" data-x="del" data-scope="global" data-path="${esc(t.path)}">${icon('i-trash')}Remove</button></div></div>`).join('') || (isTheme ? '' : '<div class="git-empty">No snippets yet.</div>')}`;
     }
     box.innerHTML = `<div class="dev-tabs" role="tablist">${EXT_TABS.map(([id, label, ic]) => `<button type="button" class="${id === tab ? 'on' : ''}" data-xtab="${id}" title="${label}">${icon(ic)}<span>${label}</span></button>`).join('')}</div><div class="dev-body">${body}</div>`;
+    const lq = box.querySelector('#lib-q');
+    if (lq) lq.addEventListener('input', () => { D.lib = { ...(D.lib || {}), q: lq.value }; libFilter(); });
   }
   function onExtClick(e) {
     const t = e.target.closest('[data-xtab]');
@@ -704,6 +805,14 @@
     const a = A(); const project = a.ws.project;
     switch (act) {
       case 'view': editorModal(d.path, await readExt(d.scope, d.path), null, true); return;
+      case 'lib-open': await libOpen(d.id); return;
+      case 'lib-kind': lsSet('lib-kind', d.kind); renderExt(); return;
+      case 'lib-refresh': await libLoad(true); renderExt(); return;
+      case 'lib-remove': {
+        const ok = await a.wsDialog({ title: `Remove ${d.id}?`, text: 'Only the files the library installed are removed; anything you added stays.', ok: 'Remove', danger: true, input: false });
+        if (!ok) return;
+        await dev('library/uninstall', { id: d.id }); invalidate(); if (D.lib) D.lib.at = 0; A().toast('Removed'); renderExt(true); return;
+      }
       case 'edit': editorModal(d.path, await readExt(d.scope, d.path), (t) => writeExt(d.scope, d.path, t)); return;
       case 'del': {
         const ok = await a.wsDialog({ title: `Delete ${baseName(d.path)}?`, text: d.path, ok: 'Delete', danger: true, input: false });
@@ -1073,6 +1182,7 @@
     return [
       { label: 'Open folder…', icon: 'i-folder-open', sub: 'Work on a folder on this computer', run: openFolder },
       { label: 'Extensions: skills, MCP, plugins, themes', icon: 'i-puzzle', run: () => showSide('ext') },
+      { label: 'Astro AI Library: install MCP servers, skills and plugins', icon: 'i-download', sub: 'Official, checked, one click', run: () => openLibrary() },
       { label: 'Problems: check the project for errors', icon: 'i-alert', run: () => { showSide('problems'); checkProblems(); } },
       { label: 'MCP servers', icon: 'i-puzzle', run: () => { D.extTab = 'mcp'; showSide('ext'); } },
       { label: 'Browse the MCP registry', icon: 'i-globe', run: () => mcpRegistry() },
@@ -1137,10 +1247,12 @@
     setInterval(paintModeChips, 1500);
     paintModeChips();
     applyLooks();
+    libFromHash();
+    window.addEventListener('hashchange', libFromHash);
   }
 
   window.AstroDev = {
     init, tools, beforeTool, afterTool, onStop, brief, agentInput, mode: modeOf, setMode, side, projectChanged, editorReady, inlineEdit,
-    openFolder, paletteItems, checkProblems, agentManager, mcpRegistry, installPlugin, vsxInstall, getScan, globRe, frontmatter, jsonc, unzipIndex, invalidate, applyLooks, renderExt,
+    openFolder, openLibrary, paletteItems, checkProblems, agentManager, mcpRegistry, installPlugin, vsxInstall, getScan, globRe, frontmatter, jsonc, unzipIndex, invalidate, applyLooks, renderExt,
   };
 })();

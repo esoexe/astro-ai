@@ -10,7 +10,7 @@ all: $(TARGET) astro_measure
 astro_measure: tools/astro_measure.cpp
 	$(CXX) -std=c++20 -O2 -Wall -Wextra $< -o $@
 
-$(TARGET): workspace_server.cpp platform.h astro_ext.inc workspace_code.inc workspace_ide.inc workspace_intel.inc workspace_agent.inc
+$(TARGET): workspace_server.cpp platform.h $(wildcard *.inc)
 	$(CXX) $(CXXFLAGS) $(CURL_CFLAGS) $< -o $@ $(CURL_LIBS) -lcrypto -lutil
 
 run: $(TARGET)
@@ -20,6 +20,9 @@ test: $(TARGET)
 	bash tests/smoke_cpp.sh
 	node tests/agent_parse_test.js
 	node tests/code_detect_test.js
+	node library/build_library.js --check
+	bash tests/library_e2e.sh
+	bash tests/quality_test.sh
 
 clean:
 	rm -f $(TARGET) astro_measure

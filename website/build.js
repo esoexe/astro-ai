@@ -69,6 +69,9 @@ if (fs.existsSync(dlDir)) {
 }
 const dlKey = (pattern) => Object.keys(downloads).find((f) => f.includes(pattern));
 
+// ------------------------------------------------------------------ Astro AI Library (validated + checksummed)
+const LIB = require(path.join(ROOT, '..', 'library', 'build_library.js')).build(path.join(OUT, 'library'));
+
 // ------------------------------------------------------------------ layout
 const NAV = [
   ['features', 'Features', 'features.html'],

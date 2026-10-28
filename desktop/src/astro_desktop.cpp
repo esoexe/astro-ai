@@ -62,7 +62,7 @@ using namespace std::chrono_literals;
 
 namespace {
 
-constexpr const char* kVersion = "1.1.1";
+constexpr const char* kVersion = "1.2.0";
 
 // ------------------------------------------------------------------------------------------------
 // Small utilities
@@ -555,17 +555,46 @@ static void fatal(const std::string& what) {
 #endif
 }
 
+// astroai://library/install?id=<id> (the website's "Open in Astro AI" button). Only a catalog id is taken from the
+// link; the app opens its Library on that item, and the user still sees what it does and presses Install.
+static std::string g_library_id;
+static void take_deep_link(const std::string& a) {
+    static const std::string pre[] = {"astroai://library/install?id=", "astroai://library/"};
+    for (const auto& p : pre) {
+        if (a.rfind(p, 0) != 0) continue;
+        std::string id = a.substr(p.size());
+        id = id.substr(0, id.find_first_of("&#/?"));
+        if (id.empty() || id.size() > 48) return;
+        for (char c : id) if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-')) return;
+        g_library_id = id;
+        return;
+    }
+}
+
 #ifdef _WIN32
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     WSADATA wsa; WSAStartup(MAKEWORD(2, 2), &wsa);
+    {
+        int n = 0;
+        if (LPWSTR* av = CommandLineToArgvW(GetCommandLineW(), &n)) {
+            for (int i = 1; i < n; ++i) {
+                const int len = WideCharToMultiByte(CP_UTF8, 0, av[i], -1, nullptr, 0, nullptr, nullptr);
+                std::string s8(len > 0 ? len - 1 : 0, '\0');
+                if (len > 1) WideCharToMultiByte(CP_UTF8, 0, av[i], -1, s8.data(), len, nullptr, nullptr);
+                take_deep_link(s8);
+            }
+            LocalFree(av);
+        }
+    }
     int rc = 1;
     try { rc = run_app(); } catch (const std::exception& e) { fatal(e.what()); }
     WSACleanup();
     return rc;
 }
 #else
-int main() {
+int main(int argc, char** argv) {
     signal(SIGPIPE, SIG_IGN);
+    for (int i = 1; i < argc; ++i) take_deep_link(argv[i]);
     try { return run_app(); } catch (const std::exception& e) { fatal(e.what()); return 1; }
 }
 #endif
@@ -726,7 +755,7 @@ static int run_app() {
     std::atomic<bool> quitting{false};
     std::atomic<bool> supervising{false};
     std::atomic<bool> navigated{false};
-    const std::string app_url = "http://127.0.0.1:" + std::to_string(cfg.port) + "/?desktop=1";
+    const std::string app_url = "http://127.0.0.1:" + std::to_string(cfg.port) + "/?desktop=1" + (g_library_id.empty() ? std::string() : "#library=" + g_library_id);
 
     auto show_error = [&](const std::string& why) {
         const std::string html = error_html(cfg.name, why, log_tail(cfg.log));

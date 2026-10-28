@@ -2028,3 +2028,22 @@ body { background: var(--bg); letter-spacing: -.003em; }
 .ag-approve { border-left: 3px solid var(--warn); padding-left: 10px; }
 .ag-mode-chip.on { background: var(--accent-soft); color: var(--text); }
 .cm-ghost { pointer-events: none; }
+
+/* Astro AI Library (Extensions → Library) */
+.lib-search { display: flex; gap: 6px; }
+.lib-search .input { flex: 1; min-width: 0; }
+.lib-kinds { flex-wrap: wrap; }
+.lib-kinds small { opacity: .65; margin-left: 2px; }
+.lib-card .dev-it-a small { color: var(--text-3, var(--text-2)); font-size: 11px; }
+.lib-card .grow { flex: 1; }
+.lib-perms { margin: 4px 0 10px 18px; padding: 0; font-size: 13px; line-height: 1.6; }
+.lib-files { max-height: 180px; overflow: auto; border: 1px solid var(--line, rgba(127,127,127,.25)); border-radius: 8px; padding: 6px 8px; margin-bottom: 8px; }
+.lib-files div { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; padding: 2px 0; }
+.lib-files small { font-family: var(--mono); color: var(--text-2); white-space: nowrap; }
+.lib-in { display: grid; gap: 4px; margin: 8px 0; font-size: 13px; }
+.lib-in small { font-size: 12px; }
+
+/* Free quota used up: bring-your-own-key card */
+.byok-card { display: grid; gap: 6px; margin-top: 8px; padding: 12px 14px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--accent, #f3a679) 40%, transparent); background: color-mix(in srgb, var(--accent, #f3a679) 8%, var(--surface)); font-size: 14px; line-height: 1.55; color: var(--text-2); }
+.byok-card b { color: var(--text); }
+.byok-card .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }

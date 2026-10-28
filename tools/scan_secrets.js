@@ -42,7 +42,7 @@ const tokensIn = (f, label) => {
   }
 };
 ['.astro_keys.env', '.workspace.env', '.env'].forEach(envFile);
-tokensIn('.astro_auth.json'); tokensIn('.astro_sessions'); tokensIn('desktop-builds/.gofile-links.txt'); tokensIn('.cache/gh/token', 'github token');
+tokensIn('.astro_auth.json'); tokensIn('.astro_sessions'); tokensIn('desktop-builds/.gofile-links.txt'); tokensIn('.cache/gh/token', 'github token'); tokensIn('.config/astro-ai/gh_token', 'github token');
 if (fs.existsSync(path.join(ROOT, 'uploads'))) for (const f of fs.readdirSync(path.join(ROOT, 'uploads'))) tokensIn(path.join('uploads', f), 'uploads/<file>');
 const uniq = new Map(secrets.map((s) => [s.value, s])); const known = [...uniq.values()];
 
@@ -60,7 +60,9 @@ const shapes = [
 // Allow the project host ONLY in these website files; it is still flagged anywhere else.
 const PUBLIC_HOST_OK = new Set(['website/src/static/assets/js/account.js', 'website/src/pages/api.html', 'website/src/static/_headers', 'website/src/static/vercel.json', 'website/serve.js',
   // the Astro API gateway URL (same public host) for the built-in "astro" provider: the app needs it to use astro_sk_ keys
-  'providers.json', 'tools/providers_extra.json']);
+  'providers.json', 'tools/providers_extra.json',
+  // opt-in feedback: an insert-only table (RLS; the public key cannot read rows back)
+  'astro_quality.inc']);
 
 // ---- scan
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => {

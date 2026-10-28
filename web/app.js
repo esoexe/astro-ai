@@ -688,7 +688,10 @@
   function contentHtml(d) {
     if (d.status === 'error') {
       const partial = d.content ? `<div class="md" dir="auto">${renderMarkdown(d.content)}</div>` : '';
-      return `${partial}<div class="error-card"><div><strong>Couldn't get an answer</strong>${esc(d.error || 'Something went wrong.')}<div><button type="button" class="btn small" data-act="retry">${icon('i-redo')}Try again</button></div></div></div>`;
+      // Free quotas ran out: offer the honest fix (your own free key) instead of a bare error.
+      const quota = /quota|rate.?limit|429|daily limit|too many requests|resting|unavailable|all models/i.test(d.error || '');
+      const byok = quota ? `<div class="byok-card"><b>The shared free limits are used up right now.</b><span>Free tiers reset over time (often within a minute to a day). To keep going now, add your own free key from a provider such as Groq, Google AI Studio, Mistral or OpenRouter. It takes about a minute, stays on this computer, and gives you your own limits.</span><div class="btn-row"><button type="button" class="btn small primary" data-act="byok">${icon('i-key')}Add a free key</button><button type="button" class="btn small" data-act="retry">${icon('i-redo')}Try again</button></div></div>` : '';
+      return `${partial}<div class="error-card"><div><strong>Couldn't get an answer</strong>${esc(d.error || 'Something went wrong.')}${byok ? '' : `<div><button type="button" class="btn small" data-act="retry">${icon('i-redo')}Try again</button></div>`}</div></div>${byok}`;
     }
     const shown = extractActions(stripConfidence(d.content)).clean;
     if (!shown && d.status === 'streaming') return d.brain && d.brain.phase !== 'done' ? '' : waitingHtml(d);
@@ -1171,10 +1174,72 @@
     renderMessages();
     if (state.stick) scrollToBottom();
     refreshStatusSoon();
+    if (payload.code && !opts.voice && !msg.compare && fresh[0].status === 'done' && bgCheckOn()) bgCheckAnswer(msg, fresh[0], lastUser?.content || '').catch((err) => console.warn('code check', err));
     if (opts.onDone) opts.onDone(fresh[0]);
     else if (fresh[0].status === 'done' && !msg.compare && (state.voice.autoSpeak || state.lastInputVoice)) readAloud(textOf(msg), msg.drafts[msg.active].id);
     state.lastInputVoice = false;
     if (!isMobile() && !live.open) el.input.focus();
+  }
+
+  // ---------- background code check (after the answer is on screen, so answers stay fast) ----------
+  const CHECK_LANGS = { js: 'js', javascript: 'js', node: 'js', mjs: 'js', py: 'py', python: 'py', python3: 'py', c: 'c', cpp: 'cpp', 'c++': 'cpp', cc: 'cpp', cxx: 'cpp', sh: 'bash', bash: 'bash', shell: 'bash', json: 'json', php: 'php', rb: 'ruby', ruby: 'ruby', ts: 'ts', typescript: 'ts' };
+  function bgCheckOn() { return ls.get('astro_bgcheck', '1') !== '0'; }
+  function codeBlocksOf(text) {
+    const out = []; const re = /```([\w+#.-]*)[^\n]*\n([\s\S]*?)```/g; let m;
+    while ((m = re.exec(String(text || '')))) { const lang = CHECK_LANGS[(m[1] || '').toLowerCase()]; if (!lang || m[2].trim().length <= 20) continue;
+      // JSX / TypeScript written in a js block would fail a plain Node check without being wrong.
+      if (lang === 'js' && (/return\s*\(?\s*<[A-Za-z]/.test(m[2]) || /\binterface\s+\w+\s*\{|\)\s*:\s*(string|number|boolean|void)\b|:\s*(string|number|boolean)\s*[=;,)]/.test(m[2]))) continue;
+      out.push({ lang, tag: m[1], code: m[2] }); }
+    return out;
+  }
+  async function bgCheckAnswer(msg, d, question) {
+    if (d.checked) return;
+    d.checked = true;
+    const blocks = codeBlocksOf(d.content).slice(0, 3);
+    // Snippets that are parts of a bigger program (several files, "..." placeholders) are not checked.
+    const whole = blocks.filter((b) => !/^\s*(\.\.\.|…|\/\/ \.\.\.|# \.\.\.)\s*$/m.test(b.code));
+    if (!whole.length) return;
+    let bad = null;
+    for (const b of whole) {
+      let r; try { r = await apiJson('/api/check/code', { lang: b.lang, code: b.code, run: true }); } catch (_e) { return; }
+      if (r.checked && r.ok === false) { bad = { ...b, r }; break; }
+    }
+    if (!bad || !state.messages.includes(msg)) return;
+    const err = String(bad.r.errors || '').slice(0, 1500);
+    // Ask the best coder model that is up right now for a corrected version, then check that too.
+    let fixed = '';
+    try {
+      const coders = rankLead(pickMinds(Infinity).filter((m) => !m.blocked && m.kind !== 'local'), true);
+      const prompt = `This ${bad.tag || bad.lang} code fails an automatic check (${bad.r.stage === 'run' ? 'it crashed when run' : 'it does not compile'}).\n\nError:\n${err}\n\nCode:\n\`\`\`${bad.tag || bad.lang}\n${bad.code}\n\`\`\`\n\nFix the root cause and reply with ONLY the complete corrected code in one fenced block. Keep everything else the same.${question ? `\n\nThe original request was: ${question.slice(0, 1500)}` : ''}`;
+      const reply = await teamCall(coders, { messages: [{ role: 'user', content: prompt }], context: '', mode: 'coding', language: state.language, code: true, strict: false, max_tokens: 5000 }, new AbortController().signal, 60000);
+      const cand = codeBlocksOf(reply).find((b) => b.lang === bad.lang);
+      if (cand) { const r2 = await apiJson('/api/check/code', { lang: bad.lang, code: cand.code, run: true }); if (r2.checked && r2.ok !== false) fixed = cand.code; }
+    } catch (_e) { /* keep the warning only */ }
+    if (!state.messages.includes(msg)) return;
+    const firstLine = err.split('\n').find((l) => /error|exception|failed|not defined|cannot|unexpected/i.test(l)) || err.split('\n')[0] || 'it failed';
+    d.content += fixed
+      ? `\n\n---\n**Background check:** the code above failed (${firstLine.trim().slice(0, 200)}). Here is a corrected version that passed the check:\n\n\`\`\`${bad.tag || bad.lang}\n${fixed.replace(/\n$/, '')}\n\`\`\``
+      : `\n\n---\n**Background check:** the code above failed when ${bad.r.stage === 'run' ? 'run' : 'compiled'}: \`${firstLine.trim().slice(0, 200).replace(/`/g, "'")}\`. An automatic fix did not pass, so please review it before using it.`;
+    persistActiveConversation(); renderMessages();
+    toast(fixed ? 'Background check found a bug and added a tested fix' : 'Background check found a problem in the code', fixed ? '' : 'error');
+  }
+
+  // ---------- "this answer didn't work" (opt-in sharing) ----------
+  async function sendFeedback(msg, idx) {
+    const d = msg.drafts?.[msg.active]; if (!d) return;
+    const q = state.messages.slice(0, idx).reverse().find((m) => m.role === 'user');
+    showModal(`<h2 id="modal-title">What went wrong?</h2><p class="hint">Your note helps Astro AI pick better models and add this case to its tests.</p>
+      <textarea class="input" id="fb-note" rows="3" maxlength="2000" placeholder="Optional: wrong answer, code did not run, too slow…"></textarea>
+      <label class="dev-toggle" style="margin:10px 0"><input type="checkbox" id="fb-share"> Share this question and answer with the Astro AI team (never your keys or files)</label>
+      <div class="btn-row"><button type="button" class="btn primary" id="fb-send">Send</button><button type="button" class="btn ghost" id="modal-close">Skip</button></div>`);
+    $('#modal-close').onclick = () => closeModal();
+    $('#fb-send').onclick = async () => {
+      const share = $('#fb-share').checked;
+      try {
+        const r = await apiJson('/api/feedback', { kind: 'bad_answer', question: q?.content || '', answer: d.content || '', model: d.route || d.model || '', mode: state.mode, note: $('#fb-note').value, share });
+        closeModal(); toast(share ? (r.shared ? 'Thanks. Shared with the Astro AI team.' : 'Saved on this computer (sharing failed, try later).') : 'Thanks. Saved on this computer.');
+      } catch (err) { toast(err.message, 'error'); }
+    };
   }
 
   async function sendMessage(raw) {
@@ -1235,11 +1300,13 @@
         await runGeneration(ai, [state.model]);
         break;
       }
+      case 'byok': openSettings('providers'); break;
       case 'copy': copyText(textOf(msg)); break;
       case 'up': case 'down':
         msg.feedback = msg.feedback === act ? null : act;
         persistActiveConversation(); renderMessages();
-        if (msg.feedback) toast('Thanks for the feedback (saved only in this browser)');
+        if (msg.feedback === 'down') sendFeedback(msg, idx);
+        else if (msg.feedback) toast('Thanks for the feedback');
         break;
       case 'draft-prev': case 'draft-next':
         msg.active = Math.min(Math.max(msg.active + (act === 'draft-next' ? 1 : -1), 0), msg.drafts.length - 1);
@@ -1747,6 +1814,7 @@
       return `<div class="set-row"><div class="lbl"><b>Minds per answer</b><small>How many models think at the same time. All = every free model that is available right now (uses the most free quota)</small></div><div class="seg" id="set-minds">${[3, 4, 6, 8, 0].map((n) => `<button type="button" class="seg-btn${state.brain.minds === n ? ' active' : ''}" data-v="${n}">${n || `All (${pickMinds(Infinity).length})`}</button>`).join('')}</div></div>
         <div class="set-row"><div class="lbl"><b>Wait for every mind</b><small>All mode: every model runs and finishes before the merge (none skipped for being slow). Busy or rate-limited models wait their turn and retry. Answers take longer.</small></div><label class="switch"><input type="checkbox" id="set-waitall"${state.brain.waitAll !== false ? ' checked' : ''}><span></span></label></div>
         <div class="set-row"><div class="lbl"><b>Patience</b><small>When “Wait for every mind” is off (or for Live voice): how long to wait for slower minds after the first one answers</small></div><div class="seg" id="set-grace">${[4, 8, 12, 20].map((n) => `<button type="button" class="seg-btn${state.brain.grace === n ? ' active' : ''}" data-v="${n}">${n}s</button>`).join('')}</div></div>
+        <div class="set-row"><div class="lbl"><b>Check code in the background</b><small>After a coding answer is shown, Astro AI quietly compiles or runs the code (only self-contained code, 6 s limit, on this computer). If it fails, a coder model fixes it, and the fix is added only if it passes the check.</small></div><label class="switch"><input type="checkbox" id="set-bgcheck"${bgCheckOn() ? ' checked' : ''}><span></span></label></div>
         <div class="set-row"><div class="lbl"><b>Astro AI actions</b><small>Let the AI create notes, tasks, reminders and memories, and change settings when you ask</small></div><label class="switch"><input type="checkbox" id="set-agent"${state.agent ? ' checked' : ''}><span></span></label></div>
         ${providersHtml()}<div class="btn-row"><button type="button" class="btn primary" id="test-brain">${icon('i-sparkles')}Test the brain</button><button type="button" class="btn" id="refresh-brain">${icon('i-redo')}Refresh status</button></div><p class="hint" id="test-result"></p>
         <div class="box"><h3>Custom endpoint (optional)</h3><pre>LLM_BASE_URL=https://api.your-provider.com/v1\nLLM_API_KEY=your-secret-key\nLLM_MODEL=your-provider-model-id</pre></div>`;
@@ -1795,6 +1863,7 @@
       $('#set-waitall')?.addEventListener('change', (e) => { state.brain.waitAll = e.target.checked; saveBrain(); toast(e.target.checked ? 'Every mind will finish before the merge' : 'Slow minds may be skipped for speed'); });
       $$('#set-minds .seg-btn').forEach((b) => b.addEventListener('click', () => { state.brain.minds = Number(b.dataset.v); saveBrain(); openSettings('brain'); }));
       $$('#set-grace .seg-btn').forEach((b) => b.addEventListener('click', () => { state.brain.grace = Number(b.dataset.v); saveBrain(); openSettings('brain'); }));
+      $('#set-bgcheck')?.addEventListener('change', (e) => { ls.set('astro_bgcheck', e.target.checked ? '1' : '0'); });
       $('#set-agent').addEventListener('change', (e) => { state.agent = e.target.checked; ls.set(KEYS.agent, state.agent ? '1' : '0'); });
     }
     if (tab === 'general') {
@@ -2132,7 +2201,32 @@
   // Coding leads/mergers/reviewers: the free models that write the most reliable code come first.
   const CODE_RANK = [/deepseek-v4[^ ]*pro/i, /qwen3-coder-plus/i, /glm-5\.3(?!-flash)/i, /deepseek-v4/i, /qwen3\.8-max/i, /kimi-k2/i, /devstral/i, /minimax-m3(?!\.1-flash)/i, /qwen3\.5-397b/i, /codestral/i, /nemotron-3-ultra/i, /qwen3-coder/i, /gpt-oss-120b/i, /glm-5\.3-flash/i, /minimax-m3/i, /qwen3\.8/i, /llama-3[._]3-70b/i];
   const LEAD_RANK = [/glm-5\.3(?!-flash)/i, /deepseek-v4/i, /qwen3\.5-397b/i, /nemotron-3-ultra/i, /gpt-oss-120b/i, /minimax-m3/i, /glm-5\.3-flash/i, /qwen3\.[68]/i, /llama-3[._]3-70b/i, /mistral-small/i, /step-5/i, /nemotron-3\.5-super/i, /muse/i, /gpt-oss-20b/i];
-  function leadScore(m, code = false) { const s = `${m.id || m.model || m.route || ''} ${m.name || ''}`; const i = (code ? CODE_RANK : LEAD_RANK).findIndex((re) => re.test(s)); return i < 0 ? 99 : i; }
+  // Live model health (from the server's per-model success/speed stats) and the daily coding bench
+  // (model_rank.json, built by tests/coding_bench/make_rank.js) adjust the fixed order: a model that keeps
+  // failing right now drops back; one that passed more bench tasks moves up a little.
+  const MODEL_HEALTH = { models: {}, rank: {}, at: 0 };
+  async function refreshModelHealth() {
+    try { const r = await fetch('/api/models/health', { cache: 'no-store' }); if (r.ok) { MODEL_HEALTH.models = (await r.json()).models || {}; MODEL_HEALTH.at = Date.now(); } } catch (_e) { /* offline */ }
+  }
+  fetch('model_rank.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j && j.models) MODEL_HEALTH.rank = j.models; }).catch(() => {});
+  setTimeout(refreshModelHealth, 4000);
+  setInterval(() => { if (!document.hidden) refreshModelHealth(); }, 60000);
+  function healthPenalty(id) {
+    const h = MODEL_HEALTH.models[id]; if (!h) return 0;
+    let p = 0;
+    const recent = Date.now() - (h.last_at || 0) < 30 * 60 * 1000;
+    if (recent && h.fails_in_row >= 2) p += 40;
+    if (h.n >= 4 && h.ok_rate < 0.5) p += 25;
+    if (h.ewma_ms > 0 && h.ewma_ms < 8000) p -= 2;
+    if (h.ewma_ms > 40000) p += 6;
+    return p;
+  }
+  function benchBonus(id) { const r = MODEL_HEALTH.rank[id]; return r && typeof r.score === 'number' ? Math.round(r.score * 6) : 0; }
+  function leadScore(m, code = false) {
+    const s = `${m.id || m.model || m.route || ''} ${m.name || ''}`; const i = (code ? CODE_RANK : LEAD_RANK).findIndex((re) => re.test(s));
+    const id = m.id || m.route || m.model || '';
+    return (i < 0 ? 99 : i) + healthPenalty(id) - (code ? benchBonus(id) : 0);
+  }
   function rankLead(list, code = false) { return list.map((m, i) => [m, i]).sort((a, b) => leadScore(a[0], code) - leadScore(b[0], code) || a[1] - b[1]).map((x) => x[0]); }
   const TEAM_ROLES = {
     code: ['Architect: design the structure, files and data flow, then write the solution.', 'Engineer: write complete, working, runnable code.', 'Tester: write the solution and point out bugs, edge cases and how to verify it works.',
@@ -3234,11 +3328,24 @@
   document.body.append(astro.imageInput);
 
   // ---------- confidence + early answer ----------
+  // gpt-oss models sometimes leak their hidden reasoning ("analysis… assistantfinal …" or harmony
+  // <|channel|> tokens). Keep only the final answer.
+  function stripReasoningLeak(text) {
+    let t = String(text || '');
+    if (t.includes('<|channel|>') || t.includes('<|message|>')) {
+      const fin = t.lastIndexOf('<|channel|>final<|message|>');
+      if (fin >= 0) t = t.slice(fin + '<|channel|>final<|message|>'.length);
+      t = t.replace(/<\|(start|end|return|call|channel|message|constrain)\|>[^<\n]*?(?=<\||\n|$)/g, '').replace(/<\|[a-z_]+\|>/g, '');
+    }
+    const m = /^\s*analysis[\s\S]{0,20000}?assistant\s*final/i.exec(t);
+    if (m) t = t.slice(m.index + m[0].length).replace(/^\s*[:>-]?\s*/, '');
+    return t;
+  }
   function stripConfidence(text) { return String(text || '').replace(/\n*\[\[\s*(c(o(n(f(i(d(e(n(c(e(\s*:[^\]\n]{0,12})?)?)?)?)?)?)?)?)?)?)?\s*\]?\]?\s*$/i, ''); }
   function takeConfidence(d) {
     const m = String(d.content || '').match(/\[\[\s*confidence\s*:\s*(high|medium|low)\s*\]\]\s*$/i);
     if (m) d.confidence = m[1].toLowerCase();
-    d.content = stripConfidence(d.content).trimEnd();
+    d.content = stripConfidence(stripReasoningLeak(d.content)).trimEnd();
   }
   function earlyHtml(d) {
     const shown = extractActions(d.early.content).clean;
@@ -5966,6 +6073,7 @@
     return o;
   }
   function agParse(text) {
+    text = stripReasoningLeak(text);
     const calls = []; let done = null; let narrative = ''; let last = 0; let m;
     const re = /```([^\n`]*)\n([\s\S]*?)(```|$)/g;
     while ((m = re.exec(text))) {
@@ -6421,6 +6529,8 @@
         if (dup && report && dup.text.trim() === String(report).trim()) { via = dup.model || ''; s.items.splice(s.items.indexOf(dup), 1); }
         agPush(s, { kind: 'done', text: report, files: changes.length, steps: s.steps, ms: Math.round(s.ms + performance.now() - s._started), model: via });
         if (window.AstroDev?.mode?.(s) === 'plan') agPush(s, { kind: 'note', text: 'Plan mode: nothing was changed. Review the plan, then run it.', runPlan: true });
+        // Honesty check: files changed after the last real run, so any "tests pass" in the report is unproven.
+        else if (unverified && changes.length) agPush(s, { kind: 'note', text: /\b(tests?|specs?)\b[^.\n]{0,40}\b(pass|passed|passing|green|succeed)|\bverified\b|\bworks\b/i.test(String(report)) ? 'Heads up: the report says the work was checked, but nothing was run after the last change. Treat it as untested and run it yourself, or press Continue so the agent tests it.' : 'Nothing was run after the last change, so this result is not tested yet. Press Continue to let the agent test it.', cont: true });
         s.status = 'done';
       }
     } catch (err) {
