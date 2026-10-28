@@ -198,8 +198,8 @@ done
 # ------------------------------------------------------------------------------------------------
 echo "==> Checking the clean edition for keys"
 SECRETS="$WORK/secrets.txt"; umask 077
-{ [ -f .astro_keys.env ] && sed -n 's/^[A-Za-z_][A-Za-z0-9_]*=//p' .astro_keys.env
-  [ -f "$WORK/payload-personal/gateway.env" ] && sed -n 's/^LLM_API_KEY=//p' "$WORK/payload-personal/gateway.env"; } \
+{ if [ -f .astro_keys.env ]; then sed -n 's/^[A-Za-z_][A-Za-z0-9_]*=//p' .astro_keys.env; fi
+  if [ -f "$WORK/payload-personal/gateway.env" ]; then sed -n 's/^LLM_API_KEY=//p' "$WORK/payload-personal/gateway.env"; fi; } \
   | tr -d "\"'" | awk 'length($0) >= 12' > "$SECRETS"
 # The installer payload is compressed: unpack the clean one so the scan can read it.
 rm -rf "$WORK/setup-clean/unz"; mkdir -p "$WORK/setup-clean/unz"; (cd "$WORK/setup-clean/unz" && unzip -q ../payload.zip)
