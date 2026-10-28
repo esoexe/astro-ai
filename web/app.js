@@ -1135,6 +1135,7 @@
     msg.sources = excerpt.sources;
     const extra = opts.rewrite ? [{ role: 'assistant', content: textOf(msg).slice(0, LIMITS.msgChars) }, { role: 'user', content: `${opts.rewrite.prompt} Reply with only the rewritten answer.` }] : [];
     const payload = { messages: buildHistory(idx, extra), context: excerpt.context, mode: state.mode, language: state.language, agent: state.agent, workspace: state.agent ? workspaceSnapshot() : '', voice: Boolean(opts.voice) };
+    payload.code = !opts.voice && (state.mode === 'coding' || isCodeRequest(lastUser?.content || '') || (Boolean(opts.rewrite) && /```/.test(textOf(msg))));
     if (!payload.messages.length || payload.messages[payload.messages.length - 1].role !== 'user') { toast('Nothing to answer yet'); return; }
     const fresh = requestedModels.map((model) => ({ id: makeId(), content: '', thinking: '', notice: '', status: 'streaming', requested: model, started: performance.now(), model: '', ms: 0, rewrite: opts.rewrite?.label || '' }));
     msg.drafts.push(...fresh);
@@ -2045,7 +2046,9 @@
     const GROUP = 4;
     if (good.length <= 8) return good; // up to 8 drafts fit in one merge
     const last = payload.messages[payload.messages.length - 1];
-    const mergers = good.filter((m) => m.status === 'done').sort((x, y) => x.ms - y.ms);
+    const doneMinds = good.filter((m) => m.status === 'done');
+    // Code: group merges go to the strongest coders; otherwise the fastest minds merge.
+    const mergers = payload.code || payload.files ? rankLead(doneMinds, true) : doneMinds.sort((x, y) => x.ms - y.ms);
     const n = Math.ceil(good.length / GROUP);
     const groups = Array.from({ length: n }, () => []);
     good.forEach((m, i) => groups[i % n].push(m)); // mix fast and slow minds in every group
@@ -2055,7 +2058,8 @@
     return Promise.all(groups.map(async (g, i) => {
       const mm = mergers[(i + 1) % Math.max(1, mergers.length)] || g[0];
       const sub = { id: makeId(), content: '', thinking: '', notice: '', status: 'streaming', requested: mm.route || mm.model, started: performance.now() };
-      const p = { ...payload, stage: 'synth', strict: false, max_tokens: voice ? 320 : 1100, messages: [...payload.messages.slice(0, -1), { role: 'user', content: synthMessage(last.content, g) }] };
+      const codeReq = Boolean(payload.code || payload.files);
+      const p = { ...payload, stage: 'synth', strict: false, max_tokens: voice ? 320 : codeReq ? 4000 : 1100, messages: [...payload.messages.slice(0, -1), { role: 'user', content: synthMessage(last.content, g, '', codeReq ? 20000 : 10400) }] };
       await streamDraft(sub, p, signal, { onUpdate: () => { b.merges[i].len = sub.content.length; schedulePaint(d); } });
       const ok = sub.status === 'done' && sub.content.trim().length > 40;
       b.merges[i].status = ok ? 'done' : 'failed';
@@ -2116,9 +2120,20 @@
   }
   // ---------- Team: lead plans, members work in roles, reviewers check, lead writes the answer ----------
   const SHOW_THINKING = false;
+  // Is this message about code? Then the server adds Astro's coding standard and lowers the temperature,
+  // and the team gets coding roles, coding-strong leads and room for complete files.
+  const CODE_WORDS = /\b(code|coding|function|method|class|script|program|bug|debug|error|exception|traceback|stack ?trace|compile[rsd]?|syntax|refactor|implement|algorithm|regex|regexp|api|endpoint|sql|query|database|schema|json|yaml|unit tests?|npm|pip|cargo|gradle|docker|git|python|javascript|typescript|node(?:\.js)?|react|vue|svelte|angular|html|css|tailwind|java|kotlin|swift|rust|golang|c\+\+|c#|php|ruby|bash|shell|powershell|lua|dart|flutter|django|flask|fastapi|express|next\.js|leetcode)\b/i;
+  const CODE_SIGNS = /```|\b\w+\.(?:py|js|mjs|ts|tsx|jsx|c|cc|cpp|h|hpp|cs|java|go|rs|rb|php|sh|sql|html|css|json|yml|yaml|toml|kt|swift)\b|=>|\bdef \w+\(|\bfunction\s*\w*\(|#include|console\.log|System\.out|\bimport \w+|\w+Error\b/;
+  const ARABIC_FRENCH_CODE = /برمج|كود|شيفرة|دالة|خطأ برمجي|programm|fonction|déboguer|bogue/i;
+  function isCodeRequest(text) {
+    const t = String(text || '').slice(0, 6000);
+    return CODE_SIGNS.test(t) || CODE_WORDS.test(t) || ARABIC_FRENCH_CODE.test(t);
+  }
+  // Coding leads/mergers/reviewers: the free models that write the most reliable code come first.
+  const CODE_RANK = [/deepseek-v4[^ ]*pro/i, /qwen3-coder-plus/i, /glm-5\.3(?!-flash)/i, /deepseek-v4/i, /qwen3\.8-max/i, /kimi-k2/i, /devstral/i, /minimax-m3(?!\.1-flash)/i, /qwen3\.5-397b/i, /codestral/i, /nemotron-3-ultra/i, /qwen3-coder/i, /gpt-oss-120b/i, /glm-5\.3-flash/i, /minimax-m3/i, /qwen3\.8/i, /llama-3[._]3-70b/i];
   const LEAD_RANK = [/glm-5\.3(?!-flash)/i, /deepseek-v4/i, /qwen3\.5-397b/i, /nemotron-3-ultra/i, /gpt-oss-120b/i, /minimax-m3/i, /glm-5\.3-flash/i, /qwen3\.[68]/i, /llama-3[._]3-70b/i, /mistral-small/i, /step-5/i, /nemotron-3\.5-super/i, /muse/i, /gpt-oss-20b/i];
-  function leadScore(m) { const s = `${m.id || m.model || m.route || ''} ${m.name || ''}`; const i = LEAD_RANK.findIndex((re) => re.test(s)); return i < 0 ? 99 : i; }
-  function rankLead(list) { return list.map((m, i) => [m, i]).sort((a, b) => leadScore(a[0]) - leadScore(b[0]) || a[1] - b[1]).map((x) => x[0]); }
+  function leadScore(m, code = false) { const s = `${m.id || m.model || m.route || ''} ${m.name || ''}`; const i = (code ? CODE_RANK : LEAD_RANK).findIndex((re) => re.test(s)); return i < 0 ? 99 : i; }
+  function rankLead(list, code = false) { return list.map((m, i) => [m, i]).sort((a, b) => leadScore(a[0], code) - leadScore(b[0], code) || a[1] - b[1]).map((x) => x[0]); }
   const TEAM_ROLES = {
     code: ['Architect: design the structure, files and data flow, then write the solution.', 'Engineer: write complete, working, runnable code.', 'Tester: write the solution and point out bugs, edge cases and how to verify it works.',
       'Reviewer: write the solution with a focus on correctness, security and clean code.', 'UX designer: write the solution with a focus on a polished, usable result.', 'Simplifier: write the simplest solution that fully works.'],
@@ -2126,7 +2141,7 @@
       'Explainer: make the answer clear and easy to understand, with an example.', 'Fact-checker: verify claims, numbers and dates; flag anything doubtful.', 'Creative thinker: add useful ideas or angles others may miss.', 'Practical advisor: focus on concrete, actionable steps.'],
   };
   function teamRoles(n, payload) {
-    const list = payload.files || payload.mode === 'coding' ? TEAM_ROLES.code : TEAM_ROLES.general;
+    const list = payload.files || payload.code || payload.mode === 'coding' ? TEAM_ROLES.code : TEAM_ROLES.general;
     return Array.from({ length: n }, (_x, i) => list[i % list.length]);
   }
   // One helper call (plan / review) with a time limit; tries the given models in order.
@@ -2159,11 +2174,11 @@
     const lastMsg = payload.messages[payload.messages.length - 1];
     let teamMessages = payload.messages;
     if (team) {
-      const brief = await teamCall(rankLead(first.filter((m) => !m.blocked)), { ...payload, stage: 'plan', strict: false, max_tokens: 500 }, signal, 45000);
+      const brief = await teamCall(rankLead(first.filter((m) => !m.blocked), payload.code || payload.files), { ...payload, stage: 'plan', strict: false, max_tokens: 500 }, signal, 45000);
       if (brief) teamMessages = [...payload.messages.slice(0, -1), { role: 'user', content: `${lastMsg.content}\n\n<team_brief from="lead">\n${brief.slice(0, 2500)}\n</team_brief>` }];
       b.phase = 'minds'; schedulePaint(d);
     }
-    const expertPayload = { ...payload, messages: teamMessages, stage: team ? 'team' : 'expert', roles: team ? teamRoles(first.length, payload) : undefined, strict: true, max_tokens: voice ? 360 : (payload.files ? 3000 : 1400), patient };
+    const expertPayload = { ...payload, messages: teamMessages, stage: team ? 'team' : 'expert', roles: team ? teamRoles(first.length, payload) : undefined, strict: true, max_tokens: voice ? 360 : payload.files ? 3000 : payload.code ? 5000 : 1400, patient };
     const graceMs = (voice ? Math.min(3, state.brain.grace) : state.brain.grace) * 1000;
     // Patient mode has no time cut: only Stop, "Merge now" or a 20-minute safety limit end the thinking.
     const hardMs = patient ? 20 * 60 * 1000 : voice ? 25000 : (all ? 50000 : 70000);
@@ -2255,7 +2270,8 @@
       return;
     }
     good.sort((x, y) => x.ms - y.ms);
-    const merger = rankLead(good.filter((m) => m.status === 'done'))[0] || good[0];
+    const codeReq = Boolean(payload.code || payload.files);
+    const merger = rankLead(good.filter((m) => m.status === 'done'), codeReq)[0] || good[0];
     let inputs = await mergeRound(d, b, payload, good, signal, voice);
     // Many minds: keep merging in groups until the final merge gets at most 8 inputs.
     while (inputs.length > 8 && !signal.aborted) inputs = await mergeRound(d, b, payload, inputs, signal, voice);
@@ -2266,12 +2282,13 @@
       return;
     }
     const last = payload.messages[payload.messages.length - 1];
-    const total = payload.files ? 20000 : 14000;
+    // Code drafts must reach the reviewers and the merger whole: a cut-off draft looks broken.
+    const total = payload.files ? 24000 : codeReq ? 22000 : 14000;
     let notes = '';
     if (team && inputs.length >= 2) {
       b.phase = 'review'; schedulePaint(d);
-      const reviewers = rankLead(good.filter((m) => m.status === 'done' && m !== merger)).slice(0, 2);
-      const reviewPayload = { ...payload, stage: 'review', strict: false, max_tokens: 700, messages: [...payload.messages.slice(0, -1), { role: 'user', content: synthMessage(last.content, inputs, '', total) }] };
+      const reviewers = rankLead(good.filter((m) => m.status === 'done' && m !== merger), codeReq).slice(0, 2);
+      const reviewPayload = { ...payload, stage: 'review', strict: false, max_tokens: codeReq ? 900 : 700, messages: [...payload.messages.slice(0, -1), { role: 'user', content: synthMessage(last.content, inputs, '', total) }] };
       const got = await Promise.all(reviewers.map((r) => teamCall([r], reviewPayload, signal, 90000)));
       notes = got.filter(Boolean).map((x, i) => `### Reviewer ${i + 1}\n${x.slice(0, 2500)}`).join('\n\n');
     }
@@ -2283,7 +2300,7 @@
     }
     b.phase = 'final'; b.round = b.merges ? 2 : 0; b.mergedBy = merger.name;
     schedulePaint(d);
-    const synthPayload = { ...payload, stage: 'synth', strict: false, max_tokens: voice ? 420 : (payload.files ? 8000 : undefined), messages: [...payload.messages.slice(0, -1), { role: 'user', content: synthMessage(last.content, inputs, notes, total) }] };
+    const synthPayload = { ...payload, stage: 'synth', strict: false, max_tokens: voice ? 420 : (payload.files || payload.code ? 8000 : undefined), messages: [...payload.messages.slice(0, -1), { role: 'user', content: synthMessage(last.content, inputs, notes, total) }] };
     d.requested = merger.route || merger.model;
     d.content = '';
     const fin = { id: makeId(), content: '', thinking: '', notice: '', status: 'streaming', requested: d.requested, started: performance.now() };
@@ -2292,8 +2309,24 @@
     takeConfidence(d);
     d.early = null;
     b.ms = performance.now() - started;
+    // Code: a failed merge gets one retry with the next-best coder (2-minute cap) before falling back.
+    const backup = codeReq && d.status === 'error' && !signal.aborted ? rankLead(good.filter((m) => m.status === 'done' && m !== merger), true)[0] : null;
+    if (backup) {
+      const ctl = new AbortController(); const stop = () => ctl.abort(); signal.addEventListener('abort', stop);
+      const timer = setTimeout(stop, 120000);
+      const again = { id: makeId(), content: '', thinking: '', notice: '', status: 'streaming', requested: backup.route || backup.model, started: performance.now() };
+      b.mergedBy = backup.name; schedulePaint(d);
+      try { await streamDraft(again, synthPayload, ctl.signal, { onUpdate: () => { d.content = again.content; schedulePaint(d); } }); } catch (_e) { /* fall back below */ }
+      clearTimeout(timer); signal.removeEventListener('abort', stop);
+      if (again.status === 'done' && again.content.trim()) {
+        Object.assign(d, { content: again.content, status: 'done', error: '', model: again.model, route: again.route, provider: again.provider, truncated: again.truncated });
+        takeConfidence(d);
+      }
+    }
     if (d.status === 'error' && !signal.aborted) {
-      const best = inputs.reduce((a, m) => (m.status === 'done' && m.content.length > a.content.length ? m : a), inputs[0]);
+      // For code the strongest coder's own draft is the safest fallback; otherwise the most complete answer.
+      const best = codeReq && merger?.status === 'done' && merger.content ? merger
+        : inputs.reduce((a, m) => (m.status === 'done' && m.content.length > a.content.length ? m : a), inputs[0]);
       Object.assign(d, { content: best.content, status: 'done', error: '', model: best.name });
       b.single = true;
       d.notice = "The final merge failed, so this is the strongest merged or single answer";
@@ -5970,7 +6003,7 @@
   function agCands() {
     let ready = [];
     try { ready = pickMinds(Infinity).filter((m) => !m.blocked && m.kind !== 'local'); } catch (_e) { /* models not loaded */ }
-    return rankLead(ready).slice(0, 6);
+    return rankLead(ready, true).slice(0, 6);
   }
   function agCompact(s) {
     const c = s.convo; if (!c.length) return [];

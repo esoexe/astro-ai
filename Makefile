@@ -18,6 +18,8 @@ run: $(TARGET)
 
 test: $(TARGET)
 	bash tests/smoke_cpp.sh
+	node tests/agent_parse_test.js
+	node tests/code_detect_test.js
 
 clean:
 	rm -f $(TARGET) astro_measure

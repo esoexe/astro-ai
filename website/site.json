@@ -2,8 +2,8 @@
   "name": "Astro AI",
   "url": "https://esoexe.github.io/astro-ai",
   "description": "Astro AI is a free desktop app for chat, code and agents, powered by a team of free AI models that answer as one. Windows, Linux and macOS.",
-  "version": "1.1.0",
-  "dateLabel": "October 27, 2026",
+  "version": "1.1.1",
+  "dateLabel": "October 28, 2026",
   "year": 2026,
   "repo": "https://github.com/esoexe/astro-ai"
 }
