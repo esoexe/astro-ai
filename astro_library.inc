@@ -1,5 +1,5 @@
 // =============================================================================================
-// Astro AI Library: install MCP servers, skills and plugins from the official catalog
+// A.S.T.R.O AI Library: install MCP servers, skills and plugins from the official catalog
 // (included from astro_dev.inc, inside the anonymous namespace).
 //
 //   POST /api/dev/library/index       the catalog + what is installed here
@@ -37,9 +37,9 @@ std::string library_get(const std::string& url, std::size_t cap, std::string& er
     bool local = false;
     if (!library_url_ok(url, local)) { error = "The library address is not allowed: " + truncate(url, 120); return {}; }
     const FetchResult r = http_fetch(url, {"Accept: application/json, text/plain, */*", "Cache-Control: no-cache"}, nullptr, 40, cap, !local);
-    if (!r.error.empty()) { error = "Could not reach the Astro AI Library: " + r.error; return {}; }
+    if (!r.error.empty()) { error = "Could not reach the A.S.T.R.O AI Library: " + r.error; return {}; }
     if (r.truncated) { error = "A library file is larger than allowed."; return {}; }
-    if (r.status != 200) { error = "The Astro AI Library answered HTTP " + std::to_string(r.status) + " for " + truncate(url, 120); return {}; }
+    if (r.status != 200) { error = "The A.S.T.R.O AI Library answered HTTP " + std::to_string(r.status) + " for " + truncate(url, 120); return {}; }
     return r.body;
 }
 std::string library_base_url() { const std::string u = library_index_url(); return u.substr(0, u.rfind('/') + 1); }
@@ -56,7 +56,7 @@ Json library_index(bool force, std::string& error) {
     }
     try {
         Json j = JsonParser(g_lib_cache).parse();
-        if (json_int(j, "schema", 0) != 1 || !j.get("items") || !j.get("items")->array_ptr()) { error = "The library catalog has an unknown format. Update Astro AI."; return Json(); }
+        if (json_int(j, "schema", 0) != 1 || !j.get("items") || !j.get("items")->array_ptr()) { error = "The library catalog has an unknown format. Update A.S.T.R.O AI."; return Json(); }
         return j;
     } catch (const std::exception& e) { error = std::string("The library catalog is not valid: ") + e.what(); return Json(); }
 }
@@ -122,7 +122,7 @@ void lib_mcp_forget(const std::string& id) {
 // public GitHub repos, AI command-line tools and an AI app directory (library/import/index_all.js). Rules here:
 //   * MCP packages run pinned (npx pkg@x.y.z, uvx pkg==x.y.z, docker image:tag); remote servers must be https
 //   * skills and plugins are downloaded from GitHub at the commit that was indexed, and every file must match its SHA-256
-//   * text files only; no hooks, no Astro plugin UI scripts (main.js / style.css); plugin MCP servers must be remote
+//   * text files only; no hooks, no A.S.T.R.O plugin UI scripts (main.js / style.css); plugin MCP servers must be remote
 //   * command-line tools install into ext/tools/<id> (never system-wide) and are added to PATH for the agent and terminal
 std::string library_v2_base() { return library_base_url() + "v2/"; }
 // Where skill and plugin files are downloaded from (pinned commits on GitHub). Tests point this at 127.0.0.1.
@@ -166,7 +166,7 @@ std::optional<Json> lib_v2_detail(const std::string& id, std::string& error) {
             if (const Json* it = j.get(id); it && it->object_ptr()) return *it;
         } catch (const std::exception& e) { error = std::string("The catalog is not valid: ") + e.what(); }
     }
-    if (error.empty()) error = "That item is not in the Astro AI Library (it may have been removed).";
+    if (error.empty()) error = "That item is not in the A.S.T.R.O AI Library (it may have been removed).";
     return std::nullopt;
 }
 
@@ -535,7 +535,7 @@ void lib_install(int fd, const Json& body) {
         if (!community) {
             if (!index.object_ptr()) { send_json(fd, 502, error_json(error)); return; }
             const bool offline = e2.find("Could not reach") != std::string::npos;
-            send_json(fd, offline ? 502 : 404, error_json(offline ? e2 : std::string("That item is not in the Astro AI Library (it may have been removed).")));
+            send_json(fd, offline ? 502 : 404, error_json(offline ? e2 : std::string("That item is not in the A.S.T.R.O AI Library (it may have been removed).")));
             return;
         }
         auto receipts = lib_receipts();

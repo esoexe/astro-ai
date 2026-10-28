@@ -1,8 +1,8 @@
-<!--meta {"title": "Docs", "description": "Install Astro AI, use One Brain, add free provider keys, and get the most out of the Workspace, Agent, voice and knowledge files. Plus troubleshooting and uninstall.", "nav": "docs"} -->
+<!--meta {"title": "Docs", "description": "Install A.S.T.R.O AI, use One Brain, add free provider keys, and get the most out of the Workspace, Agent, voice and knowledge files. Plus troubleshooting and uninstall.", "nav": "docs"} -->
 <section class="page-hero">
   <div class="wrap">
     <span class="eyebrow">Documentation</span>
-    <h1 class="h2">Astro AI <em class="accent">docs.</em></h1>
+    <h1 class="h2">A.S.T.R.O AI <em class="accent">docs.</em></h1>
     <p class="lead">Everything you need, from the first launch to advanced setups. If something isn't covered here, check <a href="#troubleshooting">Troubleshooting</a>.</p>
   </div>
 </section>
@@ -14,14 +14,14 @@
     <a href="#install-linux">Install on Linux</a>
     <a href="#install-macos">Install on macOS</a>
     <a href="#first-chat">Your first chat</a>
-    <h4>Using Astro AI</h4>
+    <h4>Using A.S.T.R.O AI</h4>
     <a href="#one-brain">One Brain &amp; single models</a>
     <a href="#keys">Adding free keys</a>
     <a href="#workspace">Workspace</a>
     <a href="#agent">Agent</a>
     <a href="#terminal">Terminal &amp; parallel agents</a>
     <a href="#extensions">Folders, skills, MCP &amp; plugins</a>
-    <a href="#astro-key">Astro API key</a>
+    <a href="#astro-key">A.S.T.R.O API key</a>
     <a href="#voice">Voice</a>
     <a href="#knowledge">Knowledge, notes &amp; tasks</a>
     <a href="#shortcuts">Shortcuts</a>
@@ -36,17 +36,17 @@
     <h2 id="install-windows">Install on Windows</h2>
     <ol>
       <li>Download <a href="{{dl:windows-x64-Setup:href}}">{{dl:windows-x64-Setup:file}}</a> ({{dl:windows-x64-Setup:size}}).</li>
-      <li>Double-click it and choose <strong>Install</strong>. Astro AI installs just for your user account, so there's no administrator prompt.</li>
-      <li>Launch it from the Start menu or the desktop shortcut. The app is called <strong>Astro AI Clean</strong>.</li>
+      <li>Double-click it and choose <strong>Install</strong>. A.S.T.R.O AI installs just for your user account, so there's no administrator prompt.</li>
+      <li>Launch it from the Start menu or the desktop shortcut. The app is called <strong>A.S.T.R.O AI Clean</strong>.</li>
     </ol>
     <div class="callout warn"><div><b>"Windows protected your PC"?</b> The installer isn't code-signed yet, so SmartScreen warns about it. Click <strong>More info → Run anyway</strong>. To make sure the file is genuine, check its <a href="{{root}}download.html#verify">SHA-256 checksum</a> first.</div></div>
     <p>Rather not install anything? Download the <a href="{{dl:windows-x64-portable:href}}">portable zip</a>, extract it anywhere, and run <code>AstroAI-Clean.exe</code>.</p>
-    <p>Astro AI uses the Microsoft Edge <strong>WebView2</strong> runtime. It's built into Windows 11 and up-to-date Windows 10. If it's missing, the app tells you and opens Microsoft's download page.</p>
+    <p>A.S.T.R.O AI uses the Microsoft Edge <strong>WebView2</strong> runtime. It's built into Windows 11 and up-to-date Windows 10. If it's missing, the app tells you and opens Microsoft's download page.</p>
 
     <h2 id="install-linux">Install on Linux</h2>
     <p>On Debian, Ubuntu and their derivatives, install the package with apt so it pulls in dependencies (WebKitGTK 4.1, libcurl, OpenSSL 3):</p>
 <pre><code>sudo apt install ./{{dl:_amd64:file}}</code></pre>
-    <p>Then open <strong>Astro AI Clean</strong> from your app menu, or run <code>astro-ai-clean</code> in a terminal.</p>
+    <p>Then open <strong>A.S.T.R.O AI Clean</strong> from your app menu, or run <code>astro-ai-clean</code> in a terminal.</p>
     <p>On other distributions, use the <a href="{{dl:linux-x64-portable:href}}">portable tarball</a>:</p>
 <pre><code>tar xzf {{dl:linux-x64-portable:file}}
 cd astro-ai-clean-{{version}}-linux-x64-CLEAN
@@ -55,8 +55,8 @@ cd astro-ai-clean-{{version}}-linux-x64-CLEAN
     <p>Requirements: 64-bit, glibc 2.35 or newer (Ubuntu 22.04+, Debian 12+, Fedora 36+), and WebKitGTK 4.1 (<code>libwebkit2gtk-4.1-0</code>, or <code>webkit2gtk4.1</code> on Fedora).</p>
 
     <h2 id="install-macos">Install on macOS</h2>
-    <p>Download the <a href="{{dl:macos-universal:href}}">disk image</a> (<code>{{dl:macos-universal:file}}</code>). It's one universal app that runs natively on Apple Silicon and Intel. Open it and drag <strong>Astro AI Clean</strong> into Applications.</p>
-    <p>The app isn't notarized by Apple yet, so the first time you open it, macOS says it can't check the app. Right-click (or Control-click) <strong>Astro AI Clean</strong> in Applications and choose <strong>Open</strong>, then <strong>Open</strong> again. On newer macOS versions, go to <strong>System Settings › Privacy &amp; Security</strong> and click <strong>Open Anyway</strong>. You only do this once.</p>
+    <p>Download the <a href="{{dl:macos-universal:href}}">disk image</a> (<code>{{dl:macos-universal:file}}</code>). It's one universal app that runs natively on Apple Silicon and Intel. Open it and drag <strong>A.S.T.R.O AI Clean</strong> into Applications.</p>
+    <p>The app isn't notarized by Apple yet, so the first time you open it, macOS says it can't check the app. Right-click (or Control-click) <strong>A.S.T.R.O AI Clean</strong> in Applications and choose <strong>Open</strong>, then <strong>Open</strong> again. On newer macOS versions, go to <strong>System Settings › Privacy &amp; Security</strong> and click <strong>Open Anyway</strong>. You only do this once.</p>
     <h3>Or build it yourself</h3>
     <p>If you'd rather compile it on your own Mac, use the build kit. It takes about a minute, and macOS opens an app you built yourself without the warning.</p>
     <ol>
@@ -66,12 +66,12 @@ cd astro-ai-clean-{{version}}-linux-x64-CLEAN
 <pre><code>tar xzf {{dl:macos-source:file}}
 cd AstroAI-{{version}}-macos-source-CLEAN
 ./build_mac.sh</code></pre></li>
-      <li>Open the <code>.dmg</code> it creates and drag <strong>Astro AI Clean</strong> into Applications.</li>
+      <li>Open the <code>.dmg</code> it creates and drag <strong>A.S.T.R.O AI Clean</strong> into Applications.</li>
     </ol>
     <p>Needs macOS 11 Big Sur or newer. To build for just one architecture, use <code>ARCHS="-arch arm64" ./build_mac.sh</code>. Because you built the app yourself, macOS opens it without the warning it shows for downloaded apps.</p>
 
     <h2 id="first-chat">Your first chat</h2>
-    <p>Open Astro AI and type a question in the box that says <strong>Ask Astro AI</strong>. That's it: there's no account and nothing to set up. The model menu above the chat starts on <strong>One Brain · all 26 minds together</strong>, and the status bar at the bottom left shows how many models are ready.</p>
+    <p>Open A.S.T.R.O AI and type a question in the box that says <strong>Ask A.S.T.R.O AI</strong>. That's it: there's no account and nothing to set up. The model menu above the chat starts on <strong>One Brain · all 26 minds together</strong>, and the status bar at the bottom left shows how many models are ready.</p>
     <p>Under the message box you'll find:</p>
     <ul>
       <li><strong>General / Compare / Web</strong>: the answer mode. Web brings in fresh search results.</li>
@@ -96,7 +96,7 @@ cd AstroAI-{{version}}-macos-source-CLEAN
     <div class="callout"><div>Free tiers have rate and daily limits, and providers can change them at any time. When one runs out, the rest of the team keeps answering. Limits reset on the provider's schedule, usually daily.</div></div>
 
     <h2 id="keys">Adding free keys</h2>
-    <p>Out of the box, Astro AI uses providers that need no key. To grow the team, create free API keys with your own accounts and paste them into <strong>Settings → Providers &amp; keys</strong>. New models join One Brain straight away.</p>
+    <p>Out of the box, A.S.T.R.O AI uses providers that need no key. To grow the team, create free API keys with your own accounts and paste them into <strong>Settings → Providers &amp; keys</strong>. New models join One Brain straight away.</p>
     <table>
       <thead><tr><th>Provider</th><th>Get a free key</th></tr></thead>
       <tbody>
@@ -115,13 +115,13 @@ cd AstroAI-{{version}}-macos-source-CLEAN
         <tr><td>Atria</td><td><a href="https://api.atria-asi.ai/console/keys" rel="noopener">api.atria-asi.ai</a></td></tr>
       </tbody>
     </table>
-    <p>Astro AI supports more than 50 providers, and Settings lists all of them with sign-up links. Keys are saved only on your computer, in the <a href="#data">data folder</a>. Treat them like passwords: anyone with your key can use your quota.</p>
+    <p>A.S.T.R.O AI supports more than 50 providers, and Settings lists all of them with sign-up links. Keys are saved only on your computer, in the <a href="#data">data folder</a>. Treat them like passwords: anyone with your key can use your quota.</p>
 
-    <h2 id="astro-key">Astro API key</h2>
-    <p>If you saved provider keys in your <a href="{{root}}profile">Astro account</a>, you don't need to paste them into every computer. Create an Astro key in <strong>Account → API keys</strong> (it starts with <code>astro_sk_</code>) and paste it into the <strong>Astro API key</strong> card at the top of <strong>Settings → Providers &amp; keys</strong>, then press <strong>Test</strong>.</p>
+    <h2 id="astro-key">A.S.T.R.O API key</h2>
+    <p>If you saved provider keys in your <a href="{{root}}profile">A.S.T.R.O account</a>, you don't need to paste them into every computer. Create an A.S.T.R.O key in <strong>Account → API keys</strong> (it starts with <code>astro_sk_</code>) and paste it into the <strong>A.S.T.R.O API key</strong> card at the top of <strong>Settings → Providers &amp; keys</strong>, then press <strong>Test</strong>.</p>
     <ul>
-      <li><strong>Astro auto</strong> answers through your saved free providers and fails over between them.</li>
-      <li><strong>Astro API: pick any model</strong> lists every model your account can reach, for manual picking.</li>
+      <li><strong>A.S.T.R.O auto</strong> answers through your saved free providers and fails over between them.</li>
+      <li><strong>A.S.T.R.O API: pick any model</strong> lists every model your account can reach, for manual picking.</li>
       <li>Paid providers are used only if you turn them on for your account. The limit is 5,000 requests a day per account.</li>
     </ul>
 
@@ -156,17 +156,17 @@ cd AstroAI-{{version}}-macos-source-CLEAN
     <div class="callout warn"><div><b>Use it with care.</b> The agent runs real commands on your computer. Give it a project folder you're happy for it to change, and keep backups of anything that matters.</div></div>
 
     <h2 id="terminal">Terminal &amp; parallel agents</h2>
-    <p>The desktop downloads include <code>astro</code>, the Astro AI agent for your terminal. It is <code>/usr/bin/astro</code> with the Linux .deb. On Windows, Setup adds it to your PATH, so open a new terminal after installing. On macOS it is inside the app, and the installer prints the one-line link command. If the app is closed, <code>astro</code> uses the app's engine and starts it when needed.</p>
+    <p>The desktop downloads include <code>astro</code>, the A.S.T.R.O AI agent for your terminal. It is <code>/usr/bin/astro</code> with the Linux .deb. On Windows, Setup adds it to your PATH, so open a new terminal after installing. On macOS it is inside the app, and the installer prints the one-line link command. If the app is closed, <code>astro</code> uses the app's engine and starts it when needed.</p>
     <ul>
       <li><code>cd my-project &amp;&amp; astro</code> starts an interactive session on that folder. Type <code>/help</code> for commands, press Ctrl+C to stop the agent and use <code>/undo</code> to put the folder back.</li>
       <li><code>astro -p "fix the failing test"</code> runs once for scripts and CI. Add <code>--json</code> for one JSON event per line, and <code>--plan</code>, <code>--ask</code> or <code>--auto</code> to choose the mode.</li>
       <li><code>astro parallel "add dark mode" "write tests" --merge</code> runs several agents at once, each in an <strong>isolated copy</strong> of the project: a git worktree in a repository, or a copy otherwise. Your files are not touched until you merge.</li>
-      <li><code>astro agents</code>, <code>astro diff &lt;id&gt;</code>, <code>astro merge &lt;id&gt;</code>, <code>astro discard &lt;id&gt;</code> and <code>astro undo &lt;id&gt;</code> review and apply the work. <code>merge</code> stops if a file was also changed in the project after the agent started. Use <code>--partial</code> to merge everything else, or <code>--force</code> to apply the agent's version anyway.</li>
+      <li><code>astro agents</code>, <code>astro diff &lt;id&gt;</code>, <code>astro merge &lt;id&gt;</code>, <code>astro discard &lt;id&gt;</code> and <code>astro undo &lt;id&gt;</code> review and apply the work. If a file was also changed in the project after the agent started, <code>merge</code> combines both versions when the changes are in different places. If they overlap, it stops: use <code>--partial</code> to merge everything else, or <code>--force</code> to apply the agent's version anyway. When an agent's last test or build still fails, <code>parallel --merge</code> skips it so you can look first.</li>
     </ul>
     <p>In the app, the <strong>Parallel</strong> chip on the Agent page does the same: one task per line, follow each agent live, answer its questions, look at the diff and merge. These agents run in the engine, so they keep working when you close the window. The Clean downloads also include a <strong>VS Code extension</strong> (<code>.vsix</code>) with the same commands. A project can give the agent its own tools with JSON files in <code>.astro/tools/</code>. The full reference, including the HTTP API, is in <a href="https://github.com/esoexe/astro-ai/blob/main/docs/cli.md">docs/cli.md</a>.</p>
 
     <h2 id="extensions">Folders, skills, MCP &amp; plugins</h2>
-    <p>Astro AI works with the setup files that other coding tools already use, so an existing project behaves the way it does in OpenCode, Claude Code, Codex, Cursor or VS Code.</p>
+    <p>A.S.T.R.O AI works with the setup files that other coding tools already use, so an existing project behaves the way it does in OpenCode, Claude Code, Codex, Cursor or VS Code.</p>
     <ul>
       <li><strong>Open folder.</strong> In the Workspace or Agent project menu, choose <strong>Open folder…</strong>, browse to a folder and open it. The files stay where they are. <strong>Close folder</strong> only removes it from the list.</li>
       <li><strong>Rules.</strong> <code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>GEMINI.md</code>, <code>.cursorrules</code>, <code>.cursor/rules</code> and <code>.github/copilot-instructions.md</code> are given to the agent.</li>
@@ -225,21 +225,21 @@ cd AstroAI-{{version}}-macos-source-CLEAN
 
     <h2 id="troubleshooting">Troubleshooting</h2>
     <h3>The window doesn't open on Windows</h3>
-    <p>Install the <a href="https://developer.microsoft.com/microsoft-edge/webview2/" rel="noopener">Microsoft Edge WebView2 Runtime</a> (the "Evergreen" version), then start Astro AI again.</p>
+    <p>Install the <a href="https://developer.microsoft.com/microsoft-edge/webview2/" rel="noopener">Microsoft Edge WebView2 Runtime</a> (the "Evergreen" version), then start A.S.T.R.O AI again.</p>
     <h3>The app doesn't start on Linux</h3>
     <p>Check that WebKitGTK 4.1 is installed (<code>sudo apt install libwebkit2gtk-4.1-0</code>), and run <code>astro-ai-clean</code> from a terminal to see any error. If you see a blank window in a virtual machine, try <code>WEBKIT_DISABLE_DMABUF_RENDERER=1 astro-ai-clean</code>.</p>
     <h3>"Port in use" or the app can't reach its engine</h3>
-    <p>Astro AI runs a small local engine on <code>127.0.0.1</code>, starting at port <code>47612</code>. It only listens on your own computer. If a firewall asks, allow local connections. If another program uses that port, close it and restart Astro AI.</p>
+    <p>A.S.T.R.O AI runs a small local engine on <code>127.0.0.1</code>, starting at port <code>47612</code>. It only listens on your own computer. If a firewall asks, allow local connections. If another program uses that port, close it and restart A.S.T.R.O AI.</p>
     <h3>Answers are slow or a model fails</h3>
     <p>One Brain is slow by design (see <a href="#one-brain">above</a>). If a single model fails, it has probably hit a free-tier limit. Try another model, wait for the limit to reset, or add more free keys.</p>
     <h3>Code won't run in the Workspace</h3>
-    <p>Install the language's tools (Node.js, Python, gcc/clang, a JDK) and make sure they're on your <code>PATH</code>, then restart Astro AI.</p>
+    <p>Install the language's tools (Node.js, Python, gcc/clang, a JDK) and make sure they're on your <code>PATH</code>, then restart A.S.T.R.O AI.</p>
     <h3>Still stuck?</h3>
     <p>Look at <code>logs/server.log</code> in your <a href="#data">data folder</a>. It usually says exactly what went wrong.</p>
 
     <h2 id="uninstall">Uninstall</h2>
     <ul>
-      <li><strong>Windows:</strong> Settings → Apps → <em>Astro AI Clean</em> → Uninstall, or use the Start menu shortcut. You can choose to remove your data too.</li>
+      <li><strong>Windows:</strong> Settings → Apps → <em>A.S.T.R.O AI Clean</em> → Uninstall, or use the Start menu shortcut. You can choose to remove your data too.</li>
       <li><strong>Linux (.deb):</strong> <code>sudo apt remove astro-ai-clean</code>. Your data in <code>~/.local/share/astro-ai-clean</code> is kept. Delete that folder if you want it gone.</li>
       <li><strong>Linux (tarball):</strong> delete the folder, plus <code>~/.local/share/applications/astro-ai-clean.desktop</code> if you ran <code>install.sh</code>.</li>
       <li><strong>macOS:</strong> drag the app from Applications to the Trash, and delete the data folder if you like.</li>

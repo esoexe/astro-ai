@@ -1,4 +1,4 @@
-// Astro AI background & parallel agents (window.AstroAgents).
+// A.S.T.R.O AI background & parallel agents (window.AstroAgents).
 // Runs agents on the server engine (/api/agent/*): they keep working when this tab is closed, several run at once,
 // and each can work in an isolated copy of the project (a git worktree or a copy) that you review, merge or discard.
 // The same sessions are visible in the terminal app: `astro agents`, `astro attach <id>`, `astro merge <id>`.
@@ -20,7 +20,7 @@
   function open(view = '') {
     S.open = true; S.view = view;
     A().showModal(`<h2 id="modal-title">${icon('i-sparkles')} Background &amp; parallel agents</h2>
-      <p class="sub">Agents run in the Astro AI engine: they keep working when you close this window, several run at once, and with <b>Isolated copy</b> each works in its own copy of the project (a git worktree or a copy) that you review, then merge or discard. The terminal app shows the same agents: <code>astro agents</code>.</p>
+      <p class="sub">Agents run in the A.S.T.R.O AI engine: they keep working when you close this window, several run at once, and with <b>Isolated copy</b> each works in its own copy of the project (a git worktree or a copy) that you review, then merge or discard. The terminal app shows the same agents: <code>astro agents</code>.</p>
       <div id="bg-body"></div>
       <div class="btn-row"><button type="button" class="btn ghost" id="modal-close">Close</button></div>`);
     document.getElementById('modal-content')?.classList.add('wide');

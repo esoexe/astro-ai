@@ -1,6 +1,6 @@
-# Astro AI SDK (JavaScript)
+# A.S.T.R.O AI SDK (JavaScript)
 
-This is a zero-dependency client for the Astro AI agent engine, the same API that the `astro` terminal app and the VS Code extension use. It works in Node 18+, Deno, Bun and browsers on the same origin.
+This is a zero-dependency client for the A.S.T.R.O AI agent engine, the same API that the `astro` terminal app and the VS Code extension use. It works in Node 18+, Deno, Bun and browsers on the same origin.
 
 ```js
 import { Astro } from './index.mjs';            // copy the file, or depend on this folder

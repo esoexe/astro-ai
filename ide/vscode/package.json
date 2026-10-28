@@ -1,8 +1,8 @@
 {
   "name": "astro-ai",
-  "displayName": "Astro AI Agent",
-  "description": "Run the Astro AI coding agent on your folder from VS Code: background and parallel agents in isolated copies, review, merge and undo. Uses the free models of your local Astro AI app.",
-  "version": "1.4.0",
+  "displayName": "A.S.T.R.O AI Agent",
+  "description": "Run the A.S.T.R.O AI coding agent on your folder from VS Code: background and parallel agents in isolated copies, review, merge and undo. Uses the free models of your local A.S.T.R.O AI app.",
+  "version": "1.4.1",
   "publisher": "astro-ai",
   "license": "(MIT OR Apache-2.0 OR GPL-3.0)",
   "icon": "icon.png",
@@ -15,12 +15,12 @@
   "activationEvents": [],
   "contributes": {
     "commands": [
-      { "command": "astro.run", "title": "Run agent on this folder", "category": "Astro AI", "icon": "$(sparkle)" },
-      { "command": "astro.runSelection", "title": "Ask the agent about the selection", "category": "Astro AI" },
-      { "command": "astro.parallel", "title": "Parallel agents (isolated copies)", "category": "Astro AI" },
-      { "command": "astro.agents", "title": "Agents: follow, diff, merge, discard, undo", "category": "Astro AI" },
-      { "command": "astro.stop", "title": "Stop an agent", "category": "Astro AI" },
-      { "command": "astro.terminal", "title": "Open the astro terminal app", "category": "Astro AI" }
+      { "command": "astro.run", "title": "Run agent on this folder", "category": "A.S.T.R.O AI", "icon": "$(sparkle)" },
+      { "command": "astro.runSelection", "title": "Ask the agent about the selection", "category": "A.S.T.R.O AI" },
+      { "command": "astro.parallel", "title": "Parallel agents (isolated copies)", "category": "A.S.T.R.O AI" },
+      { "command": "astro.agents", "title": "Agents: follow, diff, merge, discard, undo", "category": "A.S.T.R.O AI" },
+      { "command": "astro.stop", "title": "Stop an agent", "category": "A.S.T.R.O AI" },
+      { "command": "astro.terminal", "title": "Open the astro terminal app", "category": "A.S.T.R.O AI" }
     ],
     "menus": {
       "editor/context": [ { "command": "astro.runSelection", "when": "editorHasSelection", "group": "navigation@90" } ],
@@ -28,15 +28,15 @@
     },
     "keybindings": [ { "command": "astro.run", "key": "ctrl+alt+a", "mac": "cmd+alt+a" } ],
     "configuration": {
-      "title": "Astro AI",
+      "title": "A.S.T.R.O AI",
       "properties": {
-        "astro.serverUrl": { "type": "string", "default": "", "description": "Astro AI engine URL. Empty: find the desktop app's engine (127.0.0.1:47612, 47611) or a local server on 4173, and start it with `astro server start` if needed." },
+        "astro.serverUrl": { "type": "string", "default": "", "description": "A.S.T.R.O AI engine URL. Empty: find the desktop app's engine (127.0.0.1:47612, 47611) or a local server on 4173, and start it with `astro server start` if needed." },
         "astro.token": { "type": "string", "default": "", "description": "Sign-in token, only for a server with accounts turned on (the desktop app does not need one)." },
         "astro.mode": { "type": "string", "enum": ["auto", "ask", "plan"], "default": "auto", "enumDescriptions": ["Act alone (a checkpoint is saved for undo)", "Approve each change and command", "Read-only: inspect and write a plan"], "description": "Permission mode for new agents." },
         "astro.isolate": { "type": "boolean", "default": false, "description": "Run single agents in an isolated copy (git worktree or copy) that you merge afterwards. Parallel agents are always isolated." },
         "astro.review": { "type": "boolean", "default": false, "description": "A second model reviews the work at the end (one fix round)." },
         "astro.model": { "type": "string", "default": "", "description": "Preferred model id (see `astro models`). Empty: the best free coding model, with automatic fallback." },
-        "astro.project": { "type": "string", "default": "", "description": "Use this Astro AI project instead of opening the current folder (needed for a remote server)." },
+        "astro.project": { "type": "string", "default": "", "description": "Use this A.S.T.R.O AI project instead of opening the current folder (needed for a remote server)." },
         "astro.cliPath": { "type": "string", "default": "", "description": "Path to the `astro` terminal app, if it is not on your PATH." }
       }
     }

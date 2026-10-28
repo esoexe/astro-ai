@@ -1,4 +1,4 @@
-// Screenshot tour of every Astro AI screen (light + dark + mobile), for design review.
+// Screenshot tour of every A.S.T.R.O AI screen (light + dark + mobile), for design review.
 // Usage: node tests/ui_shots.js [port] [prefix]   -> PNGs in .cache/shots/<prefix>-*.png
 const path = require('path');
 const fs = require('fs');
@@ -38,7 +38,7 @@ const answer = [
 const chats = [
   { id: 'c1', title: 'Fast counting with binary search', updatedAt: now - 60e3, messages: [
     { role: 'user', content: 'How do I count how many numbers are less than x, for a million queries, quickly?' },
-    { role: 'assistant', drafts: [{ content: answer, model: 'Astro AI team', provider: 'Team', ms: 8400, status: 'done' }], active: 0 },
+    { role: 'assistant', drafts: [{ content: answer, model: 'A.S.T.R.O AI team', provider: 'Team', ms: 8400, status: 'done' }], active: 0 },
   ] },
   { id: 'c2', title: 'Trip plan for Tamanrasset', updatedAt: now - 3600e3, messages: [{ role: 'user', content: 'Plan a 3-day trip' }, { role: 'assistant', drafts: [{ content: 'Day 1…', status: 'done' }], active: 0 }] },
   { id: 'c3', title: 'Explain transformers simply', updatedAt: now - 86400e3, messages: [{ role: 'user', content: 'Explain transformers' }, { role: 'assistant', drafts: [{ content: 'A transformer…', status: 'done' }], active: 0 }] },

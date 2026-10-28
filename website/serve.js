@@ -47,4 +47,4 @@ http.createServer((req, res) => {
     if (req.method === 'HEAD') return res.end();
     fs.createReadStream(file).pipe(res);
   });
-}).listen(PORT, '0.0.0.0', () => console.log(`Astro AI website: http://0.0.0.0:${PORT}`));
+}).listen(PORT, '0.0.0.0', () => console.log(`A.S.T.R.O AI website: http://0.0.0.0:${PORT}`));

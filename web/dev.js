@@ -1,5 +1,5 @@
-// Astro AI developer platform (window.AstroDev): the features of Claude Code, Codex, OpenCode, Cursor,
-// VS Code, Antigravity and DeepSeek Harness, inside Astro AI's Workspace and Agent.
+// A.S.T.R.O AI developer platform (window.AstroDev): the features of Claude Code, Codex, OpenCode, Cursor,
+// VS Code, Antigravity and DeepSeek Harness, inside A.S.T.R.O AI's Workspace and Agent.
 //   - Open folder: work on a real folder on this computer, in place (Plan / Ask / Auto permission modes, checkpoints)
 //   - Rules (AGENTS.md, CLAUDE.md, .cursorrules...), skills (SKILL.md), slash commands, custom subagents, hooks
 //   - MCP servers (stdio + HTTP), the MCP registry, plugins (Claude Code plugin format, from GitHub)
@@ -268,7 +268,7 @@
     const scan = await getScan(s.project);
     const parts = [];
     const mode = modeOf(s);
-    parts.push(`MODE: ${mode.toUpperCase()} — ${mode === 'plan' ? 'read-only: inspect, then reply with a numbered implementation plan and the done block. Do not change files or run commands that change anything.' : mode === 'ask' ? 'Astro automatically shows the user an approval prompt before each change or command runs, so just call the tools — do not use ask_user to request permission. If a call is denied, choose another approach.' : 'you act on your own; a checkpoint was saved so the user can undo everything.'}${isLinked(s.project) ? ' This project is a real folder on the user\'s computer: be careful, never delete or rewrite files you were not asked to touch.' : ''}`);
+    parts.push(`MODE: ${mode.toUpperCase()} — ${mode === 'plan' ? 'read-only: inspect, then reply with a numbered implementation plan and the done block. Do not change files or run commands that change anything.' : mode === 'ask' ? 'A.S.T.R.O automatically shows the user an approval prompt before each change or command runs, so just call the tools — do not use ask_user to request permission. If a call is denied, choose another approach.' : 'you act on your own; a checkpoint was saved so the user can undo everything.'}${isLinked(s.project) ? ' This project is a real folder on the user\'s computer: be careful, never delete or rewrite files you were not asked to touch.' : ''}`);
     if (s.compactSummary) parts.push(`EARLIER IN THIS SESSION (compacted):\n${clip(s.compactSummary, 4000)}`);
     let budget = 12000; const rules = [];
     for (const r of [...scan.rules.filter((x) => x.scope === 'project'), ...scan.rules.filter((x) => x.scope === 'global'), ...scan.rules.filter((x) => x.scope === 'user')]) {
@@ -434,7 +434,7 @@
       const mentioned = files.filter((f) => prompt.includes(f.path) || prompt.includes(baseName(f.path))).slice(0, 8);
       let ctx = ''; let budget = 30000;
       for (const f of mentioned) { const t = await A().agReadOrNull(s, f.path); if (t === null) continue; const c = clip(t, Math.min(9000, budget)); budget -= c.length; ctx += `\n--- ${f.path} ---\n${c}\n`; if (budget <= 0) break; }
-      const head = custom ? `${custom.body.trim()}\n\n` : 'You are a focused subagent of Astro AI\'s coding agent. ';
+      const head = custom ? `${custom.body.trim()}\n\n` : 'You are a focused subagent of A.S.T.R.O AI\'s coding agent. ';
       const text = await oneShot(`${head}Do the sub-task below and reply with a concise, factual report the main agent can act on (findings, exact file paths and line numbers, recommended changes as code snippets). You cannot run tools; say what should be verified.\n\nSUB-TASK: ${prompt}\n\nPROJECT FILES (${files.length}):\n${files.slice(0, 200).map((f) => f.path).join('\n')}${ctx ? `\n\nFILE CONTENTS:${ctx}` : ''}`, signal, 3000);
       item.meta = { agent: custom ? custom.name : 'subagent' };
       item.out = clip(text, 12000);
@@ -514,7 +514,7 @@
   // ---------- Open folder ----------
   async function openFolder() {
     const st = { path: lsGet('last-folder', ''), data: null, hidden: false };
-    A().showModal(`<h2 id="modal-title">Open folder</h2><p class="sub">Astro AI works on the folder in place: the editor, terminal, Git and the agent use your real files. New sessions in a folder start in <b>Ask</b> mode (you approve each change), and a checkpoint is saved before every agent run.</p>
+    A().showModal(`<h2 id="modal-title">Open folder</h2><p class="sub">A.S.T.R.O AI works on the folder in place: the editor, terminal, Git and the agent use your real files. New sessions in a folder start in <b>Ask</b> mode (you approve each change), and a checkpoint is saved before every agent run.</p>
       <div class="dev-browse"><div class="dev-bpath"><input class="input" id="dev-bpath" spellcheck="false" aria-label="Folder path" placeholder="/home/you/projects/app"><button type="button" class="btn small" id="dev-bgo">Go</button></div>
       <div class="dev-broots" id="dev-broots"></div><div class="dev-blist" id="dev-blist"><p class="hint">Loading…</p></div>
       <label class="dev-bhid"><input type="checkbox" id="dev-bhidden"> Show hidden folders</label></div>
@@ -609,7 +609,7 @@
       ${by.size ? [...by].map(([path, list]) => `<div class="dev-pfile"><b>${esc(path)}</b><i>${list.length}</i></div>${list.map((p) => `<button type="button" class="dev-prob sev-${esc(p.severity)}" data-pgo="${esc(JSON.stringify([p.path, p.line, p.col]))}"><span class="dot"></span><span class="msg">${esc(p.message)}</span><em>${esc(p.source || '')} ${p.line}:${p.col}</em></button>`).join('')}`).join('') : `<div class="git-empty">${D.probBusy ? 'Checking…' : D.probProject === A().ws.project && D.checkers ? 'No problems found.' : 'Press “Check project” to find errors.'}</div>`}`;
   }
 
-  // ---------- Astro AI Library ----------
+  // ---------- A.S.T.R.O AI Library ----------
   // Reviewed items (schema 1) plus the community catalog (schema 2): every MCP server in the official MCP Registry,
   // skills and plugins from public GitHub repos, AI command-line tools and an AI app directory. The server downloads
   // and checks everything (exact versions, pinned commits, SHA-256 per file); this panel browses, shows exactly what
@@ -709,7 +709,7 @@
     setTimeout(() => { libRenderList(); libStartLoading(); }, 0);
     return `<div class="dev-inst lib-search"><input class="input" id="lib-q" placeholder="Search ${count('all').toLocaleString()} MCP servers, skills, plugins and AI tools" value="${esc(D.lib?.q || '')}" spellcheck="false" aria-label="Search the library"><button type="button" class="ws-btn sm" data-x="lib-refresh" title="Refresh">${icon('i-refresh')}</button></div>
       <div class="dev-acts lib-kinds">${LIB_KINDS.map(([k, l]) => `<button type="button" class="ws-btn sm${k === kind ? ' primary' : ''}" data-x="lib-kind" data-kind="${k}">${l} <small>${count(k).toLocaleString()}</small></button>`).join('')}<label class="lib-chk"><input type="checkbox" data-x="lib-reviewed" ${lsGet('lib-reviewed', '') ? 'checked' : ''}> Reviewed only</label></div>
-      <div class="dev-hint">MCP packages run at exact versions; skills and plugins are pinned to a git commit and every file is checked against its SHA-256. No hooks. No binaries. Everything readable. <b>Reviewed</b> items were checked by the Astro AI team; the rest are indexed automatically from the official MCP Registry and public GitHub repos, so read what an item does before installing. Tokens you enter stay in this computer's private <code>mcp.json</code>. <a href="https://esoexe.github.io/astro-ai/profile#library" target="_blank" rel="noopener">Open on the website</a></div>
+      <div class="dev-hint">MCP packages run at exact versions; skills and plugins are pinned to a git commit and every file is checked against its SHA-256. No hooks. No binaries. Everything readable. <b>Reviewed</b> items were checked by the A.S.T.R.O AI team; the rest are indexed automatically from the official MCP Registry and public GitHub repos, so read what an item does before installing. Tokens you enter stay in this computer's private <code>mcp.json</code>. <a href="https://esoexe.github.io/astro-ai/profile#library" target="_blank" rel="noopener">Open on the website</a></div>
       ${data.error ? `<div class="ws-note error">${esc(data.error)}</div>` : ''}${L2.manErr ? `<div class="ws-note">The community catalog could not be loaded (${esc(L2.manErr)}). Showing reviewed items.</div>` : ''}
       ${!data.node ? '<div class="ws-note">Items marked “runs locally” or npm need Node.js. Install it from nodejs.org; remote servers, skills and plugins work without it.</div>' : ''}
       <div class="dev-hint" id="lib-status"></div>
@@ -727,7 +727,7 @@
     const inputs = (it.inputs || []).map((inp) => `<label class="lib-in"><span>${esc(inp.label || inp.name)}${inp.required ? ' *' : ''}</span><input class="input" data-lib-in="${esc(inp.name)}" type="${inp.secret ? 'password' : 'text'}" autocomplete="off" spellcheck="false" placeholder="${esc(inp.kind === 'arg' && inp.name === 'FOLDER' ? (A().ws.projectPath || 'Full path, e.g. /home/you/project') : inp.secret ? 'Paste here (stored only on this computer)' : '')}">${inp.help ? `<small><a href="${esc(inp.help)}" target="_blank" rel="noopener">Where do I get this?</a></small>` : ''}</label>`).join('');
     A().showModal(`<h2 id="modal-title">${esc(it.name)}</h2>
       <p class="hint">${esc(it.summary)}</p>
-      <p class="hint">Reviewed by Astro AI · ${esc(it.publisher || '')}${it.license ? ` · ${esc(it.license)}` : ''}${it.homepage ? ` · <a href="${esc(it.homepage)}" target="_blank" rel="noopener">Homepage</a>` : ''} · version ${esc(it.version || '')}</p>
+      <p class="hint">Reviewed by A.S.T.R.O AI · ${esc(it.publisher || '')}${it.license ? ` · ${esc(it.license)}` : ''}${it.homepage ? ` · <a href="${esc(it.homepage)}" target="_blank" rel="noopener">Homepage</a>` : ''} · version ${esc(it.version || '')}</p>
       <div class="dev-sec">What it can do</div><ul class="lib-perms">${perms}</ul>
       ${what}
       ${inputs ? `<div class="dev-sec">Settings</div>${inputs}` : ''}
@@ -765,7 +765,7 @@
     const src = k === 'mcp' ? 'Official MCP Registry' : d.repo ? `GitHub · ${d.repo}` : d.src ? `listed in ${d.src}` : (d.t === 'npm' ? 'npm' : 'PyPI');
     const head = `<h2 id="modal-title">${esc(d.n || id)}</h2><p class="hint">${esc(d.d || '')}</p>
       <p class="hint">Community · ${esc(src)}${d.lic && d.lic !== 'see repo' ? ' · ' + esc(d.lic) : ''}${d.v ? ' · version ' + esc(d.v) : ''}${d.stars ? ' · ★ ' + Number(d.stars).toLocaleString() : ''}${links ? ' · ' + links : ''}</p>
-      <p class="hint">Indexed automatically, not reviewed by the Astro AI team. Read what it does before you install it.</p>`;
+      <p class="hint">Indexed automatically, not reviewed by the A.S.T.R.O AI team. Read what it does before you install it.</p>`;
     const field = (name, label, req, secret, def) => `<label class="lib-in"><span>${esc(name)}${req ? ' *' : ''}${label && label !== name ? ` <small>${esc(label)}</small>` : ''}</span><input class="input" data-lib-in="${esc(name)}" type="${secret ? 'password' : 'text'}" autocomplete="off" spellcheck="false" value="${esc(def && !secret ? def : '')}" placeholder="${secret ? 'Paste here (stored only on this computer)' : req ? '' : 'optional'}"></label>`;
     if (k === 'tool' && d.t === 'link') {
       A().showModal(`${head}<div class="btn-row">${safe(d.url) ? `<a class="btn primary" href="${esc(d.url)}" target="_blank" rel="noopener noreferrer">Open ${esc(String(d.url).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a>` : ''}<button type="button" class="btn ghost" id="modal-close">Close</button></div>`);
@@ -787,7 +787,7 @@
       if ((d.f || []).some((f) => /\.(py|sh|js|mjs|ts|ps1|rb|bat|cmd)$/i.test(f[0]))) warn = '<p class="hint">It includes scripts. They are saved as text and only run if the agent runs them, under your permission mode.</p>';
       if (k === 'plugin') warn += '<p class="hint">Hooks and local MCP servers in community plugins are not installed.</p>';
     } else if (k === 'tool') {
-      what = `<div class="dev-sec">Installs</div><code class="dev-cmd">${esc(d.pkg)}</code><p class="hint">Into Astro's own folder (not system-wide), then adds ${esc((d.bins || []).join(', ') || 'its commands')} to PATH for the agent and terminal. Needs ${d.t === 'npm' ? 'Node.js (npm)' : 'Python 3'}. The package's install script runs, as with a normal install.</p>`;
+      what = `<div class="dev-sec">Installs</div><code class="dev-cmd">${esc(d.pkg)}</code><p class="hint">Into A.S.T.R.O's own folder (not system-wide), then adds ${esc((d.bins || []).join(', ') || 'its commands')} to PATH for the agent and terminal. Needs ${d.t === 'npm' ? 'Node.js (npm)' : 'Python 3'}. The package's install script runs, as with a normal install.</p>`;
     }
     A().showModal(`${head}${what}${inputs ? `<div class="dev-sec">Settings</div>${inputs}` : ''}${warn}
       <div class="btn-row"><button type="button" class="btn primary" id="lib-go">${installed ? 'Reinstall' : 'Install'}</button><button type="button" class="btn ghost" id="modal-close">Cancel</button></div>`);
@@ -818,7 +818,7 @@
       body = await libBody(force);
     } else if (tab === 'skills') {
       body = `<div class="dev-acts"><button type="button" class="ws-btn sm" data-x="new-skill">${icon('i-plus')}<span>New skill</span></button></div>
-        <div class="dev-hint">Skills are folders with a SKILL.md (name, description, instructions). The agent sees every skill's description and loads one when a job matches. Astro reads <code>.astro/skills</code>, Claude Code <code>.claude/skills</code>, Codex <code>.codex/skills</code>, OpenCode and Cursor skill folders, in the project, in Extensions, and in your home folder.</div>
+        <div class="dev-hint">Skills are folders with a SKILL.md (name, description, instructions). The agent sees every skill's description and loads one when a job matches. A.S.T.R.O reads <code>.astro/skills</code>, Claude Code <code>.claude/skills</code>, Codex <code>.codex/skills</code>, OpenCode and Cursor skill folders, in the project, in Extensions, and in your home folder.</div>
         ${scan.skills.map((k) => `<div class="dev-item"><div class="dev-it-h"><b>${esc(k.name)}</b>${scopeBadge(k)}</div><p>${esc(clip(k.description, 220))}</p><div class="dev-it-a"><button type="button" class="ag-act" data-x="view" data-scope="${esc(k.scope)}" data-path="${esc(k.path)}">${icon('i-eye')}View</button>${k.scope !== 'user' && !k.owner ? `<button type="button" class="ag-act" data-x="edit" data-scope="${esc(k.scope)}" data-path="${esc(k.path)}">${icon('i-edit')}Edit</button><button type="button" class="ag-act" data-x="del" data-scope="${esc(k.scope)}" data-path="${esc(k.path.replace(/\/SKILL\.md$|\/skill\.md$/i, ''))}">${icon('i-trash')}Delete</button>` : ''}</div></div>`).join('') || '<div class="git-empty">No skills yet.</div>'}`;
     } else if (tab === 'commands') {
       body = `<div class="dev-acts"><button type="button" class="ws-btn sm" data-x="new-cmd">${icon('i-plus')}<span>New command</span></button></div>
@@ -843,13 +843,13 @@
       let r = { servers: D.mcp.get(project) || [] };
       try { r = await dev('mcp/list', { project }); D.mcp.set(project, r.servers || []); } catch (err) { r.error = err.message; }
       body = `<div class="dev-acts"><button type="button" class="ws-btn sm" data-x="mcp-add">${icon('i-plus')}<span>Add server</span></button><button type="button" class="ws-btn sm" data-x="mcp-registry">${icon('i-globe')}<span>Browse registry</span></button><button type="button" class="ws-btn sm" data-x="mcp-config">${icon('i-edit')}<span>Edit mcp.json</span></button></div>
-        <div class="dev-hint">MCP servers give the agent new tools (GitHub, databases, browsers, docs…). Astro reads its global <code>mcp.json</code>, plugins, and the project's <code>.mcp.json</code>, <code>.cursor/mcp.json</code>, <code>.vscode/mcp.json</code> and <code>opencode.json</code>. Project servers run commands, so they start only after you trust them.</div>
+        <div class="dev-hint">MCP servers give the agent new tools (GitHub, databases, browsers, docs…). A.S.T.R.O reads its global <code>mcp.json</code>, plugins, and the project's <code>.mcp.json</code>, <code>.cursor/mcp.json</code>, <code>.vscode/mcp.json</code> and <code>opencode.json</code>. Project servers run commands, so they start only after you trust them.</div>
         ${r.error ? `<div class="ws-note error">${esc(r.error)}</div>` : ''}
         ${(r.servers || []).map((sv) => `<div class="dev-item mcp-${esc(sv.status)}"><div class="dev-it-h"><span class="dev-dot"></span><b>${esc(sv.name)}</b><span class="dev-scope">${esc(sv.status)}</span><span class="dev-scope s-${esc(sv.scope)}">${esc(sv.source)}</span></div><code class="dev-cmd">${esc(clip(sv.command, 200))}</code>${sv.error ? `<p class="dev-err">${esc(clip(sv.error, 400))}</p>` : ''}${(sv.tools || []).length ? `<details><summary>${sv.tools.length} tools</summary><ul class="dev-tools">${sv.tools.map((t) => `<li><b>${esc(t.name)}</b> ${esc(clip(t.description || '', 160))}</li>`).join('')}</ul></details>` : ''}<div class="dev-it-a">${sv.status === 'untrusted' ? `<button type="button" class="ws-chip" data-x="mcp-trust" data-name="${esc(sv.name)}">${icon('i-check')}Trust and start</button>` : sv.status === 'disabled' ? '' : `<button type="button" class="ag-act" data-x="mcp-restart" data-name="${esc(sv.name)}">${icon('i-refresh')}${sv.status === 'running' ? 'Restart' : 'Start'}</button>${sv.status === 'running' ? `<button type="button" class="ag-act" data-x="mcp-stop" data-name="${esc(sv.name)}">${icon('i-stop')}Stop</button>` : ''}${sv.scope === 'project' ? `<button type="button" class="ag-act" data-x="mcp-untrust" data-name="${esc(sv.name)}">Untrust</button>` : ''}`}</div></div>`).join('') || '<div class="git-empty">No MCP servers yet.</div>'}`;
     } else if (tab === 'plugins') {
       body = `<form class="dev-inst" data-x="plugin-install"><input class="input" name="repo" placeholder="GitHub repo: owner/name or URL" spellcheck="false" aria-label="GitHub repository"><button type="submit" class="ws-btn sm primary">${icon('i-download')}<span>Install</span></button></form>
-        <div class="dev-hint">Plugins bundle skills, commands, subagents, hooks, MCP servers, themes and snippets. Astro installs Claude Code plugins and plugin marketplaces from GitHub, and Astro plugins (plugin.json + optional main.js / style.css). Scripts in a plugin run only if you allow them.</div>
-        ${scan.plugins.map((p) => { const m = p.manifest || {}; const parts = [scan.skills.filter((x) => x.owner === p.name).length && `${scan.skills.filter((x) => x.owner === p.name).length} skills`, scan.commands.filter((x) => x.owner === p.name).length && `${scan.commands.filter((x) => x.owner === p.name).length} commands`, scan.agents.filter((x) => x.owner === p.name).length && `${scan.agents.filter((x) => x.owner === p.name).length} agents`, scan.hooks.some((x) => x.owner === p.name) && 'hooks', scan.scripts.some((x) => x.owner === p.name) && 'script', scan.themes.some((x) => x.owner === p.name) && 'themes'].filter(Boolean); const hasScript = (D.lastRawScripts || []).includes(p.name) || scan.scripts.some((x) => x.owner === p.name); return `<div class="dev-item${p.enabled ? '' : ' off'}"><div class="dev-it-h"><b>${esc(m.displayName || m.name || p.name)}</b>${m.version ? `<span class="dev-scope">v${esc(m.version)}</span>` : ''}<span class="grow"></span><label class="switch sm"><input type="checkbox" data-x="plugin-toggle" data-name="${esc(p.name)}"${p.enabled ? ' checked' : ''}><span></span></label></div><p>${esc(clip(m.description || '', 220))}</p><small>${esc(parts.join(' · ') || 'no parts found')}</small><div class="dev-it-a">${hasScript ? `<label class="dev-toggle"><input type="checkbox" data-x="plugin-script" data-name="${esc(p.name)}"${lsGet(`script:${p.name}`) === '1' ? ' checked' : ''}> Allow its script (full access to Astro AI)</label>` : ''}<button type="button" class="ag-act" data-x="del" data-scope="global" data-path="plugins/${esc(p.name)}">${icon('i-trash')}Remove</button></div></div>`; }).join('') || '<div class="git-empty">No plugins yet. Try anthropics/claude-code (its plugins folder is a marketplace).</div>'}`;
+        <div class="dev-hint">Plugins bundle skills, commands, subagents, hooks, MCP servers, themes and snippets. A.S.T.R.O installs Claude Code plugins and plugin marketplaces from GitHub, and A.S.T.R.O plugins (plugin.json + optional main.js / style.css). Scripts in a plugin run only if you allow them.</div>
+        ${scan.plugins.map((p) => { const m = p.manifest || {}; const parts = [scan.skills.filter((x) => x.owner === p.name).length && `${scan.skills.filter((x) => x.owner === p.name).length} skills`, scan.commands.filter((x) => x.owner === p.name).length && `${scan.commands.filter((x) => x.owner === p.name).length} commands`, scan.agents.filter((x) => x.owner === p.name).length && `${scan.agents.filter((x) => x.owner === p.name).length} agents`, scan.hooks.some((x) => x.owner === p.name) && 'hooks', scan.scripts.some((x) => x.owner === p.name) && 'script', scan.themes.some((x) => x.owner === p.name) && 'themes'].filter(Boolean); const hasScript = (D.lastRawScripts || []).includes(p.name) || scan.scripts.some((x) => x.owner === p.name); return `<div class="dev-item${p.enabled ? '' : ' off'}"><div class="dev-it-h"><b>${esc(m.displayName || m.name || p.name)}</b>${m.version ? `<span class="dev-scope">v${esc(m.version)}</span>` : ''}<span class="grow"></span><label class="switch sm"><input type="checkbox" data-x="plugin-toggle" data-name="${esc(p.name)}"${p.enabled ? ' checked' : ''}><span></span></label></div><p>${esc(clip(m.description || '', 220))}</p><small>${esc(parts.join(' · ') || 'no parts found')}</small><div class="dev-it-a">${hasScript ? `<label class="dev-toggle"><input type="checkbox" data-x="plugin-script" data-name="${esc(p.name)}"${lsGet(`script:${p.name}`) === '1' ? ' checked' : ''}> Allow its script (full access to A.S.T.R.O AI)</label>` : ''}<button type="button" class="ag-act" data-x="del" data-scope="global" data-path="plugins/${esc(p.name)}">${icon('i-trash')}Remove</button></div></div>`; }).join('') || '<div class="git-empty">No plugins yet. Try anthropics/claude-code (its plugins folder is a marketplace).</div>'}`;
     } else if (tab === 'themes' || tab === 'snippets') {
       const isTheme = tab === 'themes';
       const active = lsGet('theme', '');
@@ -858,7 +858,7 @@
         <div class="dev-hint">${isTheme ? 'Colour themes from VS Code extensions on Open VSX, applied to the editor.' : 'Snippets from VS Code extensions on Open VSX, or your own: type the prefix and pick it from the completion list.'} Extensions that run code are not supported.</div>
         ${D.vsx?.cat === tab ? `<div class="dev-sec">Results</div>${D.vsx.busy ? '<div class="git-empty">Searching…</div>' : D.vsx.error ? `<div class="ws-note error">${esc(D.vsx.error)}</div>` : (D.vsx.items || []).map((x) => `<div class="dev-item"><div class="dev-it-h"><b>${esc(x.displayName || x.name)}</b><span class="dev-scope">${esc(x.namespace)}</span><span class="dev-scope">${Number(x.downloadCount || 0).toLocaleString()} ↓</span></div><p>${esc(clip(x.description || '', 200))}</p><div class="dev-it-a"><button type="button" class="ws-chip" data-x="vsx-install" data-ns="${esc(x.namespace)}" data-name="${esc(x.name)}">${icon('i-download')}Install</button></div></div>`).join('') || '<div class="git-empty">Nothing found.</div>'}` : ''}
         <div class="dev-sec">Installed</div>
-        ${isTheme ? `<button type="button" class="dev-item dev-theme${active ? '' : ' on'}" data-x="theme-use" data-path="">${icon('i-moon')}<b>Astro (default)</b></button>` : `<div class="dev-acts"><button type="button" class="ws-btn sm" data-x="new-snippets">${icon('i-plus')}<span>My snippets</span></button></div>`}
+        ${isTheme ? `<button type="button" class="dev-item dev-theme${active ? '' : ' on'}" data-x="theme-use" data-path="">${icon('i-moon')}<b>A.S.T.R.O (default)</b></button>` : `<div class="dev-acts"><button type="button" class="ws-btn sm" data-x="new-snippets">${icon('i-plus')}<span>My snippets</span></button></div>`}
         ${installed.map((t) => isTheme ? `<div class="dev-item dev-theme${active === t.path ? ' on' : ''}"><button type="button" class="dev-tbtn" data-x="theme-use" data-path="${esc(t.path)}"><span class="dev-swatch" style="background:${esc(t.theme.colors?.['editor.background'] || '#222')};color:${esc(t.theme.colors?.['editor.foreground'] || '#ddd')}">Aa</span><b>${esc(t.theme.name || baseName(t.path))}</b><span class="dev-scope">${esc(t.theme.type || '')}</span></button><button type="button" class="ag-act" data-x="del" data-scope="global" data-path="${esc(t.path)}">${icon('i-trash')}</button></div>`
           : `<div class="dev-item"><div class="dev-it-h"><b>${esc(t.data.name || baseName(t.path))}</b><span class="dev-scope">${esc((t.data.language || '*'))}</span><span class="dev-scope">${Object.keys(t.data.items || {}).length} snippets</span></div><div class="dev-it-a"><button type="button" class="ag-act" data-x="edit" data-scope="global" data-path="${esc(t.path)}">${icon('i-edit')}Edit</button><button type="button" class="ag-act" data-x="del" data-scope="global" data-path="${esc(t.path)}">${icon('i-trash')}Remove</button></div></div>`).join('') || (isTheme ? '' : '<div class="git-empty">No snippets yet.</div>')}`;
     }
@@ -898,7 +898,7 @@
     const project = A().ws.project;
     if (!project) return 'global';
     return new Promise((resolve) => {
-      A().openMenu(document.activeElement || document.body, [{ title: 'Save where?' }, { label: 'This project', icon: 'i-folder', sub: `${project} (.astro/…, shared with the repo)`, onClick: () => resolve('project') }, { label: 'Everywhere', icon: 'i-globe', sub: 'Astro Extensions (all projects)', onClick: () => resolve('global') }], { width: 300, onClose: () => resolve(null) });
+      A().openMenu(document.activeElement || document.body, [{ title: 'Save where?' }, { label: 'This project', icon: 'i-folder', sub: `${project} (.astro/…, shared with the repo)`, onClick: () => resolve('project') }, { label: 'Everywhere', icon: 'i-globe', sub: 'A.S.T.R.O Extensions (all projects)', onClick: () => resolve('global') }], { width: 300, onClose: () => resolve(null) });
     });
   }
   async function extAction(act, d) {
@@ -993,10 +993,10 @@
     await dev('mcp/config_set', { text: JSON.stringify(j, null, 2) });
   }
   function mcpAddDialog(pre = {}) {
-    A().showModal(`<h2 id="modal-title">Add an MCP server</h2><p class="sub">Saved to Astro's global mcp.json (all projects). Use a command for local servers (stdio) or a URL for remote ones (Streamable HTTP).</p>
+    A().showModal(`<h2 id="modal-title">Add an MCP server</h2><p class="sub">Saved to A.S.T.R.O's global mcp.json (all projects). Use a command for local servers (stdio) or a URL for remote ones (Streamable HTTP).</p>
       <div class="dev-form"><label>Name<input class="input" id="mcp-name" value="${esc(pre.name || '')}" placeholder="github"></label>
       <label>Command or URL<input class="input" id="mcp-cmd" value="${esc(pre.cmd || '')}" placeholder="npx -y @modelcontextprotocol/server-filesystem ."></label>
-      <label>Environment / headers <small>(one KEY=value per line; values stay on your Astro AI server)</small><textarea class="input" id="mcp-env" rows="3" placeholder="GITHUB_TOKEN=…">${esc(pre.env || '')}</textarea></label></div>
+      <label>Environment / headers <small>(one KEY=value per line; values stay on your A.S.T.R.O AI server)</small><textarea class="input" id="mcp-env" rows="3" placeholder="GITHUB_TOKEN=…">${esc(pre.env || '')}</textarea></label></div>
       <div class="btn-row"><button type="button" class="btn primary" id="mcp-save">Add and start</button><button type="button" class="btn ghost" id="modal-close">Cancel</button></div>`);
     document.getElementById('modal-close').onclick = () => A().closeModal();
     document.getElementById('mcp-save').onclick = async () => {
@@ -1177,7 +1177,7 @@
       await dev('ext/write', { scope: 'global', path: `snippets/${slug(`${ns}.${name}-${sn.language}`)}.json`, content: JSON.stringify({ name: `${pkg.displayName || name} (${sn.language})`, language: sn.language, items, source: `${ns}.${name}@${meta.version}` }) }); n++;
     }
     invalidate();
-    if (!n) throw new Error('This extension has no themes or snippets Astro can use.');
+    if (!n) throw new Error('This extension has no themes or snippets A.S.T.R.O can use.');
     A().toast(`Installed ${n} item(s) from ${pkg.displayName || name}`);
     renderExt(true); applyLooks();
   }
@@ -1284,7 +1284,7 @@
     return [
       { label: 'Open folder…', icon: 'i-folder-open', sub: 'Work on a folder on this computer', run: openFolder },
       { label: 'Extensions: skills, MCP, plugins, themes', icon: 'i-puzzle', run: () => showSide('ext') },
-      { label: 'Astro AI Library: install MCP servers, skills, plugins and AI tools', icon: 'i-download', sub: 'Reviewed and community items, one click', run: () => openLibrary() },
+      { label: 'A.S.T.R.O AI Library: install MCP servers, skills, plugins and AI tools', icon: 'i-download', sub: 'Reviewed and community items, one click', run: () => openLibrary() },
       { label: 'Problems: check the project for errors', icon: 'i-alert', run: () => { showSide('problems'); checkProblems(); } },
       { label: 'MCP servers', icon: 'i-puzzle', run: () => { D.extTab = 'mcp'; showSide('ext'); } },
       { label: 'Browse the MCP registry', icon: 'i-globe', run: () => mcpRegistry() },

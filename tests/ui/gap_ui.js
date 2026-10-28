@@ -46,7 +46,7 @@ const ok = (name, cond, extra = '') => { if (cond) { pass++; console.log('  ok  
   await p2.goto(SITE + '/profile#library'); await p2.waitForTimeout(3000);
   const t2 = await p2.evaluate(() => document.body.innerText);
   ok('console library lists items', /Context7|Playwright|DeepWiki/i.test(t2), t2.slice(0, 300));
-  ok('console library has install action', /Install|Open in Astro AI|Copy/i.test(t2));
+  ok('console library has install action', /Install|Open in A.S.T.R.O AI|Copy/i.test(t2));
   ok('no page errors on the console', e2.length === 0, e2.join(' | '));
   await p2.screenshot({ path: shots + '/console-library.png', fullPage: false });
   await browser.close();

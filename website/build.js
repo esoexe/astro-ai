@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Builds the Astro AI website into ./dist (plain static files, deploy anywhere).
+// Builds the A.S.T.R.O AI website into ./dist (plain static files, deploy anywhere).
 //   node build.js            build
 //   node build.js --no-dl    build without copying the installers (faster while editing)
 //
@@ -69,7 +69,7 @@ if (fs.existsSync(dlDir)) {
 }
 const dlKey = (pattern) => Object.keys(downloads).find((f) => f.includes(pattern));
 
-// ------------------------------------------------------------------ Astro AI Library (validated + checksummed)
+// ------------------------------------------------------------------ A.S.T.R.O AI Library (validated + checksummed)
 const LIB = require(path.join(ROOT, '..', 'library', 'build_library.js')).build(path.join(OUT, 'library'));
 
 // ------------------------------------------------------------------ layout
@@ -81,12 +81,12 @@ const NAV = [
   ['blog', 'Blog', 'blog/index.html'],
   ['changelog', 'Changelog', 'changelog.html'],
 ];
-const LOGO = (r) => `<a class="brand" href="${r}index.html" aria-label="Astro AI home"><img src="${r}assets/img/icon-192.png" alt="" width="28" height="28"><span>Astro AI</span></a>`;
+const LOGO = (r) => `<a class="brand" href="${r}index.html" aria-label="A.S.T.R.O AI home"><img src="${r}assets/img/icon-192.png" alt="" width="28" height="28"><span>A.S.T.R.O AI</span></a>`;
 
 function layout(meta, body, rel, file) {
   const r = rel;
   const url = SITE.url.replace(/\/$/, '') + '/' + file.replace(/index\.html$/, '');
-  const title = meta.title ? `${meta.title} · Astro AI` : 'Astro AI: one brain, many minds';
+  const title = meta.title ? `${meta.title} · A.S.T.R.O AI` : 'A.S.T.R.O AI: one brain, many minds';
   const nav = NAV.map(([id, label, href]) => `<a href="${r}${href}"${meta.nav === id ? ' aria-current="page"' : ''}>${label}</a>`).join('');
   return `<!doctype html>
 <html lang="en">
@@ -99,8 +99,8 @@ function layout(meta, body, rel, file) {
 <meta name="theme-color" content="#0a0a0c">
 <meta name="color-scheme" content="dark">
 <meta property="og:type" content="${meta.ogType || 'website'}">
-<meta property="og:site_name" content="Astro AI">
-<meta property="og:title" content="${esc(meta.title || 'Astro AI: one brain, many minds')}">
+<meta property="og:site_name" content="A.S.T.R.O AI">
+<meta property="og:title" content="${esc(meta.title || 'A.S.T.R.O AI: one brain, many minds')}">
 <meta property="og:description" content="${esc(meta.description || SITE.description)}">
 <meta property="og:url" content="${esc(url)}">
 <meta property="og:image" content="${esc(SITE.url.replace(/\/$/, ''))}/assets/img/og.png">
@@ -130,7 +130,7 @@ function layout(meta, body, rel, file) {
     ${NAV.map(([id, label, href]) => `<a href="${r}${href}"${meta.nav === id ? ' aria-current="page"' : ''}>${label}</a>`).join('')}
     <a href="${r}press.html">Press kit</a>
     <a href="${r}profile" data-account-link>Sign in</a>
-    <a class="btn btn-primary" href="${r}download.html">Download Astro AI</a>
+    <a class="btn btn-primary" href="${r}download.html">Download A.S.T.R.O AI</a>
   </div>
 </header>
 <main id="main">
@@ -144,11 +144,11 @@ ${body}
       <span class="footer-status"><i></i>v${SITE.version} · ${SITE.dateLabel}</span>
     </div>
     <div><h4>Product</h4><a href="${r}features.html">Features</a><a href="${r}features.html#extensions">Extensions</a><a href="${r}download.html">Download</a><a href="${r}changelog.html">Changelog</a></div>
-    <div><h4>Resources</h4><a href="${r}docs.html">Docs</a><a href="${r}api.html">Astro API</a><a href="${r}profile">Account</a><a href="${r}blog/index.html">Blog</a><a href="${r}press.html">Press kit</a>${SITE.repo ? `<a href="${SITE.repo}" rel="noopener">Source on GitHub</a>` : ''}</div>
+    <div><h4>Resources</h4><a href="${r}docs.html">Docs</a><a href="${r}api.html">A.S.T.R.O API</a><a href="${r}profile">Account</a><a href="${r}blog/index.html">Blog</a><a href="${r}press.html">Press kit</a>${SITE.repo ? `<a href="${SITE.repo}" rel="noopener">Source on GitHub</a>` : ''}</div>
     <div><h4>Legal</h4><a href="${r}privacy.html">Privacy</a><a href="${r}assets/fonts/FONTS-LICENSE.txt">Font licenses</a></div>
   </div>
-  <div class="wrap footer-word" aria-hidden="true">Astro <em>AI</em></div>
-  <div class="wrap footer-base"><span>© ${SITE.year} Astro AI</span><span class="mono">Made for curious people · runs on free AI models, which can make mistakes</span></div>
+  <div class="wrap footer-word" aria-hidden="true">A.S.T.R.O <em>AI</em></div>
+  <div class="wrap footer-base"><span>© ${SITE.year} A.S.T.R.O AI</span><span class="mono">Made for curious people · runs on free AI models, which can make mistakes</span></div>
 </footer>
 </body>
 </html>
@@ -159,7 +159,7 @@ ${body}
 function appLayout(meta, body, rel, file) {
   const r = rel;
   const url = SITE.url.replace(/\/$/, '') + '/' + file;
-  const title = meta.title ? `${meta.title} · Astro AI` : 'Astro AI';
+  const title = meta.title ? `${meta.title} · A.S.T.R.O AI` : 'A.S.T.R.O AI';
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -211,7 +211,7 @@ for (const f of pages) {
   if (!meta.noindex) sitemap.push(f.split(path.sep).join('/').replace(/index\.html$/, ''));
 }
 // The Console moved from account.html to /profile. Old links (and their #section or ?mode=) keep working.
-fs.writeFileSync(path.join(OUT, 'account.html'), `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Astro AI Console</title><meta name="robots" content="noindex">
+fs.writeFileSync(path.join(OUT, 'account.html'), `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>A.S.T.R.O AI Console</title><meta name="robots" content="noindex">
 <script src="assets/js/moved.js"></script>
 <link rel="canonical" href="profile"><noscript><meta http-equiv="refresh" content="0; url=profile"></noscript></head>
 <body><p>The Console moved to <a href="profile">/profile</a>.</p></body></html>

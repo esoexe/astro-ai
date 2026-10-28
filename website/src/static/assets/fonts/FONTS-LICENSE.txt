@@ -1,4 +1,4 @@
-Fonts bundled with Astro AI (all SIL Open Font License 1.1):
+Fonts bundled with A.S.T.R.O AI (all SIL Open Font License 1.1):
 - Inter (rsms/inter), Instrument Serif, JetBrains Mono
 
 ===== @fontsource-variable/inter =====

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# End-to-end test of the Astro AI Library installer:
+# End-to-end test of the A.S.T.R.O AI Library installer:
 #   build the library -> serve it on 127.0.0.1 -> start the backend against it -> install / tamper / uninstall.
 # Usage: bash tests/library_e2e.sh      (needs node and a built ./workspace_server)
 set -u
@@ -47,7 +47,7 @@ r=$(call install '{"id":"filesystem","inputs":{"FOLDER":"'"$TMP"'/nope"}}'); has
 mkdir -p "$TMP/proj"
 r=$(call install '{"id":"filesystem","inputs":{"FOLDER":"'"$TMP"'/proj"}}'); has "$r" '"ok":true' && grep -q '"server-filesystem@\|@modelcontextprotocol/server-filesystem@' "$EXT/mcp.json" && ok "pinned stdio MCP with folder" || bad "filesystem: $r"
 r=$(call install '{"id":"../../etc"}');                 has "$r" 'Unknown library item' && ok "bad id refused" || bad "bad id: $r"
-r=$(call install '{"id":"not-there"}');                 has "$r" 'not in the Astro AI Library' && ok "unknown id refused" || bad "unknown id: $r"
+r=$(call install '{"id":"not-there"}');                 has "$r" 'not in the A.S.T.R.O AI Library' && ok "unknown id refused" || bad "unknown id: $r"
 # A user-made skill with the same name is not overwritten silently.
 mkdir -p "$EXT/skills/write-tests"; echo mine > "$EXT/skills/write-tests/SKILL.md"
 r=$(call install '{"id":"write-tests"}');               has "$r" '"conflict":true' && [ "$(cat "$EXT/skills/write-tests/SKILL.md")" = mine ] && ok "user skill protected" || bad "conflict: $r"

@@ -1,20 +1,20 @@
-# The Astro AI Library
+# The A.S.T.R.O AI Library
 
 The Library has two parts:
 
-* **Reviewed items**: a small catalog of MCP servers, skills and plugins checked by the Astro AI team (`library/catalog.json`, schema 1).
+* **Reviewed items**: a small catalog of MCP servers, skills and plugins checked by the A.S.T.R.O AI team (`library/catalog.json`, schema 1).
 * **Community catalog** (schema 2): every MCP server in the [official MCP Registry](https://registry.modelcontextprotocol.io), Agent Skills and Claude Code plugins found in public GitHub repositories, AI command-line tools (npm and PyPI), and a directory of AI apps and sites taken from open "awesome" lists. It is built by `library/import/index_all.js` and re-indexed every day by the Website workflow. Community items are labelled *Community* and are not reviewed by hand.
 
 You can browse it in two places:
 
-* **Console** on the website (`/profile` > Library). You don't need to sign in. Each item has *Open in Astro AI*, a copyable config for Claude Code, Cursor, VS Code and OpenCode, and a zip download.
-* **Astro AI Desktop**: Workspace > Extensions > Library. Each item installs with one click.
+* **Console** on the website (`/profile` > Library). You don't need to sign in. Each item has *Open in A.S.T.R.O AI*, a copyable config for Claude Code, Cursor, VS Code and OpenCode, and a zip download.
+* **A.S.T.R.O AI Desktop**: Workspace > Extensions > Library. Each item installs with one click.
 
 ## Installing
 
-1. Click **Open in Astro AI** in the Console. This opens `astroai://library/<id>`. You can also open the Library tab in the app.
-2. Astro AI shows the item's publisher, version, permissions and the exact command or URL it will use. Nothing is installed until you click **Install**.
-3. If the item needs a token (for example a GitHub or Notion token), you type it in the app. The token is written only to your private local `mcp.json` and is never sent to Astro AI.
+1. Click **Open in A.S.T.R.O AI** in the Console. This opens `astroai://library/<id>`. You can also open the Library tab in the app.
+2. A.S.T.R.O AI shows the item's publisher, version, permissions and the exact command or URL it will use. Nothing is installed until you click **Install**.
+3. If the item needs a token (for example a GitHub or Notion token), you type it in the app. The token is written only to your private local `mcp.json` and is never sent to A.S.T.R.O AI.
 4. To uninstall, use the same dialog. It removes exactly the files listed in the install receipt (`ext/library.json`).
 
 ## Why installs are safe
@@ -30,7 +30,7 @@ The installer runs in the C++ server (`astro_library.inc`). The website and the 
 | MCP packages are pinned to an exact version (`npx -y pkg@1.2.3`). Arguments cannot contain shell syntax | both |
 | Files that look like secrets are rejected | `build_library.js` |
 | Installs go to a staging folder first and replace the old version only when complete | installer |
-| Local MCP servers start with a cleaned environment, without Astro AI's provider keys. They only get the variables the item declares | env scrub in `astro_dev.inc` |
+| Local MCP servers start with a cleaned environment, without A.S.T.R.O AI's provider keys. They only get the variables the item declares | env scrub in `astro_dev.inc` |
 | Ids are `[a-z0-9-]{1,48}`. Deep links with anything else are ignored | desktop launcher + web app |
 
 ## How the community catalog is built
@@ -59,7 +59,7 @@ Directories that ask not to be crawled (`/api/` in their robots.txt) are not use
 | MCP packages run at an exact version; `docker` refuses `:latest`, `--privileged`, host networking and device flags | indexer **and** `lib_install_community` |
 | Skill and plugin files are downloaded from `raw.githubusercontent.com/<repo>/<commit>/…` and must match their SHA-256 | installer |
 | Text files only (an allowlist of source and document extensions, no NUL bytes). Size caps per file and per item | both |
-| No hooks (`hooks/`, `hooks.json`, the `hooks` key in `plugin.json`), no Astro plugin UI code (`main.js`, `style.css`) | both |
+| No hooks (`hooks/`, `hooks.json`, the `hooks` key in `plugin.json`), no A.S.T.R.O plugin UI code (`main.js`, `style.css`) | both |
 | Community plugins keep only remote `https` MCP servers; local ones are listed in the install result for you to add by hand | installer |
 | Skill scripts are saved as text. They only run if the agent runs them, under your permission mode (Plan / Ask / Auto) | agent |
 | Command-line tools install into `ext/tools/<id>` (npm `--prefix`, or a Python venv; never system-wide). Only the commands the tool declares are linked into `ext/tools/.bin`, which is added to PATH for the agent, terminal and MCP servers, so a tool's dependencies never shadow your own programs | installer |

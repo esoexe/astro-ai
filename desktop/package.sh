@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Builds the Astro AI desktop apps, two editions:
-#   with-keys/  "Astro AI"        - includes YOUR provider keys (.astro_keys.env) and gateway settings (.workspace.env)
-#   clean/      "Astro AI Clean"  - no keys at all; a fresh app (keys can be added in Settings > Keys)
+# Builds the A.S.T.R.O AI desktop apps (display name; folders and data keep "A.S.T.R.O AI"), two editions:
+#   with-keys/  "A.S.T.R.O AI"        - includes YOUR provider keys (.astro_keys.env) and gateway settings (.workspace.env)
+#   clean/      "A.S.T.R.O AI Clean"  - no keys at all; a fresh app (keys can be added in Settings > Keys)
 # Output: ../desktop-builds/{with-keys,clean}/
 #   Windows: installer .exe + portable .zip      (cross-built with mingw-w64)
 #   Linux:   .deb + portable .tar.gz              (glibc 2.35+: Ubuntu 22.04+, Debian 12+, Fedora 36+)
@@ -10,7 +10,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
-VER="1.4.0"
+VER="1.4.1"
 OUT="$ROOT/desktop-builds"
 WORK="$ROOT/.cache/pkg"
 TP="$ROOT/desktop/third_party"
@@ -51,7 +51,7 @@ make_payload() {  # $1 = edition (personal|clean), $2 = dir
     mkdir -p "$dir"
     cp -r web providers.json "$dir/"
     if [ "$ed" = personal ]; then
-        echo '{"edition":"personal","name":"Astro AI","data_name":"astro-ai","port":47611}' > "$dir/edition.json"
+        echo '{"edition":"personal","name":"Astro AI","display":"A.S.T.R.O AI","data_name":"astro-ai","port":47611}' > "$dir/edition.json"
         # Your saved provider keys: copied into the app's data folder on first run.
         [ -f .astro_keys.env ] && install -m 600 .astro_keys.env "$dir/seed-keys.env"
         # Gateway settings (LLM_*), exported to the server on every launch. OpenCode password left out.
@@ -59,25 +59,25 @@ make_payload() {  # $1 = edition (personal|clean), $2 = dir
             ( set -a; . ./.workspace.env; set +a
               umask 077
               {
-                  echo "# Astro AI gateway settings (personal edition). Keep this file private."
+                  echo "# A.S.T.R.O AI gateway settings (personal edition). Keep this file private."
                   env | grep -E '^LLM_' | grep -v '^LLM_CREDENTIALS_URL=' | sort
                   echo "LLM_CREDENTIALS_URL=${LLM_CREDENTIALS_URL:-${LLM_BASE_URL%/}/credentials}"
                   [ -n "${LLM_WAIT_SECONDS:-}" ] || echo "LLM_WAIT_SECONDS=60"
               } > "$dir/gateway.env" )
         fi
     else
-        echo '{"edition":"clean","name":"Astro AI Clean","data_name":"astro-ai-clean","port":47612}' > "$dir/edition.json"
+        echo '{"edition":"clean","name":"Astro AI Clean","display":"A.S.T.R.O AI Clean","data_name":"astro-ai-clean","port":47612}' > "$dir/edition.json"
     fi
 }
 
 readme() {  # $1 = edition, $2 = platform, $3 = file
     local ed="$1" plat="$2" f="$3" title note
     if [ "$ed" = personal ]; then
-        title="Astro AI $VER - WITH YOUR API KEYS (personal edition)"
+        title="A.S.T.R.O AI $VER - WITH YOUR API KEYS (personal edition)"
         note="THIS BUILD CONTAINS YOUR API KEYS (seed-keys.env, gateway.env). Do not share it publicly.
 Data folder: Windows %APPDATA%\\Astro AI | Linux ~/.local/share/astro-ai | macOS ~/Library/Application Support/Astro AI"
     else
-        title="Astro AI Clean $VER - CLEAN (no API keys)"
+        title="A.S.T.R.O AI Clean $VER - CLEAN (no API keys)"
         note="This build contains NO API keys. It starts fresh with the keyless free providers;
 add your own keys in Settings > Keys. Safe to share.
 Data folder: Windows %APPDATA%\\Astro AI Clean | Linux ~/.local/share/astro-ai-clean | macOS ~/Library/Application Support/Astro AI Clean"
@@ -106,13 +106,13 @@ if [ -n "${CI:-}${GITHUB_ACTIONS:-}" ] && [[ " $EDITIONS " == *" personal "* ]];
 fi
 for ed in $EDITIONS; do
     if [ "$ed" = personal ]; then
-        TAG="WITH-KEYS"; DEST="$OUT/with-keys"; APP="Astro AI"; ID="AstroAI"; EXE="AstroAI.exe"; PKG="astro-ai"; CLI="astro-personal"
+        TAG="WITH-KEYS"; DEST="$OUT/with-keys"; APP="Astro AI"; DISP="A.S.T.R.O AI"; ID="AstroAI"; EXE="AstroAI.exe"; PKG="astro-ai"; CLI="astro-personal"
         NOTE="PERSONAL EDITION: this build contains your API keys."
     else
-        TAG="CLEAN"; DEST="$OUT/clean"; APP="Astro AI Clean"; ID="AstroAIClean"; EXE="AstroAI-Clean.exe"; PKG="astro-ai-clean"; CLI="astro"
+        TAG="CLEAN"; DEST="$OUT/clean"; APP="Astro AI Clean"; DISP="A.S.T.R.O AI Clean"; ID="AstroAIClean"; EXE="AstroAI-Clean.exe"; PKG="astro-ai-clean"; CLI="astro"
         NOTE="CLEAN EDITION: no API keys included. Add your own in Settings > Keys."
     fi
-    echo "==> $APP ($TAG)"
+    echo "==> $DISP ($TAG)"
     rm -rf "$DEST"; mkdir -p "$DEST"
     PAY="$WORK/payload-$ed"; make_payload "$ed" "$PAY"
 
@@ -122,9 +122,9 @@ for ed in $EDITIONS; do
     cp "$WORK/bin/AstroAI.exe" "$WD/$EXE"; cp "$WORK/bin/astro-server.exe" "$WD/"; cp "$WORK/bin/astro.exe" "$WD/$CLI.exe"
     readme "$ed" "windows x64" "$WD/README.txt"
     (cd "$WORK" && zip -qr9 "$DEST/AstroAI-$VER-windows-x64-portable-$TAG.zip" "$(basename "$WD")")
-    # Custom Astro AI installer (desktop/setup): payload = the same files as the portable zip.
+    # Custom A.S.T.R.O AI installer (desktop/setup): payload = the same files as the portable zip.
     KEYS=0; [ "$ed" = "personal" ] && KEYS=1
-    desktop/setup/build_setup.sh "$WD" "$DEST/AstroAI-$VER-windows-x64-Setup-$TAG.exe" "$APP" "$ID" "$EXE" "$KEYS" "$WORK/setup-$ed"
+    desktop/setup/build_setup.sh "$WD" "$DEST/AstroAI-$VER-windows-x64-Setup-$TAG.exe" "$APP" "$ID" "$EXE" "$KEYS" "$WORK/setup-$ed" "$DISP"
 
     # ---------------- Linux: .deb ----------------
     DEB="$WORK/deb-$ed"; L="$DEB/usr/lib/$PKG"
@@ -140,7 +140,7 @@ for ed in $EDITIONS; do
     cat > "$DEB/usr/share/applications/$PKG.desktop" <<EOF
 [Desktop Entry]
 Type=Application
-Name=$APP
+Name=$DISP
 GenericName=AI workspace
 Comment=Chat, code Workspace and Agent powered by one brain of free AI models
 Exec=/usr/bin/$PKG %u
@@ -158,12 +158,12 @@ Version: $VER
 Section: devel
 Priority: optional
 Architecture: amd64
-Maintainer: Astro AI <astro-ai@localhost>
+Maintainer: A.S.T.R.O AI <astro-ai@localhost>
 Depends: libwebkit2gtk-4.1-0, libgtk-3-0t64 | libgtk-3-0, libcurl4t64 | libcurl4, libssl3t64 | libssl3, libc6 (>= 2.35)
 Recommends: xdg-utils, git
 Suggests: g++, python3, nodejs
-Description: $APP - AI chat, code Workspace and Agent (desktop)
- Desktop app for Astro AI: chat, a code Workspace with run/preview/terminal and an
+Description: $DISP - AI chat, code Workspace and Agent (desktop)
+ Desktop app for A.S.T.R.O AI: chat, a code Workspace with run/preview/terminal and an
  autonomous Agent, powered by one brain of free AI models. $NOTE
 EOF
     dpkg-deb --root-owner-group -Zxz --build "$DEB" "$DEST/${PKG}_${VER}_amd64-$TAG.deb" >/dev/null
@@ -173,7 +173,7 @@ EOF
     cp -r "$L/." "$LT/"; cp desktop/assets/icon-256.png "$LT/icon.png"; cp "$DEB/usr/share/doc/$PKG/README.txt" "$LT/"
     cat > "$LT/install.sh" <<EOF
 #!/usr/bin/env bash
-# Adds $APP to your app menu (no root needed). Run it from where you keep this folder.
+# Adds $DISP to your app menu (no root needed). Run it from where you keep this folder.
 set -e
 D="\$(cd "\$(dirname "\$0")" && pwd)"
 mkdir -p ~/.local/share/applications ~/.local/share/icons/hicolor/256x256/apps
@@ -183,7 +183,7 @@ $(cat "$DEB/usr/share/applications/$PKG.desktop")
 DESK
 update-desktop-database ~/.local/share/applications 2>/dev/null || true
 xdg-mime default $PKG.desktop x-scheme-handler/astroai 2>/dev/null || true
-echo "$APP added to your applications menu. You can also run: \$D/astro-desktop"
+echo "$DISP added to your applications menu. You can also run: \$D/astro-desktop"
 EOF
     chmod 755 "$LT/install.sh"
     (cd "$WORK" && tar -czf "$DEST/$PKG-$VER-linux-x64-portable-$TAG.tar.gz" "$(basename "$LT")")
@@ -236,10 +236,10 @@ if [ "$LEAKS" -ne 0 ]; then echo "!! The clean edition contains key material ($L
 echo "   clean edition: 0 keys found"
 
 cat > "$OUT/README.txt" <<EOF
-Astro AI desktop $VER
+A.S.T.R.O AI desktop $VER
 
-  with-keys/  ->  "Astro AI"        PERSONAL edition: CONTAINS YOUR API KEYS. Keep it private.
-  clean/      ->  "Astro AI Clean"  CLEAN edition: NO API keys. Safe to share.
+  with-keys/  ->  "A.S.T.R.O AI"        PERSONAL edition: CONTAINS YOUR API KEYS. Keep it private.
+  clean/      ->  "A.S.T.R.O AI Clean"  CLEAN edition: NO API keys. Safe to share.
 
 Both can be installed side by side: separate app names, folders, data and ports (47611 / 47612).
 Windows: *-Setup-*.exe (installer) or *-portable-*.zip | Linux: *.deb or *.tar.gz | macOS: *-macos-source-*.tar.gz -> ./build_mac.sh

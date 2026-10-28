@@ -1,4 +1,4 @@
-<!--meta {"title": "An installer that feels like liftoff", "description": "Why we built Astro AI's Windows installer from scratch, how the moon became the progress bar, and how uninstall leaves nothing behind.", "nav": "blog", "ogType": "article"} -->
+<!--meta {"title": "An installer that feels like liftoff", "description": "Why we built A.S.T.R.O AI's Windows installer from scratch, how the moon became the progress bar, and how uninstall leaves nothing behind.", "nav": "blog", "ogType": "article"} -->
 <section class="page-hero">
   <div class="wrap article" style="padding-bottom:0">
     <a class="back" href="index.html">← All posts</a>
@@ -8,14 +8,14 @@
   </div>
 </section>
 <div class="wrap article">
-  <figure class="cover frame"><img src="{{root}}assets/img/blog/designing-the-installer.webp" width="1600" height="900" alt="The Astro AI installer at 53 percent: Unpacking the brain"></figure>
+  <figure class="cover frame"><img src="{{root}}assets/img/blog/designing-the-installer.webp" width="1600" height="900" alt="The A.S.T.R.O AI installer at 53 percent: Unpacking the brain"></figure>
   <div class="prose">
     <h2>Why not use a standard installer?</h2>
-    <p>Standard installer toolkits are reliable, but they look like 2005: grey wizards, tiny checkboxes and a "Next" button you click four times. Astro AI is meant to feel calm and a little bit cosmic, so the first screen you see should too.</p>
+    <p>Standard installer toolkits are reliable, but they look like 2005: grey wizards, tiny checkboxes and a "Next" button you click four times. A.S.T.R.O AI is meant to feel calm and a little bit cosmic, so the first screen you see should too.</p>
     <p>We wrote our own: one small native Windows program with no frameworks. It draws its own borderless window and carries the whole app inside it as a compressed payload.</p>
 
     <h2>The moon is the progress bar</h2>
-    <p>The left side of the window is the same scene as our logo: a glowing core, a tilted orbit and a moon. While Astro AI installs, the moon travels around the orbit and leaves a trail behind it. The more it has drawn, the further along you are. On the right, a big serif percentage counts up and the current file name ticks past underneath.</p>
+    <p>The left side of the window is the same scene as our logo: a glowing core, a tilted orbit and a moon. While A.S.T.R.O AI installs, the moon travels around the orbit and leaves a trail behind it. The more it has drawn, the further along you are. On the right, a big serif percentage counts up and the current file name ticks past underneath.</p>
     <p>Every screen has its own line of copy:</p>
     <ul>
       <li>Install: <em>"Ready for liftoff."</em></li>
@@ -25,7 +25,7 @@
 
     <figure>
       <img src="{{root}}assets/img/shots/installer-3-done.webp" width="860" height="560" alt="The installer's finished screen" loading="lazy">
-      <figcaption>The finished screen. Launch Astro AI straight from here.</figcaption>
+      <figcaption>The finished screen. Launch A.S.T.R.O AI straight from here.</figcaption>
     </figure>
 
     <h2>Smooth, even on modest machines</h2>
@@ -33,7 +33,7 @@
 
     <h2>Polite by default</h2>
     <ul>
-      <li><strong>No admin prompt.</strong> Astro AI installs just for you, under your user profile, so the installer never asks for administrator rights.</li>
+      <li><strong>No admin prompt.</strong> A.S.T.R.O AI installs just for you, under your user profile, so the installer never asks for administrator rights.</li>
       <li><strong>Updates in place.</strong> Running a newer installer over an old version updates it and keeps your chats and settings.</li>
       <li><strong>One at a time.</strong> Open the installer twice by accident and the second copy just brings the first to the front.</li>
       <li><strong>Silent mode for IT.</strong> <code>Setup.exe /S</code> installs without any UI. You can also set the folder with <code>/D=</code> and skip the desktop shortcut with <code>--no-desktop-shortcut</code>.</li>

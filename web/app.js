@@ -47,7 +47,7 @@
   const fmtSecs = (ms) => (ms < 10000 ? `${(ms / 1000).toFixed(1)}s` : ms < 60000 ? `${Math.round(ms / 1000)}s` : `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`);
 
   // ===========================================================================================
-  // Data loading (backwards compatible with earlier Astro AI versions)
+  // Data loading (backwards compatible with earlier A.S.T.R.O AI versions)
   // ===========================================================================================
   const OLD_NOTE = /^_Answered by (.+?)\. (\d+) models? (?:was|were) unavailable[^_\n]*_\s*\n+/;
 
@@ -626,7 +626,7 @@
     $('#compare-label').textContent = state.compareWith ? `vs ${modelName(state.compareWith)}` : 'Compare';
     $('#lang-label').textContent = LANGS[state.language];
     $('#lang-button').classList.toggle('ghost', state.language === 'auto');
-    el.input.placeholder = state.compareWith ? `Ask two models at once` : state.mode === 'general' ? 'Ask Astro AI' : `Ask Astro AI · ${mode.label} mode`;
+    el.input.placeholder = state.compareWith ? `Ask two models at once` : state.mode === 'general' ? 'Ask A.S.T.R.O AI' : `Ask A.S.T.R.O AI · ${mode.label} mode`;
   }
   function setMode(mode, quiet = false) {
     if (!MODES[mode]) return;
@@ -671,7 +671,7 @@
       return node;
     }
     const files = m.files?.length ? `<div class="attach-line">${m.files.map((f) => `<span class="chip">${icon('i-file')}<span>${esc(f)}</span></span>`).join('')}</div>` : '';
-    const img = m.thumb ? `<div class="attach-line"><img class="user-thumb" src="${esc(m.thumb)}" alt="${esc(m.imageName || 'Image')}" title="${esc(m.imageText ? `What Astro AI saw: ${m.imageText.slice(0, 400)}` : (m.imageName || 'Image'))}"></div>` : (m.imageName ? `<div class="attach-line"><span class="chip">${icon('i-image')}<span>${esc(m.imageName)}</span></span></div>` : '');
+    const img = m.thumb ? `<div class="attach-line"><img class="user-thumb" src="${esc(m.thumb)}" alt="${esc(m.imageName || 'Image')}" title="${esc(m.imageText ? `What A.S.T.R.O AI saw: ${m.imageText.slice(0, 400)}` : (m.imageName || 'Image'))}"></div>` : (m.imageName ? `<div class="attach-line"><span class="chip">${icon('i-image')}<span>${esc(m.imageName)}</span></span></div>` : '');
     node.innerHTML = `${img}${files}<div class="user-bubble" dir="auto">${esc(m.content)}</div><div class="user-tools">${actBtn('copy-user', 'i-copy', 'Copy')}${state.loading ? '' : actBtn('edit', 'i-edit', 'Edit')}</div>`;
     return node;
   }
@@ -953,11 +953,11 @@
   function exportConversation(chat = null) {
     const messages = chat ? chat.messages.map(normalizeMessage).filter(Boolean) : state.messages;
     if (!messages.length) { toast('Start a conversation first'); return; }
-    const title = chat?.title || messages.find((m) => m.role === 'user')?.content.replace(/\s+/g, ' ').slice(0, 60) || 'Astro AI chat';
-    const lines = [`# ${title}`, '', `_Exported from Astro AI on ${new Date().toLocaleString()}_`, ''];
+    const title = chat?.title || messages.find((m) => m.role === 'user')?.content.replace(/\s+/g, ' ').slice(0, 60) || 'A.S.T.R.O AI chat';
+    const lines = [`# ${title}`, '', `_Exported from A.S.T.R.O AI on ${new Date().toLocaleString()}_`, ''];
     for (const m of messages) {
       if (m.role === 'user') lines.push('## You', '', m.content, '');
-      else { const d = m.drafts[m.active]; lines.push(`## Astro AI${d.model ? ` (${d.model})` : ''}`, '', d.content || `_${d.error || 'No answer'}_`, ''); if (m.sources?.length) lines.push(`Sources: ${m.sources.join(', ')}`, ''); }
+      else { const d = m.drafts[m.active]; lines.push(`## A.S.T.R.O AI${d.model ? ` (${d.model})` : ''}`, '', d.content || `_${d.error || 'No answer'}_`, ''); if (m.sources?.length) lines.push(`Sources: ${m.sources.join(', ')}`, ''); }
     }
     download(`${slug(title, 'workspace-chat')}.md`, lines.join('\n'));
     toast('Chat exported as Markdown');
@@ -1052,7 +1052,7 @@
     const out = [];
     for (const m of state.messages.slice(0, endIdx)) {
       const role = m.role;
-      let content = role === 'user' ? (m.imageText ? `${m.content}\n\n[Attached image${m.imageName ? ` “${m.imageName}”` : ''}, as described by a vision model: ${m.imageText}]` : m.content) : (() => { const d = m.drafts[m.active]; if (!d || d.status === 'error') return ''; const done = (d.actions || []).filter((a) => a.status === 'done').map((a) => a.text); return d.content + (done.length ? `\n\n(Astro AI actions already done: ${done.join('; ')})` : ''); })();
+      let content = role === 'user' ? (m.imageText ? `${m.content}\n\n[Attached image${m.imageName ? ` “${m.imageName}”` : ''}, as described by a vision model: ${m.imageText}]` : m.content) : (() => { const d = m.drafts[m.active]; if (!d || d.status === 'error') return ''; const done = (d.actions || []).filter((a) => a.status === 'done').map((a) => a.text); return d.content + (done.length ? `\n\n(A.S.T.R.O AI actions already done: ${done.join('; ')})` : ''); })();
       if (!content) continue;
       content = content.slice(0, LIMITS.msgChars);
       if (out.length && out[out.length - 1].role === role) out[out.length - 1].content = `${out[out.length - 1].content}\n\n${content}`.slice(-LIMITS.msgChars);
@@ -1228,16 +1228,16 @@
   async function sendFeedback(msg, idx) {
     const d = msg.drafts?.[msg.active]; if (!d) return;
     const q = state.messages.slice(0, idx).reverse().find((m) => m.role === 'user');
-    showModal(`<h2 id="modal-title">What went wrong?</h2><p class="hint">Your note helps Astro AI pick better models and add this case to its tests.</p>
+    showModal(`<h2 id="modal-title">What went wrong?</h2><p class="hint">Your note helps A.S.T.R.O AI pick better models and add this case to its tests.</p>
       <textarea class="input" id="fb-note" rows="3" maxlength="2000" placeholder="Optional: wrong answer, code did not run, too slow…"></textarea>
-      <label class="dev-toggle" style="margin:10px 0"><input type="checkbox" id="fb-share"> Share this question and answer with the Astro AI team (never your keys or files)</label>
+      <label class="dev-toggle" style="margin:10px 0"><input type="checkbox" id="fb-share"> Share this question and answer with the A.S.T.R.O AI team (never your keys or files)</label>
       <div class="btn-row"><button type="button" class="btn primary" id="fb-send">Send</button><button type="button" class="btn ghost" id="modal-close">Skip</button></div>`);
     $('#modal-close').onclick = () => closeModal();
     $('#fb-send').onclick = async () => {
       const share = $('#fb-share').checked;
       try {
         const r = await apiJson('/api/feedback', { kind: 'bad_answer', question: q?.content || '', answer: d.content || '', model: d.route || d.model || '', mode: state.mode, note: $('#fb-note').value, share });
-        closeModal(); toast(share ? (r.shared ? 'Thanks. Shared with the Astro AI team.' : 'Saved on this computer (sharing failed, try later).') : 'Thanks. Saved on this computer.');
+        closeModal(); toast(share ? (r.shared ? 'Thanks. Shared with the A.S.T.R.O AI team.' : 'Saved on this computer (sharing failed, try later).') : 'Thanks. Saved on this computer.');
       } catch (err) { toast(err.message, 'error'); }
     };
   }
@@ -1395,7 +1395,7 @@
     { cmd: '/brain', desc: 'Use One Brain (all models together)', run: () => setModel('brain') },
     { cmd: '/fast', desc: 'Use the fastest single model', run: () => setModel('auto') },
     { cmd: '/remember', desc: 'Save to memory, e.g. /remember I prefer short answers', arg: true, run: (arg) => { if (!arg.trim()) { openSettings('memory'); return; } TOOLS.remember({ fact: arg }); toast('Saved to memory'); } },
-    { cmd: '/memory', desc: 'See what Astro AI remembers', run: () => openSettings('memory') },
+    { cmd: '/memory', desc: 'See what A.S.T.R.O AI remembers', run: () => openSettings('memory') },
     { cmd: '/help', desc: 'Keyboard shortcuts and commands', run: () => openSettings('shortcuts') },
   ];
   let slashSel = 0;
@@ -1796,10 +1796,10 @@
         <div class="set-row"><div class="lbl"><b>Speaking speed</b><small id="rate-val">${state.voice.rate.toFixed(2)}×</small></div><input type="range" class="range" id="set-rate" min="0.6" max="1.6" step="0.05" value="${state.voice.rate}"></div>
         <div class="set-row"><div class="lbl"><b>Read every reply aloud</b><small>Replies are also read aloud automatically after you dictate a message</small></div><label class="switch"><input type="checkbox" id="set-autospeak"${state.voice.autoSpeak ? ' checked' : ''}><span></span></label></div>
         <div class="btn-row"><button type="button" class="btn" id="test-voice">${icon('i-speaker')}Test voice</button><button type="button" class="btn primary" id="settings-live">${icon('i-wave')}Start Live</button></div>
-        <p class="hint">Live listens with your browser's speech recognition. Chrome and Edge send the audio to their own speech service. It answers with the voices installed on your device. If the microphone is blocked inside the preview, open Astro AI in its own tab. Tap the orb or the button to interrupt.</p>`;
+        <p class="hint">Live listens with your browser's speech recognition. Chrome and Edge send the audio to their own speech service. It answers with the voices installed on your device. If the microphone is blocked inside the preview, open A.S.T.R.O AI in its own tab. Tap the orb or the button to interrupt.</p>`;
     }
     if (tab === 'memory') {
-      return `<p class="sub" style="margin-top:0">Astro AI uses these facts to personalize answers. You can add them here, by saying “remember that…” or with /remember. They are stored only in this browser and sent with your messages to the model that answers.</p>
+      return `<p class="sub" style="margin-top:0">A.S.T.R.O AI uses these facts to personalize answers. You can add them here, by saying “remember that…” or with /remember. They are stored only in this browser and sent with your messages to the model that answers.</p>
         <form class="calc-form" id="memory-form"><input class="input" id="memory-input" maxlength="300" placeholder="e.g. I live in Adrar and prefer short answers" autocomplete="off"><button type="submit" class="btn primary">Add</button></form>
         <ul class="memory-list">${state.memory.length ? state.memory.map((m) => `<li><span>${esc(m.fact)}</span><button type="button" class="act" data-mem="${esc(m.id)}" aria-label="Forget" data-tip="Forget">${icon('i-trash')}</button></li>`).join('') : '<li><span class="hint">No memories yet.</span></li>'}</ul>`;
     }
@@ -1814,30 +1814,30 @@
       return `<div class="set-row"><div class="lbl"><b>Minds per answer</b><small>How many models think at the same time. All = every free model that is available right now (uses the most free quota)</small></div><div class="seg" id="set-minds">${[3, 4, 6, 8, 0].map((n) => `<button type="button" class="seg-btn${state.brain.minds === n ? ' active' : ''}" data-v="${n}">${n || `All (${pickMinds(Infinity).length})`}</button>`).join('')}</div></div>
         <div class="set-row"><div class="lbl"><b>Wait for every mind</b><small>All mode: every model runs and finishes before the merge (none skipped for being slow). Busy or rate-limited models wait their turn and retry. Answers take longer.</small></div><label class="switch"><input type="checkbox" id="set-waitall"${state.brain.waitAll !== false ? ' checked' : ''}><span></span></label></div>
         <div class="set-row"><div class="lbl"><b>Patience</b><small>When “Wait for every mind” is off (or for Live voice): how long to wait for slower minds after the first one answers</small></div><div class="seg" id="set-grace">${[4, 8, 12, 20].map((n) => `<button type="button" class="seg-btn${state.brain.grace === n ? ' active' : ''}" data-v="${n}">${n}s</button>`).join('')}</div></div>
-        <div class="set-row"><div class="lbl"><b>Check code in the background</b><small>After a coding answer is shown, Astro AI quietly compiles or runs the code (only self-contained code, 6 s limit, on this computer). If it fails, a coder model fixes it, and the fix is added only if it passes the check.</small></div><label class="switch"><input type="checkbox" id="set-bgcheck"${bgCheckOn() ? ' checked' : ''}><span></span></label></div>
-        <div class="set-row"><div class="lbl"><b>Astro AI actions</b><small>Let the AI create notes, tasks, reminders and memories, and change settings when you ask</small></div><label class="switch"><input type="checkbox" id="set-agent"${state.agent ? ' checked' : ''}><span></span></label></div>
+        <div class="set-row"><div class="lbl"><b>Check code in the background</b><small>After a coding answer is shown, A.S.T.R.O AI quietly compiles or runs the code (only self-contained code, 6 s limit, on this computer). If it fails, a coder model fixes it, and the fix is added only if it passes the check.</small></div><label class="switch"><input type="checkbox" id="set-bgcheck"${bgCheckOn() ? ' checked' : ''}><span></span></label></div>
+        <div class="set-row"><div class="lbl"><b>A.S.T.R.O AI actions</b><small>Let the AI create notes, tasks, reminders and memories, and change settings when you ask</small></div><label class="switch"><input type="checkbox" id="set-agent"${state.agent ? ' checked' : ''}><span></span></label></div>
         ${providersHtml()}<div class="btn-row"><button type="button" class="btn primary" id="test-brain">${icon('i-sparkles')}Test the brain</button><button type="button" class="btn" id="refresh-brain">${icon('i-redo')}Refresh status</button></div><p class="hint" id="test-result"></p>
         <div class="box"><h3>Custom endpoint (optional)</h3><pre>LLM_BASE_URL=https://api.your-provider.com/v1\nLLM_API_KEY=your-secret-key\nLLM_MODEL=your-provider-model-id</pre></div>`;
     }
     if (tab === 'data') {
       const size = (() => { try { let n = 0; for (const k of Object.values(KEYS)) n += (localStorage.getItem(k) || '').length; return formatBytes(n * 2); } catch (_e) { return '?'; } })();
       return `<div class="set-row"><div class="lbl"><b>Export everything</b><small>${state.conversations.length} chats · ${state.notes.length} notes · ${state.tasks.length} tasks · about ${size} in this browser</small></div><button type="button" class="btn" id="export-all">${icon('i-export')}Export JSON</button></div>
-        <div class="set-row"><div class="lbl"><b>Import</b><small>Merge a Astro AI (or Workspace) JSON export into this browser</small></div><button type="button" class="btn" id="import-all">${icon('i-file')}Import</button><input type="file" id="import-file" accept=".json,application/json" hidden></div>
+        <div class="set-row"><div class="lbl"><b>Import</b><small>Merge a A.S.T.R.O AI (or Workspace) JSON export into this browser</small></div><button type="button" class="btn" id="import-all">${icon('i-file')}Import</button><input type="file" id="import-file" accept=".json,application/json" hidden></div>
         <div class="set-row"><div class="lbl"><b>Delete all chats</b><small>Notes and tasks are kept</small></div><button type="button" class="btn danger" id="delete-chats">Delete chats</button></div>
         <div class="set-row"><div class="lbl"><b>Clear all local data</b><small>Chats, notes, tasks and preferences in this browser</small></div><button type="button" class="btn danger" id="clear-workspace-data">Clear data</button></div>
-        <p class="hint">Privacy: chats, notes and tasks are stored in this browser and, when sync is on (Account &amp; sync), on your Astro AI server and your own Supabase project. Your messages (and excerpts from files you add) are sent to the model that answers, via this Astro AI server. Free tiers of some platforms may log or train on prompts (details in the Brain tab), so avoid sending confidential data. Voice input may use your browser's speech service.</p>`;
+        <p class="hint">Privacy: chats, notes and tasks are stored in this browser and, when sync is on (Account &amp; sync), on your A.S.T.R.O AI server and your own Supabase project. Your messages (and excerpts from files you add) are sent to the model that answers, via this A.S.T.R.O AI server. Free tiers of some platforms may log or train on prompts (details in the Brain tab), so avoid sending confidential data. Voice input may use your browser's speech service.</p>`;
     }
     if (tab === 'shortcuts') {
       const rows = [['Search everything / command palette', 'Ctrl K'], ['New chat', 'Ctrl Shift O'], ['Toggle menu', 'Ctrl B'], ['Focus the message box', '/'], ['Send', state.enterSends ? 'Enter' : 'Ctrl Enter'], ['New line', 'Shift Enter'], ['Edit your last message', '↑ (empty box)'], ['Stop generating / close', 'Esc'], ['Copy last answer', 'Ctrl Shift C']];
       return `<div class="shortcut-list">${rows.map(([a, b]) => `<span>${esc(a)}</span><span>${b.split(' ').map((k) => `<kbd>${esc(k)}</kbd>`).join(' ')}</span>`).join('')}</div>
         <h3 style="margin:22px 0 10px;font-weight:500;font-size:15px">Slash commands</h3><div class="shortcut-list">${SLASH.map((s) => `<span>${esc(s.desc)}</span><span><kbd>${esc(s.cmd)}</kbd></span>`).join('')}</div>`;
     }
-    return `<p>Astro AI is a fast, private-by-default AI workspace. A C++ server routes each message through a <b>brain</b> of free models from several platforms. If one is busy or out of quota, it switches to the next automatically.</p>
+    return `<p>A.S.T.R.O AI is a fast, private-by-default AI workspace. A C++ server routes each message through a <b>brain</b> of free models from several platforms. If one is busy or out of quota, it switches to the next automatically.</p>
       <ul class="hint" style="line-height:1.8"><li>Chats, notes and tasks stay in this browser.</li><li>Compare mode asks two models at once; drafts let you keep several answers.</li><li>Free models are rate-limited and can change. Answers can be wrong, so double-check important information.</li></ul>`;
   }
   function openSettings(tab = 'general') {
     const tabs = [['general', 'General'], ['brain', 'Brain'], ['providers', 'Providers & keys'], ['account', 'Account & sync'], ['voice', 'Voice'], ['memory', 'Memory'], ['data', 'Data & privacy'], ['shortcuts', 'Shortcuts'], ['about', 'About']];
-    showModal(`<h2 id="modal-title">Settings</h2><p class="sub">${esc(models().length ? `${readyCount()} of ${models().length} free models ready` : 'Astro AI')}</p>
+    showModal(`<h2 id="modal-title">Settings</h2><p class="sub">${esc(models().length ? `${readyCount()} of ${models().length} free models ready` : 'A.S.T.R.O AI')}</p>
       <div class="tabs" role="tablist">${tabs.map(([id, label]) => `<button type="button" class="tab${id === tab ? ' active' : ''}" data-tab="${id}" role="tab">${label}</button>`).join('')}</div>
       <div id="settings-body">${settingsTab(tab)}</div>`);
     $$('.tab', el.modal).forEach((b) => b.addEventListener('click', () => openSettings(b.dataset.tab)));
@@ -1851,7 +1851,7 @@
       $('#set-voice').addEventListener('change', (e) => { state.voice.name = e.target.value; saveVoice(); });
       $('#set-rate').addEventListener('input', (e) => { state.voice.rate = Number(e.target.value); $('#rate-val').textContent = `${state.voice.rate.toFixed(2)}×`; saveVoice(); });
       $('#set-autospeak').addEventListener('change', (e) => { state.voice.autoSpeak = e.target.checked; saveVoice(); });
-      $('#test-voice').addEventListener('click', () => { speechSynthesis?.cancel(); speakText(state.language === 'French' ? 'Bonjour ! Je suis Astro AI, votre cerveau collectif.' : state.language === 'Arabic' ? 'مرحبا! أنا ووركسبيس، عقلك الجماعي.' : 'Hi! I am Astro AI, one brain made of many minds. How can I help?'); });
+      $('#test-voice').addEventListener('click', () => { speechSynthesis?.cancel(); speakText(state.language === 'French' ? 'Bonjour ! Je suis A.S.T.R.O AI, votre cerveau collectif.' : state.language === 'Arabic' ? 'مرحبا! أنا ووركسبيس، عقلك الجماعي.' : 'Hi! I am A.S.T.R.O AI, one brain made of many minds. How can I help?'); });
       $('#settings-live').addEventListener('click', () => { closeModal(); openLive(); });
     }
     if (tab === 'memory') {
@@ -1888,7 +1888,7 @@
     }
     if (tab === 'data') {
       $('#export-all').addEventListener('click', () => {
-        download(`workspace-backup-${todayIso()}.json`, JSON.stringify({ app: 'Astro AI', version: 2, exportedAt: new Date().toISOString(), conversations: state.conversations, notes: state.notes, tasks: state.tasks }, null, 2), 'application/json');
+        download(`workspace-backup-${todayIso()}.json`, JSON.stringify({ app: 'A.S.T.R.O AI', version: 2, exportedAt: new Date().toISOString(), conversations: state.conversations, notes: state.notes, tasks: state.tasks }, null, 2), 'application/json');
         toast('Backup downloaded');
       });
       $('#import-all').addEventListener('click', () => $('#import-file').click());
@@ -1904,7 +1904,7 @@
           saveConversations(); state.conversations = loadConversations();
           renderConversationList(); saveNotes(); saveTasks();
           toast(`Imported ${chats.length} chat(s)`); openSettings('data');
-        } catch (_err) { toast('That file is not a valid Astro AI export', 'error'); }
+        } catch (_err) { toast('That file is not a valid A.S.T.R.O AI export', 'error'); }
       });
       $('#delete-chats').addEventListener('click', deleteAllChats);
       $('#clear-workspace-data').addEventListener('click', clearLocalWorkspace);
@@ -1925,7 +1925,7 @@
     state.conversations = []; state.messages = []; state.activeId = null; state.notes = []; state.activeNoteId = null; state.tasks = []; state.documents = [];
     renderConversationList(); renderMessages(); renderNotes(); renderTasks(); renderAttachments();
     closeModal();
-    toast('Local Astro AI data cleared');
+    toast('Local A.S.T.R.O AI data cleared');
   }
 
   function renderKnowledgeList() {
@@ -2015,7 +2015,7 @@
       if (ms.length) out.push({ title: 'Models' }, ...ms.map((m) => ({ label: `Use ${m.name}`, sub: `${m.provider_name}${m.blocked ? ' · unavailable now' : ''}`, icon: 'i-brain', run: () => setModel(m.id) })));
       const notes = state.notes.filter((n) => has(`${n.title} ${n.body}`)).slice(0, 5);
       if (notes.length) out.push({ title: 'Notes' }, ...notes.map((n) => ({ label: n.title || 'Untitled note', icon: 'i-note', run: () => { state.activeNoteId = n.id; switchView('notes'); } })));
-      out.push({ title: 'Ask' }, { label: `Ask Astro AI: "${q.trim().slice(0, 60)}"`, icon: 'i-spark', run: () => { newConversation(); sendMessage(q.trim()); } });
+      out.push({ title: 'Ask' }, { label: `Ask A.S.T.R.O AI: "${q.trim().slice(0, 60)}"`, icon: 'i-spark', run: () => { newConversation(); sendMessage(q.trim()); } });
     }
     return out;
   }
@@ -2199,7 +2199,7 @@
     return CODE_SIGNS.test(t) || CODE_WORDS.test(t) || ARABIC_FRENCH_CODE.test(t);
   }
   // Coding leads/mergers/reviewers: the free models that write the most reliable code come first.
-  const CODE_RANK = [/deepseek-v4[^ ]*pro/i, /qwen3-coder-plus/i, /glm-5\.3(?!-flash)/i, /deepseek-v4/i, /qwen3\.8-max/i, /kimi-k2/i, /devstral/i, /minimax-m3(?!\.1-flash)/i, /qwen3\.5-397b/i, /codestral/i, /nemotron-3-ultra/i, /qwen3-coder/i, /gpt-oss-120b/i, /glm-5\.3-flash/i, /minimax-m3/i, /qwen3\.8/i, /llama-3[._]3-70b/i];
+  const CODE_RANK = [/deepseek-v4[^ ]*pro/i, /qwen3-coder-plus/i, /glm-5\.3(?!-flash)/i, /deepseek-v4/i, /qwen3\.8-max/i, /kimi-k2/i, /devstral/i, /minimax-m3(?!\.1-flash)/i, /qwen3\.5-397b/i, /nemotron-3-ultra/i, /qwen3-coder/i, /gpt-oss-120b/i, /codestral/i, /glm-5\.3-flash/i, /minimax-m3/i, /qwen3\.8/i, /llama-3[._]3-70b/i];
   const LEAD_RANK = [/glm-5\.3(?!-flash)/i, /deepseek-v4/i, /qwen3\.5-397b/i, /nemotron-3-ultra/i, /gpt-oss-120b/i, /minimax-m3/i, /glm-5\.3-flash/i, /qwen3\.[68]/i, /llama-3[._]3-70b/i, /mistral-small/i, /step-5/i, /nemotron-3\.5-super/i, /muse/i, /gpt-oss-20b/i];
   // Live model health (from the server's per-model success/speed stats) and the daily coding bench
   // (model_rank.json, built by tests/coding_bench/make_rank.js) adjust the fixed order: a model that keeps
@@ -2352,7 +2352,7 @@
     }
     if (!good.length) {
       b.phase = 'done'; b.single = true;
-      d.notice = 'No mind of the brain could answer, so Astro AI switched to the fastest available route';
+      d.notice = 'No mind of the brain could answer, so A.S.T.R.O AI switched to the fastest available route';
       d.requested = 'auto';
       await streamDraft(d, payload, signal);
       return;
@@ -2587,7 +2587,7 @@
       if (!at || at < Date.now() - 60000) throw new Error('The reminder time is unclear');
       const r = { id: makeId(), text: str(a.text || a.title, 200) || 'Reminder', at, fired: false };
       state.reminders.push(r); saveReminders(); askNotify();
-      return { text: `Reminder: “${r.text}”`, sub: `${formatWhen(at)} · works while Astro AI is open`, undo: () => { state.reminders = state.reminders.filter((x) => x.id !== r.id); saveReminders(); } };
+      return { text: `Reminder: “${r.text}”`, sub: `${formatWhen(at)} · works while A.S.T.R.O AI is open`, undo: () => { state.reminders = state.reminders.filter((x) => x.id !== r.id); saveReminders(); } };
     },
     set_theme(a) {
       const t = lower(a.theme);
@@ -2715,7 +2715,7 @@
     const sub = { id: makeId(), content: '', thinking: '', notice: '', status: 'streaming', requested: 'auto', started: performance.now() };
     d.status = 'streaming';
     const follow = { ...payload, stage: undefined, strict: false, max_tokens: opts.voice ? 400 : undefined, workspace: state.agent ? workspaceSnapshot() : '',
-      messages: [...payload.messages, { role: 'assistant', content: (base || 'Let me check your workspace.').slice(0, 6000) }, { role: 'user', content: `[Astro AI action results]\n${reads.join('\n\n').slice(0, 9000)}\n\nUsing these results, answer my previous message now. Do not repeat these read actions.` }].slice(-24) };
+      messages: [...payload.messages, { role: 'assistant', content: (base || 'Let me check your workspace.').slice(0, 6000) }, { role: 'user', content: `[A.S.T.R.O AI action results]\n${reads.join('\n\n').slice(0, 9000)}\n\nUsing these results, answer my previous message now. Do not repeat these read actions.` }].slice(-24) };
     await streamDraft(sub, follow, signal, { onUpdate: () => { d.content = base + (base ? '\n\n' : '') + sub.content; schedulePaint(d); } });
     d.content = base + (base && sub.content ? '\n\n' : '') + sub.content;
     d.status = 'done';
@@ -2757,7 +2757,7 @@
       if (r.fired || r.at > now) continue;
       r.fired = true; changed = true;
       toast(`⏰ ${r.text}`, '', { label: 'OK', run: () => {} });
-      try { if ('Notification' in window && Notification.permission === 'granted') (navigator.serviceWorker?.controller ? navigator.serviceWorker.ready.then((reg) => reg.showNotification('Astro AI reminder', { body: r.text, icon: '/icon.svg', tag: r.id })) : new Notification('Astro AI reminder', { body: r.text })); } catch (_e) { /* ignore */ }
+      try { if ('Notification' in window && Notification.permission === 'granted') (navigator.serviceWorker?.controller ? navigator.serviceWorker.ready.then((reg) => reg.showNotification('A.S.T.R.O AI reminder', { body: r.text, icon: '/icon.svg', tag: r.id })) : new Notification('A.S.T.R.O AI reminder', { body: r.text })); } catch (_e) { /* ignore */ }
       if (live.open || state.voice.autoSpeak) speakText(`Reminder: ${r.text}`);
     }
     state.reminders = state.reminders.filter((r) => !r.fired || now - r.at < 7 * 86400000);
@@ -2876,7 +2876,7 @@
       src.connect(live.analyser);
     } catch (err) {
       if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) {
-        setLiveState('error', 'Microphone access is blocked. Allow the microphone for this site (or open Astro AI in its own tab), then tap the button. You can also type below.');
+        setLiveState('error', 'Microphone access is blocked. Allow the microphone for this site (or open A.S.T.R.O AI in its own tab), then tap the button. You can also type below.');
         return;
       }
     }
@@ -2929,7 +2929,7 @@
         live.silence = setTimeout(commitLive, fin && !inter.trim() ? 900 : 1800);
       };
       rec.onerror = (e) => {
-        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { live.recOn = false; setLiveState('error', 'The microphone or speech service is blocked. Allow the microphone (or open Astro AI in its own tab), then tap the button. You can also type below.'); }
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { live.recOn = false; setLiveState('error', 'The microphone or speech service is blocked. Allow the microphone (or open A.S.T.R.O AI in its own tab), then tap the button. You can also type below.'); }
         else if (e.error === 'network') setLiveStatus('The speech service is unreachable. You can type below.');
         else if (e.error === 'language-not-supported') setLiveStatus('This speech language is not supported here. Try another language chip.');
       };
@@ -3148,7 +3148,7 @@
   });
 
   // ===========================================================================================
-  // Astro AI: login, providers & keys, web, vision, Model Lab, Reader, code runner, sync, PWA
+  // A.S.T.R.O AI: login, providers & keys, web, vision, Model Lab, Reader, code runner, sync, PWA
   // ===========================================================================================
   const TOKEN_KEY = 'astro_token_v1';
   const SYNC_KEY = 'astro_sync_v1';
@@ -3197,8 +3197,8 @@
     const setup = Boolean(st.setup);
     box.innerHTML = `<form class="login-card" autocomplete="on">
       <div class="hero-orb small" aria-hidden="true"><i></i><i></i><i></i></div>
-      <h1><span class="grad-text">Astro AI</span></h1>
-      <p class="sub">${setup ? 'Create the password that protects your Astro AI. Anyone who opens this address will need it.' : 'Sign in to your Astro AI.'}</p>
+      <h1><span class="grad-text">A.S.T.R.O AI</span></h1>
+      <p class="sub">${setup ? 'Create the password that protects your A.S.T.R.O AI. Anyone who opens this address will need it.' : 'Sign in to your A.S.T.R.O AI.'}</p>
       <input class="input" type="text" name="username" value="astro" autocomplete="username" hidden>
       <input class="input" id="login-pass" type="password" minlength="${setup ? 8 : 1}" required placeholder="${setup ? 'New password (8+ characters)' : 'Password'}" autocomplete="${setup ? 'new-password' : 'current-password'}">
       ${setup ? '<input class="input" id="login-pass2" type="password" minlength="8" required placeholder="Repeat password" autocomplete="new-password">' : ''}
@@ -3222,7 +3222,7 @@
         setToken(j.token);
         // Make sure the session really works through this connection before closing the screen.
         const check = await nativeFetch('/api/auth/state', { cache: 'no-store', credentials: 'same-origin', headers: authHeaders() }).then((x) => x.json()).catch(() => ({}));
-        if (!check.ok) throw new Error('Your password is correct, but this browser or preview is blocking the sign-in session. Open Astro AI in its own browser tab (not an embedded preview) and sign in again.');
+        if (!check.ok) throw new Error('Your password is correct, but this browser or preview is blocking the sign-in session. Open A.S.T.R.O AI in its own browser tab (not an embedded preview) and sign in again.');
         box.hidden = true; astro.loginOpen = false;
         await syncPull(true);
         refreshStatus();
@@ -3352,7 +3352,7 @@
     return `<div class="early"><div class="early-head">${icon('i-bolt')}<span>First answer from <b>${esc(d.early.name)}</b> · the other minds are still checking it</span></div><div class="md" dir="auto">${renderMarkdown(shown)}</div></div>`;
   }
 
-  // ---------- code runner (sandboxed iframe, no access to Astro AI or your data) ----------
+  // ---------- code runner (sandboxed iframe, no access to A.S.T.R.O AI or your data) ----------
   const RUNNABLE = new Set(['html', 'htm', 'svg', 'js', 'javascript', 'jsx', 'css', 'xml']);
   function runnerDoc(code, lang) {
     const l = String(lang || '').toLowerCase();
@@ -3364,7 +3364,7 @@
     return /<html|<body|<!doctype/i.test(code) ? code.replace(/<head([^>]*)>/i, `<head$1>${consoleShim}`) : `<!doctype html><html><head><meta charset="utf-8">${consoleShim}</head><body>${code}<div id="__out"></div></body></html>`;
   }
   function openRunner(code, lang) {
-    showModal(`<h2 id="modal-title">Run · ${esc(lang || 'html')}</h2><p class="sub">Runs in an isolated sandbox: no access to Astro AI, your data, cookies or other sites' logins.</p>
+    showModal(`<h2 id="modal-title">Run · ${esc(lang || 'html')}</h2><p class="sub">Runs in an isolated sandbox: no access to A.S.T.R.O AI, your data, cookies or other sites' logins.</p>
       <div class="runner"><iframe id="runner-frame" title="Code output" sandbox="allow-scripts allow-modals allow-forms allow-popups" referrerpolicy="no-referrer"></iframe></div>
       <div class="btn-row"><button type="button" class="btn" id="runner-again">${icon('i-redo')}Run again</button><button type="button" class="btn" id="runner-tab">${icon('i-right')}Open in a new tab</button><button type="button" class="btn" id="runner-save">${icon('i-export')}Save as HTML</button></div>`);
     el.modal.classList.add('wide');
@@ -3420,15 +3420,15 @@
     }).join('');
     const search = (keysCache.search || []).map((s) => `<div class="key-line"><code>${esc(s.key)}</code><input class="input" type="password" autocomplete="off" data-key-name="${esc(s.key)}" placeholder="${s.key_set ? '•••••• saved' : 'Optional'}"><button type="button" class="btn small" data-key-save="${esc(s.key)}">Save</button></div>`).join('');
     const ap = (keysCache.providers || []).find((p) => p.id === 'astro');
-    const astroCard = ap ? `<div class="box astro-key-card"><div class="prov-head">${icon('i-spark')}<h3>Astro API key</h3>${ap.connected ? '<span class="pbadge on">connected</span>' : '<span class="pbadge off">not set</span>'}<span class="grow"></span>${ap.connected ? '<button type="button" class="btn small" data-prov-test="astro">' + icon('i-bolt') + 'Test</button>' : ''}</div>
-      <p class="hint">One key for every provider you saved in your <a href="${esc(ap.signup || 'https://esoexe.github.io/astro-ai/profile')}" target="_blank" rel="noopener noreferrer">Astro account</a> (Account → API keys → Create key; it starts with <code>astro_sk_</code>). <b>Astro auto</b> fails over across your free providers, and <b>Astro API: pick any model</b> lists all of your account's models for manual picking. Limit: 5,000 requests/day.</p>
+    const astroCard = ap ? `<div class="box astro-key-card"><div class="prov-head">${icon('i-spark')}<h3>A.S.T.R.O API key</h3>${ap.connected ? '<span class="pbadge on">connected</span>' : '<span class="pbadge off">not set</span>'}<span class="grow"></span>${ap.connected ? '<button type="button" class="btn small" data-prov-test="astro">' + icon('i-bolt') + 'Test</button>' : ''}</div>
+      <p class="hint">One key for every provider you saved in your <a href="${esc(ap.signup || 'https://esoexe.github.io/astro-ai/profile')}" target="_blank" rel="noopener noreferrer">A.S.T.R.O account</a> (Account → API keys → Create key; it starts with <code>astro_sk_</code>). <b>A.S.T.R.O auto</b> fails over across your free providers, and <b>A.S.T.R.O API: pick any model</b> lists all of your account's models for manual picking. Limit: 5,000 requests/day.</p>
       <div class="key-line"><code>ASTRO_API_KEY</code><input class="input" type="password" autocomplete="off" data-key-name="ASTRO_API_KEY" placeholder="${ap.key_set ? '•••••• saved (' + esc(ap.key_source || 'server') + ')' : 'astro_sk_…'}"><button type="button" class="btn small" data-key-save="ASTRO_API_KEY">Save</button>${ap.key_source === 'app' ? '<button type="button" class="btn small ghost" data-key-clear="ASTRO_API_KEY">Remove</button>' : ''}</div><small class="test-out" id="test-astro"></small></div>` : '';
     b.innerHTML = `${astroCard}<div class="stat-grid"><div class="stat"><strong>${(keysCache.providers || []).filter((p) => p.connected).length}/${(keysCache.providers || []).length}</strong><span>platforms connected</span></div><div class="stat"><strong>${totals.ok}/${totals.req}</strong><span>requests ok today (UTC)</span></div><div class="stat"><strong>${readyCount()}</strong><span>models ready now</span></div></div>
       <div class="btn-row"><button type="button" class="btn" id="prov-test-all">${icon('i-bolt')}Test all connected</button><button type="button" class="btn ghost" id="prov-reload">${icon('i-redo')}Refresh</button></div>
       <div class="prov-kinds" role="tablist">${[['all', 'All'], ['free', 'Free'], ['paid', 'Paid'], ['local', 'Local']].map(([k, l]) => `<button type="button" class="chip${provKind === k ? ' on' : ''}" data-prov-kind="${k}">${l} <small>${(keysCache.providers || []).filter((p) => k === 'all' || (k === 'paid' ? p.paid : k === 'local' ? p.local : !p.paid && !p.local)).length}</small></button>`).join('')}</div>
       <ul class="prov-list">${rows || '<li class="hint">No provider matches.</li>'}</ul>
-      <div class="box"><h3>Web search keys (optional)</h3><p class="hint">Without keys Astro AI uses Brave's public results page, DuckDuckGo and Wikipedia. A free Tavily or Brave Search API key gives steadier results.</p>${search}</div>
-      <p class="hint">Keys are saved only on your Astro AI server (file <code>.astro_keys.env</code>, readable only by the server) and are never sent back to a browser. Saving a key restarts the server for a few seconds. Use keys from <b>your own</b> free accounts; free limits change often and are never unlimited.</p>`;
+      <div class="box"><h3>Web search keys (optional)</h3><p class="hint">Without keys A.S.T.R.O AI uses Brave's public results page, DuckDuckGo and Wikipedia. A free Tavily or Brave Search API key gives steadier results.</p>${search}</div>
+      <p class="hint">Keys are saved only on your A.S.T.R.O AI server (file <code>.astro_keys.env</code>, readable only by the server) and are never sent back to a browser. Saving a key restarts the server for a few seconds. Use keys from <b>your own</b> free accounts; free limits change often and are never unlimited.</p>`;
   }
   async function waitForServer(ms = 25000) {
     const end = Date.now() + ms;
@@ -3502,11 +3502,11 @@
 
   // ---------- Account & sync (Settings) ----------
   function accountTabHtml() {
-    return `<div class="set-row"><div class="lbl"><b>Sync across devices</b><small>Chats, notes, tasks, memory and reminders are saved on your Astro AI server${state.status.sync_mirror ? ' and mirrored to your Supabase project' : ''}. Open Astro AI anywhere and sign in to continue.</small></div><label class="switch"><input type="checkbox" id="set-sync"${astro.sync.on ? ' checked' : ''}><span></span></label></div>
+    return `<div class="set-row"><div class="lbl"><b>Sync across devices</b><small>Chats, notes, tasks, memory and reminders are saved on your A.S.T.R.O AI server${state.status.sync_mirror ? ' and mirrored to your Supabase project' : ''}. Open A.S.T.R.O AI anywhere and sign in to continue.</small></div><label class="switch"><input type="checkbox" id="set-sync"${astro.sync.on ? ' checked' : ''}><span></span></label></div>
       <div class="set-row"><div class="lbl"><b>Sync now</b><small id="sync-state">${astro.sync.updated ? `Last saved ${new Date(astro.sync.updated).toLocaleString()}` : 'Not synced yet'}</small></div><div class="btn-row" style="margin:0"><button type="button" class="btn" id="sync-push">Upload this device</button><button type="button" class="btn ghost" id="sync-pull">Download</button></div></div>
       <div class="set-row"><div class="lbl"><b>Change password</b><small>Signs out every other device</small></div><div class="key-line"><input class="input" type="password" id="pw-old" placeholder="Current" autocomplete="current-password"><input class="input" type="password" id="pw-new" placeholder="New (8+)" autocomplete="new-password"><button type="button" class="btn small" id="pw-save">Change</button></div></div>
       <div class="set-row"><div class="lbl"><b>Sign out</b><small>On this device</small></div><button type="button" class="btn danger" id="sign-out">Sign out</button></div>
-      <div class="set-row"><div class="lbl"><b>Install Astro AI</b><small>Add it to your home screen or desktop as an app (works offline for notes and tasks)</small></div><button type="button" class="btn" id="install-app"${astro.installPrompt ? '' : ' disabled'}>Install</button></div>
+      <div class="set-row"><div class="lbl"><b>Install A.S.T.R.O AI</b><small>Add it to your home screen or desktop as an app (works offline for notes and tasks)</small></div><button type="button" class="btn" id="install-app"${astro.installPrompt ? '' : ' disabled'}>Install</button></div>
       <p class="hint">Login is turned off when the server runs with <code>ASTRO_AUTH=off</code> (local testing only).</p>`;
   }
   function bindAccountTab() {
@@ -4263,7 +4263,7 @@
       { label: 'Open folder…', icon: 'i-folder-open', sub: 'Work on a folder on this computer, in place', onClick: () => window.AstroDev?.openFolder?.() },
       { label: 'New project', icon: 'i-plus', sub: 'Empty, or with a small starter', onClick: wsNewProject },
       { label: 'Rename project', icon: 'i-edit', onClick: wsRenameProject },
-      ws.projects.find((p) => p.name === ws.project)?.linked ? { label: 'Close folder', icon: 'i-x', sub: 'Removes it from Astro AI; your files stay', onClick: wsDeleteProject } : { label: 'Delete project', icon: 'i-trash', danger: true, onClick: wsDeleteProject }];
+      ws.projects.find((p) => p.name === ws.project)?.linked ? { label: 'Close folder', icon: 'i-x', sub: 'Removes it from A.S.T.R.O AI; your files stay', onClick: wsDeleteProject } : { label: 'Delete project', icon: 'i-trash', danger: true, onClick: wsDeleteProject }];
     openMenu(anchor, items, { width: 280 });
   }
   async function wsNewProject() {
@@ -4288,7 +4288,7 @@
   }
   async function wsDeleteProject() {
     const linked = ws.projects.find((p) => p.name === ws.project)?.linked;
-    const ok = linked ? await wsDialog({ title: `Close “${ws.project}”?`, text: `Astro AI stops showing this folder. Your files in ${linked} are not touched.`, ok: 'Close folder', input: false })
+    const ok = linked ? await wsDialog({ title: `Close “${ws.project}”?`, text: `A.S.T.R.O AI stops showing this folder. Your files in ${linked} are not touched.`, ok: 'Close folder', input: false })
       : await wsDialog({ title: `Delete “${ws.project}”?`, text: 'All its files are deleted from the server. This cannot be undone.', ok: 'Delete', danger: true, input: false });
     if (!ok) return;
     try { await wsApi('/api/fs/project/delete'); } catch (err) { toast(err.message, 'error'); return; }
@@ -4486,7 +4486,7 @@
     ed.hidden = !showEd; empty.hidden = Boolean(showEd);
     wsRenderStatus();
     if (!f) {
-      empty.innerHTML = `<div class="ed-welcome"><div class="ed-logo">${icon('i-code')}</div><h2>${esc(ws.project || 'Workspace')}</h2><p>Open a file on the left, drop files or folders here, or ask the AI team to build something. Code runs on your Astro AI server; web pages and app servers show live in Preview.</p><div class="ed-keys"><span><kbd>Ctrl</kbd><kbd>Enter</kbd> Run</span><span><kbd>Ctrl</kbd><kbd>S</kbd> Save</span><span><kbd>Ctrl</kbd><kbd>F</kbd> Find</span><span><kbd>Ctrl</kbd><kbd>H</kbd> Replace</span><span><kbd>Ctrl</kbd><kbd>Space</kbd> Suggest</span><span><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>F</kbd> Search all</span></div></div>`;
+      empty.innerHTML = `<div class="ed-welcome"><div class="ed-logo">${icon('i-code')}</div><h2>${esc(ws.project || 'Workspace')}</h2><p>Open a file on the left, drop files or folders here, or ask the AI team to build something. Code runs on your A.S.T.R.O AI server; web pages and app servers show live in Preview.</p><div class="ed-keys"><span><kbd>Ctrl</kbd><kbd>Enter</kbd> Run</span><span><kbd>Ctrl</kbd><kbd>S</kbd> Save</span><span><kbd>Ctrl</kbd><kbd>F</kbd> Find</span><span><kbd>Ctrl</kbd><kbd>H</kbd> Replace</span><span><kbd>Ctrl</kbd><kbd>Space</kbd> Suggest</span><span><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>F</kbd> Search all</span></div></div>`;
       return;
     }
     if (f.image) { empty.innerHTML = `<div class="ed-image"><div class="ed-checker"><img alt="${esc(f.path)}" src="${esc(previewUrl(f.path))}?v=${Date.now()}"></div><span>${esc(f.path)}</span></div>`; const img = $('img', empty); img.onload = () => { const s = $('span', empty); if (s) s.textContent = `${f.path} · ${img.naturalWidth}×${img.naturalHeight}`; }; return; }
@@ -6389,7 +6389,7 @@
           const pctl = new AbortController(); const link = () => pctl.abort(); signal.addEventListener('abort', link, { once: true });
           planJob = { item: pi, ctrl: pctl, text: '', ready: false, sent: false };
           const pj = planJob;
-          agTeamDraft(s, pi, `You are planning a job for Astro AI's autonomous agent. The agent works inside the project folder with tools: bash, read/write/edit files, list and search files, web search, fetch pages, start a server, ask the user, present a result. Write the plan it will follow:\n1. Goal and acceptance criteria: what "done" means and exactly how to verify it.\n2. Numbered steps (3 to 8), each concrete: what to inspect, create, change, install, run or test.\n3. Pitfalls to avoid.\nAt most 250 words, no code.\n\nJOB: ${text}\n\n${brief.text}`, pctl.signal).then((plan) => {
+          agTeamDraft(s, pi, `You are planning a job for A.S.T.R.O AI's autonomous agent. The agent works inside the project folder with tools: bash, read/write/edit files, list and search files, web search, fetch pages, start a server, ask the user, present a result. Write the plan it will follow:\n1. Goal and acceptance criteria: what "done" means and exactly how to verify it.\n2. Numbered steps (3 to 8), each concrete: what to inspect, create, change, install, run or test.\n3. Pitfalls to avoid.\nAt most 250 words, no code.\n\nJOB: ${text}\n\n${brief.text}`, pctl.signal).then((plan) => {
             signal.removeEventListener('abort', link);
             if (pj.sent === 'late') return;
             pj.text = plan; pj.ready = true;
@@ -6399,7 +6399,7 @@
         }
         if (signal.aborted) throw new DOMException('stopped', 'AbortError');
         const prior = s.convo.length ? `\n\nThis continues an earlier job in the same session; the earlier steps are summarised below.` : '';
-        const teamNote = planJob ? `\n\nAstro AI's team of models is writing a plan for this job in parallel. Start now with the obvious first steps (inspect, set up); the TEAM PLAN is added to a tool result as soon as it is ready — then follow it where it improves the work.` : '';
+        const teamNote = planJob ? `\n\nA.S.T.R.O AI's team of models is writing a plan for this job in parallel. Start now with the obvious first steps (inspect, set up); the TEAM PLAN is added to a tool result as soon as it is ready — then follow it where it improves the work.` : '';
         const job = `JOB: ${text}${prior}\n\n${brief.text}${teamNote}\n\nStart now: act with tools, verify, and finish with the done block.`;
         if (s.convo.length) s.convo.push({ role: 'user', content: job }); else s.convo = [{ role: 'user', content: job }];
       }
@@ -6413,7 +6413,7 @@
         if (planJob && planJob.ready && !planJob.sent && planJob.text) {
           planJob.sent = true;
           const last = s.convo[s.convo.length - 1];
-          const msg = `TEAM PLAN — just arrived from Astro AI's team of models (${planJob.item.models || 'several'} models working together). Compare it with what you have done so far and follow it where it improves the result:\n${agClip(planJob.text, 6000)}`;
+          const msg = `TEAM PLAN — just arrived from A.S.T.R.O AI's team of models (${planJob.item.models || 'several'} models working together). Compare it with what you have done so far and follow it where it improves the result:\n${agClip(planJob.text, 6000)}`;
           if (last && last.role === 'user') last.content += `\n\n${msg}`; else s.convo.push({ role: 'user', content: msg });
           agPush(s, { kind: 'note', text: 'The team plan arrived and was handed to the agent.' });
         }
@@ -6502,7 +6502,7 @@
           ri.verdict = verdict; ri.status = review ? 'done' : 'skipped'; ri.v++; agPaint(s); agSave(s);
           if (verdict === 'FIX' && s.fixRound < 1 && !signal.aborted) {
             s.fixRound++;
-            s.convo.push({ role: 'user', content: `TEAM REVIEW — Astro AI's team of models reviewed your work and found problems:\n${agClip(ri.text, 4000)}\n\nFix every real problem (verify each fix by running or testing), then finish again with the report and the done block. If a point is wrong, say why in the report.` });
+            s.convo.push({ role: 'user', content: `TEAM REVIEW — A.S.T.R.O AI's team of models reviewed your work and found problems:\n${agClip(ri.text, 4000)}\n\nFix every real problem (verify each fix by running or testing), then finish again with the report and the done block. If a point is wrong, say why in the report.` });
             s.ms += Math.round(performance.now() - s._started);
             AG.runs.delete(s.id);
             return agRun(s, text, { resume: true, limit: 16, noReview: true });
@@ -6568,7 +6568,7 @@
       contents += `\n--- ${c.path} (${c.status}) ---\n${chunk}\n`;
     }
     const plan = s.items.filter((it) => it.kind === 'plan' && it.text).map((it) => it.text).pop() || '';
-    return `Review the work of Astro AI's autonomous agent and decide whether the job is fully and correctly done.\n\nJOB: ${job}\n${plan ? `\nTEAM PLAN:\n${agClip(plan, 2000)}\n` : ''}\nAGENT REPORT:\n${agClip(report || '(none)', 2500)}\n\nACTIONS (latest last):\n${actions}\n\nFILES CHANGED (${changes.length}): ${changes.map((c) => `${c.path} [${c.status}]`).join(', ')}\n\nCURRENT CONTENT OF CHANGED FILES:${contents || ' (none readable)'}\n\nReply with the first line exactly "VERDICT: PASS" or "VERDICT: FIX". Then at most 8 short bullets: real problems (bugs, missing requirements, claims that were not verified, broken run commands) and how to fix each. Use FIX only for problems that matter; for PASS you may add brief suggestions.`;
+    return `Review the work of A.S.T.R.O AI's autonomous agent and decide whether the job is fully and correctly done.\n\nJOB: ${job}\n${plan ? `\nTEAM PLAN:\n${agClip(plan, 2000)}\n` : ''}\nAGENT REPORT:\n${agClip(report || '(none)', 2500)}\n\nACTIONS (latest last):\n${actions}\n\nFILES CHANGED (${changes.length}): ${changes.map((c) => `${c.path} [${c.status}]`).join(', ')}\n\nCURRENT CONTENT OF CHANGED FILES:${contents || ' (none readable)'}\n\nReply with the first line exactly "VERDICT: PASS" or "VERDICT: FIX". Then at most 8 short bullets: real problems (bugs, missing requirements, claims that were not verified, broken run commands) and how to fix each. Use FIX only for problems that matter; for PASS you may add brief suggestions.`;
   }
   function agStop(s) { const c = AG.runs.get(s?.id); if (c) c.abort(); }
   async function agContinue(s) {
@@ -6685,7 +6685,7 @@
       ['Write a C++20 program that benchmarks 3 sorting algorithms on 1M ints and prints a table, compile with -O2 and run it', 'i-bolt'],
       ['Inspect this project, find bugs, fix them and verify by running it', 'i-check'],
     ];
-    return `<div class="ag-empty"><div class="tm-orb ag-orb orbit-mark" aria-hidden="true"><svg class="orbit-svg" viewBox="0 0 48 48"><circle class="o-ring" cx="24" cy="24" r="19"/><circle class="o-ring2" cx="24" cy="24" r="12.5"/><circle class="o-core" cx="24" cy="24" r="6.5"/><g class="o-spin"><circle class="o-moon" cx="24" cy="5" r="3"/></g><g class="o-spin2"><circle class="o-sat" cx="24" cy="36.5" r="1.8"/></g></svg></div><h3>Astro AI Agent</h3><p>Give it a job. The agent plans with your team of models, then works on its own: it runs commands, writes and edits files, searches the web, starts servers, checks the results and fixes its own errors until the job is done. Every step and every file it touches is shown here${where === 'ws' ? '' : ' and in the side panel'}.</p><div class="ag-sugg">${sugg.map(([t, i]) => `<button type="button" data-agsuggest="${esc(t)}">${icon(i)}<span>${esc(t)}</span></button>`).join('')}</div></div>`;
+    return `<div class="ag-empty"><div class="tm-orb ag-orb orbit-mark" aria-hidden="true"><svg class="orbit-svg" viewBox="0 0 48 48"><circle class="o-ring" cx="24" cy="24" r="19"/><circle class="o-ring2" cx="24" cy="24" r="12.5"/><circle class="o-core" cx="24" cy="24" r="6.5"/><g class="o-spin"><circle class="o-moon" cx="24" cy="5" r="3"/></g><g class="o-spin2"><circle class="o-sat" cx="24" cy="36.5" r="1.8"/></g></svg></div><h3>A.S.T.R.O AI Agent</h3><p>Give it a job. The agent plans with your team of models, then works on its own: it runs commands, writes and edits files, searches the web, starts servers, checks the results and fixes its own errors until the job is done. Every step and every file it touches is shown here${where === 'ws' ? '' : ' and in the side panel'}.</p><div class="ag-sugg">${sugg.map(([t, i]) => `<button type="button" data-agsuggest="${esc(t)}">${icon(i)}<span>${esc(t)}</span></button>`).join('')}</div></div>`;
   }
   function agRenderTl(box, s) {
     if (!s || !s.items.length) { box.innerHTML = agEmptyHtml(box.id === 'ws-team-msgs' ? 'ws' : 'page'); box._sid = ''; box._nodes = null; return; }

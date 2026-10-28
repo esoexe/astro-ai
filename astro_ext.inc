@@ -1,5 +1,5 @@
 // =============================================================================================
-// Astro AI extensions (included inside workspace_server.cpp's anonymous namespace):
+// A.S.T.R.O AI extensions (included inside workspace_server.cpp's anonymous namespace):
 //   * login (PBKDF2-SHA256 password, bearer session tokens)       /api/auth/*
 //   * provider key manager (stored 0600 on the server, restart)    /api/keys, /api/keys/test
 //   * per-provider usage meter (today, UTC)                        /api/usage
@@ -274,7 +274,7 @@ std::vector<std::string> known_key_names() {
 void schedule_restart() {
     std::thread([] {
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        std::cout << "Restarting Astro AI to load the new provider keys..." << std::endl;
+        std::cout << "Restarting A.S.T.R.O AI to load the new provider keys..." << std::endl;
         // Desktop app: the launcher supervises the server and starts it again on exit code 75.
         if (const char* sup = std::getenv("ASTRO_SUPERVISED"); sup && std::string(sup) == "1") std::exit(75);
 #if defined(_WIN32)
@@ -289,7 +289,7 @@ void schedule_restart() {
         }
         std::cerr << "Restart failed." << std::endl;
 #elif defined(__APPLE__)
-        std::cerr << "Restart: please start Astro AI again to load the new keys." << std::endl;
+        std::cerr << "Restart: please start A.S.T.R.O AI again to load the new keys." << std::endl;
         std::exit(0);
 #else
         char* args[] = {const_cast<char*>("workspace_server"), nullptr};
@@ -592,7 +592,7 @@ ReadResult web_read(const std::string& url_in) {
         r.via = "direct";
         if (!f.final_url.empty()) r.url = f.final_url;
     } else if (f.error.find("private") != std::string::npos) {
-        r.error = "That address is private or blocked, so Astro AI will not open it.";
+        r.error = "That address is private or blocked, so A.S.T.R.O AI will not open it.";
         return r;
     }
     // JavaScript-heavy pages, PDFs and blocked pages: ask the Jina reader (keyless, rate-limited).
@@ -849,7 +849,7 @@ bool handle_astro_api(int fd, const HttpRequest& request) {
         if (value.size() > 600 || std::any_of(value.begin(), value.end(), [](unsigned char c) { return c < 32 || c == 127; })) { send_json(fd, 400, error_json("That key looks invalid.")); return true; }
         std::map<std::string, std::string> keys = g_app_keys;
         if (value.empty()) keys.erase(name); else keys[name] = value;
-        std::string out = "# Astro AI provider keys saved from Settings -> Providers (never sent to browsers)\n";
+        std::string out = "# A.S.T.R.O AI provider keys saved from Settings -> Providers (never sent to browsers)\n";
         for (const auto& [k, v] : keys) out += k + "=" + v + "\n";
         if (!write_file_private(data_path(".astro_keys.env"), out)) { send_json(fd, 500, error_json("Could not save the key on the server.")); return true; }
         Json::Object obj; obj["ok"] = Json(true); obj["restarting"] = Json(true);

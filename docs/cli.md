@@ -1,9 +1,9 @@
-# Astro AI in the terminal (`astro`) and parallel agents
+# A.S.T.R.O AI in the terminal (`astro`) and parallel agents
 
 Version 1.4.0 adds two things:
 
-- **`astro`**, a terminal app for the Astro AI agent: an interactive session, a print mode for scripts, and commands to run and manage several agents.
-- **The agent engine**, which runs agents inside the Astro AI server instead of the browser tab. Agents keep working when you close the window. Several can run at the same time, and each one can work in an **isolated copy** of the project that you review, then merge or discard.
+- **`astro`**, a terminal app for the A.S.T.R.O AI agent: an interactive session, a print mode for scripts, and commands to run and manage several agents.
+- **The agent engine**, which runs agents inside the A.S.T.R.O AI server instead of the browser tab. Agents keep working when you close the window. Several can run at the same time, and each one can work in an **isolated copy** of the project that you review, then merge or discard.
 
 The terminal app, the **Parallel** panel on the Agent page and the HTTP API all use the same engine, so a session started in one place shows up in the others.
 
@@ -15,10 +15,10 @@ The terminal app, the **Parallel** panel on the Agent page and the HTTP API all 
 | Linux portable `.tar.gz` | `astro` inside the folder; link it onto your PATH: `ln -s "$PWD/astro" ~/.local/bin/astro` |
 | Windows installer | `astro.exe` in the install folder. Setup adds that folder to your user PATH, so open a **new** terminal after installing. The personal edition's file is `astro-personal.exe`. |
 | Windows portable `.zip` | `astro.exe` inside the folder |
-| macOS | `Astro AI Clean.app/Contents/Resources/astro`. Run this once: `sudo ln -sf "/Applications/Astro AI Clean.app/Contents/Resources/astro" /usr/local/bin/astro` |
+| macOS | `A.S.T.R.O AI Clean.app/Contents/Resources/astro`. Run this once: `sudo ln -sf "/Applications/A.S.T.R.O AI Clean.app/Contents/Resources/astro" /usr/local/bin/astro` |
 | From source | `make astro` (needs libcurl) |
 
-`astro` needs an Astro AI server. It looks for one in this order:
+`astro` needs an A.S.T.R.O AI server. It looks for one in this order:
 
 1. `ASTRO_URL`.
 2. The desktop app's server (port 47612 for Clean, 47611 for personal).
@@ -31,7 +31,7 @@ If none is running, `astro` starts the server that ships next to it, in the back
 ```text
 $ cd my-project
 $ astro
-◆ Astro AI terminal 1.4.0
+◆ A.S.T.R.O AI terminal 1.4.0
   project my-project  ·  mode auto  ·  model auto
 › add a /health endpoint and a test for it
 ● I'll look at the server first.
@@ -80,7 +80,7 @@ astro parallel "add dark mode" "write tests for utils/" "update the README" --me
   - Otherwise it is a plain copy of the folder, without `.git` and build output.
   - In both cases `node_modules` is shared through a link rather than copied.
 - Your project is not touched while the agents work.
-- `--merge` brings every successful agent's changes back when all of them have finished. Without it, review each one first:
+- `--merge` brings every successful agent's changes back when all of them have finished. An agent whose last test or build command still failed is skipped (its `done` event carries `"failing"`). Without it, review each one first:
 
 ```bash
 astro agents                 # ids, status, files changed
@@ -92,7 +92,7 @@ astro discard a1b2c3d4e5f    # drop the copy instead
 
 **Merging is safe:**
 
-- If a file the agent changed was also changed in the project after the agent started, `merge` stops and lists the conflicts.
+- If a file the agent changed was also changed in the project after the agent started, `merge` runs a 3-way merge (`git merge-file`) against the file as it was when the agent started. Changes in different places are combined (`"combined": true` in the API result). If they overlap, `merge` stops and lists the conflicts.
 - `--partial` merges everything except those files.
 - `--force` applies the agent's version anyway.
 - `--keep` keeps the isolated copy after merging.
@@ -128,9 +128,9 @@ A project can give the agent its own tools. Each JSON file in `.astro/tools/` de
 
 `astro-ai-vscode-<version>.vsix` comes with the Clean downloads. It works in VS Code, VSCodium, Cursor, Windsurf and similar editors. To install it, run **Extensions → … → Install from VSIX** or `code --install-extension astro-ai-vscode-1.4.0.vsix`.
 
-| Command (Ctrl+Shift+P → "Astro AI") | What it does |
+| Command (Ctrl+Shift+P → "A.S.T.R.O AI") | What it does |
 |---|---|
-| **Run agent on this folder** (Ctrl+Alt+A) | Starts an agent. It streams its steps to the *Astro AI Agent* output panel and asks for approvals and answers in pop-ups. |
+| **Run agent on this folder** (Ctrl+Alt+A) | Starts an agent. It streams its steps to the *A.S.T.R.O AI Agent* output panel and asks for approvals and answers in pop-ups. |
 | **Ask the agent about the selection** | The same, with the selected code as context. Also in the editor's right-click menu. |
 | **Parallel agents** | Tasks separated by `|`. Each one runs in an isolated copy, and you choose **Show diff**, **Merge** or **Discard** for each when it finishes. |
 | **Agents** | Follow, stop, show the diff, merge, discard, undo or send a follow-up to any agent, including ones started from `astro` or the app. |
@@ -139,7 +139,7 @@ The extension uses the engine of the desktop app. If the app is not open, it run
 
 ## Engine HTTP API
 
-Every call is `POST /api/agent/<action>` with a JSON body and the header `X-Astro-Client: 1`. A server with accounts also needs `X-Astro-Token` (the desktop app and `astro` run with accounts off on 127.0.0.1). Use this API to drive Astro AI from your own tools (RPC-style).
+Every call is `POST /api/agent/<action>` with a JSON body and the header `X-Astro-Client: 1`. A server with accounts also needs `X-Astro-Token` (the desktop app and `astro` run with accounts off on 127.0.0.1). Use this API to drive A.S.T.R.O AI from your own tools (RPC-style).
 
 | Action | Body | Returns |
 |---|---|---|

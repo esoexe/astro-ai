@@ -418,13 +418,13 @@
         let plan = '';
         if (s.team && agCands().length >= 2) {
           const pi = agPush(s, { kind: 'plan', text: '', status: 'running' });
-          plan = await agTeamDraft(s, pi, `You are planning a job for Astro AI's autonomous agent. The agent works inside the project folder with tools: bash, read/write/edit files, list and search files, web search, fetch pages, start a server, ask the user, present a result. Write the plan it will follow:\n1. Goal and acceptance criteria: what "done" means and exactly how to verify it.\n2. Numbered steps (3 to 8), each concrete: what to inspect, create, change, install, run or test.\n3. Pitfalls to avoid.\nAt most 250 words, no code.\n\nJOB: ${text}\n\n${brief.text}`, signal);
+          plan = await agTeamDraft(s, pi, `You are planning a job for A.S.T.R.O AI's autonomous agent. The agent works inside the project folder with tools: bash, read/write/edit files, list and search files, web search, fetch pages, start a server, ask the user, present a result. Write the plan it will follow:\n1. Goal and acceptance criteria: what "done" means and exactly how to verify it.\n2. Numbered steps (3 to 8), each concrete: what to inspect, create, change, install, run or test.\n3. Pitfalls to avoid.\nAt most 250 words, no code.\n\nJOB: ${text}\n\n${brief.text}`, signal);
           pi.text = plan || (signal.aborted ? '' : 'The team could not write a plan, so the agent plans as it goes.');
           pi.status = plan ? 'done' : 'skipped'; pi.v++; agPaint(s); agSave(s);
         }
         if (signal.aborted) throw new DOMException('stopped', 'AbortError');
         const prior = s.convo.length ? `\n\nThis continues an earlier job in the same session; the earlier steps are summarised below.` : '';
-        const job = `JOB: ${text}${prior}\n\n${brief.text}${plan ? `\n\nTEAM PLAN (written by Astro AI's team of models):\n${plan}` : ''}\n\nStart now: act with tools, verify, and finish with the done block.`;
+        const job = `JOB: ${text}${prior}\n\n${brief.text}${plan ? `\n\nTEAM PLAN (written by A.S.T.R.O AI's team of models):\n${plan}` : ''}\n\nStart now: act with tools, verify, and finish with the done block.`;
         if (s.convo.length) s.convo.push({ role: 'user', content: job }); else s.convo = [{ role: 'user', content: job }];
       }
       const limit = opts.limit || AG_MAX;
@@ -489,7 +489,7 @@
           ri.verdict = verdict; ri.status = review ? 'done' : 'skipped'; ri.v++; agPaint(s); agSave(s);
           if (verdict === 'FIX' && s.fixRound < 1 && !signal.aborted) {
             s.fixRound++;
-            s.convo.push({ role: 'user', content: `TEAM REVIEW — Astro AI's team of models reviewed your work and found problems:\n${agClip(ri.text, 4000)}\n\nFix every real problem (verify each fix by running or testing), then finish again with the report and the done block. If a point is wrong, say why in the report.` });
+            s.convo.push({ role: 'user', content: `TEAM REVIEW — A.S.T.R.O AI's team of models reviewed your work and found problems:\n${agClip(ri.text, 4000)}\n\nFix every real problem (verify each fix by running or testing), then finish again with the report and the done block. If a point is wrong, say why in the report.` });
             s.ms += Math.round(performance.now() - s._started);
             AG.runs.delete(s.id);
             return agRun(s, text, { resume: true, limit: 16, noReview: true });
@@ -536,7 +536,7 @@
       contents += `\n--- ${c.path} (${c.status}) ---\n${chunk}\n`;
     }
     const plan = s.items.filter((it) => it.kind === 'plan' && it.text).map((it) => it.text).pop() || '';
-    return `Review the work of Astro AI's autonomous agent and decide whether the job is fully and correctly done.\n\nJOB: ${job}\n${plan ? `\nTEAM PLAN:\n${agClip(plan, 2000)}\n` : ''}\nAGENT REPORT:\n${agClip(report || '(none)', 2500)}\n\nACTIONS (latest last):\n${actions}\n\nFILES CHANGED (${changes.length}): ${changes.map((c) => `${c.path} [${c.status}]`).join(', ')}\n\nCURRENT CONTENT OF CHANGED FILES:${contents || ' (none readable)'}\n\nReply with the first line exactly "VERDICT: PASS" or "VERDICT: FIX". Then at most 8 short bullets: real problems (bugs, missing requirements, claims that were not verified, broken run commands) and how to fix each. Use FIX only for problems that matter; for PASS you may add brief suggestions.`;
+    return `Review the work of A.S.T.R.O AI's autonomous agent and decide whether the job is fully and correctly done.\n\nJOB: ${job}\n${plan ? `\nTEAM PLAN:\n${agClip(plan, 2000)}\n` : ''}\nAGENT REPORT:\n${agClip(report || '(none)', 2500)}\n\nACTIONS (latest last):\n${actions}\n\nFILES CHANGED (${changes.length}): ${changes.map((c) => `${c.path} [${c.status}]`).join(', ')}\n\nCURRENT CONTENT OF CHANGED FILES:${contents || ' (none readable)'}\n\nReply with the first line exactly "VERDICT: PASS" or "VERDICT: FIX". Then at most 8 short bullets: real problems (bugs, missing requirements, claims that were not verified, broken run commands) and how to fix each. Use FIX only for problems that matter; for PASS you may add brief suggestions.`;
   }
   function agStop(s) { const c = AG.runs.get(s?.id); if (c) c.abort(); }
   async function agContinue(s) {
@@ -645,7 +645,7 @@
       ['Write a C++20 program that benchmarks 3 sorting algorithms on 1M ints and prints a table, compile with -O2 and run it', 'i-bolt'],
       ['Inspect this project, find bugs, fix them and verify by running it', 'i-check'],
     ];
-    return `<div class="ag-empty"><div class="ag-orb" aria-hidden="true"><i></i><i></i><i></i></div><h3>Astro AI Agent</h3><p>Give it a job. The agent plans with your team of models, then works on its own: it runs commands, writes and edits files, searches the web, starts servers, checks the results and fixes its own errors until the job is done. Every step and every file it touches is shown here${where === 'ws' ? '' : ' and in the side panel'}.</p><div class="ag-sugg">${sugg.map(([t, i]) => `<button type="button" data-agsuggest="${esc(t)}">${icon(i)}<span>${esc(t)}</span></button>`).join('')}</div></div>`;
+    return `<div class="ag-empty"><div class="ag-orb" aria-hidden="true"><i></i><i></i><i></i></div><h3>A.S.T.R.O AI Agent</h3><p>Give it a job. The agent plans with your team of models, then works on its own: it runs commands, writes and edits files, searches the web, starts servers, checks the results and fixes its own errors until the job is done. Every step and every file it touches is shown here${where === 'ws' ? '' : ' and in the side panel'}.</p><div class="ag-sugg">${sugg.map(([t, i]) => `<button type="button" data-agsuggest="${esc(t)}">${icon(i)}<span>${esc(t)}</span></button>`).join('')}</div></div>`;
   }
   function agRenderTl(box, s) {
     if (!s || !s.items.length) { box.innerHTML = agEmptyHtml(box.id === 'ws-team-msgs' ? 'ws' : 'page'); box._sid = ''; box._nodes = null; return; }

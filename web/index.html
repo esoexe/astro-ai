@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#eceeed" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#060707" media="(prefers-color-scheme: dark)">
-  <meta name="description" content="Astro AI: an omni workspace powered by one brain of free AI models.">
-  <title>Astro AI</title>
+  <meta name="description" content="A.S.T.R.O AI: an omni workspace powered by one brain of free AI models.">
+  <title>A.S.T.R.O AI</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
@@ -123,7 +123,7 @@
 
   <div class="app" id="app">
     <aside class="rail" id="sidebar" aria-label="Main menu">
-      <div class="dock-brand" title="Astro AI"><svg class="orbit-svg" viewBox="0 0 48 48" aria-hidden="true"><circle class="o-ring" cx="24" cy="24" r="19"/><circle class="o-ring2" cx="24" cy="24" r="12.5"/><circle class="o-core" cx="24" cy="24" r="6.5"/><g class="o-spin"><circle class="o-moon" cx="24" cy="5" r="3"/></g><g class="o-spin2"><circle class="o-sat" cx="24" cy="36.5" r="1.8"/></g></svg><span class="dock-name">Astro AI</span></div>
+      <div class="dock-brand" title="A.S.T.R.O AI"><svg class="orbit-svg" viewBox="0 0 48 48" aria-hidden="true"><circle class="o-ring" cx="24" cy="24" r="19"/><circle class="o-ring2" cx="24" cy="24" r="12.5"/><circle class="o-core" cx="24" cy="24" r="6.5"/><g class="o-spin"><circle class="o-moon" cx="24" cy="5" r="3"/></g><g class="o-spin2"><circle class="o-sat" cx="24" cy="36.5" r="1.8"/></g></svg><span class="dock-name">A.S.T.R.O AI</span></div>
       <div class="rail-head">
         <button class="icon-btn" id="toggle-rail" type="button" aria-label="Chat history" title="Hide chat history (Ctrl+B)"><svg><use href="#i-history"/></svg></button>
         <button class="icon-btn rail-only-expanded" id="rail-search" type="button" aria-label="Search" title="Search everything (Ctrl+K)"><svg><use href="#i-search"/></svg></button>
@@ -133,7 +133,7 @@
         <svg><use href="#i-edit"/></svg><span class="rail-label">New chat</span>
       </button>
 
-      <nav class="rail-nav" aria-label="Astro AI">
+      <nav class="rail-nav" aria-label="A.S.T.R.O AI">
         <button class="rail-item active" type="button" id="nav-assistant" title="Chat"><svg><use href="#i-chat"/></svg><span class="rail-label">Chat</span></button>
         <button class="rail-item" type="button" id="nav-workspace" title="Workspace: files, code, run and preview"><svg><use href="#i-code"/></svg><span class="rail-label">Workspace</span></button>
         <button class="rail-item" type="button" id="nav-agent" title="Agent: works on its own with tools until the job is done"><svg><use href="#i-agent"/></svg><span class="rail-label">Agent</span><span class="rail-badge">New</span></button>
@@ -169,7 +169,7 @@
       <header class="topbar">
         <button class="icon-btn mobile-only" id="open-sidebar" type="button" aria-label="Open menu"><svg><use href="#i-menu"/></svg></button>
         <div class="title-group">
-          <span class="wordmark">Astro AI</span>
+          <span class="wordmark">A.S.T.R.O AI</span>
           <button class="model-switch" id="model-switch" type="button" aria-haspopup="menu" title="Choose a model">
             <span id="model-switch-label">Auto</span><svg><use href="#i-chev"/></svg>
           </button>
@@ -199,7 +199,7 @@
           <div class="composer" id="composer">
             <div class="slash-menu" id="slash-menu" role="listbox" hidden></div>
             <div class="attachments" id="attached-files" hidden></div>
-            <textarea id="message-input" rows="1" maxlength="12000" placeholder="Ask Astro AI" aria-label="Message Astro AI"></textarea>
+            <textarea id="message-input" rows="1" maxlength="12000" placeholder="Ask A.S.T.R.O AI" aria-label="Message A.S.T.R.O AI"></textarea>
             <div class="composer-bar">
               <button class="c-btn" id="attach-button" type="button" aria-label="Add files and more" title="Add files and more"><svg><use href="#i-plus"/></svg></button>
               <button class="c-chip" id="mode-button" type="button" aria-haspopup="menu" title="Work mode"><svg id="mode-icon"><use href="#i-sparkles"/></svg><span id="mode-label">General</span></button>
@@ -226,7 +226,7 @@
             <button type="button" class="launch-card" data-go="notes"><span class="lc-icon"><svg><use href="#i-note"/></svg></span><span class="lc-text"><b>Notes</b><small>Write, organise, ask about them</small></span><svg class="lc-go"><use href="#i-launch"/></svg></button>
             <button type="button" class="launch-card" data-go="reader"><span class="lc-icon"><svg><use href="#i-read"/></svg></span><span class="lc-text"><b>Reader</b><small>Read any page or file with AI</small></span><svg class="lc-go"><use href="#i-launch"/></svg></button>
           </div>
-          <p class="disclaimer" id="disclaimer">Astro AI runs on free AI models and can make mistakes. Double-check important info.</p>
+          <p class="disclaimer" id="disclaimer">A.S.T.R.O AI runs on free AI models and can make mistakes. Double-check important info.</p>
         </div>
       </section>
 
@@ -244,7 +244,7 @@
             <div class="note-top">
               <input id="note-title" type="text" maxlength="100" placeholder="Untitled note" aria-label="Note title">
               <div class="note-actions">
-                <button class="btn ghost" type="button" id="ask-note" title="Ask Astro AI about this note">Ask AI</button>
+                <button class="btn ghost" type="button" id="ask-note" title="Ask A.S.T.R.O AI about this note">Ask AI</button>
                 <button class="btn ghost" type="button" id="export-note">Export</button>
                 <button class="btn danger" type="button" id="delete-note">Delete</button>
               </div>

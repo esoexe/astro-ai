@@ -1,6 +1,6 @@
-# Astro AI website
+# A.S.T.R.O AI website
 
-The official site for Astro AI: plain static HTML, CSS and JS with no frameworks, no trackers and no external requests.
+The official site for A.S.T.R.O AI: plain static HTML, CSS and JS with no frameworks, no trackers and no external requests.
 The deployable site is the **`dist/`** folder (about 27 MB including the downloads).
 
 ```
@@ -81,5 +81,5 @@ node serve.js 3000     # http://localhost:3000
   `{{dl:<pattern>:href|file|size|sha}}`
 - Animated orbits: `<canvas data-orbit data-cx data-cy data-size data-mcx data-mcy data-msize>`. They pause when
   off-screen and draw a single still frame when the visitor prefers reduced motion.
-- Screenshots are real captures of Astro AI 1.0.0 (Linux build), stored as WebP in `src/static/assets/img/shots/`.
+- Screenshots are real captures of A.S.T.R.O AI 1.0.0 (Linux build), stored as WebP in `src/static/assets/img/shots/`.
 - Fonts (Inter, Instrument Serif, JetBrains Mono) are self-hosted under the SIL Open Font License.

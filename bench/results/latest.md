@@ -1,4 +1,4 @@
-# Astro AI coding benchmark
+# A.S.T.R.O AI coding benchmark
 
 2026-10-28 21:01 UTC · astro 1.4.0 · mode auto · 12 tasks × 1
 

@@ -1,17 +1,40 @@
-<!--meta {"title": "Changelog", "description": "What's new in Astro AI. Release notes for every version.", "nav": "changelog"} -->
+<!--meta {"title": "Changelog", "description": "What's new in A.S.T.R.O AI. Release notes for every version.", "nav": "changelog"} -->
 <section class="page-hero center">
   <div class="wrap">
     <span class="eyebrow">Changelog</span>
     <h1 class="h2">What's <em class="accent">new.</em></h1>
-    <p class="lead">Every release of Astro AI, newest first.</p>
+    <p class="lead">Every release of A.S.T.R.O AI, newest first.</p>
   </div>
 </section>
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
-    <article class="release latest reveal" id="v1-4-0">
-      <header><h2>1.4.0</h2><span class="badge">Latest</span><time datetime="2026-10-28">October 28, 2026</time></header>
-      <p class="muted">Astro AI in your terminal, agents that run in the background and in parallel, a VS Code extension, project tools, an SDK and a benchmark.</p>
+    <article class="release latest reveal" id="v1-4-1">
+      <header><h2>1.4.1</h2><span class="badge">Latest</span><time datetime="2026-10-28">October 28, 2026</time></header>
+      <p class="muted">A new name, a new website and a steadier agent engine.</p>
+
+      <h3>Astro AI is now A.S.T.R.O AI</h3>
+      <ul class="ticks">
+        <li>The name now says how it works: <strong>All Systems Thinking, Reasoning as One</strong>. All the models, using real tools, each think the problem through, reason over each other's work and give you one answer</li>
+        <li>Only the name changed. Your chats, projects, keys and settings stay where they were, updates install over the old version, and the <code>astro</code> command is the same</li>
+        <li>On a Mac, the new <strong>A.S.T.R.O AI Clean.app</strong> sits next to the old <strong>Astro AI Clean.app</strong>. They share the same data, so you can delete the old one after the first launch. If you linked <code>astro</code> before, run the new link command from the download page</li>
+        <li>A redesigned website that explains what the app is for, with real recordings of the terminal app</li>
+      </ul>
+
+      <h3>Agent engine</h3>
+      <ul class="ticks">
+        <li><strong>3-way merge.</strong> When you and an agent changed different parts of the same file, merging now combines both instead of stopping. Real conflicts are still shown and never overwritten</li>
+        <li>An agent must read an existing file before it can replace it with <code>write_file</code>, so it keeps your style, module system and code</li>
+        <li>If the last test or build command still fails, the result is marked <strong>Needs attention</strong>, and <code>astro parallel --merge</code> skips that agent instead of merging it</li>
+        <li>When a model keeps repeating the same failing step, the job moves to the next model</li>
+        <li>Understands more tool-call formats that some models write: GLM and Qwen <code>&lt;tool_call&gt;</code> markup, several calls opened in one block, <code>name {args}</code> and <code>name(args)</code>, missing closing braces, and code fences inside file contents. Repaired calls are stored in the standard format, so the next model doesn't copy the mistake</li>
+        <li>Commands sent with the project's own name as the working folder now work inside isolated copies, and duplicate calls in one reply run once</li>
+      </ul>
+    </article>
+
+    <article class="release reveal" id="v1-4-0">
+      <header><h2>1.4.0</h2><time datetime="2026-10-28">October 28, 2026</time></header>
+      <p class="muted">A.S.T.R.O AI in your terminal, agents that run in the background and in parallel, a VS Code extension, project tools, an SDK and a benchmark.</p>
 
       <h3>Terminal app: <code>astro</code></h3>
       <ul class="ticks">
@@ -23,7 +46,7 @@
 
       <h3>Background and parallel agents</h3>
       <ul class="ticks">
-        <li>A new agent engine runs agents inside the Astro AI server, so they keep working when you close the window. Up to 8 run at once, and the rest wait in a queue</li>
+        <li>A new agent engine runs agents inside the A.S.T.R.O AI server, so they keep working when you close the window. Up to 8 run at once, and the rest wait in a queue</li>
         <li><strong>Isolated copies.</strong> Each parallel agent works in its own git worktree, including your uncommitted and untracked files, or in a copy of the folder. Your project is untouched until you merge</li>
         <li><strong>Safe merge.</strong> Review the diff, then merge or discard. Merging stops when a file was also changed in the project after the agent started. You can merge the rest, or apply the agent's version. Every merge can be undone</li>
         <li>In the app: the <strong>Parallel</strong> chip on the Agent page. In the terminal: <code>astro parallel "A" "B" --merge</code>, <code>astro agents</code>, <code>astro diff</code>, <code>astro merge</code></li>
@@ -47,7 +70,7 @@
       <ul class="ticks">
         <li>Every server in the official MCP Registry (50,000+), plus thousands of agent skills and Claude Code plugins from public GitHub repos and marketplaces</li>
         <li>AI tools: command-line coding agents and helpers from npm and PyPI that install in one click, and a directory of thousands of AI apps and sites collected from open awesome lists</li>
-        <li>The catalog rebuilds itself every day. Filter by kind, search everything, or tick <b>Reviewed only</b> to see just the items the Astro AI team checked</li>
+        <li>The catalog rebuilds itself every day. Filter by kind, search everything, or tick <b>Reviewed only</b> to see just the items the A.S.T.R.O AI team checked</li>
         <li>Community items are labelled with their source and install with one click. The same rules still apply: MCP packages are pinned to exact versions, skills and plugins are pinned to a git commit and every file is checked against its SHA-256, and hooks, binaries and local plugin servers are never installed</li>
         <li>Installed AI tools get their own folder. Only the commands they declare are added to the agent's and terminal's PATH, so they never replace programs you already have</li>
       </ul>
@@ -55,29 +78,29 @@
       <h3>Website</h3>
       <ul class="ticks">
         <li>The Console now lives at <code>/profile</code>. Old <code>account.html</code> links still work and keep their page (for example <code>#library</code>)</li>
-        <li>Fixed: the "Open in Astro AI" button in the Library had invisible text</li>
+        <li>Fixed: the "Open in A.S.T.R.O AI" button in the Library had invisible text</li>
       </ul>
     </article>
 
     <article class="release reveal" id="v1-2-0">
       <header><h2>1.2.0</h2><time datetime="2026-10-28">October 28, 2026</time></header>
-      <p class="muted">The Astro AI Library, tested code fixes, smarter model picking and safer builds.</p>
+      <p class="muted">The A.S.T.R.O AI Library, tested code fixes, smarter model picking and safer builds.</p>
 
-      <h3>Astro AI Library</h3>
+      <h3>A.S.T.R.O AI Library</h3>
       <ul class="ticks">
         <li>A reviewed library of MCP servers, skills and plugins, in the website Console (no sign-in needed) and in the desktop app under Workspace › Extensions › Library</li>
         <li>One-click install from the website with <code>astroai://</code> links (Windows and Linux). The app always shows what an item does before you install it</li>
         <li>Every file is checked against its SHA-256 fingerprint. Skills and plugins are plain text only, and MCP packages are pinned to exact versions</li>
-        <li>Tokens you type stay in the app on your computer. Local MCP servers no longer see Astro AI's own provider keys</li>
+        <li>Tokens you type stay in the app on your computer. Local MCP servers no longer see A.S.T.R.O AI's own provider keys</li>
       </ul>
 
       <h3>Answers that work</h3>
       <ul class="ticks">
-        <li>Background code check: after a coding answer appears, Astro AI quietly compiles or runs the code (self-contained code only, 6 s limit). If it fails, a coder model fixes it, and the fix is added only if it passes. You can turn it off in Settings › Brain</li>
+        <li>Background code check: after a coding answer appears, A.S.T.R.O AI quietly compiles or runs the code (self-contained code only, 6 s limit). If it fails, a coder model fixes it, and the fix is added only if it passes. You can turn it off in Settings › Brain</li>
         <li>Model picking learns from real results: models that keep failing or slowing down are moved back, and coding benchmark results raise the strongest coders</li>
         <li>The Agent says clearly when it changed files without running a check, and stray "analysis…" text from some models no longer leaks into answers</li>
         <li>👎 now asks what went wrong. Your note is saved on your computer and shared with the team only if you tick Share</li>
-        <li>When the shared free limits run out, Astro AI explains this and offers a one-minute way to add your own free key</li>
+        <li>When the shared free limits run out, A.S.T.R.O AI explains this and offers a one-minute way to add your own free key</li>
       </ul>
 
       <h3>Builds and safety</h3>
@@ -95,7 +118,7 @@
 
       <h3>Coding quality</h3>
       <ul class="ticks">
-        <li>Astro AI now spots code questions by itself, in English, Arabic and French. They get Astro's coding standard: complete runnable code, only real APIs, edge cases checked, and secure defaults</li>
+        <li>A.S.T.R.O AI now spots code questions by itself, in English, Arabic and French. They get Astro's coding standard: complete runnable code, only real APIs, edge cases checked, and secure defaults</li>
         <li>Code answers use a low temperature, and long code is no longer cut off mid-file</li>
         <li>For code, the team's lead, reviewers and merger are the strongest free coding models</li>
         <li>The merge keeps one working draft as its base instead of stitching different drafts together. If the merge fails, the next coder retries</li>
@@ -106,7 +129,7 @@
 
     <article class="release reveal" id="v1-1-0">
       <header><h2>1.1.0</h2><time datetime="2026-10-27">October 27, 2026</time></header>
-      <p class="muted">Astro AI becomes a full coding platform, with the features of OpenCode, Claude Code, Codex, Cursor, VS Code, Antigravity and DeepSeek Harness. <a href="{{root}}features.html">See the features →</a></p>
+      <p class="muted">A.S.T.R.O AI becomes a full coding platform, with the features of OpenCode, Claude Code, Codex, Cursor, VS Code, Antigravity and DeepSeek Harness. <a href="{{root}}features.html">See the features →</a></p>
 
       <h3>Projects</h3>
       <ul class="ticks">
@@ -140,15 +163,15 @@
         <li>Snippet completions; fixed completion sources that could disappear while typing</li>
       </ul>
 
-      <h3>Astro API</h3>
+      <h3>A.S.T.R.O API</h3>
       <ul class="ticks">
-        <li>Paste your <code>astro_sk_</code> key once to use every provider saved in your Astro account, with free failover</li>
+        <li>Paste your <code>astro_sk_</code> key once to use every provider saved in your A.S.T.R.O account, with free failover</li>
       </ul>
     </article>
 
     <article class="release reveal" id="v1-0-0">
       <header><h2>1.0.0</h2><time datetime="2026-10-27">October 27, 2026</time></header>
-      <p class="muted">The first public release of the Astro AI desktop app. <a href="{{root}}blog/introducing-astro-ai.html">Read the announcement →</a></p>
+      <p class="muted">The first public release of the A.S.T.R.O AI desktop app. <a href="{{root}}blog/introducing-astro-ai.html">Read the announcement →</a></p>
 
       <h3>One Brain</h3>
       <ul class="ticks">

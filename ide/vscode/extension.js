@@ -1,4 +1,4 @@
-// Astro AI for VS Code: runs the Astro AI agent on the open folder through the local Astro AI engine (/api/agent/*).
+// A.S.T.R.O AI for VS Code: runs the A.S.T.R.O AI agent on the open folder through the local A.S.T.R.O AI engine (/api/agent/*).
 // No dependencies; plain Node + the VS Code API. Works with any editor that runs VS Code extensions (VSCodium, Cursor, Windsurf...).
 'use strict';
 const vscode = require('vscode');
@@ -42,8 +42,8 @@ async function ensureServer() {
   });
   if (ok) baseUrl = await findServer();
   if (!baseUrl) {
-    const pick = await vscode.window.showErrorMessage('Astro AI engine not found. Open the Astro AI desktop app (or install it so the `astro` command exists), or set "astro.serverUrl".', 'Get Astro AI', 'Settings');
-    if (pick === 'Get Astro AI') vscode.env.openExternal(vscode.Uri.parse('https://esoexe.github.io/astro-ai/download.html'));
+    const pick = await vscode.window.showErrorMessage('A.S.T.R.O AI engine not found. Open the A.S.T.R.O AI desktop app (or install it so the `astro` command exists), or set "astro.serverUrl".', 'Get A.S.T.R.O AI', 'Settings');
+    if (pick === 'Get A.S.T.R.O AI') vscode.env.openExternal(vscode.Uri.parse('https://esoexe.github.io/astro-ai/download.html'));
     if (pick === 'Settings') vscode.commands.executeCommand('workbench.action.openSettings', 'astro.');
     throw new Error('no engine');
   }
@@ -62,7 +62,7 @@ async function api(route, body = {}, signal) {
 }
 const agent = (action, body, signal) => api(`agent/${action}`, body, signal);
 
-// The Astro AI project for the open folder (opened in place, like the desktop app's Open folder).
+// The A.S.T.R.O AI project for the open folder (opened in place, like the desktop app's Open folder).
 async function projectFor(folder) {
   const fixed = String(cfg().get('project') || '');
   if (fixed) return fixed;
@@ -72,7 +72,7 @@ async function projectFor(folder) {
 function workspaceFolder() {
   const ed = vscode.window.activeTextEditor;
   const f = (ed && vscode.workspace.getWorkspaceFolder(ed.document.uri)) || (vscode.workspace.workspaceFolders || [])[0];
-  if (!f) { vscode.window.showWarningMessage('Open a folder first: Astro AI works on the folder in place.'); return null; }
+  if (!f) { vscode.window.showWarningMessage('Open a folder first: A.S.T.R.O AI works on the folder in place.'); return null; }
   return f.uri.fsPath;
 }
 
@@ -123,7 +123,7 @@ async function answerPrompt(id, e) {
   let answer;
   if (e.type === 'approval') {
     if (e.preview) { out.appendLine(`[${id.slice(0, 6)}]   ┌ waiting for your approval\n${String(e.preview).split('\n').map((l) => `      │ ${l}`).join('\n')}`); out.show(true); }
-    const pick = await vscode.window.showWarningMessage(`Astro AI wants to: ${e.text}`, { modal: false, detail: e.preview || '' }, 'Allow', 'Allow all in this run', 'Deny', 'Something else…');
+    const pick = await vscode.window.showWarningMessage(`A.S.T.R.O AI wants to: ${e.text}`, { modal: false, detail: e.preview || '' }, 'Allow', 'Allow all in this run', 'Deny', 'Something else…');
     answer = pick === 'Something else…' ? await vscode.window.showInputBox({ prompt: 'What should the agent do instead?' }) : pick;
   } else {
     const opts = (e.options || []).map(String);
@@ -140,23 +140,23 @@ async function finished(id, view) {
   try { s = await agent('get', { id, since: 1e12 }); } catch (_e) { /* keep the view */ }
   const st = s.status;
   if (s.isolated && !s.discarded && st === 'done') {
-    const pick = await vscode.window.showInformationMessage(`Astro AI agent ${id.slice(0, 6)} finished in an isolated copy (${s.files || 0} file(s)).`, 'Show diff', 'Merge', 'Discard');
+    const pick = await vscode.window.showInformationMessage(`A.S.T.R.O AI agent ${id.slice(0, 6)} finished in an isolated copy (${s.files || 0} file(s)).`, 'Show diff', 'Merge', 'Discard');
     if (pick === 'Show diff') showDiff(id);
     if (pick === 'Merge') merge(id);
     if (pick === 'Discard') discard(id);
   } else if (st === 'done') {
-    const pick = await vscode.window.showInformationMessage(`Astro AI: done (${s.files || 0} file(s) changed).`, 'Show log', 'Undo');
+    const pick = await vscode.window.showInformationMessage(`A.S.T.R.O AI: done (${s.files || 0} file(s) changed).`, 'Show log', 'Undo');
     if (pick === 'Show log') out.show(true);
     if (pick === 'Undo') undo(id);
   } else if (st === 'paused') {
-    const pick = await vscode.window.showInformationMessage('Astro AI paused at the step limit.', 'Continue');
+    const pick = await vscode.window.showInformationMessage('A.S.T.R.O AI paused at the step limit.', 'Continue');
     if (pick === 'Continue') { await agent('send', { id, prompt: 'Continue.' }); follow(id); }
-  } else if (st === 'error') vscode.window.showErrorMessage('The Astro AI agent stopped with an error. See the log.', 'Show log').then((p) => p && out.show(true));
+  } else if (st === 'error') vscode.window.showErrorMessage('The A.S.T.R.O AI agent stopped with an error. See the log.', 'Show log').then((p) => p && out.show(true));
 }
 function updateStatus() {
   const n = followers.size;
-  status.text = n ? `$(sync~spin) Astro AI: ${n} agent${n === 1 ? '' : 's'}` : '$(sparkle) Astro AI';
-  status.tooltip = n ? 'Agents working: click to see them' : 'Run the Astro AI agent';
+  status.text = n ? `$(sync~spin) A.S.T.R.O AI: ${n} agent${n === 1 ? '' : 's'}` : '$(sparkle) A.S.T.R.O AI';
+  status.tooltip = n ? 'Agents working: click to see them' : 'Run the A.S.T.R.O AI agent';
   status.command = n ? 'astro.agents' : 'astro.run';
 }
 
@@ -177,7 +177,7 @@ async function cmdRun(withSelection) {
     const rel = vscode.workspace.asRelativePath(ed.document.uri, false);
     context = `\n\nContext: ${rel}, lines ${ed.selection.start.line + 1}-${ed.selection.end.line + 1}:\n\`\`\`\n${ed.document.getText(ed.selection).slice(0, 12000)}\n\`\`\``;
   }
-  const task = await vscode.window.showInputBox({ prompt: withSelection ? 'What should Astro AI do with the selection?' : 'Give the Astro AI agent a job', placeHolder: 'e.g. add input validation and a test for it', ignoreFocusOut: true });
+  const task = await vscode.window.showInputBox({ prompt: withSelection ? 'What should A.S.T.R.O AI do with the selection?' : 'Give the A.S.T.R.O AI agent a job', placeHolder: 'e.g. add input validation and a test for it', ignoreFocusOut: true });
   if (!task) return;
   await vscode.workspace.saveAll(false);
   await startAgent(task + context, { isolate: !!cfg().get('isolate') });
@@ -188,7 +188,7 @@ async function cmdParallel() {
   const tasks = raw.split('|').map((t) => t.trim()).filter(Boolean);
   await vscode.workspace.saveAll(false);
   for (const t of tasks) { try { await startAgent(t, { isolate: true, interactive: false }); } catch (err) { vscode.window.showErrorMessage(err.message); } }
-  vscode.window.showInformationMessage(`${tasks.length} Astro AI agent(s) started. Each works in an isolated copy; you review and merge them when they finish.`);
+  vscode.window.showInformationMessage(`${tasks.length} A.S.T.R.O AI agent(s) started. Each works in an isolated copy; you review and merge them when they finish.`);
 }
 async function pickSession(placeHolder, filter = () => true) {
   const folder = workspaceFolder(); if (!folder) return null;
@@ -199,12 +199,12 @@ async function pickSession(placeHolder, filter = () => true) {
     description: `${s.status}${s.isolated ? ` · isolated${s.merged ? ' · merged' : ''}` : ''} · ${s.files || 0} file(s)`,
     detail: s.id, s,
   }));
-  if (!items.length) { vscode.window.showInformationMessage('No Astro AI agents for this folder yet.'); return null; }
+  if (!items.length) { vscode.window.showInformationMessage('No A.S.T.R.O AI agents for this folder yet.'); return null; }
   const pick = await vscode.window.showQuickPick(items, { placeHolder, matchOnDescription: true });
   return pick ? pick.s : null;
 }
 async function cmdAgents() {
-  const s = await pickSession('Astro AI agents for this folder'); if (!s) return;
+  const s = await pickSession('A.S.T.R.O AI agents for this folder'); if (!s) return;
   const acts = [];
   if (LIVE.has(s.status)) acts.push('Follow', 'Stop');
   if (s.isolated && !s.discarded) acts.push('Show diff', ...(LIVE.has(s.status) ? [] : ['Merge', 'Discard']));
@@ -228,7 +228,7 @@ async function showDiff(id) {
 async function merge(id) {
   try {
     const r = await agent('merge', { id, discard: true });
-    vscode.window.showInformationMessage(`Merged ${(r.merged || []).length} file(s). The isolated copy was removed; "Astro AI: Agents" → Undo reverts it.`);
+    vscode.window.showInformationMessage(`Merged ${(r.merged || []).length} file(s). The isolated copy was removed; "A.S.T.R.O AI: Agents" → Undo reverts it.`);
   } catch (err) {
     const c = (err.data && err.data.conflicts) || [];
     if (!c.length) { vscode.window.showErrorMessage(err.message); return; }
@@ -247,14 +247,14 @@ async function cmdStop() {
 }
 async function cmdOpenTerminal() {
   const folder = workspaceFolder();
-  const t = vscode.window.createTerminal({ name: 'Astro AI', cwd: folder || undefined });
+  const t = vscode.window.createTerminal({ name: 'A.S.T.R.O AI', cwd: folder || undefined });
   t.show(); t.sendText(astroBin().includes(' ') ? `"${astroBin()}"` : astroBin());
 }
 
-function wrap(fn) { return async (...a) => { try { await fn(...a); } catch (err) { if (err.message !== 'no engine') vscode.window.showErrorMessage(`Astro AI: ${err.message}`); } }; }
+function wrap(fn) { return async (...a) => { try { await fn(...a); } catch (err) { if (err.message !== 'no engine') vscode.window.showErrorMessage(`A.S.T.R.O AI: ${err.message}`); } }; }
 
 function activate(context) {
-  out = vscode.window.createOutputChannel('Astro AI Agent');
+  out = vscode.window.createOutputChannel('A.S.T.R.O AI Agent');
   status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 50);
   updateStatus(); status.show();
   context.subscriptions.push(out, status,

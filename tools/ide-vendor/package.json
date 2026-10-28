@@ -2,7 +2,7 @@
   "name": "astro-ide-vendor",
   "private": true,
   "version": "1.0.0",
-  "description": "Builds web/vendor/ide.js (CodeMirror 6 + xterm.js) and three.js ES modules for the Astro AI Workspace. Run: npm install && npm run build",
+  "description": "Builds web/vendor/ide.js (CodeMirror 6 + xterm.js) and three.js ES modules for the A.S.T.R.O AI Workspace. Run: npm install && npm run build",
   "scripts": {
     "build": "esbuild src.js --bundle --minify --format=iife --global-name=AstroIDE --target=es2019 --outfile=../../web/vendor/ide.js --legal-comments=none && cp node_modules/@xterm/xterm/css/xterm.css ../../web/vendor/xterm.css && npm run three",
     "three": "echo \"export * from 'three';\" > .three-entry.mjs && esbuild .three-entry.mjs --bundle --minify --format=esm --target=es2020 --legal-comments=none --outfile=../../web/vendor/three.module.min.js && esbuild node_modules/three/examples/jsm/controls/OrbitControls.js --bundle --minify --format=esm --target=es2020 --external:three --legal-comments=none --outfile=../../web/vendor/OrbitControls.js && rm -f .three-entry.mjs"

@@ -1,11 +1,11 @@
-<!--meta {"title": "Astro API", "description": "The Astro API: one key and one OpenAI-compatible endpoint for every AI model you have access to. Bring your own provider keys, free or paid.", "nav": "api"} -->
+<!--meta {"title": "A.S.T.R.O API", "description": "The A.S.T.R.O API: one key and one OpenAI-compatible endpoint for every AI model you have access to. Bring your own provider keys, free or paid.", "nav": "api"} -->
 <section class="page-hero">
   <div class="wrap">
-    <span class="eyebrow">Astro API · beta</span>
+    <span class="eyebrow">A.S.T.R.O API · beta</span>
     <h1 class="h2">One key. <em class="accent">Every model.</em></h1>
-    <p class="lead">Connect the provider keys you already have (Groq, Gemini, OpenAI, Anthropic, Mistral, OpenRouter and 70+ more). Then call every one of their models with a single Astro key, through one OpenAI-compatible endpoint.</p>
+    <p class="lead">Connect the provider keys you already have (Groq, Gemini, OpenAI, Anthropic, Mistral, OpenRouter and 70+ more). Then call every one of their models with a single A.S.T.R.O key, through one OpenAI-compatible endpoint.</p>
     <div class="hero-actions">
-      <a class="btn btn-primary" href="{{root}}profile?mode=signup">Get your Astro key <span class="arrow">→</span></a>
+      <a class="btn btn-primary" href="{{root}}profile?mode=signup">Get your A.S.T.R.O key <span class="arrow">→</span></a>
       <a class="btn btn-ghost" href="#quickstart">Quick start</a>
     </div>
   </div>
@@ -32,10 +32,10 @@
 
   <article class="prose">
     <h2 id="how">How it works</h2>
-    <p>The Astro API is a small, open-source gateway. It never pays for or resells model access. Instead it uses <strong>your own provider keys</strong> (this is called BYOK, "bring your own key"):</p>
+    <p>The A.S.T.R.O API is a small, open-source gateway. It never pays for or resells model access. Instead it uses <strong>your own provider keys</strong> (this is called BYOK, "bring your own key"):</p>
     <ol>
       <li>You save a key for each provider you use, in your <a href="{{root}}profile">account</a>. Each key is encrypted before it's stored.</li>
-      <li>You create an <strong>Astro key</strong> (it starts with <code>astro_sk_</code>).</li>
+      <li>You create an <strong>A.S.T.R.O key</strong> (it starts with <code>astro_sk_</code>).</li>
       <li>Your apps send OpenAI-style requests to Astro. Astro picks the right provider key, forwards the request to that provider, and streams the answer back.</li>
     </ol>
     <p>So the free tiers you're entitled to stay free, and paid providers bill you directly at their normal prices. Each provider's own rate limits and terms still apply.</p>
@@ -44,7 +44,7 @@
     <ol>
       <li><a href="{{root}}profile?mode=signup">Create an account</a> with email, or continue with GitHub.</li>
       <li>Under <strong>Your provider keys</strong>, add at least one key. Groq, Google Gemini, Mistral, Cerebras and OpenRouter all have free tiers.</li>
-      <li>Under <strong>Astro API keys</strong>, create a key and copy it. It's shown only once.</li>
+      <li>Under <strong>A.S.T.R.O API keys</strong>, create a key and copy it. It's shown only once.</li>
       <li>Point any OpenAI-compatible client at the base URL below.</li>
     </ol>
 <pre><code>Base URL   https://vgtucdfretcvojcfvbzk.supabase.co/functions/v1/astro-api/v1
@@ -65,7 +65,7 @@ Auth       Authorization: Bearer astro_sk_...</code></pre>
 
 client = OpenAI(
     base_url="https://vgtucdfretcvojcfvbzk.supabase.co/functions/v1/astro-api/v1",
-    api_key="astro_sk_...",          # your Astro key
+    api_key="astro_sk_...",          # your A.S.T.R.O key
 )
 
 reply = client.chat.completions.create(
@@ -96,7 +96,7 @@ for await (const chunk of stream) process.stdout.write(chunk.choices[0]?.delta?.
   body: JSON.stringify({ model: "astro/auto", messages: [{ role: "user", content: "Hi!" }] }),
 });
 console.log(r.headers.get("x-astro-provider"), (await r.json()).choices[0].message.content);</code></pre>
-    <div class="callout"><div><b>Keep your Astro key on a server.</b> Anyone who has the key can use your providers. Don't put it in public web pages or mobile apps. If a key leaks, revoke it in your account. That takes effect immediately.</div></div>
+    <div class="callout"><div><b>Keep your A.S.T.R.O key on a server.</b> Anyone who has the key can use your providers. Don't put it in public web pages or mobile apps. If a key leaks, revoke it in your account. That takes effect immediately.</div></div>
 
     <h2 id="endpoints">Endpoints</h2>
     <div class="table-wrap">
@@ -134,7 +134,7 @@ console.log(r.headers.get("x-astro-provider"), (await r.json()).choices[0].messa
     <h2 id="limits">Limits</h2>
     <ul>
       <li><strong>5,000 chat requests per account per day</strong> (resets at 00:00 UTC). This protects the free service.</li>
-      <li>Your providers' own limits still apply. A free tier stays limited: Astro can't make it unlimited.</li>
+      <li>Your providers' own limits still apply. A free tier stays limited: A.S.T.R.O can't make it unlimited.</li>
       <li>Requests time out after about 140 seconds.</li>
       <li>Up to 10 active Astro keys per account.</li>
     </ul>
@@ -145,7 +145,7 @@ console.log(r.headers.get("x-astro-provider"), (await r.json()).choices[0].messa
       <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
       <tbody>
         <tr><td>400</td><td>Bad JSON, missing <code>messages</code>, a malformed model id, or no provider keys saved yet.</td></tr>
-        <tr><td>401</td><td>Missing, invalid or revoked Astro key (<code>invalid_api_key</code>).</td></tr>
+        <tr><td>401</td><td>Missing, invalid or revoked A.S.T.R.O key (<code>invalid_api_key</code>).</td></tr>
         <tr><td>404</td><td>No saved key for that provider (<code>model_not_found</code>), or an unknown endpoint.</td></tr>
         <tr><td>429</td><td>Daily Astro limit reached (<code>daily_limit</code>), or every provider tried was rate-limited.</td></tr>
         <tr><td>502</td><td>The provider couldn't be reached or timed out.</td></tr>
@@ -164,11 +164,11 @@ console.log(r.headers.get("x-astro-provider"), (await r.json()).choices[0].messa
 
     <h2 id="faq">FAQ</h2>
     <h3>Is it free?</h3>
-    <p>Yes. The Astro API itself costs nothing. Free-tier providers stay free within their own limits, and paid providers bill you directly.</p>
+    <p>Yes. The A.S.T.R.O API itself costs nothing. Free-tier providers stay free within their own limits, and paid providers bill you directly.</p>
     <h3>Which providers are supported?</h3>
     <p>79 cloud providers that speak the OpenAI format, including OpenAI, Anthropic, Google Gemini, xAI, DeepSeek, Mistral, Groq, Cerebras, OpenRouter, Together, Fireworks, DeepInfra, Perplexity, Azure OpenAI and Amazon Bedrock. The full list is in your account under <strong>Add a provider</strong>. Local servers (Ollama, LM Studio and so on) can't be reached from the cloud. Use them in the <a href="{{root}}download.html">desktop app</a> instead.</p>
     <h3>Can I use it with my coding tools?</h3>
-    <p>Anything that accepts a custom OpenAI base URL works. Set the base URL above and use your Astro key as the API key.</p>
+    <p>Anything that accepts a custom OpenAI base URL works. Set the base URL above and use your A.S.T.R.O key as the API key.</p>
     <h3>How do I delete my data?</h3>
     <p>Use <strong>Delete account</strong> at the bottom of your <a href="{{root}}profile">account page</a>. Your keys, provider keys and usage history are removed immediately.</p>
   </article>

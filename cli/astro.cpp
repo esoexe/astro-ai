@@ -1,9 +1,9 @@
-// astro — the Astro AI terminal app.
+// astro — the A.S.T.R.O AI terminal app.
 //   astro                         interactive agent in the current folder (streaming, approvals, slash commands)
 //   astro -p "task"               print mode for scripts and CI (final report on stdout; --json for JSON lines)
 //   astro parallel "A" "B" ...    several agents at once, each in an isolated copy of the project, then merge
 //   astro agents | attach | logs | diff | merge | discard | stop | undo | models | server
-// It talks to the local Astro AI server (the desktop app's engine, /api/agent/*) and starts it when needed.
+// It talks to the local A.S.T.R.O AI server (the desktop app's engine, /api/agent/*) and starts it when needed.
 // Build: g++ -std=c++20 -O2 cli/astro.cpp -o astro $(pkg-config --cflags --libs libcurl)
 #include "json.h"
 
@@ -46,7 +46,7 @@ using aj::Value;
 using aj::Object;
 using aj::Array;
 
-static const char* VERSION = "1.4.0";
+static const char* VERSION = "1.4.1";
 
 // ---------- terminal ----------
 static bool g_tty = false, g_color = false, g_err_tty = false;
@@ -215,7 +215,7 @@ static Http http(const std::string& method, const std::string& url, const std::s
 struct ApiError : std::runtime_error { long status; Value body; ApiError(const std::string& m, long s, Value b) : std::runtime_error(m), status(s), body(std::move(b)) {} };
 static Value api(const std::string& path, const Object& body = {}, long timeout_s = 120, bool interruptible = false) {
     const Http r = http("POST", g_url + path, aj::dump(Value(body)), timeout_s, interruptible);
-    if (!r.err.empty()) throw ApiError("Cannot reach the Astro AI server at " + g_url + " (" + r.err + ").", 0, Value());
+    if (!r.err.empty()) throw ApiError("Cannot reach the A.S.T.R.O AI server at " + g_url + " (" + r.err + ").", 0, Value());
     Value j;
     aj::try_parse(r.body, j);
     if (r.status < 200 || r.status >= 300) {
@@ -246,7 +246,7 @@ static fs::path exe_path() {
 }
 static std::string read_text(const fs::path& p) { std::ifstream in(p, std::ios::binary); std::stringstream ss; ss << in.rdbuf(); return ss.str(); }
 static std::string env(const char* k) { const char* v = std::getenv(k); return v ? v : ""; }
-struct ServerKit { fs::path res, bin; std::string name = "Astro AI Clean", data_name = "astro-ai-clean"; int port = 47612; };
+struct ServerKit { fs::path res, bin; std::string name = "A.S.T.R.O AI Clean", data_name = "astro-ai-clean"; int port = 47612; };
 static std::optional<ServerKit> find_server() {
     const fs::path d = exe_path().parent_path();
 #ifdef _WIN32
@@ -354,11 +354,11 @@ static bool connect_server(bool allow_start, bool quiet = false) {
     for (int p : ports) { const std::string url = "http://127.0.0.1:" + std::to_string(p); if (server_alive(url)) { g_url = url; return true; } }
     if (!allow_start) return false;
     if (!kit) {
-        std::cerr << red("No Astro AI server is running, and none was found next to this program.") << "\n"
-                  << "Start the Astro AI app, or point astro at a server: ASTRO_URL=http://127.0.0.1:4173 astro\n";
+        std::cerr << red("No A.S.T.R.O AI server is running, and none was found next to this program.") << "\n"
+                  << "Start the A.S.T.R.O AI app, or point astro at a server: ASTRO_URL=http://127.0.0.1:4173 astro\n";
         return false;
     }
-    if (!quiet) std::cerr << dim("Starting the Astro AI engine (" + to_utf8(kit->bin) + ")...") << "\n";
+    if (!quiet) std::cerr << dim("Starting the A.S.T.R.O AI engine (" + to_utf8(kit->bin) + ")...") << "\n";
     std::string log;
     if (!spawn_server(*kit, kit->port, log)) { std::cerr << red("Could not start " + to_utf8(kit->bin)) << "\n"; return false; }
     g_url = "http://127.0.0.1:" + std::to_string(kit->port);
@@ -593,7 +593,7 @@ static int cmd_merge(const std::string& id, const Opts& o) {
         const Value r = api("/api/agent/merge", b);
         const size_t n = r["merged"].arr() ? r["merged"].arr()->size() : 0;
         out(green("\xE2\x9C\x94 Merged ") + std::to_string(n) + " file(s)" + (r["discarded"].truthy() ? dim(" \xC2\xB7 isolated copy removed") : "") + (r["checkpoint"].str().empty() ? "" : dim(" \xC2\xB7 undo with: astro undo " + id)));
-        if (auto a = r["merged"].arr()) for (const auto& f : *a) out("  " + green("\xE2\x86\x92") + " " + f["path"].str());
+        if (auto a = r["merged"].arr()) for (const auto& f : *a) out("  " + green("\xE2\x86\x92") + " " + f["path"].str() + (f["combined"].truthy() ? dim("  (combined with the project's changes)") : ""));
         if (auto a = r["conflicts"].arr(); a && !a->empty()) { out(yellow("  Not merged (changed in the project meanwhile):")); for (const auto& f : *a) out("  " + yellow("!") + " " + f["path"].str()); }
         return 0;
     } catch (const ApiError& e) {
@@ -631,7 +631,7 @@ static int cmd_models() {
 static int cmd_parallel(const std::vector<std::string>& tasks, Opts o, const std::string& project) {
     if (tasks.empty()) { out(red("Give the tasks: astro parallel \"task one\" \"task two\"")); return 2; }
     if (o.mode == "ask") o.mode = "auto";   // nobody approves inside parallel runs
-    struct Agent { std::string id, task, status = "starting", last, report; long long since = 0; int steps = 0, files = 0; double ms = 0; };
+    struct Agent { std::string id, task, status = "starting", last, report, failing; long long since = 0; int steps = 0, files = 0; double ms = 0; };
     std::vector<Agent> ags;
     for (const auto& t : tasks) {
         Opts oi = o; oi.isolate = true;
@@ -660,7 +660,7 @@ static int cmd_parallel(const std::vector<std::string>& tasks, Opts o, const std
                 const std::string t = e["type"].str();
                 if (t == "tool_done") a.last = (e["ok"].truthy() ? "\xE2\x9C\x93 " : "\xE2\x9C\x97 ") + e["label"].str();
                 else if (t == "say") a.last = one_line(e["text"].str());
-                else if (t == "done") { a.report = e["text"].str(); a.files = e["files"].arr() ? static_cast<int>(e["files"].arr()->size()) : 0; a.ms = e["ms"].num(); }
+                else if (t == "done") { a.failing = e["failing"].str(); a.report = e["text"].str(); a.files = e["files"].arr() ? static_cast<int>(e["files"].arr()->size()) : 0; a.ms = e["ms"].num(); }
                 else if (t == "error") a.last = "error: " + e["text"].str();
                 if (!g_tty) out(dim("[" + a.id + "] ") + t + " " + clip(one_line(e["label"].str() + e["text"].str() + " " + e["summary"].str()), 120));
             }
@@ -695,12 +695,14 @@ static int cmd_parallel(const std::vector<std::string>& tasks, Opts o, const std
     for (auto& a : ags) {
         out((a.status == "done" ? green("\xE2\x9C\x94 ") : red("\xE2\x9C\x97 ")) + bold(a.id) + "  " + a.task + dim("  \xC2\xB7 " + a.status + " \xC2\xB7 " + std::to_string(a.files) + (a.files == 1 ? " file" : " files") + (a.ms > 0 ? " \xC2\xB7 " + fmt_ms(a.ms) : "")));
         if (!a.report.empty()) { std::stringstream ss(a.report); std::string l; int n = 0; while (std::getline(ss, l) && n++ < 4) out("    " + dim(clip(l, 160))); }
+        if (!a.failing.empty()) out("    " + yellow("! the last check still fails: " + a.failing));
         if (a.status != "done") ++failures;
     }
     if (o.merge) {
         out("");
         for (auto& a : ags) {
             if (a.status != "done") { out(yellow("  skipped ") + a.id + dim(" (" + a.status + ")")); continue; }
+            if (!a.failing.empty()) { out(yellow("  skipped ") + a.id + dim(" (its last check failed: " + a.failing + ")  review: astro diff " + a.id)); ++failures; continue; }
             if (a.files == 0) { try { api("/api/agent/discard", Object{{"id", a.id}}); } catch (...) {} out(dim("  " + a.id + ": no changes")); continue; }
             out(bold("Merging " + a.id));
             Opts m = o; m.keep = false; m.partial = false;
@@ -714,7 +716,7 @@ static int cmd_parallel(const std::vector<std::string>& tasks, Opts o, const std
 }
 
 static void help() {
-    std::cout << peach("\xE2\x97\x86 Astro AI") << " terminal " << VERSION << " \xE2\x80\x94 " << dim("one brain, many minds") << "\n\n"
+    std::cout << peach("\xE2\x97\x86 A.S.T.R.O AI") << " terminal " << VERSION << " \xE2\x80\x94 " << dim("one brain, many minds") << "\n\n"
               << bold("Usage") << "\n"
               << "  astro [options] [task]           interactive agent in this folder\n"
               << "  astro -p \"task\" [--json]         print mode: run once, report on stdout (JSON lines with --json)\n"
@@ -726,10 +728,10 @@ static void help() {
               << "  astro merge <id> [--partial|--force] [--keep]   bring an isolated agent's changes into the project\n"
               << "  astro discard <id> | stop <id> | undo <id>\n"
               << "  astro models                      coding models, best first\n"
-              << "  astro server status|start|stop    the local Astro AI engine\n\n"
+              << "  astro server status|start|stop    the local A.S.T.R.O AI engine\n\n"
               << bold("Options") << "\n"
               << "  -C <dir>            work in this folder (default: the current folder)\n"
-              << "  --project <name>    use an existing Astro AI project instead of a folder\n"
+              << "  --project <name>    use an existing A.S.T.R.O AI project instead of a folder\n"
               << "  --mode plan|ask|auto  plan = read-only; ask = approve each change; auto = act alone (default; checkpoint for undo)\n"
               << "  --model <id>        preferred model (see astro models); default: the best free coding model, with fallback\n"
               << "  --review            a second model reviews the work (one fix round)\n"
@@ -763,7 +765,7 @@ static int repl(Opts o, const std::string& project) {
     std::string sid;
     long long since = 0;
     Renderer R;
-    out(peach("\xE2\x97\x86 Astro AI") + " " + dim("terminal " + std::string(VERSION)));
+    out(peach("\xE2\x97\x86 A.S.T.R.O AI") + " " + dim("terminal " + std::string(VERSION)));
     out(dim("  project ") + project + dim("  \xC2\xB7  mode ") + o.mode + dim("  \xC2\xB7  model ") + o.model + dim("  \xC2\xB7  ") + dim(g_url));
     out(dim("  Type a task, or /help. Ctrl+C stops the agent, Ctrl+D quits."));
     std::string pending = o.prompt;
@@ -905,10 +907,10 @@ int main(int argc, char** argv) {
             if (sub == "status") {
                 if (connect_server(false)) { const Http r = http("GET", g_url + "/api/status", "", 5); Value j; aj::try_parse(r.body, j);
                     size_t n = j["models"].arr() ? j["models"].arr()->size() : 0;
-                    out(green("\xE2\x97\x8F ") + "Astro AI engine at " + g_url + dim("  \xC2\xB7 " + std::to_string(n) + " models")); return 0; }
-                out(dim("\xE2\x97\x8B No Astro AI engine is running.")); return 1;
+                    out(green("\xE2\x97\x8F ") + "A.S.T.R.O AI engine at " + g_url + dim("  \xC2\xB7 " + std::to_string(n) + " models")); return 0; }
+                out(dim("\xE2\x97\x8B No A.S.T.R.O AI engine is running.")); return 1;
             }
-            if (sub == "start") { if (connect_server(true)) { out(green("\xE2\x97\x8F ") + "Astro AI engine at " + g_url); return 0; } return 1; }
+            if (sub == "start") { if (connect_server(true)) { out(green("\xE2\x97\x8F ") + "A.S.T.R.O AI engine at " + g_url); return 0; } return 1; }
             if (sub == "stop") {
                 if (!connect_server(false)) { out(dim("Not running.")); return 0; }
                 try { api("/api/agent/server-stop", {}, 10); out(dim("Stopped the engine at " + g_url + ".")); return 0; }

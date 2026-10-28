@@ -4,7 +4,7 @@
 # Token: $GH_TOKEN_FILE (default ~/.config/astro-ai/gh_token, mode 600; kept across sandbox resets). Never printed or stored in .git/config.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-MSG="${1:-Update Astro AI}"
+MSG="${1:-Update A.S.T.R.O AI}"
 REPO="${REPO:-astro-ai}"
 TOKEN_FILE="${GH_TOKEN_FILE:-$HOME/.config/astro-ai/gh_token}"
 WORK="$HOME/.cache/gh"; mkdir -p "$WORK"; chmod 700 "$WORK"; umask 077

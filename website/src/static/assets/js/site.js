@@ -1,4 +1,4 @@
-/* Astro AI website. No trackers, no external requests. */
+/* A.S.T.R.O AI website. No trackers, no external requests. */
 (() => {
   'use strict';
   const $ = (s, r = document) => r.querySelector(s);

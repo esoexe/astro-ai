@@ -1,5 +1,5 @@
 // =============================================================================================
-// Astro AI Workspace IDE features (included after workspace_code.inc, inside the anonymous namespace):
+// A.S.T.R.O AI Workspace IDE features (included after workspace_code.inc, inside the anonymous namespace):
 //   * search across project files                      POST /api/ide/search
 //   * download a project as a ZIP                      POST /api/ide/zip
 //   * checkpoints (version history) per project        POST /api/ide/history/{list,create,restore,delete,changes,read}
@@ -841,7 +841,7 @@ bool serve_app_proxy(int fd, const HttpRequest& request) {
         return true;
     }
     const auto p = proc_get(project);
-    if (!p || p->dead) { app_error_page(fd, 502, "The app server is not running", "Open a server file (for example <b>server.js</b> or <b>app.py</b>) and press <b>Run</b>. Astro AI starts it and shows it here."); return true; }
+    if (!p || p->dead) { app_error_page(fd, 502, "The app server is not running", "Open a server file (for example <b>server.js</b> or <b>app.py</b>) and press <b>Run</b>. A.S.T.R.O AI starts it and shows it here."); return true; }
     p->touched = now_s();
     const int port = p->listen_port ? p->listen_port.load() : p->port;
     const std::string url = "http://127.0.0.1:" + std::to_string(port) + sub + (request.query.empty() ? "" : "?" + request.query);

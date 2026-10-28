@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Exports a clean, secret-free copy of Astro AI for publishing (GitHub).
+# Exports a clean, secret-free copy of A.S.T.R.O AI for publishing (GitHub).
 #   tools/export_repo.sh <out-dir> [github-login]
 # Only an explicit allowlist is copied. Keys, env files, user data, uploads and the WITH-KEYS builds are never
 # included, and tools/scan_secrets.js must pass before the export is considered usable.
@@ -41,21 +41,21 @@ node -e '
   const fs = require("fs"), f = process.argv[1], site = process.argv[2];
   let s = fs.readFileSync(f, "utf8");
   const head = [
-    "<p align=\"center\"><img src=\"desktop/assets/icon-256.png\" width=\"112\" alt=\"Astro AI icon\"></p>",
+    "<p align=\"center\"><img src=\"desktop/assets/icon-256.png\" width=\"112\" alt=\"A.S.T.R.O AI icon\"></p>",
     "",
-    "<h1 align=\"center\">Astro AI</h1>",
+    "<h1 align=\"center\">A.S.T.R.O AI</h1>",
     "<p align=\"center\"><b>One brain, many minds.</b> A free desktop app where a team of free AI models answers as one.</p>",
     "<p align=\"center\"><a href=\"" + site + "/\">Website</a> · <a href=\"" + site + "/download.html\">Download</a> · <a href=\"" + site + "/docs.html\">Docs</a> · <a href=\"" + site + "/api.html\">Astro API</a> · <a href=\"" + site + "/changelog.html\">Changelog</a></p>",
     "",
-    "<p align=\"center\"><a href=\"" + site + "/#trailer\"><img src=\"website/src/static/assets/video/astro-ai-trailer-poster.jpg\" width=\"860\" alt=\"Watch the Astro AI trailer\"></a><br><sub>▶ <a href=\"" + site + "/#trailer\">Watch the 90-second trailer</a> (real app footage) · <a href=\"" + site + "/assets/video/astro-ai-trailer.mp4\">MP4</a><br>Music: “Clean Soul” by Kevin MacLeod (incompetech.com), CC BY 4.0</sub></p>",
+    "<p align=\"center\"><a href=\"" + site + "/#trailer\"><img src=\"website/src/static/assets/video/astro-ai-trailer-poster.jpg\" width=\"860\" alt=\"Watch the A.S.T.R.O AI trailer\"></a><br><sub>▶ <a href=\"" + site + "/#trailer\">Watch the 90-second trailer</a> (real app footage) · <a href=\"" + site + "/assets/video/astro-ai-trailer.mp4\">MP4</a><br>Music: “Clean Soul” by Kevin MacLeod (incompetech.com), CC BY 4.0</sub></p>",
     "",
-    "<p align=\"center\"><img src=\"website/src/static/assets/img/shots/chat-answer.webp\" width=\"860\" alt=\"Astro AI: a One Brain answer written by 19 models\"></p>",
+    "<p align=\"center\"><img src=\"website/src/static/assets/img/shots/chat-answer.webp\" width=\"860\" alt=\"A.S.T.R.O AI: a One Brain answer written by 19 models\"></p>",
     "",
     "> **Downloads:** Windows, Linux and macOS builds are on the [download page](" + site + "/download.html). They are the *Clean* edition and ship with no API keys.",
     "",
   ].join("\n");
-  s = s.replace(/^# Astro AI\s*\n/, head + "\n## About\n\n");
-  s = s.trimEnd() + "\n\n## License\n\nAstro AI is available under your choice of the **MIT**, **Apache-2.0** or **GPL-3.0** license; see [LICENSE](LICENSE). Bundled third-party components keep their own licenses; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).\n";
+  s = s.replace(/^# A.S.T.R.O AI\s*\n/, head + "\n## About\n\n");
+  s = s.trimEnd() + "\n\n## License\n\nA.S.T.R.O AI is available under your choice of the **MIT**, **Apache-2.0** or **GPL-3.0** license; see [LICENSE](LICENSE). Bundled third-party components keep their own licenses; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).\n";
   fs.writeFileSync(f, s);' "$OUT/README.md" "$SITE"
 
 cat > "$OUT/.gitignore" <<'EOF'

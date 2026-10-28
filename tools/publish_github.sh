@@ -35,7 +35,7 @@ api GET "/repos/$LOGIN/$REPO" > /dev/null
 if [ "$(code)" = 200 ]; then
   [ "${ALLOW_EXISTING:-0}" = 1 ] || { echo "     $LOGIN/$REPO already exists; stopping so nothing is overwritten (ALLOW_EXISTING=1 to push to it)"; exit 1; }
 else
-  api POST /user/repos "{\"name\":\"$REPO\",\"private\":false,\"description\":\"Astro AI: one brain, many minds. A free desktop app where a team of free AI models answers as one.\",\"homepage\":\"https://${LOGIN,,}.github.io/$REPO/\",\"has_wiki\":false,\"has_projects\":false}" > /dev/null
+  api POST /user/repos "{\"name\":\"$REPO\",\"private\":false,\"description\":\"A.S.T.R.O AI: one brain, many minds. A free desktop app where a team of free AI models answers as one.\",\"homepage\":\"https://${LOGIN,,}.github.io/$REPO/\",\"has_wiki\":false,\"has_projects\":false}" > /dev/null
   [ "$(code)" = 201 ] || { echo "     could not create the repo (HTTP $(code)): $(jget message < "$WORK/body")"; exit 1; }
 fi
 
@@ -53,7 +53,7 @@ cd "$STAGE"
 git init -q -b main
 git config user.name "${NAME:-$LOGIN}"; git config user.email "$UID_+$LOGIN@users.noreply.github.com"
 git add -A
-git commit -q -m "Astro AI 1.0.0: source, desktop app, installer and website" -m "Clean edition only: no API keys, env files or personal data are included."
+git commit -q -m "A.S.T.R.O AI 1.0.0: source, desktop app, installer and website" -m "Clean edition only: no API keys, env files or personal data are included."
 ASK="$WORK/askpass.sh"; printf '#!/bin/sh\ncase "$1" in Username*) echo x-access-token;; *) tr -d " \\r\\n" < "%s";; esac\n' "$TOKEN_FILE" > "$ASK"; chmod 700 "$ASK"
 GIT_ASKPASS="$ASK" GIT_TERMINAL_PROMPT=0 git push -q "https://github.com/$LOGIN/$REPO.git" main 2>&1 | sed 's/x-access-token:[^@]*@//'
 git remote add origin "https://github.com/$LOGIN/$REPO.git"

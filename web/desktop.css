@@ -1,5 +1,5 @@
 /* =============================================================================================
-   Astro AI desktop shell (OpenCode-style). Only active with <html data-shell="desktop">.
+   A.S.T.R.O AI desktop shell (OpenCode-style). Only active with <html data-shell="desktop">.
    Title bar with session tabs, a flat projects/sessions sidebar, slim session header, mono chrome.
    ============================================================================================= */
 html[data-shell="desktop"] {

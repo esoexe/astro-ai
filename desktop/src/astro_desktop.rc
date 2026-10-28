@@ -1,4 +1,4 @@
-// Windows resources for the Astro AI desktop launcher.
+// Windows resources for the A.S.T.R.O AI desktop launcher.
 #include <winver.h>
 // 1 = icon Explorer shows for the .exe; 32512 (IDI_APPLICATION) = icon webview loads for the window.
 1 ICON "../assets/astro.ico"
@@ -6,8 +6,8 @@
 1 24 "astro_desktop.manifest"
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1,4,0,0
-PRODUCTVERSION 1,4,0,0
+FILEVERSION 1,4,1,0
+PRODUCTVERSION 1,4,1,0
 FILEOS VOS_NT_WINDOWS32
 FILETYPE VFT_APP
 BEGIN
@@ -15,11 +15,11 @@ BEGIN
   BEGIN
     BLOCK "040904b0"
     BEGIN
-      VALUE "CompanyName", "Astro AI"
-      VALUE "FileDescription", "Astro AI desktop"
-      VALUE "FileVersion", "1.4.0"
-      VALUE "ProductName", "Astro AI"
-      VALUE "ProductVersion", "1.4.0"
+      VALUE "CompanyName", "A.S.T.R.O AI"
+      VALUE "FileDescription", "A.S.T.R.O AI desktop"
+      VALUE "FileVersion", "1.4.1"
+      VALUE "ProductName", "A.S.T.R.O AI"
+      VALUE "ProductVersion", "1.4.1"
       VALUE "OriginalFilename", "AstroAI.exe"
     END
   END

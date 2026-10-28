@@ -771,7 +771,7 @@ details.brain-sum[open] > summary svg.chev { transform: rotate(180deg); }
 .live-mind.dot i { width: 9px; height: 9px; box-shadow: 0 0 10px rgba(155,114,203,.8); }
 
 /* ===================================================================== */
-/* Astro AI layer: login, early answer, confidence, sources, Lab, Reader */
+/* A.S.T.R.O AI layer: login, early answer, confidence, sources, Lab, Reader */
 /* ===================================================================== */
 .astro-login { position: fixed; inset: 0; z-index: 400; display: grid; place-items: center; padding: 20px; background: radial-gradient(1200px 600px at 50% -10%, rgba(66,133,244,.18), transparent 60%), var(--bg); }
 .astro-login[hidden] { display: none; }
@@ -873,7 +873,7 @@ details.brain-sum[open] > summary svg.chev { transform: rotate(180deg); }
 .brain-wait .bw-merge[hidden] { display: none; }
 
 /* =============================================================================================
-   Astro AI v3 design: deep-space dark + crisp light, glass surfaces, one accent gradient.
+   A.S.T.R.O AI v3 design: deep-space dark + crisp light, glass surfaces, one accent gradient.
    (Overrides the tokens and components above; the Workspace IDE styles follow.)
    ============================================================================================= */
 :root {
@@ -1922,7 +1922,7 @@ body { background: var(--bg); letter-spacing: -.003em; }
 .paid-optin { display: flex; gap: 8px; align-items: baseline; font-size: 13px; margin-top: 6px; flex-wrap: wrap; }
 .paid-optin small { color: var(--text-3); }
 
-/* Astro API key card (Settings → Providers) */
+/* A.S.T.R.O API key card (Settings → Providers) */
 .astro-key-card { border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); background: linear-gradient(135deg, var(--accent-soft), transparent 70%); margin-bottom: 14px; }
 .astro-key-card h3 { margin: 0; }
 .astro-key-card .prov-head > svg { width: 20px; height: 20px; flex: none; }
@@ -2029,7 +2029,7 @@ body { background: var(--bg); letter-spacing: -.003em; }
 .ag-mode-chip.on { background: var(--accent-soft); color: var(--text); }
 .cm-ghost { pointer-events: none; }
 
-/* Astro AI Library (Extensions → Library) */
+/* A.S.T.R.O AI Library (Extensions → Library) */
 .lib-search { display: flex; gap: 6px; }
 .lib-chk { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-2); cursor: pointer; margin-left: 4px; }
 .lib-more { display: block; margin: 10px auto; }

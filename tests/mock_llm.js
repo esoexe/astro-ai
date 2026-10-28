@@ -19,7 +19,7 @@ function reply(messages) {
   const users = messages.filter((m) => m.role === 'user').map((m) => String(m.content));
   const all = users.join('\n\n');
   const last = users[users.length - 1] || '';
-  if (/Review the work of Astro AI's autonomous agent/.test(last)) return 'VERDICT: PASS\n- The change is small and was checked.';
+  if (/Review the work of A.S.T.R.O AI's autonomous agent/.test(last)) return 'VERDICT: PASS\n- The change is small and was checked.';
   if (/focused subagent/.test(last)) return 'Subagent report: nothing to change.';
   const jobs = [...all.matchAll(/JOB: ([^\n]*)/g)].map((m) => m[1]);
   const job = jobs[jobs.length - 1] || last;
@@ -44,6 +44,40 @@ function reply(messages) {
     const [, name, k, v] = m;
     if (rounds === 0) return tool({ tool: name, [k]: v });
     return 'Used the project tool.\n' + done('custom tool');
+  }
+  if (/missing brace/i.test(job)) {
+    if (rounds === 0) return '```tool\n{"tool":"bash","command":"echo b > brace.txt"\n```';
+    return 'Done.\n' + done('brace');
+  }
+  if (/fork cwd/i.test(job)) {
+    if (rounds === 0) return '```tool\n{"tool":"bash","command":"echo f > fork.txt","cwd":"demo"}\n```';
+    return 'Done.\n' + done('fork');
+  }
+  if (/fence in json/i.test(job)) {
+    if (rounds === 0) return 'Writing the docs.\n```tool\n' + JSON.stringify({ tool: 'write_file', path: 'DOCS.md', content: '# Docs\n\n```bash\ncurl http://localhost:3000/todos\n```\n' }) + '\n```';
+    return 'Done.\n' + done('fence');
+  }
+  if (/blind rewrite/i.test(job)) {
+    if (rounds === 0) return '```tool\n{"tool":"write_file","path":"keep.txt","content":"replaced"}\n```';
+    if (rounds === 1) return '```tool\n{"tool":"read_file","path":"keep.txt"}\n```';
+    if (rounds === 2) return '```tool\n{"tool":"write_file","path":"keep.txt","content":"replaced"}\n```';
+    return 'Done.\n' + done('blind');
+  }
+  if (/failing check/i.test(job)) {
+    if (rounds < 4) return '```tool\n{"tool":"bash","command":"npm test || node --test nothing-here.js"}\n```';
+    return 'All good.\n' + done('failing');
+  }
+  if (/multi open/i.test(job)) {
+    if (rounds === 0) return 'Reading.<tool_call>bash {command": "echo m1 > m1.txt"}<tool_call>bash(command="echo m3 > m3.txt")<tool_call>bash<arg_key>command</arg_key><arg_value>echo m2 > m2.txt</arg_value></tool_call>';
+    return 'Done.\n' + done('multi');
+  }
+  if (/native markup/i.test(job)) {
+    if (rounds === 0) return 'Checking.<tool_call>bash<arg_key>command</arg_key><arg_value>echo glm > glm.txt</arg_value></tool_call>\n<tool_call>{"name": "bash", "arguments": "{\\"command\\": \\"echo q > q.txt\\"}"}</tool_call>';
+    return 'Done.\n' + done('native');
+  }
+  if (/dup and think/i.test(job)) {
+    if (rounds === 0) return 'We need to run the command now.\n```tool\n{"tool":"bash","command":"echo x >> dup.txt","cwd":"demo"}\n{"tool":"bash","command":"echo x >> dup.txt","cwd":"demo"}\n```';
+    return 'Done.\n' + done('dup');
   }
   if (/fenced bash call/i.test(job)) {
     if (rounds === 0) return 'Running it.\n```bash\n\n```\n```bash\n{"tool":"bash","command":"echo fenced > fenced.txt"}\n```';

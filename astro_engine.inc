@@ -1,4 +1,4 @@
-// ---------- Astro agent engine ----------
+// ---------- A.S.T.R.O agent engine ----------
 // The agent loop of the Agent page, run on the server, so it works without a browser:
 //   - the terminal app (`astro`), print mode for scripts, background agents in the web app
 //   - parallel agents, each in an isolated copy of the project (a git worktree, or a plain copy), merged back on request
@@ -154,8 +154,8 @@ const std::vector<std::regex>& code_rank() {
     static const std::vector<std::regex> r = [] {
         std::vector<std::regex> v;
         for (const char* p : {"deepseek-v4[^ ]*pro", "qwen3-coder-plus", "glm-5\\.3(?!-flash)", "deepseek-v4", "qwen3\\.8-max", "kimi-k2",
-                              "devstral", "minimax-m3(?!\\.1-flash)", "qwen3\\.5-397b", "codestral", "nemotron-3-ultra", "qwen3-coder",
-                              "gpt-oss-120b", "glm-5\\.3-flash", "minimax-m3", "qwen3\\.8", "llama-3[._]3-70b"})
+                              "devstral", "minimax-m3(?!\\.1-flash)", "qwen3\\.5-397b", "nemotron-3-ultra", "qwen3-coder",
+                              "gpt-oss-120b", /* codestral: good code, but loops in long tool runs */ "codestral", "glm-5\\.3-flash", "minimax-m3", "qwen3\\.8", "llama-3[._]3-70b"})
             v.emplace_back(p, std::regex::icase | std::regex::ECMAScript);
         return v;
     }();
@@ -309,6 +309,9 @@ Json::Object norm_call(const Json& c) {
     t = tt;
     for (const char* k : {"arguments", "args"}) {
         auto it = o.find(k);
+        if (it != o.end() && it->second.is_string()) {   // OpenAI style: "arguments": "{\"path\": ...}"
+            try { const Json inner = JsonParser(it->second.string_or()).parse(); if (inner.is_object()) for (const auto& [ik, iv] : *inner.object_ptr()) o[ik] = iv; } catch (...) {}
+        }
         if (it != o.end() && it->second.is_object()) { const Json::Object inner = *it->second.object_ptr(); for (const auto& [ik, iv] : inner) o[ik] = iv; }
     }
     if (auto a = aliases().find(t); a != aliases().end()) t = a->second;
@@ -329,10 +332,60 @@ Json::Object norm_call(const Json& c) {
 // edit_file's "new_text" may legitimately be empty, and write_file's content may contain only whitespace: keep raw values.
 std::string raw_field(const Json::Object& o, const char* key) { auto it = o.find(key); return it != o.end() ? it->second.string_or() : std::string(); }
 
-struct Parsed { std::vector<Json::Object> calls; std::optional<Json> done; std::string text; };
+struct Parsed { std::vector<Json::Object> calls; std::optional<Json> done; std::string text; bool native = false; };
+// Native tool-call markup some models emit instead of our blocks:
+//   <tool_call>read_file<arg_key>path</arg_key><arg_value>src/app.js</arg_value></tool_call>   (GLM)
+//   <tool_call>{"name": "read_file", "arguments": {"path": "src/app.js"}}</tool_call>          (Qwen, Hermes)
+// They become calls and are removed from the visible text.
+std::string take_xml_calls(const std::string& in, std::vector<Json::Object>& calls) {
+    std::string out; std::size_t pos = 0;
+    while (true) {
+        const std::size_t a = in.find("<tool_call>", pos);
+        if (a == std::string::npos) { out += in.substr(pos); break; }
+        out += in.substr(pos, a - pos);
+        // a segment ends at </tool_call> or at the next <tool_call> (some models open several and close once)
+        const std::size_t b0 = a + 11, close = in.find("</tool_call>", b0), next = in.find("<tool_call>", b0);
+        const bool by_next = next != std::string::npos && (close == std::string::npos || next < close);
+        const std::size_t e = by_next ? next : close;
+        const std::string body = in.substr(b0, (e == std::string::npos ? in.size() : e) - b0);
+        pos = e == std::string::npos ? in.size() : by_next ? e : e + 12;
+        std::smatch nm;
+        static const std::regex name_args(R"(^\s*([A-Za-z_][\w-]*)\s*([\{\(][\s\S]*[\}\)])\s*$)");
+        if (body.find("<arg_key>") != std::string::npos) {
+            Json::Object c; c["tool"] = Json(trim(body.substr(0, body.find("<arg_key>"))));
+            std::size_t k = 0;
+            while ((k = body.find("<arg_key>", k)) != std::string::npos) {
+                const std::size_t ke = body.find("</arg_key>", k); if (ke == std::string::npos) break;
+                const std::string key = trim(body.substr(k + 9, ke - k - 9));
+                const std::size_t v = body.find("<arg_value>", ke); if (v == std::string::npos) break;
+                const std::size_t ve = body.find("</arg_value>", v);
+                if (ve == std::string::npos) { c["_cut"] = Json(true); break; }
+                c[key] = Json(body.substr(v + 11, ve - v - 11));
+                k = ve;
+            }
+            if (c.count("_cut") || e == std::string::npos) calls.push_back(Json::Object{{"tool", Json("_bad")}, {"raw", Json(clip(body, 600))}, {"cut", Json(true)}});
+            else calls.push_back(norm_call(Json(c)));
+        } else if (auto j = loose_json(body); j && j->is_object() && (j->get("name") || j->get("tool"))) {
+            calls.push_back(norm_call(*j));
+        } else if (std::regex_match(body, nm, name_args)) {
+            // read_file {"path": "x"} · read_file {path": "x"} · read_file(path="x")
+            std::string args = nm[2].str();
+            if (args[0] == '(') { args = "{" + args.substr(1, args.size() - 2) + "}"; args = std::regex_replace(args, std::regex(R"(([\{,]\s*)([A-Za-z_]\w*)\s*=)"), "$1\"$2\":"); }
+            args = std::regex_replace(args, std::regex(R"(([\{,]\s*)([A-Za-z_]\w*)\"?\s*:)"), "$1\"$2\":");
+            auto aj = loose_json(args);
+            if (aj && aj->is_object()) { Json::Object c = *aj->object_ptr(); c["tool"] = Json(nm[1].str()); calls.push_back(norm_call(Json(c))); }
+            else calls.push_back(Json::Object{{"tool", Json("_bad")}, {"raw", Json(clip(body, 600))}, {"cut", Json(false)}});
+        } else if (!trim(body).empty()) {
+            calls.push_back(Json::Object{{"tool", Json("_bad")}, {"raw", Json(clip(body, 600))}, {"cut", Json(e == std::string::npos)}});
+        }
+    }
+    return out;
+}
 Parsed parse_reply(const std::string& raw) {
     Parsed P;
-    const std::string text = strip_reasoning(raw);
+    const std::string stripped = strip_reasoning(raw);
+    const std::string text = take_xml_calls(stripped, P.calls);
+    P.native = text.size() != stripped.size();
     std::string narrative;
     std::size_t pos = 0, last = 0;
     static const std::regex path_re(R"((?:path|file|filename)\s*[=:]\s*["']?([^\s"']+))", std::regex::icase);
@@ -343,7 +396,21 @@ Parsed parse_reply(const std::string& raw) {
         if (nl == std::string::npos) break;
         const std::string info_raw = text.substr(p + 3, nl - p - 3);
         if (info_raw.find('`') != std::string::npos) { pos = p + 3; continue; }
-        const std::size_t close = text.find("```", nl + 1);
+        std::size_t close = text.find("```", nl + 1);
+        {
+            // In a tool block, a ``` inside a JSON string (markdown in new_text/content) is not the end of the block.
+            const std::string lw = lower(trim(info_raw));
+            if (lw == "tool" || lw == "tool_call" || lw == "json tool" || lw.rfind("tool ", 0) == 0 || lw == "json") {
+                bool str = false, esc = false; std::size_t i = nl + 1, found = std::string::npos;
+                for (; i < text.size(); ++i) {
+                    const char ch = text[i];
+                    if (str) { if (esc) esc = false; else if (ch == '\\') esc = true; else if (ch == '"') str = false; continue; }
+                    if (ch == '"') { str = true; continue; }
+                    if (text.compare(i, 3, "```") == 0) { found = i; break; }
+                }
+                if (found != std::string::npos) close = found;
+            }
+        }
         const bool closed = close != std::string::npos;
         const std::string body = text.substr(nl + 1, (closed ? close : text.size()) - nl - 1);
         narrative += text.substr(last, p - last);
@@ -353,6 +420,12 @@ Parsed parse_reply(const std::string& raw) {
             auto all = json_all(body);
             std::vector<Json::Object> got;
             for (const auto& c : all) if (c.get("tool") || c.get("name")) got.push_back(norm_call(c));
+            if (got.empty() && closed) {   // a missing closing brace or two is the most common slip
+                for (const char* fix : {"}", "}}"}) {
+                    auto j = loose_json(trim(body) + fix);
+                    if (j && j->is_object() && (j->get("tool") || j->get("name"))) { got.push_back(norm_call(*j)); break; }
+                }
+            }
             if (!got.empty()) for (auto& g : got) P.calls.push_back(std::move(g));
             else P.calls.push_back(Json::Object{{"tool", Json("_bad")}, {"raw", Json(clip(body, 600))}, {"cut", Json(!closed)}});
         } else if (low == "done" || low.rfind("done ", 0) == 0) {
@@ -394,6 +467,17 @@ Parsed parse_reply(const std::string& raw) {
     for (char c : narrative) { if (c == '\n') { if (++nls > 2) continue; } else nls = 0; squeezed += c; }
     P.text = trim(squeezed);
     return P;
+}
+// Some models think out loud in the visible text ("We need to...", "The user wants..."). Never show that.
+bool looks_like_reasoning(const std::string& text) {
+    static const std::regex re(R"(^\s*(we (need|should|must|might|have to|can|could|will need|'ll need)\b|the user (wants|asks|is asking|said|requested)\b|i need to (figure|think|check whether)\b|let me think\b|ok(ay)?,? so\b|hmm\b|thinking:))", std::regex::icase);
+    return std::regex_search(text.substr(0, 200), re);
+}
+// The same call repeated in one reply (seen with some models) runs once.
+std::vector<Json::Object> unique_calls(const std::vector<Json::Object>& calls) {
+    std::vector<Json::Object> out; std::set<std::string> seen;
+    for (const auto& c : calls) { Json::Object k = c; k.erase("id"); if (seen.insert(dump_json(Json(k))).second) out.push_back(c); }
+    return out;
 }
 std::string call_short(const Json::Object& c) {
     const std::string t = sfield(c, "tool");
@@ -612,6 +696,8 @@ struct Session {
     long long next_seq = 1;
     std::vector<Json> todos;
     // runtime only
+    std::string failing;                 // label of the last test/build command, while it is failing
+    std::set<std::string> seen;          // files this agent has read or written (write_file must not overwrite unread files)
     std::mutex mu;
     std::condition_variable cv;
     std::atomic<bool> cancel{false};
@@ -797,7 +883,14 @@ ToolOut exec_tool(Session& s, Json::Object& c) {
     if (t == "bash") {
         const std::string cmd = need("command");
         const int timeout = std::clamp(static_cast<int>(jnum(c.count("timeout") ? &c["timeout"] : nullptr, 120)), 1, 1800);
-        const auto r = call("/api/ide/exec", P(s, {{"command", Json(cmd)}, {"timeout", num(static_cast<double>(timeout))}, {"cwd", Json(sfield(c, "cwd"))}}), {}, &s.cancel);
+        // Models often pass the project's own name, ".", or an absolute path as cwd: all of those mean the project root.
+        std::string cwd = trim(sfield(c, "cwd"));
+        while (cwd.rfind("./", 0) == 0) cwd = cwd.substr(2);
+        while (!cwd.empty() && cwd.back() == '/') cwd.pop_back();
+        std::string pname = base_name(s.project);
+        if (const auto k = pname.find(".agent-"); k != std::string::npos) pname = pname.substr(0, k);   // isolated copy: <project>.agent-<id>
+        if (cwd == "." || cwd == base_name(s.project) || cwd == pname || (!cwd.empty() && (cwd[0] == '/' || cwd[0] == '~' || (cwd.size() > 1 && cwd[1] == ':')))) cwd.clear();
+        const auto r = call("/api/ide/exec", P(s, {{"command", Json(cmd)}, {"timeout", num(static_cast<double>(timeout))}, {"cwd", Json(cwd)}}), {}, &s.cancel);
         if (s.cancel) throw Stopped{};
         if (!r.ok()) throw std::runtime_error(r.error());
         const int code = static_cast<int>(jnum(r.json.get("code"), -1));
@@ -819,6 +912,7 @@ ToolOut exec_tool(Session& s, Json::Object& c) {
         std::string body;
         const int n = static_cast<int>(lines.size());
         for (int i = off - 1; i < std::min(n, off - 1 + lim); ++i) { std::ostringstream ln; ln << std::setw(4) << (i + 1) << "| " << lines[static_cast<std::size_t>(i)] << "\n"; body += ln.str(); }
+        s.seen.insert(p);
         o.meta["path"] = Json(p); o.meta["lines"] = num(static_cast<double>(n));
         o.out = clip(*text, 3000);
         o.result = p + " (" + std::to_string(n) + " lines" + (off > 1 || n > off - 1 + lim ? ", showing " + std::to_string(off) + "-" + std::to_string(std::min(n, off - 1 + lim)) : "") + ")\n" + clip(body, 14000);
@@ -830,7 +924,10 @@ ToolOut exec_tool(Session& s, Json::Object& c) {
         if (trim(content).empty()) throw std::runtime_error("write_file for " + p + " has no \"content\". Put the whole new file in \"content\" (use edit_file for small changes).");
         if (content.back() != '\n') content += '\n';
         const auto old = read_text(s, p);
+        if (old && !s.seen.count(p) && trim(*old) != trim(content))
+            throw std::runtime_error("write_file would replace " + p + ", which you have not read in this job. Read it first with read_file (then prefer edit_file for small changes) so you keep the project's style, module system and existing code.");
         must_write(s, p, content);
+        s.seen.insert(p);
         const auto [a, r] = line_stats(old.value_or(""), content);
         const long long lines = std::count(content.begin(), content.end(), '\n');
         o.meta["path"] = Json(p); o.meta["added"] = num(static_cast<double>(a)); o.meta["removed"] = num(static_cast<double>(r)); o.meta["created"] = Json(!old.has_value());
@@ -1088,7 +1185,7 @@ ToolOut exec_tool(Session& s, Json::Object& c) {
                 if (auto txt = read_text(s, f.path)) { const std::string cut = clip(*txt, static_cast<std::size_t>(std::min(9000, budget))); budget -= static_cast<int>(cut.size()); ctx += "\n--- " + f.path + " ---\n" + cut + "\n"; }
             }
         }
-        const std::string head = custom ? trim(custom->body) + "\n\n" : "You are a focused subagent of Astro AI's coding agent. ";
+        const std::string head = custom ? trim(custom->body) + "\n\n" : "You are a focused subagent of A.S.T.R.O AI's coding agent. ";
         const std::string q = head + "Do the sub-task below and reply with a concise, factual report the main agent can act on (findings, exact file paths and line numbers, recommended changes as code snippets). You cannot run tools; say what should be verified.\n\nSUB-TASK: " + prompt +
                               "\n\nPROJECT FILES (" + std::to_string(files.size()) + "):\n" + list + (ctx.empty() ? "" : "\n\nFILE CONTENTS:" + ctx);
         const auto cands = candidates(s.model);
@@ -1109,7 +1206,7 @@ ToolOut exec_tool(Session& s, Json::Object& c) {
         r.meta["custom"] = Json(true);
         return r;
     }
-    throw std::runtime_error("Unknown tool \"" + t + "\". Tools: bash, read_file, write_file, edit_file, delete_file, list_files, glob, search, web_search, fetch_page, start_server, server_logs, stop_server, ask_user, remember, present, diagnostics, todo, skill, mcp, task.");
+    throw std::runtime_error("Unknown tool \"" + clip(t, 60) + "\". Write each call as JSON in a ```tool block, e.g. ```tool\n{\"tool\":\"read_file\",\"path\":\"src/app.js\"}\n``` Tools: bash, read_file, write_file, edit_file, delete_file, list_files, glob, search, web_search, fetch_page, start_server, server_logs, stop_server, ask_user, remember, present, diagnostics, todo, skill, mcp, task.");
 }
 
 // ---------- context for the agent ----------
@@ -1125,7 +1222,7 @@ std::string project_brief(Session& s) {
     const std::string mode = s.mode;
     std::string mline = "MODE: " + std::string(mode == "plan" ? "PLAN" : mode == "ask" ? "ASK" : "AUTO") + " \xE2\x80\x94 " +
         (mode == "plan" ? "read-only: inspect, then reply with a numbered implementation plan and the done block. Do not change files or run commands that change anything."
-         : mode == "ask" ? "Astro automatically shows the user an approval prompt before each change or command runs, so just call the tools \xE2\x80\x94 do not use ask_user to request permission. If a call is denied, choose another approach."
+         : mode == "ask" ? "A.S.T.R.O automatically shows the user an approval prompt before each change or command runs, so just call the tools \xE2\x80\x94 do not use ask_user to request permission. If a call is denied, choose another approach."
                          : "you act on your own; a checkpoint was saved so the user can undo everything.");
     std::error_code ec;
     if (project_is_link(fs::path(projects_root()) / s.project)) mline += " This project is a real folder on the user's computer: be careful, never delete or rewrite files you were not asked to touch.";
@@ -1258,7 +1355,7 @@ std::string review_prompt(Session& s, const std::string& job, const std::string&
         const std::string chunk = clip(*t, static_cast<std::size_t>(std::min(3500, budget))); budget -= static_cast<int>(chunk.size());
         contents += "\n--- " + c.path + " (" + c.status + ") ---\n" + chunk + "\n";
     }
-    return "Review the work of Astro AI's autonomous agent and decide whether the job is fully and correctly done.\n\nJOB: " + job + "\n\nAGENT REPORT:\n" + clip(report.empty() ? "(none)" : report, 2500) +
+    return "Review the work of A.S.T.R.O AI's autonomous agent and decide whether the job is fully and correctly done.\n\nJOB: " + job + "\n\nAGENT REPORT:\n" + clip(report.empty() ? "(none)" : report, 2500) +
            "\n\nACTIONS (latest last):\n" + actions + "\nFILES CHANGED (" + std::to_string(changes.size()) + "): " + names + "\n\nCURRENT CONTENT OF CHANGED FILES:" + (contents.empty() ? " (none readable)" : contents) +
            "\n\nReply with the first line exactly \"VERDICT: PASS\" or \"VERDICT: FIX\". Then at most 8 short bullets: real problems (bugs, missing requirements, claims that were not verified, broken run commands) and how to fix each. Use FIX only for problems that matter; for PASS you may add brief suggestions.";
 }
@@ -1268,6 +1365,8 @@ bool loop(Session& s, int limit, std::string& report, bool& unverified) {
     int no_call = 0, tools_used = 0, verify_nudges = 0;
     std::map<std::string, int> fails;
     unverified = false;
+    s.failing.clear();
+    static const std::regex check_cmd(R"((^|[\s;&|(])(npm|pnpm|yarn|bun)\s+(run\s+)?(test|build|lint|check)\b|node\s+--test|\b(jest|vitest|mocha|pytest|tsc|eslint|ctest|phpunit|rspec)\b|\b(cargo|go|dotnet|mvn|gradle)\s+(test|build)\b|(^|[\s;&|])make(\s|$))");
     for (int step = 0; step < limit; ++step) {
         if (s.cancel) throw Stopped{};
         const auto cands = candidates(s.model);
@@ -1292,9 +1391,16 @@ bool loop(Session& s, int limit, std::string& report, bool& unverified) {
         if (trim(turn.text).empty()) throw std::runtime_error("No model could answer (" + last_err + ").");
         ++s.steps;
         if (!turn.model.empty()) s.last_model = turn.model;
-        const Parsed parsed = parse_reply(turn.text);
+        Parsed parsed = parse_reply(turn.text);
+        parsed.calls = unique_calls(parsed.calls);
+        if (!parsed.calls.empty() && looks_like_reasoning(parsed.text)) parsed.text.clear();
         if (!parsed.text.empty()) push(s, Json::Object{{"type", Json("say")}, {"text", Json(parsed.text)}, {"model", Json(turn.model)}, {"step", num(static_cast<double>(s.steps))}, {"final", Json(parsed.calls.empty() && parsed.done.has_value())}});
-        s.convo.emplace_back("assistant", turn.text);
+        if (parsed.native && !parsed.calls.empty()) {
+            // store the turn in the canonical format, so the next model doesn't copy a format we had to repair
+            std::string canon = parsed.text + "\n```tool\n";
+            for (const auto& c : parsed.calls) if (sfield(c, "tool") != "_bad") canon += dump_json(Json(c)) + "\n";
+            s.convo.emplace_back("assistant", canon + "```");
+        } else s.convo.emplace_back("assistant", turn.text);
         if (parsed.calls.empty()) {
             if (parsed.done && unverified && verify_nudges < 2 && s.mode != "plan") { ++verify_nudges; s.convo.emplace_back("user", VERIFY_MSG); note(s, "Checking the work before finishing."); continue; }
             if (parsed.done || ++no_call >= (tools_used ? 2 : 3)) {
@@ -1352,9 +1458,14 @@ bool loop(Session& s, int limit, std::string& report, bool& unverified) {
             if ((tool == "write_file" || tool == "edit_file" || tool == "delete_file") && out.ok) unverified = true;
             if (tool == "bash" && out.ok && !blocked) unverified = false;
             if (tool == "bash" && !out.ok && out.error.empty()) unverified = false;   // a command ran (non-zero exit): the agent saw real output
+            if (tool == "bash" && !blocked && std::regex_search(sfield(c, "command"), check_cmd)) { if (out.ok) s.failing.clear(); else if (out.error.empty()) s.failing = label; }
             std::string res = out.result;
             const std::string sig = tool + "|" + sfield(c, "command") + sfield(c, "path");
             if (!out.ok && ++fails[sig] >= 3) res += "\nNOTE: this exact action has now failed 3 times. Stop repeating it: read the error, change the approach.";
+            if (!out.ok && (fails[sig] == 5 || fails[sig] == 9) && cands.size() > 1) {   // a model stuck in a loop: hand the job to the next one
+                s.pref = (s.pref + 1) % static_cast<int>(cands.size());
+                note(s, "Switching to another model: the same step kept failing.");
+            }
             // automatic problem check after code edits (like the Agent page)
             static const std::regex code_ext(R"(\.(js|mjs|cjs|jsx|ts|tsx|mts|py|c|cc|cpp|cxx|h|hpp|sh|bash|php|go|rs|json)$)", std::regex::icase);
             if ((tool == "write_file" || tool == "edit_file") && out.ok && std::regex_search(sfield(c, "path"), code_ext) && !s.cancel) {
@@ -1439,7 +1550,10 @@ void run(std::shared_ptr<Session> sp, std::string prompt) {
                 s.files = static_cast<int>(changes.size());
                 Json::Array fl; for (const auto& c : changes) fl.push_back(obj({{"path", Json(c.path)}, {"status", Json(c.status)}}));
                 const long long ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - started).count();
-                push(s, Json::Object{{"type", Json("done")}, {"text", Json(report)}, {"files", Json(fl)}, {"steps", num(static_cast<double>(s.steps))}, {"ms", num(s.ms + ms)}, {"model", Json(s.last_model)}});
+                Json::Object dn{{"type", Json("done")}, {"text", Json(report)}, {"files", Json(fl)}, {"steps", num(static_cast<double>(s.steps))}, {"ms", num(s.ms + ms)}, {"model", Json(s.last_model)}};
+                if (!s.failing.empty() && s.mode != "plan") dn["failing"] = Json(s.failing);
+                push(s, std::move(dn));
+                if (!s.failing.empty() && s.mode != "plan") note(s, "Needs attention: the last check still fails (" + s.failing + "). Review the changes before using them.");
                 static const std::regex claims(R"(\b(tests?|specs?)\b[^.\n]{0,40}\b(pass|passed|passing|green|succeed)|\bverified\b|\bworks\b)", std::regex::icase);
                 if (s.mode == "plan") note(s, "Plan mode: nothing was changed. Review the plan, then run it in Ask or Auto mode.");
                 else if (unverified && !changes.empty()) note(s, std::regex_search(report, claims) ? "Heads up: the report says the work was checked, but nothing was run after the last change. Treat it as untested." : "Nothing was run after the last change, so this result is not tested yet.");
@@ -1505,6 +1619,16 @@ bool git_ok(const fs::path& dir, const std::vector<std::string>& args, std::stri
     if (out) *out = r.out;
     return r.code == 0;
 }
+// 3-way merge of one text file: ours = the project's file now, base = its text when the agent started, theirs = the agent's file.
+bool three_way(const fs::path& ours, const std::string& base_hash, const fs::path& theirs, std::string& merged) {
+    std::error_code ec;
+    const fs::path bp = engine_dir() / "blobs" / base_hash;
+    if (base_hash.empty() || !fs::exists(bp, ec) || !fs::exists(ours, ec) || !fs::exists(theirs, ec) || !have_tool("git")) return false;
+    const auto r = run_capture({"git", "merge-file", "-p", "-L", "project", "-L", "start", "-L", "agent", ours.string(), bp.string(), theirs.string()}, engine_dir(), {}, 60, 50'000'000);
+    if (r.code != 0) return false;   // >0: conflicting hunks, <0: error
+    merged = r.out;
+    return true;
+}
 // Creates the isolated copy and returns its project name.
 std::string fork_project(Session& s, std::string& error) {
     const fs::path base = project_dir(s.base);
@@ -1557,7 +1681,18 @@ std::string fork_project(Session& s, std::string& error) {
         if (fs::is_directory(base / dep, ec) && !fs::exists(work / dep, ec)) { std::error_code e3; fs::create_directory_symlink(base / dep, work / dep, e3); }
     // manifest of the starting point, for merging back safely
     Json::Object man;
-    walk_files(work, [&](const std::string& rel, const fs::path& full) { man[rel] = Json(file_hash(full)); });
+    // plus the starting text of small files (content-addressed), so a merge can do a real 3-way merge later
+    std::size_t kept = 0;
+    walk_files(work, [&](const std::string& rel, const fs::path& full) {
+        const std::string data = read_all(full), h = sha256_hex(data);
+        man[rel] = Json(h);
+        if (data.size() <= 512 * 1024 && kept + data.size() <= 32u * 1024 * 1024 && data.find('\0') == std::string::npos) {
+            const fs::path bp = engine_dir() / "blobs" / h;
+            std::error_code e2;
+            if (!fs::exists(bp, e2)) { fs::create_directories(bp.parent_path(), e2); write_all(bp, data); }
+            kept += data.size();
+        }
+    });
     write_file_private(manifest_file(s.id).string(), dump_json(Json(std::move(man))));
     s.git_fork = git;
     return name;
@@ -1646,7 +1781,7 @@ bool handle_engine_api(int fd, const HttpRequest& request) {
         if (action == "models") { send_json(fd, 200, models_json()); return true; }
         if (action == "server-stop") {
             // Only an engine started by the terminal app stops this way; the desktop app owns its own server.
-            if (std::string(std::getenv("ASTRO_CLI_SERVER") ? std::getenv("ASTRO_CLI_SERVER") : "") != "1") { send_json(fd, 403, error_json("This engine belongs to the Astro AI app or a service; close it there.")); return true; }
+            if (std::string(std::getenv("ASTRO_CLI_SERVER") ? std::getenv("ASTRO_CLI_SERVER") : "") != "1") { send_json(fd, 403, error_json("This engine belongs to the A.S.T.R.O AI app or a service; close it there.")); return true; }
             send_json(fd, 200, obj({{"ok", Json(true)}}));
             std::thread([] { std::this_thread::sleep_for(std::chrono::milliseconds(300)); std::exit(0); }).detach();
             return true;
@@ -1788,6 +1923,7 @@ bool handle_engine_api(int fd, const HttpRequest& request) {
             const bool force = json_bool(body, "force", false);
             std::set<std::string> only; for (const auto& p : json_strings(body.get("paths"))) only.insert(p);
             std::vector<Change> apply; Json::Array conflicts, skipped;
+            std::vector<std::pair<std::string, std::string>> combined;   // path -> 3-way merged text
             std::error_code ec;
             for (const auto& c : changes) {
                 if (!only.empty() && !only.count(c.path)) continue;
@@ -1797,6 +1933,10 @@ bool handle_engine_api(int fd, const HttpRequest& request) {
                 const std::string at_fork = it == man.end() ? std::string() : it->second;
                 const bool work_has = fs::exists(work / c.path, ec);
                 if (work_has && base_has && base_now == file_hash(work / c.path)) { skipped.push_back(Json(c.path)); continue; }   // already identical
+                if (base_now != at_fork && !force && c.status != "deleted" && base_has && work_has) {
+                    std::string text;
+                    if (three_way(base / c.path, at_fork, work / c.path, text)) { combined.emplace_back(c.path, std::move(text)); continue; }
+                }
                 if (base_now != at_fork && !force) { conflicts.push_back(obj({{"path", Json(c.path)}, {"status", Json(c.status)}})); continue; }
                 apply.push_back(c);
             }
@@ -1805,7 +1945,7 @@ bool handle_engine_api(int fd, const HttpRequest& request) {
                 return true;
             }
             std::string cp;
-            if (!apply.empty()) {
+            if (!apply.empty() || !combined.empty()) {
                 const auto r = call("/api/ide/history/create", obj({{"project", Json(s->base)}, {"label", Json("Before merging agent " + s->id + ": " + clip(s->title, 60))}, {"kind", Json("ai")}}));
                 cp = get_string(r.json, "id");
             }
@@ -1816,6 +1956,10 @@ bool handle_engine_api(int fd, const HttpRequest& request) {
                 else { fs::create_directories((base / c.path).parent_path(), e2); fs::copy_file(work / c.path, base / c.path, fs::copy_options::overwrite_existing, e2); }
                 if (!e2) merged.push_back(obj({{"path", Json(c.path)}, {"status", Json(c.status)}}));
                 else conflicts.push_back(obj({{"path", Json(c.path)}, {"status", Json("error: " + e2.message())}}));
+            }
+            for (const auto& [p, text] : combined) {
+                if (write_all(base / p, text)) merged.push_back(obj({{"path", Json(p)}, {"status", Json("modified")}, {"combined", Json(true)}}));
+                else conflicts.push_back(obj({{"path", Json(p)}, {"status", Json("error: could not write")}}));
             }
             {
                 std::lock_guard<std::mutex> lk(s->mu);

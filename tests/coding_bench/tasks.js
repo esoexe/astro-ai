@@ -1,4 +1,4 @@
-// Coding benchmark for Astro AI: realistic requests, each graded by hidden tests that run the model's code.
+// Coding benchmark for A.S.T.R.O AI: realistic requests, each graded by hidden tests that run the model's code.
 // lang: js (node), py (python3), cpp (g++ -std=c++17). `fn` is the name the code must define.
 module.exports = [
   {

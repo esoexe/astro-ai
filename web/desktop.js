@@ -1,4 +1,4 @@
-// Astro AI desktop shell: OpenCode-style session tabs, a projects/sessions sidebar and a review
+// A.S.T.R.O AI desktop shell: OpenCode-style session tabs, a projects/sessions sidebar and a review
 // toggle on top of the normal app. It only runs when <html data-shell="desktop"> is set, which happens
 // inside the desktop app (or in a browser with ?desktop=1 for previews). Nothing changes on the web.
 (() => {
@@ -30,7 +30,7 @@
   const bar = document.createElement('div');
   bar.id = 'dt-bar';
   bar.innerHTML = `
-    <div class="dt-brand" title="${esc(native?.name || 'Astro AI')}"><img class="dt-logo" src="/icon-192.png" alt="" width="20" height="20"><span>astro</span>${native?.edition === 'clean' ? '<em>clean</em>' : ''}</div>
+    <div class="dt-brand" title="${esc(native?.name || 'A.S.T.R.O AI')}"><img class="dt-logo" src="/icon-192.png" alt="" width="20" height="20"><span>astro</span>${native?.edition === 'clean' ? '<em>clean</em>' : ''}</div>
     <div class="dt-tabs" role="tablist" aria-label="Open sessions"></div>
     <button type="button" class="dt-ib dt-newtab" id="dt-newtab" title="New session (Ctrl+T)" aria-label="New session">${ico('i-plus')}</button>
     <div class="dt-fill"></div>

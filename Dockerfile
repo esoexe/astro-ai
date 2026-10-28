@@ -1,4 +1,4 @@
-# Astro AI: one small container (C++ server + web app). No Python, no Node at runtime.
+# A.S.T.R.O AI: one small container (C++ server + web app). No Python, no Node at runtime.
 #   docker build -t astro-ai .
 #   docker run -d -p 8080:8080 -v astro-data:/data --name astro-ai astro-ai
 # Open http://your-host:8080 and create your password on first visit.

@@ -1,5 +1,5 @@
-/* Astro AI Console (/profile).
-   Supabase Auth (email + GitHub) and the Astro API account endpoints, with plain fetch and no SDK.
+/* A.S.T.R.O AI Console (/profile).
+   Supabase Auth (email + GitHub) and the A.S.T.R.O API account endpoints, with plain fetch and no SDK.
    Only the public publishable key lives here. Provider keys are encrypted server-side and never come back to the browser. */
 (() => {
   'use strict';
@@ -7,7 +7,7 @@
   const PK = 'sb_publishable_E2ZGJpsa3Bqbunemq7qUPw_W3g5LSol';
   const FN = SB + '/functions/v1/astro-api/account';
   const STORE = 'astro.session';
-  const PLAYKEY = 'astro.playkey';           // sessionStorage only: the Astro key the user pastes for Models/Playground
+  const PLAYKEY = 'astro.playkey';           // sessionStorage only: the A.S.T.R.O key the user pastes for Models/Playground
   const HOME = 'astro.console.home';
   const DAILY_LIMIT = 5000, MAX_KEYS = 10;
   const ROOT = document.body.dataset.root || '';
@@ -250,13 +250,13 @@
   const setMode = (m) => {
     mode = m;
     const up = m === 'signup';
-    $('#auth-title').textContent = up ? 'Create your account' : 'Sign in to Astro AI';
+    $('#auth-title').textContent = up ? 'Create your account' : 'Sign in to A.S.T.R.O AI';
     $('#auth-sub').textContent = up ? 'Free forever. Bring your own provider keys and get one endpoint for all of them.' : 'Welcome back. Sign in to manage your API keys and providers.';
     $('#confirm-wrap').hidden = !up; $('#pw-meter').hidden = !up;
     form.password.autocomplete = up ? 'new-password' : 'current-password';
     submit.textContent = up ? 'Create account' : 'Sign in';
     const sw = $('#auth-switch'); sw.textContent = '';
-    sw.append(up ? 'Already have an account? ' : 'New to Astro AI? ',
+    sw.append(up ? 'Already have an account? ' : 'New to A.S.T.R.O AI? ',
       h('a', { href: '#', onclick: (e) => { e.preventDefault(); setMode(up ? 'signin' : 'signup'); form.email.focus(); }, text: up ? 'Sign in' : 'Create an account' }));
     setMsg('');
   };
@@ -295,7 +295,7 @@
   });
   const showAuth = () => {
     boot.hidden = true; appEl.hidden = true; authEl.hidden = false; closeFloat(); modalRoot.textContent = '';
-    document.title = 'Sign in · Astro AI';
+    document.title = 'Sign in · A.S.T.R.O AI';
     setMode(mode);
     if (oauthError) { setMsg(oauthError, 'bad'); oauthError = null; }
   };
@@ -404,7 +404,7 @@
     if (!r) { r = localStorage.getItem(HOME) || 'overview'; if (!PAGES[r]) r = 'overview'; history.replaceState(null, '', '#/' + r); }
     closeFloat(); setDrawer(false);
     const p = PAGES[r];
-    document.title = `${p.title} · Astro AI Console`;
+    document.title = `${p.title} · A.S.T.R.O AI Console`;
     view.textContent = ''; view.style.animation = 'none'; void view.offsetWidth; view.style.animation = '';
     p.render(view);
     markNav();
@@ -489,7 +489,7 @@
     const err = h('p', { class: 'cx-msg bad' });
     const create = btn('Create key', 'cx-btn-primary');
     const cancel = btn('Cancel', 'cx-btn-outline');
-    const m = modal({ title: 'Create API key', desc: 'Astro keys authenticate requests to the Astro API. A key can use every provider you have connected.',
+    const m = modal({ title: 'Create API key', desc: 'Astro keys authenticate requests to the A.S.T.R.O API. A key can use every provider you have connected.',
       body: [h('label', { class: 'cx-field' }, h('span', { text: 'Name' }), name, h('small', { text: 'A label to help you recognise this key later.' })), err], foot: [cancel, create] });
     cancel.onclick = () => m.close();
     name.addEventListener('keydown', (e) => { if (e.key === 'Enter') create.click(); });
@@ -590,11 +590,11 @@
     const err = h('p', { class: 'cx-msg bad' });
     const go2 = btn('Use key', 'cx-btn-primary', () => {
       const v = inp.value.trim();
-      if (!/^astro_sk_[A-Za-z0-9_-]{16,}$/.test(v)) { err.textContent = 'That doesn\u2019t look like an Astro key. It starts with astro_sk_.'; return; }
+      if (!/^astro_sk_[A-Za-z0-9_-]{16,}$/.test(v)) { err.textContent = 'That doesn\u2019t look like an A.S.T.R.O key. It starts with astro_sk_.'; return; }
       setPlayKey(v); after();
     });
     inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go2.click(); });
-    return panel('Use an Astro key in this tab', 'The Models and Playground pages call the API the same way your apps do, so they need one of your Astro keys.', [
+    return panel('Use an A.S.T.R.O key in this tab', 'The Models and Playground pages call the API the same way your apps do, so they need one of your Astro keys.', [
       h('div', { class: 'set-ctl' }, h('div', { class: 'inline' }, inp, go2), err,
         h('p', { class: 'cx-help', style: { margin: 0 } }, 'The key stays in this browser tab (sessionStorage) and is cleared when you close it or sign out. Lost your key? ', h('button', { type: 'button', class: 'link', text: 'Create a new one', onclick: createKeyModal }), '.')),
     ]);
@@ -603,7 +603,7 @@
     if (modelsCache) return modelsCache;
     const r = await fetch(state.endpoint + '/models', { headers: { authorization: 'Bearer ' + playKey } });
     let j = {}; try { j = await r.json(); } catch {}
-    if (r.status === 401) { setPlayKey(''); throw new Error('That Astro key was rejected. It may have been revoked.'); }
+    if (r.status === 401) { setPlayKey(''); throw new Error('That A.S.T.R.O key was rejected. It may have been revoked.'); }
     if (!r.ok) throw new Error((j.error && j.error.message) || `Could not load models (${r.status}).`);
     modelsCache = j.data || [];
     return modelsCache;
@@ -617,7 +617,7 @@
       const greet = hr < 5 ? 'Good evening' : hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
       const keys = activeKeys(), provs = state.providers, enabled = provs.filter((p) => p.enabled);
       const total = totalUsage();
-      v.append(pageHead(`${greet}, ${displayName()}`, 'Here\u2019s an overview of your Astro API workspace.', [
+      v.append(pageHead(`${greet}, ${displayName()}`, 'Here\u2019s an overview of your A.S.T.R.O API workspace.', [
         btn('Add provider', 'cx-btn-outline', () => go('providers?browse'), 'plug'),
         btn('Create API key', 'cx-btn-primary', createKeyModal, 'plus'),
       ]));
@@ -625,7 +625,7 @@
       // getting started
       const steps = [
         { done: provs.length > 0, t: 'Connect a provider', d: 'Add a key from Groq, Gemini, OpenRouter or any of the 79 providers.', a: btn('Browse providers', 'cx-btn-outline cx-btn-sm', () => go('providers?browse')) },
-        { done: keys.length > 0, t: 'Create an API key', d: 'Your Astro key reaches every provider you connect.', a: btn('Create key', 'cx-btn-outline cx-btn-sm', createKeyModal) },
+        { done: keys.length > 0, t: 'Create an API key', d: 'Your A.S.T.R.O key reaches every provider you connect.', a: btn('Create key', 'cx-btn-outline cx-btn-sm', createKeyModal) },
         { done: total > 0, t: 'Make your first request', d: 'Try it in the Playground or with the code below.', a: btn('Open Playground', 'cx-btn-outline cx-btn-sm', () => go('playground')) },
       ];
       const nDone = steps.filter((s) => s.done).length;
@@ -683,7 +683,7 @@
     title: 'API keys',
     render(v) {
       const act = activeKeys();
-      v.append(pageHead('API keys', 'Use these keys to call the Astro API from your apps. Each key works with every provider you\u2019ve connected.', [
+      v.append(pageHead('API keys', 'Use these keys to call the A.S.T.R.O API from your apps. Each key works with every provider you\u2019ve connected.', [
         btn('Create API key', 'cx-btn-primary', createKeyModal, 'plus', { disabled: act.length >= MAX_KEYS }),
       ]));
       v.append(banner(act.length >= MAX_KEYS ? 'warn' : '', 'info', [h('b', { text: `${act.length} of ${MAX_KEYS} active keys. ` }), 'Keys are stored as a SHA-256 hash, so we can show only the prefix after you create one. Never share keys or commit them to code.']));
@@ -895,7 +895,7 @@
       ? { command: 'npx', args: ['-y', 'mcp-remote@0.15.2', m.url, ...Object.entries(headers).flatMap(([k, v]) => ['--header', `${k}:${v}`])] }
       : base;
     return [
-      ['Astro AI', 'Settings → Extensions → MCP → Edit mcp.json', J({ mcpServers: { [it.id]: base } })],
+      ['A.S.T.R.O AI', 'Settings → Extensions → MCP → Edit mcp.json', J({ mcpServers: { [it.id]: base } })],
       ['Claude Code', 'Run in a terminal', http ? `claude mcp add --transport http ${it.id} ${m.url}${Object.entries(headers).map(([k, v]) => ` --header "${k}: ${v}"`).join('')}` : `claude mcp add ${it.id}${Object.entries(env).map(([k, v]) => ` -e ${k}=${v}`).join('')} -- ${m.command} ${args.join(' ')}`],
       ['Claude Desktop', 'claude_desktop_config.json', J({ mcpServers: { [it.id]: claudeDesktop } })],
       ['Cursor', '~/.cursor/mcp.json or .cursor/mcp.json', J({ mcpServers: { [it.id]: http ? { url: m.url, ...(Object.keys(headers).length ? { headers } : {}) } : base } })],
@@ -904,15 +904,15 @@
     ];
   };
   const libInstallPaths = (it) => it.kind === 'skill'
-    ? [['Astro AI', `Extensions folder → skills/${it.id}/ (or .astro/skills/${it.id}/ in a project)`], ['Claude Code', `~/.claude/skills/${it.id}/`], ['Codex', `~/.codex/skills/${it.id}/`], ['OpenCode', `~/.config/opencode/skill/${it.id}/`]]
-    : [['Astro AI', `Extensions folder → plugins/${it.id}/`], ['Claude Code', 'Unzip, then /plugin install from the folder (Claude Code plugin format)']];
+    ? [['A.S.T.R.O AI', `Extensions folder → skills/${it.id}/ (or .astro/skills/${it.id}/ in a project)`], ['Claude Code', `~/.claude/skills/${it.id}/`], ['Codex', `~/.codex/skills/${it.id}/`], ['OpenCode', `~/.config/opencode/skill/${it.id}/`]]
+    : [['A.S.T.R.O AI', `Extensions folder → plugins/${it.id}/`], ['Claude Code', 'Unzip, then /plugin install from the folder (Claude Code plugin format)']];
   const libDeepLink = (id) => `astroai://library/install?id=${encodeURIComponent(id)}`;
   const libDetail = (it) => {
     const tabs = h('div', { class: 'lib-tabs', role: 'tablist' });
     const pane = h('div', { class: 'lib-pane' });
     const perms = (it.permissions || []);
     const body = [
-      h('div', { class: 'row', style: { gap: '6px' } }, h('span', { class: 'pill accent', text: libKindLabel(it.kind) }), it.runs === 'local' ? h('span', { class: 'pill warn', text: 'Runs on your computer' }) : it.runs === 'remote' ? h('span', { class: 'pill', text: 'Remote service' }) : h('span', { class: 'pill ok', text: 'Instructions only' }), it.verified ? h('span', { class: 'pill ok' }, ico('check'), 'Checked by Astro AI') : null,
+      h('div', { class: 'row', style: { gap: '6px' } }, h('span', { class: 'pill accent', text: libKindLabel(it.kind) }), it.runs === 'local' ? h('span', { class: 'pill warn', text: 'Runs on your computer' }) : it.runs === 'remote' ? h('span', { class: 'pill', text: 'Remote service' }) : h('span', { class: 'pill ok', text: 'Instructions only' }), it.verified ? h('span', { class: 'pill ok' }, ico('check'), 'Checked by A.S.T.R.O AI') : null,
         h('span', { class: 'faint', text: `${it.publisher || ''}${it.license ? ' · ' + it.license : ''} · v${it.version || ''}` })),
       h('p', { class: 'muted', style: { margin: '12px 0' } }, it.summary, it.homepage ? [' ', h('a', { href: it.homepage, target: '_blank', rel: 'noopener', text: 'Homepage' })] : null),
       h('h3', { class: 'lib-h', text: 'What it can do' }),
@@ -926,15 +926,15 @@
       body.push(h('h3', { class: 'lib-h', text: `Files (${(it.files || []).length}) · each one is checked against its SHA-256 before it is installed` }),
         h('div', { class: 'lib-files' }, (it.files || []).map((f) => h('div', {}, h('code', { text: f.path }), h('span', { class: 'faint mono', title: 'SHA-256 ' + f.sha256, text: f.sha256.slice(0, 16) + '… · ' + nf(f.size) + ' B' })))));
     }
-    const sections = [['astro', 'Astro AI desktop']];
+    const sections = [['astro', 'A.S.T.R.O AI desktop']];
     if (it.kind === 'mcp') sections.push(['other', 'Other apps']); else sections.push(['zip', 'Download']);
     let cur = 'astro';
     const paint = () => {
       tabs.replaceChildren(...sections.map(([id, label]) => h('button', { type: 'button', role: 'tab', 'aria-selected': String(id === cur), class: id === cur ? 'on' : '', onclick: () => { cur = id; paint(); } }, label)));
       if (cur === 'astro') pane.replaceChildren(
-        h('p', { class: 'muted' }, 'One click opens Astro AI and shows what this item will do before anything is installed. The app downloads the files itself and checks every fingerprint.'),
-        h('div', { class: 'row' }, linkBtn('Open in Astro AI', libDeepLink(it.id), 'cx-btn-primary', 'download'), linkBtn('Get Astro AI', ROOT + 'download.html', 'cx-btn-outline', 'monitor')),
-        h('p', { class: 'faint', style: { marginTop: '10px' } }, 'Button does nothing? Open Astro AI, then Workspace → Extensions → Library and search for ', h('code', { text: it.id }), ' (needs Astro AI 1.2 or newer).'));
+        h('p', { class: 'muted' }, 'One click opens A.S.T.R.O AI and shows what this item will do before anything is installed. The app downloads the files itself and checks every fingerprint.'),
+        h('div', { class: 'row' }, linkBtn('Open in A.S.T.R.O AI', libDeepLink(it.id), 'cx-btn-primary', 'download'), linkBtn('Get A.S.T.R.O AI', ROOT + 'download.html', 'cx-btn-outline', 'monitor')),
+        h('p', { class: 'faint', style: { marginTop: '10px' } }, 'Button does nothing? Open A.S.T.R.O AI, then Workspace → Extensions → Library and search for ', h('code', { text: it.id }), ' (needs A.S.T.R.O AI 1.2 or newer).'));
       else if (cur === 'other') pane.replaceChildren(...libSnippets(it).map(([app, where, code]) => h('div', { class: 'lib-snip' }, h('div', { class: 'lib-snip-h' }, h('b', { text: app }), h('span', { class: 'faint', text: where })), codeBlock(code))),
         h('p', { class: 'faint', text: 'Replace the <PLACEHOLDERS> with your own values. Keep tokens out of shared project files.' }));
       else pane.replaceChildren(
@@ -993,7 +993,7 @@
       const headers = {}; for (const x of i.headers || []) headers[x.h] = x.value || (x.prefix || '') + ph(x.h.toUpperCase().replace(/-/g, '_'));
       const url = fill(i.url); const hh = Object.keys(headers).length ? { headers } : {};
       return [
-        ['Astro AI', 'Settings → Extensions → MCP → Edit mcp.json', J({ mcpServers: { [id]: { type: i.t, url, ...hh } } })],
+        ['A.S.T.R.O AI', 'Settings → Extensions → MCP → Edit mcp.json', J({ mcpServers: { [id]: { type: i.t, url, ...hh } } })],
         ['Claude Code', 'Run in a terminal', `claude mcp add --transport ${i.t} ${id} ${url}${Object.entries(headers).map(([k, v]) => ` --header "${k}: ${v}"`).join('')}`],
         ['Cursor', '~/.cursor/mcp.json', J({ mcpServers: { [id]: { url, ...hh } } })],
         ['VS Code', '.vscode/mcp.json', J({ servers: { [id]: { type: i.t, url, ...hh } } })],
@@ -1004,7 +1004,7 @@
       const args = (i.args || []).map(fill); const env = {}; for (const e of i.env || []) env[e.name] = e.def && !e.secret ? e.def : ph(e.name);
       const ee = Object.keys(env).length ? { env } : {};
       return [
-        ['Astro AI', 'Settings → Extensions → MCP → Edit mcp.json', J({ mcpServers: { [id]: { command: i.cmd, args, ...ee } } })],
+        ['A.S.T.R.O AI', 'Settings → Extensions → MCP → Edit mcp.json', J({ mcpServers: { [id]: { command: i.cmd, args, ...ee } } })],
         ['Claude Code', 'Run in a terminal', `claude mcp add ${id}${Object.entries(env).map(([k, v]) => ` -e ${k}=${v}`).join('')} -- ${i.cmd} ${args.join(' ')}`],
         ['Claude Desktop / Cursor', 'claude_desktop_config.json or ~/.cursor/mcp.json', J({ mcpServers: { [id]: { command: i.cmd, args, ...ee } } })],
         ['VS Code', '.vscode/mcp.json', J({ servers: { [id]: { type: 'stdio', command: i.cmd, args, ...ee } } })],
@@ -1023,7 +1023,7 @@
     const kind = d.k;
     const src = kind === 'mcp' ? 'Official MCP Registry' : d.repo ? 'GitHub · ' + d.repo : d.src ? 'Listed in ' + d.src : kind === 'tool' && d.t !== 'link' ? (d.t === 'npm' ? 'npm' : 'PyPI') : '';
     const body = [
-      h('div', { class: 'row', style: { gap: '6px', flexWrap: 'wrap' } }, h('span', { class: 'pill accent', text: KIND_LABEL[kind] || kind }), h('span', { class: 'pill', title: 'Indexed automatically. Not reviewed by the Astro AI team.', text: 'Community' }), flagPill(flags, kind),
+      h('div', { class: 'row', style: { gap: '6px', flexWrap: 'wrap' } }, h('span', { class: 'pill accent', text: KIND_LABEL[kind] || kind }), h('span', { class: 'pill', title: 'Indexed automatically. Not reviewed by the A.S.T.R.O AI team.', text: 'Community' }), flagPill(flags, kind),
         flags.includes('s') ? h('span', { class: 'pill warn', text: 'Needs a key or token' }) : null, flags.includes('x') ? h('span', { class: 'pill warn', text: 'Deprecated' }) : null,
         h('span', { class: 'faint', text: [publisher, d.lic && d.lic !== 'see repo' ? d.lic : '', d.v ? 'v' + d.v : '', d.stars ? '★ ' + nf(d.stars) : ''].filter(Boolean).join(' · ') })),
       h('p', { class: 'muted', style: { margin: '12px 0' } }, d.d || summary || ''),
@@ -1031,7 +1031,7 @@
         d.web ? extBtn(kind === 'skill' || kind === 'plugin' ? 'View files on GitHub' : 'Website', d.web, 'cx-btn-outline cx-btn-sm', 'ext') : null,
         d.repo && kind === 'mcp' && d.repo !== d.web ? extBtn('Source', d.repo, 'cx-btn-outline cx-btn-sm', 'code') : null,
         d.url ? extBtn('Open ' + (d.url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]), d.url, 'cx-btn-primary cx-btn-sm', 'ext') : null),
-      h('p', { class: 'faint', style: { marginTop: '8px' } }, 'Source: ', src, '. Community items are indexed automatically and haven\u2019t been reviewed by the Astro AI team. Read what an item does before you install it.'),
+      h('p', { class: 'faint', style: { marginTop: '8px' } }, 'Source: ', src, '. Community items are indexed automatically and haven\u2019t been reviewed by the A.S.T.R.O AI team. Read what an item does before you install it.'),
     ];
     const sections = [];
     if (kind === 'mcp') {
@@ -1040,15 +1040,15 @@
         body.push(h('h3', { class: 'lib-h', text: i.t === 'stdio' ? 'Runs this command' : 'Connects to' }), codeBlock(i.t === 'stdio' ? [i.cmd, ...(i.args || [])].join(' ') : i.url));
         const need = [...(d.in || []).map((x) => [x.name, x.label, x.req]), ...(i.env || []).map((x) => [x.name, x.label, x.req]), ...(i.headers || []).filter((x) => !x.value).map((x) => [x.h, x.label, x.req])];
         if (need.length) body.push(h('h3', { class: 'lib-h', text: 'You will need' }), h('ul', { class: 'lib-perms' }, need.map(([n, l, r]) => h('li', {}, h('code', { text: n }), ' ', l && l !== n ? l : '', r ? '' : ' (optional)'))));
-        sections.push(['astro', 'Astro AI desktop'], ['other', 'Other apps']);
+        sections.push(['astro', 'A.S.T.R.O AI desktop'], ['other', 'Other apps']);
       } else body.push(banner('', 'info', 'This server has no one-click setup yet (its package type isn\u2019t supported). Use its website or source to set it up.'));
     } else if (kind === 'skill' || kind === 'plugin') {
       body.push(h('h3', { class: 'lib-h', text: `Files (${(d.f || []).length}) · pinned to commit ${String(d.c || '').slice(0, 7)} · each one is checked against its SHA-256` }),
         h('div', { class: 'lib-files' }, (d.f || []).slice(0, 200).map((f) => h('div', {}, h('code', { text: f[0] }), h('span', { class: 'faint mono', title: 'SHA-256 ' + f[1], text: f[1].slice(0, 16) + '… · ' + nf(f[2]) + ' B' })))));
-      sections.push(['astro', 'Astro AI desktop'], ['other', 'Other apps']);
+      sections.push(['astro', 'A.S.T.R.O AI desktop'], ['other', 'Other apps']);
     } else if (kind === 'tool' && d.t !== 'link') {
       body.push(h('h3', { class: 'lib-h', text: 'Adds these commands' }), h('div', { class: 'row', style: { gap: '6px', flexWrap: 'wrap' } }, (d.bins || []).map((b) => h('code', { text: b }))));
-      sections.push(['astro', 'Astro AI desktop'], ['other', 'Install yourself']);
+      sections.push(['astro', 'A.S.T.R.O AI desktop'], ['other', 'Install yourself']);
     }
     if (sections.length) {
       const tabs = h('div', { class: 'lib-tabs', role: 'tablist' }); const pane = h('div', { class: 'lib-pane' });
@@ -1056,9 +1056,9 @@
       const paint = () => {
         tabs.replaceChildren(...sections.map(([sid, label]) => h('button', { type: 'button', role: 'tab', 'aria-selected': String(sid === cur), class: sid === cur ? 'on' : '', onclick: () => { cur = sid; paint(); } }, label)));
         if (cur === 'astro') pane.replaceChildren(
-          h('p', { class: 'muted' }, kind === 'tool' ? 'Astro AI installs the tool into its own folder (not system-wide) and adds it to PATH for the agent and the terminal.' : 'One click opens Astro AI and shows what this item will do before anything is installed. The app downloads it itself and checks every fingerprint.'),
-          h('div', { class: 'row' }, linkBtn('Open in Astro AI', libDeepLink(id), 'cx-btn-primary', 'download'), linkBtn('Get Astro AI', ROOT + 'download.html', 'cx-btn-outline', 'monitor')),
-          h('p', { class: 'faint', style: { marginTop: '10px' } }, 'Button does nothing? Open Astro AI, then Workspace → Extensions → Library and search for ', h('code', { text: id }), ' (community items need Astro AI 1.3 or newer).'));
+          h('p', { class: 'muted' }, kind === 'tool' ? 'A.S.T.R.O AI installs the tool into its own folder (not system-wide) and adds it to PATH for the agent and the terminal.' : 'One click opens A.S.T.R.O AI and shows what this item will do before anything is installed. The app downloads it itself and checks every fingerprint.'),
+          h('div', { class: 'row' }, linkBtn('Open in A.S.T.R.O AI', libDeepLink(id), 'cx-btn-primary', 'download'), linkBtn('Get A.S.T.R.O AI', ROOT + 'download.html', 'cx-btn-outline', 'monitor')),
+          h('p', { class: 'faint', style: { marginTop: '10px' } }, 'Button does nothing? Open A.S.T.R.O AI, then Workspace → Extensions → Library and search for ', h('code', { text: id }), ' (community items need A.S.T.R.O AI 1.3 or newer).'));
         else if (kind === 'mcp') pane.replaceChildren(...communitySnippets(id, d).map(([app, where, code]) => h('div', { class: 'lib-snip' }, h('div', { class: 'lib-snip-h' }, h('b', { text: app }), h('span', { class: 'faint', text: where })), codeBlock(code))),
           h('p', { class: 'faint', text: 'Replace the <PLACEHOLDERS> with your own values. Keep tokens out of shared project files.' }));
         else if (kind === 'tool') pane.replaceChildren(codeBlock(d.t === 'npm' ? `npm install -g ${d.pkg}` : `pipx install "${d.pkg}"`), h('p', { class: 'faint', text: 'Pinned to the version in this catalog.' }));
@@ -1079,8 +1079,8 @@
   PAGES.library = {
     title: 'Library',
     render(v) {
-      v.append(pageHead('Library', 'Every MCP server in the official MCP Registry, Agent Skills and Claude Code plugins from public GitHub repos, AI command-line tools and a directory of AI apps. Install in Astro AI with one click, or use them in Claude Code, Cursor, VS Code and OpenCode.',
-        [linkBtn('Get Astro AI', ROOT + 'download.html', 'cx-btn-outline', 'download')]));
+      v.append(pageHead('Library', 'Every MCP server in the official MCP Registry, Agent Skills and Claude Code plugins from public GitHub repos, AI command-line tools and a directory of AI apps. Install in A.S.T.R.O AI with one click, or use them in Claude Code, Cursor, VS Code and OpenCode.',
+        [linkBtn('Get A.S.T.R.O AI', ROOT + 'download.html', 'cx-btn-outline', 'download')]));
       v.append(h('div', { class: 'lib-trust' },
         [['shield', 'Pinned and checked', 'MCP packages run at exact versions. Skills and plugins are pinned to a git commit, and every file is checked against its SHA-256.'],
           ['lock', 'Your tokens stay local', 'Keys you enter are saved only in the app on your computer, never sent to us.'],
@@ -1226,7 +1226,7 @@
   PAGES.playground = {
     title: 'Playground',
     render(v) {
-      v.append(pageHead('Playground', 'Send test requests through the Astro API with your own keys. Each message counts toward your daily limit and your provider\u2019s limits.', [
+      v.append(pageHead('Playground', 'Send test requests through the A.S.T.R.O API with your own keys. Each message counts toward your daily limit and your provider\u2019s limits.', [
         btn('View code', 'cx-btn-outline', viewCode, 'code'), btn('Clear chat', 'cx-btn-ghost', () => { chat.messages = []; render(); }, 'trash'),
       ]));
       if (!state.providers.some((p) => p.enabled)) { v.append(banner('warn', 'alert', [h('b', { text: 'No providers enabled. ' }), 'Connect a provider first so the Playground has a model to talk to.'], btn('Connect', 'cx-btn-outline cx-btn-sm', () => go('providers?browse')))); v.lastChild.style.marginBottom = '16px'; }

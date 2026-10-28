@@ -1,4 +1,4 @@
-/* Astro AI Console (/profile). Loaded after site.css; everything here is scoped to body.console. */
+/* A.S.T.R.O AI Console (/profile). Loaded after site.css; everything here is scoped to body.console. */
 body.console {
   --c-bg: #09090b; --c-panel: #0f0f12; --c-panel-2: #141418; --c-hover: rgba(255,255,255,.045); --c-active: rgba(255,255,255,.07);
   --c-line: rgba(255,255,255,.075); --c-line-2: rgba(255,255,255,.12); --c-line-3: rgba(255,255,255,.2);

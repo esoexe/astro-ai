@@ -1,24 +1,24 @@
-<p align="center"><img src="desktop/assets/icon-256.png" width="112" alt="Astro AI icon"></p>
+<p align="center"><img src="desktop/assets/icon-256.png" width="112" alt="A.S.T.R.O AI icon"></p>
 
-<h1 align="center">Astro AI</h1>
+<h1 align="center">A.S.T.R.O AI</h1>
 <p align="center"><b>One brain, many minds.</b> A free desktop app where a team of free AI models answers as one.</p>
 <p align="center"><a href="https://esoexe.github.io/astro-ai/">Website</a> · <a href="https://esoexe.github.io/astro-ai/download.html">Download</a> · <a href="https://esoexe.github.io/astro-ai/docs.html">Docs</a> · <a href="https://esoexe.github.io/astro-ai/api.html">Astro API</a> · <a href="https://esoexe.github.io/astro-ai/changelog.html">Changelog</a></p>
 
-<p align="center"><a href="https://esoexe.github.io/astro-ai/#trailer"><img src="website/src/static/assets/video/astro-ai-trailer-poster.jpg" width="860" alt="Watch the Astro AI trailer"></a><br><sub>▶ <a href="https://esoexe.github.io/astro-ai/#trailer">Watch the 90-second trailer</a> (real app footage) · <a href="https://esoexe.github.io/astro-ai/assets/video/astro-ai-trailer.mp4">MP4</a><br>Music: “Clean Soul” by Kevin MacLeod (incompetech.com), CC BY 4.0</sub></p>
+<p align="center"><a href="https://esoexe.github.io/astro-ai/#trailer"><img src="website/src/static/assets/video/astro-ai-trailer-poster.jpg" width="860" alt="Watch the A.S.T.R.O AI trailer"></a><br><sub>▶ <a href="https://esoexe.github.io/astro-ai/#trailer">Watch the 90-second trailer</a> (real app footage) · <a href="https://esoexe.github.io/astro-ai/assets/video/astro-ai-trailer.mp4">MP4</a><br>Music: “Clean Soul” by Kevin MacLeod (incompetech.com), CC BY 4.0</sub></p>
 
-<p align="center"><img src="website/src/static/assets/img/shots/chat-answer.webp" width="860" alt="Astro AI: a One Brain answer written by 19 models"></p>
+<p align="center"><img src="website/src/static/assets/img/shots/chat-answer.webp" width="860" alt="A.S.T.R.O AI: a One Brain answer written by 19 models"></p>
 
 > **Downloads:** Windows, Linux and macOS builds are on the [download page](https://esoexe.github.io/astro-ai/download.html). They are the *Clean* edition and ship with no API keys.
 
 ## About
 
-**Astro AI** is an omni workspace: chat, research, read, test and act, powered by **One Brain**, where many free AI models think at the same time and one of them merges their answers.
+**A.S.T.R.O AI** is an omni workspace: chat, research, read, test and act, powered by **One Brain**, where many free AI models think at the same time and one of them merges their answers.
 
 - **Backend:** C++20 with POSIX sockets, libcurl and OpenSSL. No Python, and no Node at runtime.
 - **Frontend:** plain HTML, CSS and JS that you can install as an app (PWA).
 - **Providers:** 53 free AI platforms registered in `providers.json`, including **Atria AI** (Atria Dawn, 744B). **4 work with no key at all** (OVHcloud, Kilo Gateway, LLM7, Pollinations, about 26 models). The rest connect with your own free key, pasted in **Settings → Providers & keys**.
 
-> Free tiers have rate and daily limits, can change or end at any time, and some log or train on prompts (flagged "may train" in the app). Astro AI never bypasses limits. When a provider is busy or out of quota, it switches to another one.
+> Free tiers have rate and daily limits, can change or end at any time, and some log or train on prompts (flagged "may train" in the app). A.S.T.R.O AI never bypasses limits. When a provider is busy or out of quota, it switches to another one.
 
 ## What you can do
 
@@ -34,7 +34,7 @@
 | **Agent** | The AI can create, append and delete notes; manage tasks; set reminders; remember and forget facts; search the web; read URLs; create files (downloads); open the Reader; calculate exactly; and change settings. Undo and Confirm cards for every action. |
 | **Live voice** | Real-time spoken conversation with barge-in (browser speech). |
 | **Workspace** | Notes, Tasks, reminders, Knowledge files (TXT, MD, CSV, JSON, HTML, XML, DOCX, PDF and 30+ code formats), an exact calculator, and a command palette (Ctrl K). |
-| **Library** | Workspace → Extensions → Library, and on the website at [/profile#/library](https://esoexe.github.io/astro-ai/profile#/library). Every server in the official MCP Registry, thousands of agent skills and Claude Code plugins from public GitHub repos, AI command-line tools from npm and PyPI, and a directory of AI apps. Rebuilt daily. One-click install with pinned versions, SHA-256-checked files and no hooks or binaries. Items the Astro AI team checked are marked **Reviewed**; everything else is labelled **Community** with its source. See [docs/library.md](docs/library.md). |
+| **Library** | Workspace → Extensions → Library, and on the website at [/profile#/library](https://esoexe.github.io/astro-ai/profile#/library). Every server in the official MCP Registry, thousands of agent skills and Claude Code plugins from public GitHub repos, AI command-line tools from npm and PyPI, and a directory of AI apps. Rebuilt daily. One-click install with pinned versions, SHA-256-checked files and no hooks or binaries. Items the A.S.T.R.O AI team checked are marked **Reviewed**; everything else is labelled **Community** with its source. See [docs/library.md](docs/library.md). |
 | **Account** | Password login (PBKDF2-SHA256, 210k iterations; 30-day sessions; lockout after repeated failures). Change your password or sign out in Settings → Account & sync. |
 | **Sync** | Chats, notes, tasks, memory and reminders are saved on your server (`astro_data/store.json`), mirrored to your Supabase table `astro_store`, and loaded on any device where you sign in. |
 | **Usage meter** | Requests, successes, rate limits and average speed per provider today (UTC). One-click **Test** per provider, or **Test all connected**. |
@@ -49,7 +49,7 @@ PORT=8080 ./start_workspace.sh
 ```
 
 - **Docker (any VPS or home server):** `docker build -t astro-ai . && docker run -d -p 8080:8080 -v astro-data:/data astro-ai`. The image includes `pdftotext` for PDF reading.
-- **Tests:** `make test` runs the smoke tests: the core features, the Astro AI extensions, SSRF blocking, sync conflict handling, and the login flow on a second instance.
+- **Tests:** `make test` runs the smoke tests: the core features, the A.S.T.R.O AI extensions, SSRF blocking, sync conflict handling, and the login flow on a second instance.
 
 ### Environment
 
@@ -84,13 +84,13 @@ A native desktop version with an **OpenCode Desktop-style layout**. It has sessi
 
 | Folder | App name | API keys | Data folder | Port |
 |---|---|---|---|---|
-| `with-keys/` | Astro AI | **Contains your keys** (`seed-keys.env`, `gateway.env`). Keep it private. | `%APPDATA%\Astro AI`, `~/.local/share/astro-ai`, `~/Library/Application Support/Astro AI` | 47611 |
-| `clean/` | Astro AI Clean | **None.** Starts fresh; add keys in Settings > Keys. Safe to share. | `…\Astro AI Clean`, `~/.local/share/astro-ai-clean` | 47612 |
+| `with-keys/` | A.S.T.R.O AI | **Contains your keys** (`seed-keys.env`, `gateway.env`). Keep it private. | `%APPDATA%\Astro AI`, `~/.local/share/astro-ai`, `~/Library/Application Support/Astro AI` | 47611 |
+| `clean/` | A.S.T.R.O AI Clean | **None.** Starts fresh; add keys in Settings > Keys. Safe to share. | `…\Astro AI Clean`, `~/.local/share/astro-ai-clean` | 47612 |
 
 Both editions can be installed side by side. Their names, folders, data, ports and webview storage are all separate.
 
 **Files for each edition:**
-- **Windows x64:** a custom `Setup` installer (per-user, no admin; installs WebView2 if it's missing) and a portable `.zip`. The installer is Astro AI's own: a hand-drawn window where the moon's trip around the orbit is the progress bar, with a matching uninstaller. Silent use: `Setup.exe /S [/D=folder]`, `Uninstall.exe /S [--purge]`.
+- **Windows x64:** a custom `Setup` installer (per-user, no admin; installs WebView2 if it's missing) and a portable `.zip`. The installer is A.S.T.R.O AI's own: a hand-drawn window where the moon's trip around the orbit is the progress bar, with a matching uninstaller. Silent use: `Setup.exe /S [/D=folder]`, `Uninstall.exe /S [--purge]`.
 - **Linux:** a `.deb` and a portable `.tar.gz` (glibc 2.35+, WebKitGTK 4.1).
 - **macOS:** a source kit. Run `./build_mac.sh` on a Mac to get a universal `.app` and `.dmg`.
 
@@ -115,7 +115,7 @@ Both editions can be installed side by side. Their names, folders, data, ports a
 
 ## Workspace IDE
 
-The Workspace is a full code editor and runner inside Astro AI:
+The Workspace is a full code editor and runner inside A.S.T.R.O AI:
 
 - **Editor**: CodeMirror 6 with syntax highlighting for 20+ languages, autocomplete (Ctrl+Space), code folding, multiple cursors (Ctrl+D), find and replace (Ctrl+F / Ctrl+H), go to line (Ctrl+G), word wrap (Alt+Z) and undo history per file. If the bundle can't load, it falls back to the simple editor.
 - **Sidebar**: Files (drag and drop files *or whole folders*, upload a folder, download the project as a ZIP), Search (every file, with match case / whole word / regex, and Replace all with one-click undo), and History.
@@ -161,7 +161,7 @@ The **Agent** works on its own, like Arena.ai's Agent Mode. You give it a job an
 
 ## Terminal app and parallel agents
 
-`astro` runs the Astro AI agent in your terminal:
+`astro` runs the A.S.T.R.O AI agent in your terminal:
 
 ```bash
 cd my-project && astro                                   # interactive
@@ -170,7 +170,7 @@ astro parallel "add dark mode" "write tests" --merge      # several agents, each
 astro agents · astro diff <id> · astro merge <id> · astro undo <id>
 ```
 
-Agents run in the server's **agent engine**, not in the browser tab, so they keep going when you close the window. Up to 8 run at once. With **isolate**, each agent works in a git worktree, or in a copy of the folder, which you review and then merge or discard. Merging stops when a file was also changed in the project after the agent started. In the app, the same engine is the **Parallel** chip on the Agent page. The desktop installers include `astro`. From source, run `make astro`. See [docs/cli.md](docs/cli.md), which also documents the `/api/agent/*` HTTP API.
+Agents run in the server's **agent engine**, not in the browser tab, so they keep going when you close the window. Up to 8 run at once. With **isolate**, each agent works in a git worktree, or in a copy of the folder, which you review and then merge or discard. If a file was also changed in the project meanwhile, merging combines both versions with a 3-way merge, and stops only when the changes overlap. In the app, the same engine is the **Parallel** chip on the Agent page. The desktop installers include `astro`. From source, run `make astro`. See [docs/cli.md](docs/cli.md), which also documents the `/api/agent/*` HTTP API.
 
 ## Free providers
 
@@ -197,13 +197,13 @@ Model: `Atria-Dawn` (text, 256K context, free preview with tightened quotas).
 - Static files are served only from `web/` with an extension allow-list.
 - Run code executes only in a sandboxed iframe (`allow-scripts`, no same-origin access).
 - The Supabase table `astro_store` has row-level security with no policies, so only the Edge Function (service role, behind your proxy token) can use it.
-- Put Astro AI behind HTTPS (Caddy, Nginx or Cloudflare Tunnel) when it is on the internet.
+- Put A.S.T.R.O AI behind HTTPS (Caddy, Nginx or Cloudflare Tunnel) when it is on the internet.
 
 ## Advanced setups
 
 ### Live AI with a free local model (no API key)
 
-`start_local_ai.sh` downloads a prebuilt **llama.cpp** server (C++) and **Qwen2.5-1.5B-Instruct** (Q4_K_M, about 1.1 GB, Apache-2.0). It then serves the model at `127.0.0.1:8081` (internal only) with an OpenAI-compatible API. Run it in one terminal, then start Astro AI in another:
+`start_local_ai.sh` downloads a prebuilt **llama.cpp** server (C++) and **Qwen2.5-1.5B-Instruct** (Q4_K_M, about 1.1 GB, Apache-2.0). It then serves the model at `127.0.0.1:8081` (internal only) with an OpenAI-compatible API. Run it in one terminal, then start A.S.T.R.O AI in another:
 
 ```bash
 ./start_local_ai.sh
@@ -217,11 +217,11 @@ Answers stream token by token (`/api/chat/stream`, Server-Sent Events). The send
 
 ### Hosted DeepSeek V4.1 Flash through Supabase (free tier)
 
-The large DeepSeek models can't run on Supabase or on a small machine. DeepSeek-V4.1-Flash has 552B parameters, and even its compressed local build is about 114 GB. Instead, Astro AI can use **NVIDIA's free developer endpoint**, which serves `deepseek-ai/deepseek-v4.1-flash` on NVIDIA's GPUs. A small **Supabase Edge Function** (`supabase/functions/workspace-ai`) sits in between:
+The large DeepSeek models can't run on Supabase or on a small machine. DeepSeek-V4.1-Flash has 552B parameters, and even its compressed local build is about 114 GB. Instead, A.S.T.R.O AI can use **NVIDIA's free developer endpoint**, which serves `deepseek-ai/deepseek-v4.1-flash` on NVIDIA's GPUs. A small **Supabase Edge Function** (`supabase/functions/workspace-ai`) sits in between:
 
 ```text
-startup:  Astro AI (C++) ──proxy token──▶ Supabase Edge Function /credentials ──▶ {base_url, model, NVIDIA key}
-chat:     Browser ──▶ Astro AI (C++) ──key held in memory──▶ NVIDIA (DeepSeek V4.1 Flash)
+startup:  A.S.T.R.O AI (C++) ──proxy token──▶ Supabase Edge Function /credentials ──▶ {base_url, model, NVIDIA key}
+chat:     Browser ──▶ A.S.T.R.O AI (C++) ──key held in memory──▶ NVIDIA (DeepSeek V4.1 Flash)
                                 │ no answer within LLM_WAIT_SECONDS (default 150 s), or an error?
                                 └──▶ local Qwen model on 127.0.0.1:8081 answers instead (with a note)
 ```
@@ -237,10 +237,10 @@ chat:     Browser ──▶ Astro AI (C++) ──key held in memory──▶ NVI
 
 ### OpenCode layer (free OpenCode models + your OpenCode key)
 
-Astro AI can use the models served through **OpenCode** by running the official `opencode serve` (the "OpenCode layer") locally on `127.0.0.1:4097`. Astro AI controls it through OpenCode's documented HTTP API. It doesn't imitate OpenCode or call OpenCode's endpoints directly.
+A.S.T.R.O AI can use the models served through **OpenCode** by running the official `opencode serve` (the "OpenCode layer") locally on `127.0.0.1:4097`. A.S.T.R.O AI controls it through OpenCode's documented HTTP API. It doesn't imitate OpenCode or call OpenCode's endpoints directly.
 
 ```text
-Browser ─▶ Astro AI (C++) ─▶ opencode serve (127.0.0.1:4097, all tools disabled) ─▶ OpenCode models
+Browser ─▶ A.S.T.R.O AI (C++) ─▶ opencode serve (127.0.0.1:4097, all tools disabled) ─▶ OpenCode models
                    │ blocked / failed / no answer?
                    ├─▶ DeepSeek V4.1 Flash on NVIDIA free (direct, key held in memory)
                    └─▶ local Qwen model (127.0.0.1:8081)
@@ -259,7 +259,7 @@ Browser ─▶ Astro AI (C++) ─▶ opencode serve (127.0.0.1:4097, all tools d
 
 ### Connect a hosted model
 
-Set these variables in the **server environment** before starting Astro AI. Use a model ID supported by your provider:
+Set these variables in the **server environment** before starting A.S.T.R.O AI. Use a model ID supported by your provider:
 
 ```bash
 export LLM_BASE_URL="https://api.your-provider.com/v1"
@@ -268,7 +268,7 @@ export LLM_MODEL="your-provider-model-id"
 ./workspace_server
 ```
 
-Requests are sent to `LLM_BASE_URL/chat/completions` using the OpenAI-compatible format. If the URL already ends in `/chat/completions`, it is used as-is. Keep API keys server-side—Astro AI never asks for or stores them in the browser. Use **Astro AI settings → Test connection** after configuring it.
+Requests are sent to `LLM_BASE_URL/chat/completions` using the OpenAI-compatible format. If the URL already ends in `/chat/completions`, it is used as-is. Keep API keys server-side—A.S.T.R.O AI never asks for or stores them in the browser. Use **A.S.T.R.O AI settings → Test connection** after configuring it.
 
 For a local OpenAI-compatible model server:
 
@@ -298,11 +298,11 @@ The local model server must be running and expose a compatible `/chat/completion
 
 ## Website
 
-The official Astro AI website lives in `website/`: static HTML, CSS and JS with no dependencies.
+The official A.S.T.R.O AI website lives in `website/`: static HTML, CSS and JS with no dependencies.
 `node website/build.js` builds it into `website/dist/`, the folder you deploy (Netlify, Cloudflare Pages, Vercel or GitHub Pages).
 Only the CLEAN desktop builds are copied into the site, and the build refuses to publish anything from the WITH-KEYS edition.
 See `website/README.md` for deploy steps. Set your domain in `website/site.json` first.
 
 ## License
 
-Astro AI is available under your choice of the **MIT**, **Apache-2.0** or **GPL-3.0** license; see [LICENSE](LICENSE). Bundled third-party components keep their own licenses; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+A.S.T.R.O AI is available under your choice of the **MIT**, **Apache-2.0** or **GPL-3.0** license; see [LICENSE](LICENSE). Bundled third-party components keep their own licenses; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

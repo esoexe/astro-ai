@@ -17,7 +17,7 @@ for _ in $(seq 1 40); do
   sleep 0.1
 done
 
-curl -fsS "$BASE/" | grep -q 'Ask Astro'
+curl -fsS "$BASE/" | grep -q 'Ask A.S.T.R.O AI'
 curl -fsS "$BASE/api/status" | grep -q '"mode":"demo"'
 # Brain registry: every platform from providers.json is listed, none connected without keys.
 curl -fsS "$BASE/api/status" | grep -q '"secret":"GROQ_API_KEY"'
@@ -30,7 +30,7 @@ if [ "$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: applic
 fi
 curl -fsS -X POST -H 'Content-Type: application/json' \
   -d '{"messages":[{"role":"user","content":"hello"}],"mode":"general","language":"English"}' \
-  "$BASE/api/chat" | grep -q 'Astro AI is in demo mode'
+  "$BASE/api/chat" | grep -q 'A.S.T.R.O AI is in demo mode'
 
 TMPDIR_TEST="$(mktemp -d)"
 mkdir -p "$TMPDIR_TEST/word"
@@ -43,7 +43,7 @@ curl -fsS -X POST -H 'Content-Type: application/json' \
 BRAIN_OUT=$(curl -fsS -N -X POST -H 'Content-Type: application/json' --data '{"stage":"expert","models":["a","b"],"messages":[{"role":"user","content":"hi"}]}' "$BASE/api/brain/stream")
 echo "$BRAIN_OUT" | grep -q '"mind":1,"ev":{"delta"'
 echo "$BRAIN_OUT" | grep -q '"all_done":true'
-# Astro AI extensions
+# A.S.T.R.O AI extensions
 curl -fsS "$BASE/api/auth/state" | grep -q '"enabled":false'
 curl -fsS "$BASE/api/keys" | grep -q '"key":"GROQ_API_KEY"'
 curl -fsS "$BASE/api/usage" | grep -q '"providers"'
@@ -53,7 +53,7 @@ curl -fsS -X POST -H 'Content-Type: application/json' -d '{"updated":5,"data":{"
 curl -fsS "$BASE/api/sync" | grep -q '"notes":\[1\]'
 code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{"updated":1,"data":{}}' "$BASE/api/sync")
 [ "$code" = "409" ] || { echo "Older sync data was not rejected ($code)" >&2; exit 1; }
-curl -fsS "$BASE/manifest.webmanifest" | grep -q 'Astro AI'
+curl -fsS "$BASE/manifest.webmanifest" | grep -q 'A.S.T.R.O AI'
 [ "$(curl -sS -o /dev/null -w '%{http_code}' "$BASE/.astro_keys.env")" = "404" ]
 # Login: a second server with the password lock on.
 AUTH_DATA="$DATA_TEST/auth"; mkdir -p "$AUTH_DATA"
@@ -76,4 +76,4 @@ curl -fsS -D - -o /dev/null -X POST -H 'Content-Type: application/json' -d '{"pa
 curl -fsS -X POST -H 'Content-Type: application/json' -d '{"password":"secret-test-1"}' "$ABASE/api/auth/login" | grep -q '"token"'
 [ "$(stat -c %a "$AUTH_DATA/.astro_auth.json")" = "600" ]
 rm -rf "$TMPDIR_TEST"
-echo 'Astro AI smoke tests passed (core, extensions, login).'
+echo 'A.S.T.R.O AI smoke tests passed (core, extensions, login).'

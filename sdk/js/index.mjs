@@ -1,4 +1,4 @@
-// Astro AI SDK for JavaScript (Node 18+, Deno, Bun, browsers): a thin client for the agent engine API (/api/agent/*).
+// A.S.T.R.O AI SDK for JavaScript (Node 18+, Deno, Bun, browsers): a thin client for the agent engine API (/api/agent/*).
 // No dependencies. MIT OR Apache-2.0 OR GPL-3.0.
 //
 //   import { Astro } from './index.mjs';
@@ -33,7 +33,7 @@ export class Astro {
         if (r.status === 200 || r.status === 401) { this.url = u; return u; }
       } catch (_e) { /* next port */ }
     }
-    throw new AstroError('No Astro AI engine found. Open the Astro AI app, run `astro server start`, or pass {url}.', 0);
+    throw new AstroError('No A.S.T.R.O AI engine found. Open the A.S.T.R.O AI app, run `astro server start`, or pass {url}.', 0);
   }
 
   /** Raw call: POST /api/<route> with a JSON body. */

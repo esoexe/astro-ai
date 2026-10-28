@@ -46,7 +46,7 @@ jobs:
         run: |
           echo "$PFX" | base64 -d > "$RUNNER_TEMP/cert.pfx"
           for f in desktop-builds/clean/*.exe; do
-            osslsigncode sign -pkcs12 "$RUNNER_TEMP/cert.pfx" -pass "$PFX_PASS" -n "Astro AI" -i "https://esoexe.github.io/astro-ai/" \
+            osslsigncode sign -pkcs12 "$RUNNER_TEMP/cert.pfx" -pass "$PFX_PASS" -n "A.S.T.R.O AI" -i "https://esoexe.github.io/astro-ai/" \
               -t http://timestamp.digicert.com -h sha256 -in "$f" -out "$f.signed" && mv "$f.signed" "$f"
           done
           rm -f "$RUNNER_TEMP/cert.pfx"
@@ -92,7 +92,7 @@ jobs:
           tar -xzf kit/AstroAI-*-macos-source-CLEAN.tar.gz
           cd AstroAI-*-macos-source-CLEAN && ./build_mac.sh
           ver=$(basename "$PWD" | sed -E 's/AstroAI-(.*)-macos-source-CLEAN/\1/')
-          mkdir -p ../out && mv "Astro AI Clean.dmg" "../out/AstroAI-$ver-macos-universal-CLEAN.dmg"
+          mkdir -p ../out && mv "A.S.T.R.O AI Clean.dmg" "../out/AstroAI-$ver-macos-universal-CLEAN.dmg"
       - name: Notarize
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -123,5 +123,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cd files && sha256sum *.dmg >> SHA256SUMS.txt
-          gh release create "$GITHUB_REF_NAME" * --repo "$GITHUB_REPOSITORY" --title "Astro AI ${GITHUB_REF_NAME#v}" \
+          gh release create "$GITHUB_REF_NAME" * --repo "$GITHUB_REPOSITORY" --title "A.S.T.R.O AI ${GITHUB_REF_NAME#v}" \
             --notes "Clean edition (no API keys). Changelog: https://esoexe.github.io/astro-ai/changelog.html"

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Astro AI coding benchmark runner.
+// A.S.T.R.O AI coding benchmark runner.
 //   node bench/run.js --self-test                       prove every check fails on the start files and passes on the reference
 //   node bench/run.js [--models a,b] [--tasks id,id] [--repeat n] [--mode auto] [--review] [--parallel n]
 // Runs each task with the terminal app (`astro -p --json`) in a fresh temp folder, then the hidden check.
-// Needs a running Astro AI engine (ASTRO_URL or the desktop app) and the `astro` binary (ASTRO_BIN, default ./astro).
+// Needs a running A.S.T.R.O AI engine (ASTRO_URL or the desktop app) and the `astro` binary (ASTRO_BIN, default ./astro).
 // Results: bench/results/<stamp>.json and bench/results/latest.md
 'use strict';
 const fs = require('fs');
@@ -97,7 +97,7 @@ function runOne(task, model) {
   const dir = path.join(__dirname, 'results'); fs.mkdirSync(dir, { recursive: true });
   const meta = { date: new Date().toISOString(), mode, review, repeat, tasks: selected.length, astro: cp.spawnSync(ASTRO, ['--version'], { encoding: 'utf8' }).stdout.trim() };
   fs.writeFileSync(path.join(dir, `${stamp}.json`), JSON.stringify({ meta, results }, null, 2));
-  let md = `# Astro AI coding benchmark\n\n${meta.date.slice(0, 16).replace('T', ' ')} UTC · ${meta.astro} · mode ${mode}${review ? ' + review' : ''} · ${selected.length} tasks × ${repeat}\n\n| Model | Passed | Rate | Avg time | Avg steps |\n|---|---|---|---|---|\n`;
+  let md = `# A.S.T.R.O AI coding benchmark\n\n${meta.date.slice(0, 16).replace('T', ' ')} UTC · ${meta.astro} · mode ${mode}${review ? ' + review' : ''} · ${selected.length} tasks × ${repeat}\n\n| Model | Passed | Rate | Avg time | Avg steps |\n|---|---|---|---|---|\n`;
   for (const m of models) {
     const rs = results.filter((r) => r.model === m); const p = rs.filter((r) => r.pass).length;
     const avg = (f) => (rs.length ? rs.reduce((s, r) => s + (f(r) || 0), 0) / rs.length : 0);

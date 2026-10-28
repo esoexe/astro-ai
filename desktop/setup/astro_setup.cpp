@@ -44,7 +44,7 @@
 namespace Gdiplus { using std::min; using std::max; }
 #include <gdiplus.h>
 #include "miniz.h"
-#include "edition.h"   // APP_NAME_W, APP_ID_W, EXE_NAME_W, APP_VERSION_W, EDITION_KEYS (generated per edition)
+#include "edition.h"   // APP_NAME_W (folders/data), APP_DISPLAY_W (what people see), APP_ID_W, EXE_NAME_W, APP_VERSION_W, EDITION_KEYS (generated per edition)
 #include "setup_ids.h"
 
 using namespace Gdiplus;
@@ -281,7 +281,7 @@ static void installWork() {
     // Space check (walk up to the first folder that exists).
     std::wstring probe = dir; while (!probe.empty() && !dirExists(probe)) probe = parentDir(probe);
     ULARGE_INTEGER freeB{}; if (!probe.empty() && GetDiskFreeSpaceExW(probe.c_str(), &freeB, nullptr, nullptr) && freeB.QuadPart < g_payloadBytes + (8ull << 20)) {
-        fail(L"There isn't enough free space on this drive. Astro AI needs about " + std::to_wstring(g_payloadBytes / (1 << 20) + 8) + L" MB."); return; }
+        fail(L"There isn't enough free space on this drive. A.S.T.R.O AI needs about " + std::to_wstring(g_payloadBytes / (1 << 20) + 8) + L" MB."); return; }
     int r = SHCreateDirectoryExW(nullptr, dir.c_str(), nullptr);
     if (r != ERROR_SUCCESS && r != ERROR_ALREADY_EXISTS && r != ERROR_FILE_EXISTS) {
         fail(L"Couldn't create the folder " + dir + L" (" + winErr(r) + L"). Choose a folder inside your user profile."); return; }
@@ -306,7 +306,7 @@ static void installWork() {
             if (h != INVALID_HANDLE_VALUE) break;
             e = GetLastError(); if (a == 2) closeRunning(dir); Sleep(300);
         }
-        if (h == INVALID_HANDLE_VALUE) { mz_zip_reader_end(&z); fail(L"Couldn't write " + rel + L" (" + winErr(e) + L"). Close " APP_NAME_W L" if it's open, then try again."); return; }
+        if (h == INVALID_HANDLE_VALUE) { mz_zip_reader_end(&z); fail(L"Couldn't write " + rel + L" (" + winErr(e) + L"). Close " APP_DISPLAY_W L" if it's open, then try again."); return; }
         WriteCtx c{ h, &done, total };
         bool ok = mz_zip_reader_extract_to_callback(&z, i, writeCb, &c, 0);
         CloseHandle(h);
@@ -340,21 +340,27 @@ static void installWork() {
     g_prog = 0.90f; g_stage = 3;
 
     std::wstring exe = dir + L"\\" EXE_NAME_W, unexe = dir + L"\\Uninstall.exe";
-    std::wstring sm = knownFolder(FOLDERID_Programs) + L"\\" APP_NAME_W;
+    // Shortcuts carry the display name (A.S.T.R.O AI); folders and data keep the original name so updates keep everything.
+    if (lstrcmpW(APP_NAME_W, APP_DISPLAY_W) != 0) {
+        std::wstring old = knownFolder(FOLDERID_Programs) + L"\\" APP_NAME_W;
+        if (dirExists(old)) { deleteTree(old, L"", nullptr, 0, 0, 0); RemoveDirectoryW(old.c_str()); }
+        DeleteFileW((knownFolder(FOLDERID_Desktop) + L"\\" APP_NAME_W L".lnk").c_str());
+    }
+    std::wstring sm = knownFolder(FOLDERID_Programs) + L"\\" APP_DISPLAY_W;
     SHCreateDirectoryExW(nullptr, sm.c_str(), nullptr);
-    makeLink(sm + L"\\" APP_NAME_W L".lnk", exe, L"", APP_NAME_W);           mark(L"Start menu shortcut");
-    makeLink(sm + L"\\Uninstall " APP_NAME_W L".lnk", unexe, L"", L"Remove " APP_NAME_W);
-    std::wstring desk = knownFolder(FOLDERID_Desktop) + L"\\" APP_NAME_W L".lnk";
-    if (g_desktopLink) { makeLink(desk, exe, L"", APP_NAME_W); mark(L"Desktop shortcut"); } else DeleteFileW(desk.c_str());
+    makeLink(sm + L"\\" APP_DISPLAY_W L".lnk", exe, L"", APP_DISPLAY_W);           mark(L"Start menu shortcut");
+    makeLink(sm + L"\\Uninstall " APP_DISPLAY_W L".lnk", unexe, L"", L"Remove " APP_DISPLAY_W);
+    std::wstring desk = knownFolder(FOLDERID_Desktop) + L"\\" APP_DISPLAY_W L".lnk";
+    if (g_desktopLink) { makeLink(desk, exe, L"", APP_DISPLAY_W); mark(L"Desktop shortcut"); } else DeleteFileW(desk.c_str());
     g_prog = 0.96f; g_stage = 4;
 
     // The uninstaller (this program built without a payload) ships inside the payload zip.
     if (!fileExists(unexe)) { fail(L"The installer is incomplete (Uninstall.exe is missing). Download it again."); return; }
     mark(L"Uninstall.exe");
     regSetStr(APP_KEY, L"InstallDir", dir);
-    regSetStr(UNINST_KEY, L"DisplayName", APP_NAME_W);
+    regSetStr(UNINST_KEY, L"DisplayName", APP_DISPLAY_W);
     regSetStr(UNINST_KEY, L"DisplayVersion", APP_VERSION_W);
-    regSetStr(UNINST_KEY, L"Publisher", L"Astro AI");
+    regSetStr(UNINST_KEY, L"Publisher", L"A.S.T.R.O AI");
     regSetStr(UNINST_KEY, L"DisplayIcon", exe);
     regSetStr(UNINST_KEY, L"InstallLocation", dir);
     regSetStr(UNINST_KEY, L"UninstallString", L"\"" + unexe + L"\"");
@@ -364,7 +370,7 @@ static void installWork() {
     regSetDword(UNINST_KEY, L"NoRepair", 1);
     // astroai:// links from the website ("Open in Astro AI" in the Library). The app only accepts
     // astroai://library/install?id=<catalog id> and always shows what an item does before installing it.
-    regSetStr(L"Software\\Classes\\astroai", nullptr, L"URL:Astro AI");
+    regSetStr(L"Software\\Classes\\astroai", nullptr, L"URL:A.S.T.R.O AI");
     regSetStr(L"Software\\Classes\\astroai", L"URL Protocol", L"");
     regSetStr(L"Software\\Classes\\astroai\\DefaultIcon", nullptr, L"\"" + exe + L"\",0");
     regSetStr(L"Software\\Classes\\astroai\\shell\\open\\command", nullptr, L"\"" + exe + L"\" \"%1\"");
@@ -393,9 +399,12 @@ static void uninstallWork() {
         Sleep(300);
     }
     g_prog = 0.84f; g_stage = 2;
-    DeleteFileW((knownFolder(FOLDERID_Desktop) + L"\\" APP_NAME_W L".lnk").c_str());
-    std::wstring sm = knownFolder(FOLDERID_Programs) + L"\\" APP_NAME_W;
-    deleteTree(sm, L"", nullptr, 0, 0, 0); RemoveDirectoryW(sm.c_str()); mark(L"Shortcuts");
+    for (const wchar_t* nm : { APP_NAME_W, APP_DISPLAY_W }) {
+        DeleteFileW((knownFolder(FOLDERID_Desktop) + L"\\" + nm + L".lnk").c_str());
+        std::wstring sm = knownFolder(FOLDERID_Programs) + L"\\" + nm;
+        if (dirExists(sm)) { deleteTree(sm, L"", nullptr, 0, 0, 0); RemoveDirectoryW(sm.c_str()); }
+    }
+    mark(L"Shortcuts");
     g_prog = 0.9f; g_stage = 3;
     RegDeleteTreeW(HKEY_CURRENT_USER, UNINST_KEY.c_str()); RegDeleteTreeW(HKEY_CURRENT_USER, APP_KEY.c_str()); mark(L"Installed apps entry");
     userPathEdit(dir, false);
@@ -806,9 +815,14 @@ static void drawContent(Graphics& g, double t) {
 
     if (g_page == P_WELCOME && !g_uninstall) {
         label(g, std::wstring(g_existing ? L"UPDATE" : L"SETUP") + L"  \u00B7  VERSION " + V, 96);
-        Font* tf = font(F_SERIF, 58);
-        text(g, L"Astro AI", tf, X0 - 3, 116, col(255, TEXT));
-        if (!EDITION_KEYS) text(g, L"clean", font(F_SERIF_I, 58), X0 - 3 + textW(g, L"Astro AI ", tf), 116, col(255, PEACH));
+        // the name is longer since the rename: shrink the title until it fits the card
+        float tpx = 58;
+        auto titleW = [&](float px) { return textW(g, L"A.S.T.R.O AI", font(F_SERIF, px)) + (EDITION_KEYS ? 0 : textW(g, L" clean", font(F_SERIF_I, px))); };
+        while (tpx > 34 && titleW(tpx) > CW + 4) tpx -= 2;
+        Font* tf = font(F_SERIF, tpx);
+        const float ty = 116 + (58 - tpx) * 0.6f;
+        text(g, L"A.S.T.R.O AI", tf, X0 - 3, ty, col(255, TEXT));
+        if (!EDITION_KEYS) text(g, L"clean", font(F_SERIF_I, tpx), X0 - 3 + textW(g, L"A.S.T.R.O AI ", tf), ty, col(255, PEACH));
         textBox(g, L"Chat, a code Workspace and an Agent \u2014 one brain of free AI models, working together.",
                 font(F_SANS, 14.5f), RectF(X0, 190, CW, 46), col(255, TEXT2));
         // edition chip
@@ -821,7 +835,7 @@ static void drawContent(Graphics& g, double t) {
         text(g, chip, cf, X0 + 28, 257, col(255, 0xdcdce0));
         locationBox(g, 304, true);
         toggleRow(g, 386, L"Desktop shortcut", L"A Start menu shortcut is always added", H_T_DESKTOP, g_desktopLink, PEACH);
-        primaryButton(g, RectF(X0, 446, CW, 48), (g_existing ? L"Update " : L"Install ") + std::wstring(APP_NAME_W), H_PRIMARY);
+        primaryButton(g, RectF(X0, 446, CW, 48), (g_existing ? L"Update " : L"Install ") + std::wstring(APP_DISPLAY_W), H_PRIMARY);
         std::wstring foot = L"PER-USER  \u00B7  NO ADMIN NEEDED  \u00B7  " + mb(g_payloadBytes);
         if (EDITION_KEYS) foot = L"PER-USER  \u00B7  " + mb(g_payloadBytes) + L"  \u00B7  KEEP PRIVATE";
         Font* ff = font(F_MONO, 9.5f); float fw = trackedW(g, foot, ff, 1.4f);
@@ -829,7 +843,7 @@ static void drawContent(Graphics& g, double t) {
     } else if (g_page == P_WELCOME && g_uninstall) {
         label(g, L"UNINSTALL  \u00B7  VERSION " + V, 96);
         title2(g, L"Leaving", L"orbit?", 112, 54);
-        textBox(g, L"This removes " APP_NAME_W L" from this PC: the app, its shortcuts and its entry in Installed apps.",
+        textBox(g, L"This removes " APP_DISPLAY_W L" from this PC: the app, its shortcuts and its entry in Installed apps.",
                 font(F_SANS, 14), RectF(X0, 236, CW, 44), col(255, TEXT2));
         locationBox(g, 296, false);
         toggleRow(g, 378, L"Also delete my data", g_purge ? L"Chats, settings and keys \u2014 can't be undone" : L"Chats, projects, settings and saved API keys",
@@ -847,7 +861,7 @@ static void drawContent(Graphics& g, double t) {
     } else if (g_page == P_DONE && !g_uninstall) {
         label(g, g_existing ? L"UPDATED" : L"COMPLETE", 96);
         title2(g, L"Ready for", L"liftoff.", 112, 54);
-        textBox(g, APP_NAME_W L" is installed. Open it any time from the Start menu" + std::wstring(g_desktopLink ? L" or your desktop." : L"."),
+        textBox(g, APP_DISPLAY_W L" is installed. Open it any time from the Start menu" + std::wstring(g_desktopLink ? L" or your desktop." : L"."),
                 font(F_SANS, 14), RectF(X0, 236, CW, 44), col(255, TEXT2));
         RectF tip(X0, 300, CW, 96);
         SolidBrush tb(col(10, 0xffffff)); fillRound(g, tip, 12, tb); strokeRound(g, tip, 12, col(22, 0xffffff));
@@ -858,12 +872,12 @@ static void drawContent(Graphics& g, double t) {
         uint32_t lc = mix(PEACH, PEACH_HI, g_hov[H_LINK]);
         text(g, lt, lf, X0 + 16, 372, col(255, lc)); arrow(g, X0 + 22 + lw, 375, 8, col(255, lc), true);
         hot(H_LINK, RectF(X0 + 10, 366, lw + 30, 26));
-        primaryButton(g, RectF(X0, 438, CW, 48), L"Launch " APP_NAME_W, H_PRIMARY);
+        primaryButton(g, RectF(X0, 438, CW, 48), L"Launch " APP_DISPLAY_W, H_PRIMARY);
         textButton(g, X0 + CW / 2, 500, L"Close", H_SECONDARY);
     } else if (g_page == P_DONE && g_uninstall) {
         label(g, L"REMOVED", 96);
         title2(g, L"Goodbye", L"for now.", 112, 54);
-        std::wstring body = APP_NAME_W L" was removed from this PC.";
+        std::wstring body = APP_DISPLAY_W L" was removed from this PC.";
         body += g_purge ? L" Your data was deleted too." : L" Your chats and settings are kept in %APPDATA%\\" APP_NAME_W L", in case you come back.";
         textBox(g, body, font(F_SANS, 14), RectF(X0, 236, CW, 90), col(255, TEXT2));
         primaryButton(g, RectF(X0, 446, CW, 48), L"Close", H_PRIMARY, false);
@@ -882,8 +896,8 @@ static void drawContent(Graphics& g, double t) {
 static void drawChrome(Graphics& g, double t) {
     g_alpha = easeOut(float((t - g_startT) / 0.6));
     if (g_logo) { g.SetInterpolationMode(InterpolationModeHighQualityBicubic); g.DrawImage(g_logo, RectF(22, 19, 20, 20)); }
-    text(g, APP_NAME_W, font(F_SEMI, 12.5f), 50, 21, col(235, TEXT));
-    float x = 50 + textW(g, APP_NAME_W L" ", font(F_SEMI, 12.5f)) + 4;
+    text(g, APP_DISPLAY_W, font(F_SEMI, 12.5f), 50, 21, col(235, TEXT));
+    float x = 50 + textW(g, APP_DISPLAY_W L" ", font(F_SEMI, 12.5f)) + 4;
     tracked(g, g_uninstall ? L"UNINSTALL" : L"SETUP", font(F_MONO, 9.5f), x, 23.5f, col(150, TEXT3), 1.6f);
     // window buttons
     RectF cb(W - 50, 12, 36, 30), mbx(W - 90, 12, 36, 30);
@@ -996,7 +1010,7 @@ static void pickFolder() {
     IFileOpenDialog* d = nullptr;
     if (FAILED(CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_IFileOpenDialog, (void**)&d))) return;
     DWORD o = 0; d->GetOptions(&o); d->SetOptions(o | FOS_PICKFOLDERS | FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST);
-    d->SetTitle(L"Choose where to install " APP_NAME_W);
+    d->SetTitle(L"Choose where to install " APP_DISPLAY_W);
     std::wstring start = g_dir; while (!start.empty() && !dirExists(start)) start = parentDir(start);
     IShellItem* si = nullptr;
     if (!start.empty() && SUCCEEDED(SHCreateItemFromParsingName(start.c_str(), nullptr, IID_IShellItem, (void**)&si))) { d->SetFolder(si); si->Release(); }
@@ -1149,7 +1163,7 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int) {
         g_dir = argVal(argc, argv, L"--dir");
         if (g_dir.empty()) g_dir = lower(leafName(g_selfPath)) == L"uninstall.exe" ? parentDir(g_selfPath) : regGet(HKEY_CURRENT_USER, APP_KEY, L"InstallDir");
         if (g_dir.empty() || !dirExists(g_dir)) {
-            if (!g_silent) MessageBoxW(nullptr, APP_NAME_W L" doesn't seem to be installed for this user.", APP_NAME_W L" Uninstall", MB_ICONINFORMATION);
+            if (!g_silent) MessageBoxW(nullptr, APP_DISPLAY_W L" doesn't seem to be installed for this user.", APP_DISPLAY_W L" Uninstall", MB_ICONINFORMATION);
             return 1;
         }
         // Run from a temporary copy so the install folder (and Uninstall.exe itself) can be removed.
@@ -1221,7 +1235,7 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int) {
     float s = dpi / 96.f; int w = (int)lroundf(W * s), h = (int)lroundf(H * s);
     RECT wa; SystemParametersInfoW(SPI_GETWORKAREA, 0, &wa, 0);
     int x = wa.left + ((wa.right - wa.left) - w) / 2, y = wa.top + ((wa.bottom - wa.top) - h) / 2;
-    std::wstring title = std::wstring(APP_NAME_W) + (g_uninstall ? L" Uninstall" : L" Setup");
+    std::wstring title = std::wstring(APP_DISPLAY_W) + (g_uninstall ? L" Uninstall" : L" Setup");
     g_hwnd = CreateWindowExW(WS_EX_APPWINDOW, wc.lpszClassName, title.c_str(), WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX,
                              x, y, w, h, nullptr, nullptr, inst, nullptr);
     UINT real = dpiOf(g_hwnd);

@@ -1,7 +1,7 @@
 {
-  "name": "Astro AI",
-  "short_name": "Astro AI",
-  "description": "Astro AI: an omni workspace powered by one brain of free AI models.",
+  "name": "A.S.T.R.O AI",
+  "short_name": "A.S.T.R.O AI",
+  "description": "A.S.T.R.O AI: an omni workspace powered by one brain of free AI models.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

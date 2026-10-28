@@ -94,7 +94,7 @@ grep -q 'example.com/mcp' "$P/.mcp.json" && ! grep -q '"command"' "$P/.mcp.json"
 ! grep -q hooks "$P/.claude-plugin/plugin.json" && ok "plugin hooks stripped" || bad "plugin hooks"
 r=$(call install '{"id":"some-app"}');                     has "$r" 'not something to install' && ok "app links are not installable" || bad "app: $r"
 r=$(call install '{"id":"cli-unpinned"}');                 has "$r" 'pinned' && ok "unpinned CLI refused" || bad "cli: $r"
-r=$(call install '{"id":"nothing-here"}');                 has "$r" 'not in the Astro AI Library' && ok "unknown id refused" || bad "unknown: $r"
+r=$(call install '{"id":"nothing-here"}');                 has "$r" 'not in the A.S.T.R.O AI Library' && ok "unknown id refused" || bad "unknown: $r"
 r=$(call uninstall '{"id":"hello-acme"}');                 has "$r" '"ok":true' && [ ! -e "$EXT/skills/hello-acme" ] && ok "community skill uninstalled" || bad "uninstall: $r"
 r=$(call uninstall '{"id":"remote-one"}');                 has "$r" '"ok":true' && ! grep -q 'remote-one' "$EXT/mcp.json" && ok "community MCP uninstalled" || bad "uninstall mcp: $r"
 

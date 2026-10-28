@@ -1,5 +1,5 @@
 // =============================================================================================
-// Astro AI code workspace (included inside workspace_server.cpp's anonymous namespace):
+// A.S.T.R.O AI code workspace (included inside workspace_server.cpp's anonymous namespace):
 //   * projects and files on the server        /api/fs/*          (JSON, owner only)
 //   * run a file or a shell command            /api/run           (SSE: out / err / exit)
 //   * live preview of web projects             /preview/<key>/<project>/<path>
@@ -89,7 +89,7 @@ std::string link_target_of(const std::string& name, const fs::path& link) {
 void write_starter_project(const fs::path& dir) {
     std::error_code ec; fs::create_directories(dir, ec);
     auto put = [&](const std::string& name, const std::string& text) { std::ofstream(dir / name, std::ios::binary) << text; };
-    put("index.html", "<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Hello from Astro AI</title>\n  <link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n  <main>\n    <h1>Hello, world</h1>\n    <p>Edit <code>index.html</code>, <code>style.css</code> or <code>script.js</code>, or ask the team to build something.</p>\n    <button id=\"count\">Clicked 0 times</button>\n  </main>\n  <script src=\"script.js\"></script>\n</body>\n</html>\n");
+    put("index.html", "<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Hello from A.S.T.R.O AI</title>\n  <link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n  <main>\n    <h1>Hello, world</h1>\n    <p>Edit <code>index.html</code>, <code>style.css</code> or <code>script.js</code>, or ask the team to build something.</p>\n    <button id=\"count\">Clicked 0 times</button>\n  </main>\n  <script src=\"script.js\"></script>\n</body>\n</html>\n");
     put("style.css", "body {\n  margin: 0; min-height: 100vh; display: grid; place-items: center;\n  font-family: system-ui, sans-serif; background: #0b1020; color: #e8ecff;\n}\nmain { text-align: center; }\nbutton {\n  font: inherit; padding: 10px 18px; border-radius: 999px; border: 0;\n  background: linear-gradient(135deg, #6d8bff, #b06dff); color: white; cursor: pointer;\n}\n");
     put("script.js", "let clicks = 0;\nconst button = document.getElementById('count');\nbutton.addEventListener('click', () => {\n  clicks += 1;\n  button.textContent = `Clicked ${clicks} time${clicks === 1 ? '' : 's'}`;\n});\nconsole.log('Page ready');\n");
     put("main.cpp", "#include <iostream>\n\nint main() {\n    std::cout << \"Hello from C++20!\" << std::endl;\n    for (int i = 1; i <= 5; ++i) std::cout << i << \" squared is \" << i * i << '\\n';\n}\n");
@@ -203,7 +203,7 @@ std::string run_command_for(const std::string& rel, std::string& error) {
     // TypeScript: tsx (esbuild-based) strips types and runs on Node; fetched once into the shared npm cache.
     if (ext == ".ts" || ext == ".mts" || ext == ".cts" || ext == ".tsx") return need("npx", "TypeScript (Node.js / npx)") ? M + "npx --yes tsx " + q : "";
     if (ext == ".cs") { error = "C# needs the .NET SDK, which is not installed on this server. The team can still write C# and explain it, or port it to C++."; return ""; }
-    error = "Astro AI does not know how to run " + (ext.empty() ? std::string("this file") : ext + " files") + ".";
+    error = "A.S.T.R.O AI does not know how to run " + (ext.empty() ? std::string("this file") : ext + " files") + ".";
     return "";
 }
 
@@ -299,7 +299,7 @@ void run_stream(int fd, const fs::path& dir, const std::string& command, const s
         const std::string cmdline = winp::shell_cmdline(command, have_bash);
         if (!have_bash) {
             Json::Object o; o["exit"] = Json(-1.0);
-            o["error"] = Json(std::string("Running code on Windows needs Git for Windows (it provides bash). Install it from https://git-scm.com and restart Astro AI."));
+            o["error"] = Json(std::string("Running code on Windows needs Git for Windows (it provides bash). Install it from https://git-scm.com and restart A.S.T.R.O AI."));
             send_sse(fd, Json(std::move(o))); return;
         }
         const auto started = std::chrono::steady_clock::now();

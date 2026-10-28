@@ -1,5 +1,5 @@
 {
-  "about": "Astro AI coding benchmark: small, realistic repository tasks. Each task starts from 'files', the agent gets 'prompt', then the runner copies 'check_files' in (the agent never sees them) and runs 'check' in the folder: exit code 0 = pass.",
+  "about": "A.S.T.R.O AI coding benchmark: small, realistic repository tasks. Each task starts from 'files', the agent gets 'prompt', then the runner copies 'check_files' in (the agent never sees them) and runs 'check' in the folder: exit code 0 = pass.",
   "version": 1,
   "tasks": [
     {

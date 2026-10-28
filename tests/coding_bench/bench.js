@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Astro AI coding benchmark: asks real free models each task the OLD way and the NEW way, runs the code
-// against hidden tests and prints the pass rate. Needs a running Astro AI server (ASTRO_AUTH=off).
+// A.S.T.R.O AI coding benchmark: asks real free models each task the OLD way and the NEW way, runs the code
+// against hidden tests and prints the pass rate. Needs a running A.S.T.R.O AI server (ASTRO_AUTH=off).
 //   ASTRO_URL=http://127.0.0.1:4192 MODELS=a,b,c node tests/coding_bench/bench.js
 // OLD = general prompt, temperature 0.65, 1400-token cap (how a chat code question ran before 1.1.1).
 // NEW = coding standard, low temperature, 5000-token cap (payload.code = true).

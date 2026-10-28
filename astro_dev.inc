@@ -1,5 +1,5 @@
 // =============================================================================================
-// Astro AI developer platform (included from workspace_ide.inc, inside the anonymous namespace).
+// A.S.T.R.O AI developer platform (included from workspace_ide.inc, inside the anonymous namespace).
 // Everything a modern AI IDE / coding agent needs on the server side:
 //   * open a real folder on this computer as a project      POST /api/dev/fs/{browse,open,info}
 //   * MCP servers (Model Context Protocol), stdio + HTTP     POST /api/dev/mcp/{list,call,restart,stop,trust,config_get,config_set}
@@ -25,7 +25,7 @@ fs::path user_home_dir() {
     if (const char* h = std::getenv("HOME"); h && *h) return fs::path(h);
     return {};
 }
-// Folders under the user's home that Astro reads (other tools' skills, commands, agents and rules). Read-only.
+// Folders under the user's home that A.S.T.R.O reads (other tools' skills, commands, agents and rules). Read-only.
 const std::vector<std::string>& user_dot_dirs() {
     static const std::vector<std::string> v = {".claude", ".codex", ".agents", ".config/opencode", ".cursor", ".gemini"};
     return v;
@@ -122,7 +122,7 @@ void dev_open_folder(int fd, const Json& body) {
         return !o.empty() && (d == o || d.rfind(o + "/", 0) == 0 || o.rfind(d + "/", 0) == 0);
     };
     if (!dir.has_relative_path() || dir == user_home_dir()) { send_json(fd, 400, error_json("Pick a project folder, not the whole drive or your home folder.")); return; }
-    if (inside(fs::path(data_dir()))) { send_json(fd, 400, error_json("That folder is Astro AI's own data folder.")); return; }
+    if (inside(fs::path(data_dir()))) { send_json(fd, 400, error_json("That folder is A.S.T.R.O AI's own data folder.")); return; }
     // Already open? Reuse the same project.
     for (const auto& e : fs::directory_iterator(projects_root(), ec)) {
         const std::string n = e.path().filename().string();
@@ -300,7 +300,7 @@ bool mcp_answer_server_request(McpConn& c, const Json& msg) {
     else if (method == "roots/list") {
         Json::Object root; root["uri"] = Json("file://" + c.cwd.generic_string()); root["name"] = Json(c.cwd.filename().string());
         Json::Object r; r["roots"] = Json(Json::Array{Json(std::move(root))}); resp["result"] = Json(std::move(r));
-    } else { Json::Object e; e["code"] = Json(-32601); e["message"] = Json("Not supported by Astro AI: " + method); resp["error"] = Json(std::move(e)); }
+    } else { Json::Object e; e["code"] = Json(-32601); e["message"] = Json("Not supported by A.S.T.R.O AI: " + method); resp["error"] = Json(std::move(e)); }
     if (c.type == "stdio") mcp_write(c, dump_json(Json(std::move(resp))));
     return true;
 }
@@ -381,7 +381,7 @@ void mcp_start(McpConn& c) {
     try {
         if (c.type == "stdio" && !mcp_spawn(c)) throw std::runtime_error(c.error);
         Json::Object caps; caps["roots"] = Json(Json::Object{{"listChanged", Json(false)}});
-        Json::Object info; info["name"] = Json("Astro AI"); info["version"] = Json("3.0");
+        Json::Object info; info["name"] = Json("A.S.T.R.O AI"); info["version"] = Json("3.0");
         Json::Object p; p["protocolVersion"] = Json("2025-06-18"); p["capabilities"] = Json(std::move(caps)); p["clientInfo"] = Json(std::move(info));
         const Json init = mcp_rpc(c, "initialize", Json(std::move(p)), c.type == "stdio" ? 90 : 30);   // npx may download the server first
         if (const Json* si = init.get("serverInfo")) c.server_name = get_string(*si, "name");
@@ -647,7 +647,7 @@ void dev_scan(int fd, const Json& body) {
     }
     Json::Object o; o["files"] = Json(std::move(files));
     o["ext_root"] = Json(ext.string());
-    // External coding agents the Astro agent can delegate to (DeepSeek Harness-style "run other agents").
+    // External coding agents the A.S.T.R.O agent can delegate to (DeepSeek Harness-style "run other agents").
     Json::Array clis;
     for (const auto& [bin, label] : std::vector<std::pair<std::string, std::string>>{{"claude", "Claude Code"}, {"codex", "Codex CLI"}, {"opencode", "OpenCode"}, {"gemini", "Gemini CLI"}, {"dsh", "DeepSeek Harness"}, {"cursor-agent", "Cursor CLI"}, {"qwen", "Qwen Code"}, {"aider", "Aider"}})
         if (have_tool(bin)) { Json::Object c; c["bin"] = Json(bin); c["name"] = Json(label); clis.emplace_back(std::move(c)); }

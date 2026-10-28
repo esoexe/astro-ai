@@ -1,6 +1,6 @@
-# Astro AI coding benchmark
+# A.S.T.R.O AI coding benchmark
 
-These are small, realistic repository tasks. They measure how the Astro AI agent does with free models. Each task:
+These are small, realistic repository tasks. They measure how the A.S.T.R.O AI agent does with free models. Each task:
 
 1. starts from a few files in a fresh temporary folder,
 2. gives the agent a short job, the way a person would phrase it,
@@ -33,7 +33,7 @@ node bench/run.js --models "auto,router9:deepseek/deepseek-v4-pro" --repeat 3 --
 node bench/run.js --tasks js-off-by-one,c-makefile --review
 ```
 
-You need a running Astro AI engine: the desktop app, `astro server start`, or `ASTRO_URL`. Results go to `bench/results/<time>.json` and `bench/results/latest.md`.
+You need a running A.S.T.R.O AI engine: the desktop app, `astro server start`, or `ASTRO_URL`. Results go to `bench/results/<time>.json` and `bench/results/latest.md`.
 
 Needs: node, bash, a C compiler and make.
 

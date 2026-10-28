@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Build the custom Astro AI installer (Windows x64) for one edition.
-# Usage: build_setup.sh <stage-dir> <out.exe> "<App Name>" <AppId> <Exe.exe> <keys:0|1> <work-dir>
+# Build the custom A.S.T.R.O AI installer (Windows x64) for one edition.
+# Usage: build_setup.sh <stage-dir> <out.exe> "<App Name>" <AppId> <Exe.exe> <keys:0|1> <work-dir> ["<Display Name>"]
 #   <stage-dir> is the folder that gets installed (the same files as the portable zip).
 set -euo pipefail
-STAGE="$1"; OUT="$2"; APP="$3"; ID="$4"; EXE="$5"; KEYS="$6"; WORK="$7"
+STAGE="$1"; OUT="$2"; APP="$3"; ID="$4"; EXE="$5"; KEYS="$6"; WORK="$7"; DISPLAY_NAME="${8:-$3}"
 HERE="$(cd "$(dirname "$0")" && pwd)"; ROOT="$(cd "$HERE/../.." && pwd)"
 TP="$ROOT/desktop/third_party"
 CXX=x86_64-w64-mingw32-g++-posix; CC=x86_64-w64-mingw32-gcc-posix; RC=x86_64-w64-mingw32-windres
@@ -12,9 +12,11 @@ cat > "$WORK/edition.h" <<H
 #pragma once
 #define APP_NAME_W    L"$APP"
 #define APP_NAME_A    "$APP"
+#define APP_DISPLAY_W L"$DISPLAY_NAME"
+#define APP_DISPLAY_A "$DISPLAY_NAME"
 #define APP_ID_W      L"$ID"
 #define EXE_NAME_W    L"$EXE"
-#define APP_VERSION_W L"1.4.0"
+#define APP_VERSION_W L"1.4.1"
 #define EDITION_KEYS  $KEYS
 #define SETUP_PAYLOAD "$WORK/payload.zip"
 #define SETUP_WV2     "$TP/webview2-bootstrapper/MicrosoftEdgeWebview2Setup.exe"

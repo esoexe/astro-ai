@@ -101,11 +101,17 @@ r=$(call undo "{\"id\":\"$id\"}"); [ "$(head -1 "$R/f.txt")" = "two" ] && ok "un
 [ ! -e "$W" ] && ! (cd "$R" && git worktree list | grep -q agent-) && ok "worktree removed" || bad "worktree left: $(cd "$R" && git worktree list)"
 
 # --- partial merge + discard (copy mode) ---
-id1=$(call start '{"project":"demo","prompt":"create file README.md containing agent version","isolate":true,"interactive":false}' | jget id)
-wait_status "$id1" '^done$' 20; echo "user version" > "$D/demo/README.md"
-r=$(call merge "{\"id\":\"$id1\",\"partial\":true}"); has "$r" '"conflicts":\[{' && [ "$(cat "$D/demo/README.md")" = "user version" ] && ok "partial merge leaves conflicting files" || bad "partial: $r"
+id1=$(call start '{"project":"demo","prompt":"create file NOTES.md containing agent version","isolate":true,"interactive":false}' | jget id)
+wait_status "$id1" '^done$' 20; echo "user version" > "$D/demo/NOTES.md"
+r=$(call merge "{\"id\":\"$id1\",\"partial\":true}"); has "$r" '"conflicts":\[{' && [ "$(cat "$D/demo/NOTES.md")" = "user version" ] && ok "partial merge leaves conflicting files" || bad "partial: $r"
 W1="$D/$(call get "{\"id\":\"$id1\"}" | jget project)"
 call discard "{\"id\":\"$id1\"}" >/dev/null; [ ! -e "$W1" ] && ok "discard removes the copy" || bad "discard"
+
+# --- 3-way merge: the agent and the user changed different lines of the same file ---
+printf 'alpha\nb\nc\nd\ne\nf\nomega\n' > "$D/demo/three.txt"
+id=$(call start '{"project":"demo","prompt":"edit three.txt from omega to OMEGA","isolate":true,"interactive":false}' | jget id); wait_status "$id" '^done$' 20
+sed -i 's/^alpha$/ALPHA/' "$D/demo/three.txt"
+r=$(call merge "{\"id\":\"$id\",\"discard\":true}"); [ "$(head -1 "$D/demo/three.txt")" = "ALPHA" ] && [ "$(tail -1 "$D/demo/three.txt")" = "OMEGA" ] && has "$r" '"combined":true' && ok "3-way merge keeps both changes to one file" || bad "3-way: $r $(cat "$D/demo/three.txt")"
 
 # --- project tools (.astro/tools/*.json) ---
 mkdir -p "$D/demo/.astro/tools"
@@ -116,13 +122,43 @@ rm -f "$D/demo/greet.txt"
 id=$(call start '{"project":"demo","prompt":"use tool greet with who=plan","mode":"plan"}' | jget id); wait_status "$id" '^done$' 20
 [ ! -e "$D/demo/greet.txt" ] && ok "Plan mode blocks a project tool that is not read-only" || bad "plan custom tool"
 
+# --- a tool block missing its closing brace still runs; cwd=<project> works inside an isolated copy ---
+id=$(call start '{"project":"demo","prompt":"missing brace"}' | jget id); wait_status "$id" '^done$' 20
+[ -f "$D/demo/brace.txt" ] && ok "tool JSON missing a closing brace is repaired" || bad "brace: $(call get "{\"id\":\"$id\"}" | head -c 300)"
+id=$(call start '{"project":"demo","prompt":"fork cwd","isolate":true}' | jget id); wait_status "$id" '^done$' 20
+g=$(call get "{\"id\":\"$id\"}")
+echo "$g" | grep -q '"tool":"bash","type":"tool_done"' && ! echo "$g" | grep -q 'No folder' && ok "cwd=<project name> works in an isolated copy" || bad "fork cwd: $(echo "$g" | grep -o '"summary":"[^"]*"' | head -3)"
+call discard "{\"id\":\"$id\"}" > /dev/null
+
+# --- native tool-call markup (GLM <arg_key> style and Qwen JSON style) runs and is hidden ---
+id=$(call start '{"project":"demo","prompt":"native markup"}' | jget id); wait_status "$id" '^done$' 20
+g=$(call get "{\"id\":\"$id\"}")
+[ -f "$D/demo/glm.txt" ] && [ -f "$D/demo/q.txt" ] && ! echo "$g" | grep -q 'say[^}]*tool_call' && ok "native tool-call markup runs (GLM + JSON) and is hidden" || bad "native: $(ls "$D/demo") $(echo "$g" | head -c 400)"
+
+id=$(call start '{"project":"demo","prompt":"multi open"}' | jget id); wait_status "$id" '^done$' 20
+[ -f "$D/demo/m1.txt" ] && [ -f "$D/demo/m2.txt" ] && [ -f "$D/demo/m3.txt" ] && ok "several <tool_call> openers, name {args} and name(args=) forms" || bad "multi: $(ls "$D/demo") $(call get "{\"id\":\"$id\"}" | grep -o '"summary":"[^"]*"' | head -3)"
+
+id=$(call start '{"project":"demo","prompt":"fence in json"}' | jget id); wait_status "$id" '^done$' 20
+grep -q 'curl http://localhost:3000/todos' "$D/demo/DOCS.md" 2>/dev/null && grep -c '```' "$D/demo/DOCS.md" | grep -q '^2$' && ok "a code fence inside a JSON string does not end the tool block" || bad "fence in json: $(cat "$D/demo/DOCS.md" 2>&1 | head -5)"
+
+echo original > "$D/demo/keep.txt"
+id=$(call start '{"project":"demo","prompt":"blind rewrite"}' | jget id); wait_status "$id" '^done$' 20
+g=$(call get "{\"id\":\"$id\"}"); has "$g" 'which you have not read' && [ "$(cat "$D/demo/keep.txt")" = "replaced" ] && ok "write_file must read an existing file before replacing it" || bad "blind rewrite: $(echo "$g" | grep -o '"summary":"[^"]*"' | head -3)"
+id=$(call start '{"project":"demo","prompt":"failing check"}' | jget id); wait_status "$id" '^done$' 30
+g=$(call get "{\"id\":\"$id\"}"); has "$g" '"failing":"bash' && has "$g" 'Needs attention' && ok "a failing test command is reported on the done event" || bad "failing: $(echo "$g" | head -c 600)"
+
+# --- repeated calls run once; cwd = project name means the root; thinking-out-loud text is hidden ---
+id=$(call start '{"project":"demo","prompt":"dup and think"}' | jget id); wait_status "$id" '^done$' 20
+g=$(call get "{\"id\":\"$id\"}")
+[ "$(wc -l < "$D/demo/dup.txt" 2>/dev/null)" = "1" ] && ! echo "$g" | grep -q 'We need to run' && ok "duplicate call runs once, cwd=project works, reasoning hidden" || bad "dup: $(cat "$D/demo/dup.txt" 2>&1 | head -3) $(echo "$g" | head -c 300)"
+
 # --- tolerant parsing: a JSON tool call inside a ```bash fence, plus an empty fence ---
 id=$(call start '{"project":"demo","prompt":"fenced bash call"}' | jget id); wait_status "$id" '^done$' 20
 g=$(call get "{\"id\":\"$id\"}")
 [ -f "$D/demo/fenced.txt" ] && ! echo "$g" | grep -q 'Running it.\\n```' && ok "JSON call in a bash fence runs; empty fences are hidden" || bad "fenced: $(echo "$g" | head -c 400)"
 
 # --- server stop guard ---
-r=$(call server-stop '{}'); has "$r" 'belongs to the Astro AI app' && ok "server-stop refused for servers the CLI did not start" || bad "server-stop: $r"
+r=$(call server-stop '{}'); has "$r" 'belongs to the A.S.T.R.O AI app' && ok "server-stop refused for servers the CLI did not start" || bad "server-stop: $r"
 
 # --- VS Code extension (fake vscode module) ---
 if node tests/vscode_ext_test.js "$TMP/vsfolder" > "$TMP/vs.log" 2>&1; then ok "VS Code extension: run, parallel + merge, undo"; else bad "VS Code extension: $(tail -5 "$TMP/vs.log")"; fi

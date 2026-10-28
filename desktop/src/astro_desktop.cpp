@@ -1,7 +1,7 @@
-// Astro AI desktop launcher.
+// A.S.T.R.O AI desktop launcher.
 //
 // A small native window (system webview: WebView2 on Windows, WebKitGTK on Linux, WKWebView on macOS)
-// that starts the bundled Astro AI C++ server on 127.0.0.1, supervises it, and shows the app in the
+// that starts the bundled A.S.T.R.O AI C++ server on 127.0.0.1, supervises it, and shows the app in the
 // OpenCode-style desktop shell. No Electron, no Python, no Node at runtime.
 //
 // Resources (next to the executable, or Contents/Resources on macOS):
@@ -62,7 +62,7 @@ using namespace std::chrono_literals;
 
 namespace {
 
-constexpr const char* kVersion = "1.4.0";
+constexpr const char* kVersion = "1.4.1";
 
 // ------------------------------------------------------------------------------------------------
 // Small utilities
@@ -544,18 +544,18 @@ static int run_app();
 // in plain words instead of crashing.
 static void fatal(const std::string& what) {
 #ifdef _WIN32
-    const std::string msg = "Astro AI could not open its window.\n\n" + what +
-        "\n\nAstro AI uses the Microsoft Edge WebView2 Runtime (built into Windows 10 and 11). "
-        "Click OK to open the download page, install the Evergreen runtime, then start Astro AI again.";
-    if (MessageBoxW(nullptr, widen(msg).c_str(), L"Astro AI", MB_OKCANCEL | MB_ICONERROR) == IDOK)
+    const std::string msg = "A.S.T.R.O AI could not open its window.\n\n" + what +
+        "\n\nA.S.T.R.O AI uses the Microsoft Edge WebView2 Runtime (built into Windows 10 and 11). "
+        "Click OK to open the download page, install the Evergreen runtime, then start A.S.T.R.O AI again.";
+    if (MessageBoxW(nullptr, widen(msg).c_str(), L"A.S.T.R.O AI", MB_OKCANCEL | MB_ICONERROR) == IDOK)
         ShellExecuteW(nullptr, L"open", L"https://developer.microsoft.com/microsoft-edge/webview2/", nullptr, nullptr, SW_SHOWNORMAL);
 #else
-    std::fprintf(stderr, "Astro AI could not open its window: %s\n"
+    std::fprintf(stderr, "A.S.T.R.O AI could not open its window: %s\n"
                          "Linux needs a graphical session and WebKitGTK 4.1 (libwebkit2gtk-4.1-0).\n", what.c_str());
 #endif
 }
 
-// astroai://library/install?id=<id> (the website's "Open in Astro AI" button). Only a catalog id is taken from the
+// astroai://library/install?id=<id> (the website's "Open in A.S.T.R.O AI" button). Only a catalog id is taken from the
 // link; the app opens its Library on that item, and the user still sees what it does and presses Install.
 static std::string g_library_id;
 static void take_deep_link(const std::string& a) {
@@ -607,6 +607,9 @@ static int run_app() {
     if (cfg.edition.empty()) cfg.edition = "clean";
     cfg.name = json_field(edition_json, "name");
     if (cfg.name.empty()) cfg.name = cfg.edition == "clean" ? "Astro AI Clean" : "Astro AI";
+    // what people see (A.S.T.R.O AI); cfg.name stays the folder/data name so existing data keeps working
+    std::string display = json_field(edition_json, "display");
+    if (display.empty()) display = cfg.edition == "clean" ? "A.S.T.R.O AI Clean" : "A.S.T.R.O AI";
     std::string linux_name = json_field(edition_json, "data_name");
     if (linux_name.empty()) linux_name = cfg.edition == "clean" ? "astro-ai-clean" : "astro-ai";
     cfg.instance = linux_name;
@@ -650,7 +653,7 @@ static int run_app() {
     set_env("ASTRO_INSTANCE", cfg.instance);
 #ifdef __linux__
     g_set_prgname(linux_name.c_str());
-    g_set_application_name(cfg.name.c_str());
+    g_set_application_name(display.c_str());
 #endif
 
     // Hidden check for the build scripts: start + supervise + stop the server without a window.
@@ -682,14 +685,14 @@ static int run_app() {
         "linux";
 #endif
     const std::string info = std::string("{\"edition\":") + webview::detail::json_escape(cfg.edition) +
-                             ",\"name\":" + webview::detail::json_escape(cfg.name) +
+                             ",\"name\":" + webview::detail::json_escape(display) +
                              ",\"version\":" + webview::detail::json_escape(kVersion) +
                              ",\"platform\":" + webview::detail::json_escape(platform) +
                              ",\"port\":" + std::to_string(cfg.port) +
                              ",\"data_dir\":" + webview::detail::json_escape(pstr(cfg.data)) + "}";
 
     webview::webview w(false, nullptr);
-    w.set_title(cfg.name);
+    w.set_title(display);
     w.set_size(1280, 820, WEBVIEW_HINT_NONE);
     w.set_size(960, 640, WEBVIEW_HINT_MIN);
     w.init("window.__ASTRO_DESKTOP__ = " + info + ";");
@@ -758,7 +761,7 @@ static int run_app() {
     const std::string app_url = "http://127.0.0.1:" + std::to_string(cfg.port) + "/?desktop=1" + (g_library_id.empty() ? std::string() : "#library=" + g_library_id);
 
     auto show_error = [&](const std::string& why) {
-        const std::string html = error_html(cfg.name, why, log_tail(cfg.log));
+        const std::string html = error_html(display, why, log_tail(cfg.log));
         w.dispatch([&w, html, &navigated] { navigated = false; w.set_html(html); });
     };
     // Waits for the port, then shows the app (only the first time, or after an error page).
@@ -792,13 +795,13 @@ static int run_app() {
         }).detach();
     };
     w.bind("astroRetry", [&](const std::string&) -> std::string {
-        w.set_html(splash_html(cfg.name, cfg.edition));
-        if (reuse) std::thread([&] { if (!wait_and_open(10)) show_error("The running Astro AI window's server is gone. Close every window and start again."); }).detach();
+        w.set_html(splash_html(display, cfg.edition));
+        if (reuse) std::thread([&] { if (!wait_and_open(10)) show_error("The running A.S.T.R.O AI window's server is gone. Close every window and start again."); }).detach();
         else supervise();
         return "true";
     });
 
-    w.set_html(splash_html(cfg.name, cfg.edition));
+    w.set_html(splash_html(display, cfg.edition));
     if (reuse) std::thread([&] { wait_and_open(10); }).detach();
     else supervise();
 

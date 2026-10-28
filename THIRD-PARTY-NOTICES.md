@@ -1,6 +1,6 @@
 # Third-party notices
 
-Astro AI's own code is licensed under MIT OR Apache-2.0 OR GPL-3.0-only (see `LICENSE`).
+A.S.T.R.O AI's own code is licensed under MIT OR Apache-2.0 OR GPL-3.0-only (see `LICENSE`).
 These bundled components keep their own licenses. Their full license texts ship next to them in this repo.
 
 | Component | Where | License | License text |
@@ -15,4 +15,4 @@ These bundled components keep their own licenses. Their full license texts ship 
 | xterm.js and addon-fit (bundled in `web/vendor/ide.js`) | `web/vendor/ide.js`, `web/vendor/xterm.css` | MIT | https://github.com/xtermjs/xterm.js/blob/master/LICENSE |
 | Inter, Instrument Serif, JetBrains Mono fonts | `web/vendor/*.woff2`, `website/src/static/assets/fonts/`, `desktop/setup/fonts/` | SIL Open Font License 1.1 | `web/vendor/FONTS-LICENSE.txt` |
 
-AI providers listed in `providers.json` are third-party services with their own terms. Astro AI is not affiliated with them.
+AI providers listed in `providers.json` are third-party services with their own terms. A.S.T.R.O AI is not affiliated with them.

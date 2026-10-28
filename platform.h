@@ -1,4 +1,4 @@
-// platform.h - every operating-system difference of the Astro AI C++ backend lives here.
+// platform.h - every operating-system difference of the A.S.T.R.O AI C++ backend lives here.
 //
 //   Linux   : POSIX sockets, fork/exec, forkpty, OpenSSL libcrypto      (the original server)
 //   macOS   : POSIX sockets, fork/exec, forkpty (<util.h>), CommonCrypto (no OpenSSL needed)
@@ -87,7 +87,7 @@ extern char** environ;   // the process environment (used to start MCP servers w
 #endif
 
 // ------------------------------------------------------------------------------------------------
-// Secrets of the Astro AI server itself (model keys, service tokens). Programs it starts - MCP servers,
+// Secrets of the A.S.T.R.O AI server itself (model keys, service tokens). Programs it starts - MCP servers,
 // project code, terminals - never inherit them; a server that needs a key gets it from its own "env" settings.
 // ------------------------------------------------------------------------------------------------
 inline bool astro_secret_env(const std::string& name_in) {

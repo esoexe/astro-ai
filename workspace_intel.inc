@@ -196,7 +196,7 @@ Captured run_capture(const std::vector<std::string>& args, const fs::path& cwd, 
         std::vector<std::string> a = args;
         if (a[0] == "/bin/bash" || a[0] == "bash") {
             a[0] = winp::bash_path();
-            if (a[0].empty()) { r.code = 127; r.err = "This needs Git for Windows (it provides bash). Install it from https://git-scm.com and restart Astro AI."; return r; }
+            if (a[0].empty()) { r.code = 127; r.err = "This needs Git for Windows (it provides bash). Install it from https://git-scm.com and restart A.S.T.R.O AI."; return r; }
         } else if (fs::path(a[0]).is_relative()) {
             const std::string w = winp::which(a[0]);
             if (w.empty()) { r.code = 127; r.err = a[0] + ": command not found"; return r; }
@@ -302,7 +302,7 @@ void ide_git(int fd, const fs::path& base, const Json& body) {
     const std::vector<std::string> env = {
         "GIT_CEILING_DIRECTORIES=" + fs::path(projects_root()).string(), "GIT_TERMINAL_PROMPT=0", "GIT_PAGER=cat", "PAGER=cat",
         "GIT_OPTIONAL_LOCKS=0", "GIT_CONFIG_NOSYSTEM=1"};
-    const std::string name = clean_identity(get_string(body, "author"), "Astro AI Workspace");
+    const std::string name = clean_identity(get_string(body, "author"), "A.S.T.R.O AI Workspace");
     const std::string email = clean_identity(get_string(body, "email"), "workspace@astro.local");
     auto git = [&](std::vector<std::string> args, int timeout_s = 20) {
         std::vector<std::string> full = {"git", "-c", "user.name=" + name, "-c", "user.email=" + email, "-c", "core.quotepath=off",

@@ -1,4 +1,4 @@
-// Astro AI Workspace editor + terminal bundle (CodeMirror 6 + xterm.js).
+// A.S.T.R.O AI Workspace editor + terminal bundle (CodeMirror 6 + xterm.js).
 // Built into web/vendor/ide.js as window.AstroIDE. Colours come from CSS variables (--cm-*),
 // so the editor follows the app's dark / light theme without rebuilding.
 import { EditorView, Decoration, WidgetType, ViewPlugin, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter, drawSelection, dropCursor,

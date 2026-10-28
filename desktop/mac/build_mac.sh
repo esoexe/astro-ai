@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds the Astro AI macOS app (universal: Apple Silicon + Intel) and a .dmg from this kit.
+# Builds the A.S.T.R.O AI macOS app (universal: Apple Silicon + Intel) and a .dmg from this kit.
 # Needs macOS 11+ and the Xcode Command Line Tools:  xcode-select --install
 # Usage:  ./build_mac.sh            -> "<Name>.app" and "<Name>.dmg" next to this script
 #         ARCHS="-arch arm64" ./build_mac.sh   (build for one architecture only)
@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 field() { sed -n "s/.*\"$1\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" payload/edition.json | head -1; }
-EDITION="$(field edition)"; NAME="$(field name)"
+EDITION="$(field edition)"; NAME="$(field display)"; [ -n "$NAME" ] || NAME="$(field name)"   # display name (A.S.T.R.O AI); the data folder keeps "name"
 BUNDLE_ID="ai.astro.desktop"; [ "$EDITION" = "clean" ] && BUNDLE_ID="ai.astro.desktop.clean"
 ARCHS="${ARCHS:--arch arm64 -arch x86_64}"
 MIN="-mmacosx-version-min=11.0"
@@ -52,12 +52,12 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleExecutable</key><string>astro-desktop</string>
   <key>CFBundleIconFile</key><string>astro.icns</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>1.4.0</string>
-  <key>CFBundleVersion</key><string>1.4.0</string>
+  <key>CFBundleShortVersionString</key><string>1.4.1</string>
+  <key>CFBundleVersion</key><string>1.4.1</string>
   <key>LSMinimumSystemVersion</key><string>11.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.developer-tools</string>
   <key>NSHighResolutionCapable</key><true/>
-  <key>NSMicrophoneUsageDescription</key><string>Astro AI uses the microphone for voice input and Live voice chat.</string>
+  <key>NSMicrophoneUsageDescription</key><string>A.S.T.R.O AI uses the microphone for voice input and Live voice chat.</string>
   <key>NSAppTransportSecurity</key><dict><key>NSAllowsLocalNetworking</key><true/></dict>
 </dict></plist>
 PLIST
