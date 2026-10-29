@@ -17,9 +17,33 @@ $Repo = 'esoexe/astro-ai'
 $Fallback = '__ASTRO_VERSION__'
 $Dest = if ($env:ASTRO_HOME) { $env:ASTRO_HOME } else { Join-Path $env:LOCALAPPDATA 'Programs\AstroAI-CLI' }
 
-function Step($m) { Write-Host "● " -ForegroundColor DarkYellow -NoNewline; Write-Host $m }
-function Ok($m) { Write-Host "  ✓ " -ForegroundColor Green -NoNewline; Write-Host $m }
-function Fail($m) { Write-Host "✗ $m" -ForegroundColor Red; throw $m }
+# This file is kept pure ASCII: Windows PowerShell 5.1's irm decodes it as Latin-1, so symbols are built from code points.
+try { [Console]::OutputEncoding = [Text.Encoding]::UTF8 } catch { }
+$Sym = @{ dot = [string][char]0x25CF; ok = [string][char]0x2713; bad = [string][char]0x2717; mid = [string][char]0x00B7 }
+function Step($m) { Write-Host "$($Sym.dot) " -ForegroundColor DarkYellow -NoNewline; Write-Host $m }
+function Ok($m) { Write-Host "  $($Sym.ok) " -ForegroundColor Green -NoNewline; Write-Host $m }
+function Fail($m) { Write-Host "$($Sym.bad) $m" -ForegroundColor Red; throw $m }
+
+# Stops every astro / astro-server started from $dir and waits until Windows has released their files.
+function Stop-Astro([string]$dir) {
+  $procs = @(Get-Process astro, astro-server -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path -like "$dir\*" })
+  if ($procs.Count -eq 0) { return }
+  Write-Host "  stopping the running A.S.T.R.O engine ($($procs.Count) process(es))" -ForegroundColor DarkGray
+  $procs | Stop-Process -Force -ErrorAction SilentlyContinue
+  $procs | Wait-Process -Timeout 10 -ErrorAction SilentlyContinue
+  Start-Sleep -Milliseconds 400
+}
+
+# Replaces one file even if it is still locked: a running .exe can't be overwritten or deleted on Windows,
+# but it CAN be renamed, so the old copy is moved aside and removed on the next install.
+function Install-File([string]$from, [string]$to) {
+  for ($i = 0; $i -lt 5; $i++) {
+    try { Copy-Item -LiteralPath $from -Destination $to -Force; return } catch { Start-Sleep -Milliseconds 500 }
+  }
+  $aside = "$to.old-" + [Guid]::NewGuid().ToString('N').Substring(0, 8)
+  Rename-Item -LiteralPath $to -NewName (Split-Path $aside -Leaf)
+  Copy-Item -LiteralPath $from -Destination $to -Force
+}
 
 function Set-UserPath([string]$dir, [bool]$add) {
   $cur = [Environment]::GetEnvironmentVariable('Path', 'User'); if (-not $cur) { $cur = '' }
@@ -29,8 +53,9 @@ function Set-UserPath([string]$dir, [bool]$add) {
 }
 
 if ($env:ASTRO_UNINSTALL -eq '1') {
-  Get-Process astro-server -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "$Dest*" } | Stop-Process -Force -ErrorAction SilentlyContinue
-  if (Test-Path $Dest) { Remove-Item -Recurse -Force $Dest }
+  Stop-Astro $Dest
+  if (Test-Path $Dest) { Remove-Item -Recurse -Force $Dest -ErrorAction SilentlyContinue }
+  if (Test-Path $Dest) { Write-Host "  Some files are still in use; close every astro window and run this again to remove $Dest" -ForegroundColor DarkYellow }
   Set-UserPath $Dest $false
   Ok 'A.S.T.R.O AI terminal install removed. Your chats, settings and keys were kept.'
   return
@@ -56,7 +81,7 @@ $Tmp = Join-Path ([IO.Path]::GetTempPath()) ("astro-" + [Guid]::NewGuid().ToStri
 New-Item -ItemType Directory -Path $Tmp | Out-Null
 
 Write-Host ''
-Write-Host '  A.S.T.R.O AI' -NoNewline; Write-Host " v$Version · terminal install · Windows x64" -ForegroundColor DarkGray
+Write-Host '  A.S.T.R.O AI' -NoNewline; Write-Host " v$Version $($Sym.mid) terminal install $($Sym.mid) Windows x64" -ForegroundColor DarkGray
 Write-Host ''
 try {
   Step "Downloading $File"
@@ -80,13 +105,18 @@ try {
   Expand-Archive -Path (Join-Path $Tmp $File) -DestinationPath $Tmp -Force
   $src = Get-ChildItem -Path $Tmp -Directory | Where-Object { Test-Path (Join-Path $_.FullName 'astro.exe') } | Select-Object -First 1
   if (-not $src) { Fail "The archive doesn't look right (no astro.exe inside)." }
-  Get-Process astro-server -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "$Dest*" } | Stop-Process -Force -ErrorAction SilentlyContinue
-  if (Test-Path $Dest) { Remove-Item -Recurse -Force $Dest }
+  Stop-Astro $Dest
   New-Item -ItemType Directory -Path $Dest -Force | Out-Null
+  # leftovers from an earlier update that were still running at the time
+  Get-ChildItem -LiteralPath $Dest -Filter '*.old-*' -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
   foreach ($f in 'astro.exe', 'astro-server.exe', 'edition.json', 'providers.json', 'README.txt') {
-    $p = Join-Path $src.FullName $f; if (Test-Path $p) { Copy-Item $p $Dest }
+    $p = Join-Path $src.FullName $f; if (Test-Path $p) { Install-File $p (Join-Path $Dest $f) }
   }
-  Copy-Item -Recurse (Join-Path $src.FullName 'web') (Join-Path $Dest 'web')
+  # the web UI has no running files: replace the folder outright
+  $web = Join-Path $Dest 'web'
+  if (Test-Path $web) { Remove-Item -Recurse -Force $web -ErrorAction SilentlyContinue }
+  if (Test-Path $web) { Copy-Item -Path (Join-Path $src.FullName 'web\*') -Destination $web -Recurse -Force }
+  else { Copy-Item -Recurse -LiteralPath (Join-Path $src.FullName 'web') -Destination $web }
   Get-ChildItem -Recurse $Dest | Unblock-File -ErrorAction SilentlyContinue
 
   Set-UserPath $Dest $true
@@ -98,7 +128,7 @@ try {
 }
 
 Write-Host ''
-Write-Host '✓ Installed.' -ForegroundColor Green -NoNewline; Write-Host ' Open a project folder and run:'
+Write-Host "$($Sym.ok) Installed." -ForegroundColor Green -NoNewline; Write-Host ' Open a project folder and run:'
 Write-Host ''
 Write-Host '    astro                      ' -ForegroundColor DarkYellow -NoNewline; Write-Host '# chat with the team in this folder' -ForegroundColor DarkGray
 Write-Host '    astro -p "fix the tests"   ' -ForegroundColor DarkYellow -NoNewline; Write-Host '# one task, start to finish' -ForegroundColor DarkGray

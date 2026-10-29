@@ -17,6 +17,11 @@ echo "signed in as $LOGIN"
 STAGE="$WORK/export"; CLONE="$WORK/clone"
 tools/export_repo.sh "$STAGE" "$LOGIN" | tail -1
 node tools/scan_secrets.js "$STAGE" > /dev/null || { echo "secret scan failed; NOT pushing"; exit 1; }
+# Guard: after a workspace restore website/downloads can be empty, which would wipe every installer from the site.
+NDL=$(find "$STAGE/website/downloads" -type f 2>/dev/null | wc -l)
+if [ "$NDL" -lt 5 ] && [ "${ALLOW_NO_DOWNLOADS:-0}" != 1 ]; then
+  echo "refusing to push: only $NDL installer(s) in website/downloads (restore them, or set ALLOW_NO_DOWNLOADS=1)"; exit 1
+fi
 
 ASK="$WORK/askpass.sh"; printf '#!/bin/sh\ncase "$1" in Username*) echo x-access-token;; *) tr -d " \\r\\n" < "%s";; esac\n' "$TOKEN_FILE" > "$ASK"; chmod 700 "$ASK"
 export GIT_ASKPASS="$ASK" GIT_TERMINAL_PROMPT=0

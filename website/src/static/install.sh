@@ -113,6 +113,8 @@ else
   xattr -dr com.apple.quarantine "$NEW" 2>/dev/null || true
 fi
 chmod 755 "$NEW/astro" "$NEW/astro-server" 2>/dev/null || true
+# an engine left running from the old version would keep answering with old code: stop it first
+if command -v pkill >/dev/null 2>&1; then pkill -f "$HOME_DIR/astro-server" >/dev/null 2>&1 || true; fi
 rm -rf "$HOME_DIR"; mv "$NEW" "$HOME_DIR"
 
 mkdir -p "$BIN_DIR"
