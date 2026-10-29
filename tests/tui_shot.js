@@ -3,6 +3,7 @@
 //   node tests/tui_shot.js run.json frames/ --frames 30   (one PNG per frame, for video)
 //   add --light to draw a light terminal (white background) for light-theme checks
 //   node tests/tui_shot.js run.json clipdir/ --clip [--from ms --to ms --clip-fps 30]   (trailer clip: a JPEG per change + frames.json)
+//   --sixel: draw Sixel images (the HD logo) with @xterm/addon-image; prints the cell size in CSS px.
 //   --bare: no window title bar, margin or shadow (for pages that frame the screenshot themselves).
 // Needs playwright + @xterm/xterm (NODE_PATH=/tmp/pw/node_modules).
 const fs = require('fs');
@@ -37,7 +38,7 @@ html,body{margin:0;background:transparent}
 #t{padding:calc(var(--s)*10px) calc(var(--s)*12px) calc(var(--s)*12px)}
 .xterm-viewport{overflow:hidden!important}
 </style><div id="win"><div id="bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><b></b></div><div id="t"></div></div>
-<script>${fs.readFileSync(path.join(xtermDir, 'lib/xterm.js'), 'utf8')}</script><script>${fs.readFileSync(require.resolve('@xterm/addon-canvas'), 'utf8')}</script>`;
+<script>${fs.readFileSync(path.join(xtermDir, 'lib/xterm.js'), 'utf8')}</script><script>${fs.readFileSync(require.resolve('@xterm/addon-canvas'), 'utf8')}</script>${args.includes('--sixel') ? '<script>' + fs.readFileSync(require.resolve('@xterm/addon-image'), 'utf8') + '</script>' : ''}`;
 
 (async () => {
   const browser = await chromium.launch();
@@ -50,9 +51,10 @@ html,body{margin:0;background:transparent}
       await document.fonts.load(`${fontSize}px JBM`);
       window.term = new Terminal({ cols, rows, fontFamily: 'JBM, DejaVu Sans Mono, monospace', fontSize, lineHeight: 1.0, customGlyphs: true, allowProposedApi: true,
         theme: LIGHT ? { background: '#ffffff', foreground: '#24292f', cursor: '#0969da', cursorAccent: '#ffffff', selectionBackground: '#cfe3ff' } : { background: '#0d0c0e', foreground: '#e7e5e4', cursor: '#f3a679', cursorAccent: '#0d0c0e', selectionBackground: '#3a2a20' }, cursorStyle: 'bar', cursorBlink: false });
-      term.open(document.getElementById('t')); if (!window.NO_CANVAS) term.loadAddon(new CanvasAddon.CanvasAddon());
+      term.open(document.getElementById('t')); if (!window.NO_CANVAS) term.loadAddon(new CanvasAddon.CanvasAddon()); if (window.ImageAddon) term.loadAddon(new ImageAddon.ImageAddon({ sixelSupport: true })); window.cellPx = () => { const d = term._core._renderService.dimensions.css.cell; return [d.width, d.height]; };
       window.feed = (s) => new Promise((r) => term.write(s, r));
     }, { cols: run.cols, rows: run.rows, title, fontSize, LIGHT: args.includes('--light') });   // --light: a light terminal (white background)
+    if (args.includes('--sixel')) console.log('cell px', JSON.stringify(await page.evaluate(() => window.cellPx())));
     const win = await page.$('#win');
     if (args.includes('--clip')) {
       // trailer clip: a JPEG each time the screen changes (at most fps per second) + frames.json {frames:[{file,t}]} in seconds

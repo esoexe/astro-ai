@@ -1,6 +1,6 @@
 // Drives the full-screen terminal app in a real pseudo-terminal (util-linux `script`) and replays
 // its output through xterm.js, so tests can read the screen and recordings can render it.
-//   node tests/tui_drive.js <steps.json> [--cols 120 --rows 36 --out run.json]
+//   node tests/tui_drive.js <steps.json> [--cols 120 --rows 36 --out run.json] [--gfx sixel|text --cell 10x20]
 // steps: [{"wait": ms} | {"keys": "text with \\r \\x1b ..."} | {"snap": "name"} | {"until": "regex", "timeout": ms}]
 // Needs @xterm/headless (NODE_PATH=/tmp/pw/node_modules). Env is passed through (ASTRO_URL etc.).
 const { spawn } = require('child_process');
@@ -21,7 +21,16 @@ const t0 = Date.now();
 const p = spawn('script', ['-qfec', `stty rows ${rows} cols ${cols}; exec ${cmd}`, '/dev/null'], { cwd, env: { ...process.env, TERM: 'xterm-256color', COLORTERM: 'truecolor' } });
 // StringDecoder keeps a multi-byte character that is split across two reads together (d.toString() would turn it into two U+FFFD).
 const dec = new (require('string_decoder').StringDecoder)('utf8');
-p.stdout.on('data', (d) => { const s = dec.write(d); if (!s) return; chunks.push([Date.now() - t0, s]); term.write(s); });
+// --gfx sixel|text answers the start-up probe like Windows Terminal 1.22+ (DA1 with or without "4", a 10x20 cell, OSC 11);
+// --cell WxH changes the reported cell. Without --gfx nothing answers, as on a terminal that ignores the queries.
+const gfx = opt('--gfx', ''); const [cellW, cellH] = opt('--cell', '10x20').split('x').map(Number);
+const probeAnswer = (s) => {
+  if (!gfx) return;
+  if (s.includes('\x1b]11;?')) p.stdin.write('\x1b]11;rgb:0d0d/0c0c/0e0e\x1b\\');
+  if (s.includes('\x1b[16t')) p.stdin.write(`\x1b[6;${cellH};${cellW}t`);
+  if (s.includes('\x1b[c')) p.stdin.write(gfx === 'sixel' ? '\x1b[?61;4;6;7;14;21;22;23;24;28;32;42c' : '\x1b[?61;6;7;14;21;22;23;24;28;32;42c');
+};
+p.stdout.on('data', (d) => { const s = dec.write(d); if (!s) return; probeAnswer(s); chunks.push([Date.now() - t0, s]); term.write(s); });
 p.stderr.on('data', (d) => process.stderr.write(d));
 let exited = false; p.on('exit', () => { exited = true; });
 

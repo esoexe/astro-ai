@@ -10,7 +10,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
-VER="1.6.0"
+VER="1.6.1"
 OUT="$ROOT/desktop-builds"
 WORK="$ROOT/.cache/pkg"
 TP="$ROOT/desktop/third_party"
@@ -21,6 +21,8 @@ echo "==> Linux binaries"
 gcc -std=c11 -O2 -c desktop/src/linux_compat.c -o "$WORK/linux_compat.o"
 COMPAT=("$WORK/linux_compat.o" -lm -static-libstdc++ -static-libgcc -Wl,--wrap=fmod -s)
 g++ -std=c++20 -O2 -pthread workspace_server.cpp -o "$WORK/bin/astro-server" $(pkg-config --cflags --libs libcurl) -lcrypto -lutil -lz "${COMPAT[@]}" &
+# Under ~2.5 GB free, two big compiles at once swap the machine to a standstill: build one at a time.
+if [ "$(awk '/MemAvailable/{print $2}' /proc/meminfo)" -lt 2500000 ]; then wait; fi
 g++ -std=c++17 -O2 -I"$TP/webview/include" desktop/src/astro_desktop.cpp -o "$WORK/bin/astro-desktop" \
     $(pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.1) -ldl -pthread "${COMPAT[@]}"
 wait

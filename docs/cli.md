@@ -23,7 +23,7 @@ irm https://esoexe.github.io/astro-ai/install.ps1 | iex
 
 The script downloads the Clean portable build (macOS: the disk image) from the latest GitHub release and checks it against the release's `SHA256SUMS.txt`. It then installs `astro` and its engine into `~/.astro-ai` and links `~/.local/bin/astro`. On Windows the files go into `%LOCALAPPDATA%\Programs\AstroAI-CLI`, which is added to your user PATH. Run it again to update.
 
-Options: `ASTRO_VERSION=1.6.0` installs a specific version, `ASTRO_HOME` changes the install folder and `ASTRO_BIN` changes the link folder (Linux/macOS). Uninstall with `curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh -s -- --uninstall`, or on Windows set `$env:ASTRO_UNINSTALL="1"` and run the PowerShell line again. Uninstalling keeps your chats, settings and keys.
+Options: `ASTRO_VERSION=1.6.1` installs a specific version, `ASTRO_HOME` changes the install folder and `ASTRO_BIN` changes the link folder (Linux/macOS). Uninstall with `curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh -s -- --uninstall`, or on Windows set `$env:ASTRO_UNINSTALL="1"` and run the PowerShell line again. Uninstalling keeps your chats, settings and keys.
 
 It works right away with the free models that need no key. To add more providers, open `http://127.0.0.1:47612` in a browser while the engine runs and go to Settings → Providers.
 
@@ -66,6 +66,7 @@ Since version 1.5, `astro` opens a full-screen app in your terminal, in the styl
 - **Colours.** True colour when the terminal supports it (`COLORTERM=truecolor`), otherwise 256 colours. It follows a light or dark terminal; force one with `ASTRO_THEME=light|dark`. `NO_COLOR=1` turns colour off. `/mouse` turns on mouse-wheel scrolling (it is off by default so you can select text).
 - **Themes (1.6).** `/theme` opens a picker with the same themes as the app (A.S.T.R.O Peach, Teal, Tokyo Night, Catppuccin, Dracula, Nord, One Dark, Gruvbox, Rosé Pine, GitHub, Solarized, Midnight and light versions). Arrow keys preview, Enter keeps, Esc cancels. `/theme <name>` sets one directly. The choice is saved in `~/.config/astro-ai/tui.conf` (Windows: `%APPDATA%\astro-ai\tui.conf`); `ASTRO_THEME=<name>` overrides it. Themes change the text colours; the terminal's own background stays.
 - **Live logo (1.6).** The welcome card draws the orbit logo live in true colour, with satellites moving along the rings. `/logo off` (or `ASTRO_NO_ANIM=1`) keeps it still.
+- **HD logo (1.6.1).** In terminals that show Sixel pictures (Windows Terminal 1.22+, WezTerm, iTerm2, foot, Konsole and others) the logo is drawn as a sharp high-resolution picture at up to 25 fps. A.S.T.R.O detects support at start-up; `/logo hd` or `/logo text` chooses for you, `/logo auto` restores detection, `/logo info` shows what was found. `ASTRO_LOGO=hd|text` does the same from the environment.
 
 | Command | What it does |
 |---|---|
@@ -78,7 +79,7 @@ Since version 1.5, `astro` opens a full-screen app in your terminal, in the styl
 | `/agents`, `/merge <id>`, `/discard <id>` | Manage isolated agents and apply or drop their changes. |
 | `/init` | Write `AGENTS.md`, a guide to this project for agents. |
 | `/export [file]`, `/copy` | Save the conversation as Markdown, or copy the last answer. |
-| `/theme [name]`, `/logo on\|off` | Colour theme with live preview; animated or still logo. |
+| `/theme [name]`, `/logo on\|off\|hd\|text\|auto\|info` | Colour theme with live preview; animated or still logo; HD picture or text logo. |
 | `/panel`, `/mouse`, `/status`, `/help` | Side panel, mouse scrolling, engine and session details, help. |
 | `/stop`, `/quit` | Stop the agent (Esc), or quit (Ctrl+D). |
 

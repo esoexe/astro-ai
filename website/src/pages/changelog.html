@@ -9,8 +9,25 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
-    <article class="release latest reveal" id="v1-6-0">
-      <header><h2>1.6.0</h2><span class="badge">Latest</span><time datetime="2026-10-29">October 29, 2026</time></header>
+    <article class="release latest reveal" id="v1-6-1">
+      <header><h2>1.6.1</h2><span class="badge">Latest</span><time datetime="2026-10-29">October 29, 2026</time></header>
+      <p class="muted">A sharp, smooth HD logo in the terminal and a new launch film.</p>
+
+      <h3>HD logo in the terminal</h3>
+      <ul class="ticks">
+        <li>In terminals that can show pictures (Sixel), such as Windows Terminal 1.22 or newer, WezTerm, iTerm2, foot and Konsole, the welcome card now draws the orbit logo as a real high-resolution picture instead of text blocks. It stays sharp at any font size</li>
+        <li>The logo animates smoothly, at up to 25 frames a second, with satellites passing behind the core. Other terminals keep the true-colour text logo</li>
+        <li>A.S.T.R.O checks what your terminal supports when it starts. <code>/logo hd</code> or <code>/logo text</code> picks one yourself, <code>/logo auto</code> goes back to the check, and <code>/logo info</code> shows what was detected. You can also set <code>ASTRO_LOGO=hd</code> or <code>ASTRO_LOGO=text</code></li>
+      </ul>
+
+      <h3>Launch film</h3>
+      <ul class="ticks">
+        <li>A new 48-second launch film on the home page, recorded in 4K from the real app and the real <code>astro</code> command. Download it in 1080p or 4K from the press kit</li>
+      </ul>
+    </article>
+
+    <article class="release reveal" id="v1-6-0">
+      <header><h2>1.6.0</h2><time datetime="2026-10-29">October 29, 2026</time></header>
       <p class="muted">Themes everywhere, real language tools, VS Code extensions (preview) and a live, animated logo.</p>
 
       <h3>Themes</h3>

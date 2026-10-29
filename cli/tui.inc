@@ -393,6 +393,238 @@ static std::vector<Line> logo_art(double t) {
     return out;
 }
 
+
+// ===================================================================== the app icon as real pixels (Sixel)
+// Terminals that can show images (Windows Terminal 1.22+, WezTerm, iTerm2, foot, Konsole, xterm, mlterm, VS Code with
+// images on) get the logo as a true-colour picture instead of half-blocks: 10x20 pixels per cell on Windows Terminal
+// (its virtual cell, scaled to the font by the terminal), or the real cell size other terminals report. Same geometry
+// as logo_art. The rings and the core never move, so they are drawn once per size and theme; each frame only adds the
+// satellites and the breathing glow, then goes out as one Sixel image over the welcome card's blank logo cells.
+static int g_gfx = 0;                      // 1: draw the logo as a Sixel picture
+static int g_cell_w = 10, g_cell_h = 20;   // pixels per cell (CSI 16 t), Windows Terminal always answers 10x20
+static uint32_t g_term_bg = 0;             // the terminal's own background (OSC 11), 0 when it did not say
+static std::string g_gfx_why = "not checked";
+static const int LOGO_ROWS = LOGO_W / 2;
+
+struct LogoPix {
+    std::string key; int w = 0, h = 0, side = 0, ox = 0, oy = 0;
+    uint32_t bgc = 0;
+    struct Layer { std::vector<float> r, g, b, a; void init(size_t n) { r.assign(n, 0); g.assign(n, 0); b.assign(n, 0); a.assign(n, 0); } };
+    Layer back, core, front; std::vector<float> glow;
+    std::vector<uint32_t> pal; std::vector<int16_t> lut;
+    std::vector<float> fr, fg, fb, fa, kr, kg, kb, ka;   // per-frame satellites (back and front)
+};
+static LogoPix g_lp;
+
+static uint32_t logo_bg() { return g_term_bg ? g_term_bg : (g_light_bg ? 0xffffffu : 0x0d0c0eu); }
+static void logo_rgb(uint32_t c, float& r, float& g, float& b) { r = ((c >> 16) & 255) / 255.f; g = ((c >> 8) & 255) / 255.f; b = (c & 255) / 255.f; }
+
+// satellites at time t: centres, which side of the rings they are on
+static void logo_sats(double t, double sx[4], double sy[4], bool sf[4]) {
+    static const double orot[3] = {0.0, 1.0472, -1.0472};
+    static const double sat[4][3] = {{0, 3.3, 0.55}, {1, 0.9, 0.42}, {2, 2.2, -0.47}, {1, 4.0, 0.42}};
+    for (int i = 0; i < 4; ++i) {
+        const double rot = orot[static_cast<int>(sat[i][0])], th = std::fmod(sat[i][1] + sat[i][2] * t, 6.283185307179586);
+        const double lx = 0.93 * std::cos(th), ly = 0.305 * std::sin(th);
+        sx[i] = lx * std::cos(rot) - ly * std::sin(rot); sy[i] = lx * std::sin(rot) + ly * std::cos(rot); sf[i] = std::sin(th) > 0;
+    }
+}
+
+static void logo_prepare(int w, int h) {
+    const uint32_t bgc = logo_bg();
+    const std::string key = std::to_string(w) + "x" + std::to_string(h) + "|" + g_theme + "|" + std::to_string(bgc) + "|" + std::to_string(PEACH) + std::to_string(CORE_T);
+    if (key == g_lp.key) return;
+    LogoPix& L = g_lp; L = LogoPix{}; L.key = key; L.w = w; L.h = h; L.bgc = bgc;
+    L.side = std::min(w, h); L.ox = (w - L.side) / 2; L.oy = (h - L.side) / 2;
+    const size_t n = static_cast<size_t>(w) * static_cast<size_t>(h);
+    L.back.init(n); L.core.init(n); L.front.init(n); L.glow.assign(n, 0);
+    const double R = 0.37, LW = 0.095;
+    static const double orot[3] = {0.0, 1.0472, -1.0472};
+    const uint32_t bg24 = bgc | 0x1000000u;
+    auto ringc = [&](double u, double v, bool front) { const uint32_t c = mix(CORE_T, CORE_B, std::clamp((u + v + 1.4) / 2.8, 0.0, 1.0)); return front ? c : mix(bg24, c, 0.5); };
+    const int SS = 3;
+    for (int y = 0; y < h; ++y) for (int x = 0; x < w; ++x) {
+        float acc[3][4] = {}; float gl = 0;
+        for (int sy2 = 0; sy2 < SS; ++sy2) for (int sx2 = 0; sx2 < SS; ++sx2) {
+            const double u = (((x - L.ox) + (sx2 + 0.5) / SS) / L.side * 2 - 1) * 1.04, v = (((y - L.oy) + (sy2 + 0.5) / SS) / L.side * 2 - 1) * 1.04;
+            for (int f = 0; f < 2; ++f) {
+                // a ring fades from its dim back half to its bright front half over a short stretch (no hard cut at the ends);
+                // which layer it lands on (behind or in front of the core) still follows the side it is on
+                for (double rot : orot) {
+                    const double lx = u * std::cos(rot) + v * std::sin(rot), ly = -u * std::sin(rot) + v * std::cos(rot);
+                    if ((ly > 0) != (f == 1)) continue;
+                    const double a = 0.93, b = 0.305, fv = lx * lx / (a * a) + ly * ly / (b * b) - 1;
+                    const double gv = 2 * std::sqrt(lx * lx / (a * a * a * a) + ly * ly / (b * b * b * b));
+                    if (gv > 0 && std::fabs(fv) / gv < LW / 2) {
+                        const double k = std::clamp((ly + 0.07) / 0.14, 0.0, 1.0), wf = k * k * (3 - 2 * k);
+                        float r, g, b; logo_rgb(mix(ringc(u, v, false), ringc(u, v, true), wf), r, g, b);
+                        float* A = acc[f == 1 ? 2 : 0]; A[0] += r; A[1] += g; A[2] += b; A[3] += 1; break;
+                    }
+                }
+            }
+            const double rr = std::hypot(u, v);
+            if (rr < R + 0.10 && rr >= R) gl += static_cast<float>(1 - (rr - R) / 0.10);
+            if (rr < R) {
+                const double d = std::hypot(u + 0.24 * R, v + 0.36 * R) / (1.5 * R);
+                uint32_t c = d < 0.38 ? mix(mix(CORE_T, rgb(0xffffff), 0.45), CORE_T, d / 0.38) : d < 0.78 ? mix(CORE_T, PEACH, (d - 0.38) / 0.4) : mix(PEACH, CORE_B, std::min(1.0, (d - 0.78) / 0.22));
+                if (rr > R * 0.86) c = mix(c, CORE_T, 0.3 * (rr - R * 0.86) / (R * 0.14));
+                float r, g, b; logo_rgb(c, r, g, b); acc[1][0] += r; acc[1][1] += g; acc[1][2] += b; acc[1][3] += 1;
+            }
+        }
+        const size_t i = static_cast<size_t>(y) * static_cast<size_t>(w) + static_cast<size_t>(x);
+        const float k = 1.f / (SS * SS);
+        LogoPix::Layer* ls[3] = {&L.back, &L.core, &L.front};
+        for (int l = 0; l < 3; ++l) { ls[l]->r[i] = acc[l][0] * k; ls[l]->g[i] = acc[l][1] * k; ls[l]->b[i] = acc[l][2] * k; ls[l]->a[i] = acc[l][3] * k; }
+        L.glow[i] = gl * k;
+    }
+    L.fr.assign(n, 0); L.fg.assign(n, 0); L.fb.assign(n, 0); L.fa.assign(n, 0); L.kr.assign(n, 0); L.kg.assign(n, 0); L.kb.assign(n, 0); L.ka.assign(n, 0);
+    L.lut.assign(32768, -1);
+}
+
+// one frame: 0xAARRGGBB-ish output as colour + coverage
+static void logo_frame(double t, std::vector<uint32_t>& col, std::vector<float>& cov) {
+    LogoPix& L = g_lp; const int w = L.w, h = L.h; const size_t n = static_cast<size_t>(w) * static_cast<size_t>(h);
+    col.assign(n, 0); cov.assign(n, 0);
+    double sx[4], sy[4]; bool sf[4]; logo_sats(t, sx, sy, sf);
+    const double SR = 0.085, pulse = 0.5 + 0.5 * std::sin(t * 1.6);
+    const uint32_t bg24 = L.bgc | 0x1000000u;
+    const uint32_t satF = g_light_bg && !g_term_bg ? mix(PEACH, rgb(0x000000), 0.15) : mix(PEACH, rgb(0xffffff), 0.82), satB = mix(PEACH, bg24, 0.35);
+    std::fill(L.fa.begin(), L.fa.end(), 0.f); std::fill(L.ka.begin(), L.ka.end(), 0.f);
+    std::fill(L.fr.begin(), L.fr.end(), 0.f); std::fill(L.fg.begin(), L.fg.end(), 0.f); std::fill(L.fb.begin(), L.fb.end(), 0.f);
+    std::fill(L.kr.begin(), L.kr.end(), 0.f); std::fill(L.kg.begin(), L.kg.end(), 0.f); std::fill(L.kb.begin(), L.kb.end(), 0.f);
+    const int SS = 3;
+    for (int s = 0; s < 4; ++s) {
+        const bool front = sf[s]; float cr, cg, cb; logo_rgb(front ? satF : satB, cr, cg, cb);
+        const double reach = SR * (front ? 2.2 : 1.0) / 1.04;   // in unit coordinates before the 1.04 zoom
+        const double cx = (sx[s] / 1.04 + 1) / 2 * L.side + L.ox, cy = (sy[s] / 1.04 + 1) / 2 * L.side + L.oy, rp = reach / 2 * L.side + 2;
+        const int x0 = std::max(0, static_cast<int>(cx - rp)), x1 = std::min(w - 1, static_cast<int>(cx + rp)), y0 = std::max(0, static_cast<int>(cy - rp)), y1 = std::min(h - 1, static_cast<int>(cy + rp));
+        std::vector<float>& R_ = front ? L.fr : L.kr; std::vector<float>& G_ = front ? L.fg : L.kg; std::vector<float>& B_ = front ? L.fb : L.kb; std::vector<float>& A_ = front ? L.fa : L.ka;
+        for (int y = y0; y <= y1; ++y) for (int x = x0; x <= x1; ++x) {
+            float a = 0;
+            for (int sy2 = 0; sy2 < SS; ++sy2) for (int sx2 = 0; sx2 < SS; ++sx2) {
+                const double u = (((x - L.ox) + (sx2 + 0.5) / SS) / L.side * 2 - 1) * 1.04, v = (((y - L.oy) + (sy2 + 0.5) / SS) / L.side * 2 - 1) * 1.04;
+                const double d = std::hypot(u - sx[s], v - sy[s]);
+                if (d < SR) a += 1; else if (front && d < SR * 2.2) a += static_cast<float>(0.35 * (1 - (d - SR) / (SR * 1.2)));
+            }
+            a /= SS * SS; if (a <= 0) continue;
+            const size_t i = static_cast<size_t>(y) * static_cast<size_t>(w) + static_cast<size_t>(x);
+            // "over" onto whatever another satellite left here
+            R_[i] = cr * a + R_[i] * (1 - a); G_[i] = cg * a + G_[i] * (1 - a); B_[i] = cb * a + B_[i] * (1 - a); A_[i] = a + A_[i] * (1 - a);
+        }
+    }
+    float br, bgg, bb; logo_rgb(L.bgc, br, bgg, bb);
+    float pr, pg, pb; logo_rgb(PEACH, pr, pg, pb);
+    const float ga = static_cast<float>(0.12 + 0.18 * pulse);
+    for (size_t i = 0; i < n; ++i) {
+        float r = br, g = bgg, b = bb, c = 0;
+        auto over = [&](float lr, float lg, float lb, float la) { if (la <= 0) return; r = lr + r * (1 - la); g = lg + g * (1 - la); b = lb + b * (1 - la); c = la + c * (1 - la); };
+        over(L.back.r[i], L.back.g[i], L.back.b[i], L.back.a[i]);
+        over(L.kr[i], L.kg[i], L.kb[i], L.ka[i]);
+        if (L.glow[i] > 0) { const float a = ga * L.glow[i]; over(pr * a, pg * a, pb * a, a); }
+        over(L.core.r[i], L.core.g[i], L.core.b[i], L.core.a[i]);
+        over(L.front.r[i], L.front.g[i], L.front.b[i], L.front.a[i]);
+        over(L.fr[i], L.fg[i], L.fb[i], L.fa[i]);
+        auto q = [](float v) { return static_cast<uint32_t>(std::clamp(v, 0.f, 1.f) * 255.f + 0.5f); };
+        col[i] = (q(r) << 16) | (q(g) << 8) | q(b); cov[i] = c;
+    }
+}
+
+// palette: median cut over a few frames (the colours never change between frames, only where they are)
+static void logo_palette() {
+    LogoPix& L = g_lp; if (!L.pal.empty()) return;
+    std::vector<uint32_t> hist(32768, 0);
+    std::vector<uint32_t> col; std::vector<float> cov;
+    for (double t : {0.0, 1.9, 3.7, 5.3, 7.1, 9.6}) {
+        logo_frame(t, col, cov);
+        for (size_t i = 0; i < col.size(); ++i) if (cov[i] >= 0.03f) { const uint32_t c = col[i]; ++hist[((c >> 19) & 31) << 10 | ((c >> 11) & 31) << 5 | ((c >> 3) & 31)]; }
+    }
+    struct Box { std::vector<uint32_t> keys; };
+    std::vector<Box> boxes(1);
+    for (uint32_t k = 0; k < 32768; ++k) if (hist[k]) boxes[0].keys.push_back(k);
+    auto ch = [](uint32_t k, int c) { return static_cast<int>((k >> (10 - 5 * c)) & 31); };
+    while (boxes.size() < 254) {
+        int bi = -1, bc = 0, br = 0;
+        for (size_t i = 0; i < boxes.size(); ++i) {
+            if (boxes[i].keys.size() < 2) continue;
+            for (int c = 0; c < 3; ++c) { int lo = 31, hi = 0; for (uint32_t k : boxes[i].keys) { lo = std::min(lo, ch(k, c)); hi = std::max(hi, ch(k, c)); } if (hi - lo > br) { br = hi - lo; bi = static_cast<int>(i); bc = c; } }
+        }
+        if (bi < 0 || br == 0) break;
+        auto& ks = boxes[static_cast<size_t>(bi)].keys;
+        std::sort(ks.begin(), ks.end(), [&](uint32_t a, uint32_t b) { return ch(a, bc) < ch(b, bc); });
+        uint64_t tot = 0; for (uint32_t k : ks) tot += hist[k];
+        uint64_t run = 0; size_t cut = 1;
+        for (size_t j = 0; j < ks.size(); ++j) { run += hist[ks[j]]; if (run * 2 >= tot) { cut = std::clamp<size_t>(j + 1, 1, ks.size() - 1); break; } }
+        Box nb; nb.keys.assign(ks.begin() + static_cast<long>(cut), ks.end()); ks.resize(cut);
+        boxes.push_back(std::move(nb));
+    }
+    for (const auto& b : boxes) {
+        double r = 0, g = 0, bl = 0, wsum = 0;
+        for (uint32_t k : b.keys) { const double wt = hist[k]; r += (ch(k, 0) * 8 + 4) * wt; g += (ch(k, 1) * 8 + 4) * wt; bl += (ch(k, 2) * 8 + 4) * wt; wsum += wt; }
+        if (wsum > 0) L.pal.push_back((static_cast<uint32_t>(r / wsum) << 16) | (static_cast<uint32_t>(g / wsum) << 8) | static_cast<uint32_t>(bl / wsum));
+    }
+    L.pal.push_back(L.bgc & 0xffffffu);   // the exact background, so the glow's faint edge melts into it instead of stopping on a near colour
+}
+static int logo_index(uint32_t c) {
+    LogoPix& L = g_lp;
+    const uint32_t k = ((c >> 19) & 31) << 10 | ((c >> 11) & 31) << 5 | ((c >> 3) & 31);
+    int16_t& e = L.lut[k];
+    if (e >= 0) return e;
+    const int r = static_cast<int>((k >> 10) * 8 + 4), g = static_cast<int>(((k >> 5) & 31) * 8 + 4), b = static_cast<int>((k & 31) * 8 + 4);
+    long best = 0x7fffffffL; int bi = 0;
+    for (size_t i = 0; i < L.pal.size(); ++i) {
+        const int dr = r - static_cast<int>((L.pal[i] >> 16) & 255), dg = g - static_cast<int>((L.pal[i] >> 8) & 255), db = b - static_cast<int>(L.pal[i] & 255);
+        const long d = 3L * dr * dr + 4L * dg * dg + 2L * db * db;
+        if (d < best) { best = d; bi = static_cast<int>(i); }
+    }
+    e = static_cast<int16_t>(bi); return bi;
+}
+
+// The Sixel picture of rows [crop, crop + rows) of the logo at time t. Pixels with no coverage stay transparent.
+static std::string logo_sixel(double t, int crop, int rows) {
+    const int w = LOGO_W * g_cell_w, h = LOGO_ROWS * g_cell_h;
+    logo_prepare(w, h); logo_palette();
+    std::vector<uint32_t> col; std::vector<float> cov; logo_frame(t, col, cov);
+    LogoPix& L = g_lp;
+    const int y0 = crop * g_cell_h, hh = rows * g_cell_h;
+    const size_t np = L.pal.size();
+    std::string o; o.reserve(65536);
+    o += "\x1bP0;1;0q\"1;1;" + std::to_string(w) + ";" + std::to_string(hh);
+    for (size_t i = 0; i < np; ++i) {
+        const uint32_t c = L.pal[i]; auto pc = [](uint32_t v) { return std::to_string((v * 100 + 127) / 255); };
+        o += "#" + std::to_string(i) + ";2;" + pc((c >> 16) & 255) + ";" + pc((c >> 8) & 255) + ";" + pc(c & 255);
+    }
+    std::vector<uint8_t> bits(np * static_cast<size_t>(w)); std::vector<int> first(np, -1), last(np, -1); std::vector<int> used;
+    auto rle = [&](char c, int n) { if (n <= 0) return; if (n > 3) { o += "!" + std::to_string(n); o += c; } else o.append(static_cast<size_t>(n), c); };
+    for (int by = 0; by < hh; by += 6) {
+        used.clear();
+        for (int dy = 0; dy < 6 && by + dy < hh; ++dy) {
+            const size_t row = static_cast<size_t>(y0 + by + dy) * static_cast<size_t>(w);
+            for (int x = 0; x < w; ++x) {
+                if (cov[row + static_cast<size_t>(x)] < 0.012f) continue;
+                // 4x4 ordered dither (fixed per pixel, so nothing shimmers between frames) hides palette steps in the core's gradient
+                static const int bayer[4][4] = {{0, 8, 2, 10}, {12, 4, 14, 6}, {3, 11, 1, 9}, {15, 7, 13, 5}};
+                const int dz = (bayer[(y0 + by + dy) & 3][x & 3] - 8) * 3 / 4;
+                const uint32_t px0 = col[row + static_cast<size_t>(x)];
+                auto ch8 = [&](int sh) { return static_cast<uint32_t>(std::clamp(static_cast<int>((px0 >> sh) & 255) + dz, 0, 255)); };
+                const int c = logo_index(ch8(16) << 16 | ch8(8) << 8 | ch8(0)); const size_t cc = static_cast<size_t>(c);
+                if (first[cc] < 0) { first[cc] = x; last[cc] = x; used.push_back(c); std::fill(bits.begin() + static_cast<long>(cc * static_cast<size_t>(w)), bits.begin() + static_cast<long>((cc + 1) * static_cast<size_t>(w)), 0); }
+                bits[cc * static_cast<size_t>(w) + static_cast<size_t>(x)] |= static_cast<uint8_t>(1u << dy);
+                first[cc] = std::min(first[cc], x); last[cc] = std::max(last[cc], x);
+            }
+        }
+        for (int c : used) {
+            const size_t cc = static_cast<size_t>(c);
+            o += "#" + std::to_string(c);
+            rle('?', first[cc]);
+            int x = first[cc];
+            while (x <= last[cc]) { const uint8_t v = bits[cc * static_cast<size_t>(w) + static_cast<size_t>(x)]; int k = x + 1; while (k <= last[cc] && bits[cc * static_cast<size_t>(w) + static_cast<size_t>(k)] == v) ++k; rle(static_cast<char>(63 + v), k - x); x = k; }
+            o += "$"; first[cc] = -1; last[cc] = -1;
+        }
+        o += "-";
+    }
+    o += "\x1b\\";
+    return o;
+}
 // ===================================================================== terminal
 enum K { K_NONE, K_TEXT, K_ENTER, K_NL, K_TAB, K_BTAB, K_BS, K_DEL, K_LEFT, K_RIGHT, K_UP, K_DOWN, K_HOME, K_END, K_PGUP, K_PGDN,
          K_ESC, K_PASTE, K_CTRL, K_WUP, K_WDN, K_WLEFT, K_WRIGHT, K_WBS, K_RESIZE };
@@ -629,6 +861,68 @@ static void read_keys(int timeout_ms, std::vector<Key>& out) {
 }
 #endif
 
+// Asks the terminal, once at start, for its background (OSC 11), its cell size in pixels (CSI 16 t) and its features
+// (DA1; "4" in the answer means Sixel). DA1 goes last because every terminal answers it, so it ends the wait.
+// ASTRO_LOGO=hd|text or /logo hd|text overrides the check.
+static void probe_graphics() {
+    g_gfx = 0; g_term_bg = 0;
+    std::string mode = env("ASTRO_LOGO"); if (mode.empty()) mode = pref_get("logo_gfx");
+    if (mode == "text") { g_gfx_why = "text logo (chosen)"; return; }
+    if (!env("NO_COLOR").empty()) { g_gfx_why = "text logo (NO_COLOR)"; return; }
+    twrite("\x1b]11;?\x1b\\\x1b[16t\x1b[c");
+    std::string rep;
+    auto done = [&] { const size_t p = rep.find("\x1b[?"); return p != std::string::npos && rep.find('c', p) != std::string::npos; };
+    const long long t0 = now_ms();
+#ifndef _WIN32
+    while (!done() && now_ms() - t0 < 700) {
+        pollfd p{STDIN_FILENO, POLLIN, 0};
+        if (poll(&p, 1, 40) > 0) { char b[1024]; const ssize_t n = ::read(STDIN_FILENO, b, sizeof b); if (n > 0) rep.append(b, static_cast<size_t>(n)); }
+    }
+#else
+    SetConsoleMode(g_hin, ENABLE_WINDOW_INPUT | ENABLE_EXTENDED_FLAGS | ENABLE_VIRTUAL_TERMINAL_INPUT);
+    while (!done() && now_ms() - t0 < 700) {
+        if (WaitForSingleObject(g_hin, 40) != WAIT_OBJECT_0) continue;
+        INPUT_RECORD recs[256]; DWORD n = 0;
+        if (!ReadConsoleInputW(g_hin, recs, 256, &n)) break;
+        for (DWORD i = 0; i < n; ++i) if (recs[i].EventType == KEY_EVENT && recs[i].Event.KeyEvent.bKeyDown && recs[i].Event.KeyEvent.uChar.UnicodeChar)
+            rep += enc(recs[i].Event.KeyEvent.uChar.UnicodeChar);
+    }
+    win_input_mode();
+#endif
+    std::string keep;   // anything typed meanwhile goes back to the key reader
+    bool sixel = false; size_t i = 0;
+    while (i < rep.size()) {
+        if (rep.compare(i, 3, "\x1b[?") == 0) {   // DA1: ESC [ ? 61 ; 4 ; ... c
+            const size_t e = rep.find('c', i); if (e == std::string::npos) break;
+            const std::string ps = ";" + rep.substr(i + 3, e - i - 3) + ";";
+            sixel = ps.find(";4;") != std::string::npos; i = e + 1; continue;
+        }
+        if (rep.compare(i, 4, "\x1b[6;") == 0) {   // cell size: ESC [ 6 ; height ; width t
+            const size_t e = rep.find('t', i); if (e == std::string::npos) break;
+            int ch = 0, cw = 0; if (std::sscanf(rep.c_str() + i + 4, "%d;%d", &ch, &cw) == 2 && ch >= 6 && ch <= 96 && cw >= 3 && cw <= 64) { g_cell_h = ch; g_cell_w = cw; }
+            i = e + 1; continue;
+        }
+        if (rep.compare(i, 5, "\x1b]11;") == 0) {   // background: ESC ] 11 ; rgb:RRRR/GGGG/BBBB (BEL or ST)
+            size_t e = rep.find_first_of("\x07\x1b", i + 5); if (e == std::string::npos) break;
+            const std::string v = rep.substr(i + 5, e - i - 5);
+            unsigned r = 0, g = 0, b = 0; char rs[8] = {}, gs[8] = {}, bs[8] = {};
+            if (std::sscanf(v.c_str(), "rgb:%7[0-9a-fA-F]/%7[0-9a-fA-F]/%7[0-9a-fA-F]", rs, gs, bs) == 3) {
+                auto h2 = [](const char* s) { unsigned x = 0; std::sscanf(std::string(s).substr(0, 2).c_str(), "%x", &x); return std::strlen(s) == 1 ? x * 17 : x; };
+                r = h2(rs); g = h2(gs); b = h2(bs); g_term_bg = (r << 16) | (g << 8) | b; if (!g_term_bg) g_term_bg = 0x010101;
+            }
+            i = e + (rep[e] == '\x1b' ? 2 : 1); continue;
+        }
+        keep += rep[i]; ++i;
+    }
+#ifndef _WIN32
+    g_inbuf = keep + g_inbuf;
+#endif
+    if (mode == "hd") { g_gfx = 1; g_gfx_why = "HD logo (chosen)"; }
+    else if (sixel) { g_gfx = 1; g_gfx_why = "HD logo (this terminal shows images)"; }
+    else g_gfx_why = done() ? "text logo (this terminal does not show images)" : "text logo (the terminal did not answer)";
+    if (g_gfx && !g_anim) g_gfx_why += ", still";
+}
+
 static std::string b64(const std::string& s) {
     static const char* T = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     std::string o; size_t i = 0;
@@ -694,7 +988,7 @@ static const Cmd CMDS[] = {
     {"panel", "", "Show or hide the side panel (Ctrl+B)"},
     {"mouse", "", "Turn mouse-wheel scrolling on or off"},
     {"theme", "[name]", "Colour theme (the same themes as the app), with live preview"},
-    {"logo", "on|off", "Animate the logo on the welcome card"},
+    {"logo", "on|off|hd|text|info", "Logo motion, and the HD picture or the text version"},
     {"status", "", "Engine, project and session details"},
     {"quit", "", "Exit (also Ctrl+D)"},
 };
@@ -718,6 +1012,7 @@ struct App {
     int pop_sel = 0, in_top = 0; bool pop_dismissed = false;
     // view
     int W = 80, H = 24, scroll = 0, last_th = 10; bool panel_auto = true, panel_on = false, quit = false, dirty = true, full = true, welcome_visible = true;
+    bool logo_on = false; int logo_row = -1, logo_vis = -1; long long logo_t = 0;   // where the HD logo was last drawn
     std::vector<std::string> prev;
     long long last_ctrl_c = 0, last_esc = 0, toast_t = 0, last_frame = 0, last_agents = 0; std::string toast; uint32_t toast_c = 0;
     ListOv lo; TextOv to; Dialog dg;
@@ -1363,6 +1658,13 @@ struct App {
             set_theme(arg, true); return;
         }
         if (cmd == "logo") {
+            if (arg == "hd" || arg == "text" || arg == "auto") {
+                pref_set("logo_gfx", arg == "auto" ? "" : arg);
+                if (arg == "text") { g_gfx = 0; g_gfx_why = "text logo (chosen)"; } else probe_graphics();
+                if (!blocks.empty()) blocks[0]->cw = -1;
+                full = true; say_toast(g_gfx_why, PEACH); return;
+            }
+            if (arg == "info") { note("Logo: " + g_gfx_why + (g_gfx ? " \xC2\xB7 " + std::to_string(LOGO_W * g_cell_w) + "x" + std::to_string(LOGO_ROWS * g_cell_h) + " px" : "") + (g_anim ? " \xC2\xB7 animated" : " \xC2\xB7 still") + ". /logo hd|text|auto picks the picture, /logo on|off the motion."); return; }
             g_anim = arg.empty() ? !g_anim : arg != "off"; pref_set("anim", g_anim ? "on" : "off");
             if (!blocks.empty()) blocks[0]->cw = -1;
             say_toast(g_anim ? "The logo is animated" : "The logo is still", PEACH); return;
@@ -1664,7 +1966,8 @@ struct App {
         std::vector<Line> out;
         const int bw = std::min(w, 84);
         const bool logo = bw >= 60;
-        std::vector<Line> art = logo ? logo_art(g_anim ? now_ms() / 1000.0 : 1.2) : std::vector<Line>{};
+        std::vector<Line> art = !logo ? std::vector<Line>{} : g_gfx ? std::vector<Line>(static_cast<size_t>(LOGO_ROWS), Line{sg(std::string(LOGO_W, ' '))})
+                                                    : logo_art(g_anim ? now_ms() / 1000.0 : 1.2);   // HD: the picture goes over blank cells
         std::vector<Line> txt;
         txt.push_back(Line{sg("Welcome to "), sg("A.S.T.R.O AI", PEACH, BOLD), sg("  v" + std::string(VERSION), FAINT)});
         txt.push_back(Line{sg("All Systems Thinking, Reasoning as One", MUTED, ITAL)});
@@ -1956,14 +2259,33 @@ struct App {
         if (to.on) { const int bw = std::min(W - 4, 110), bh = H - 2; overlay_into(scr, (W - bw) / 2, 1, text_box(bw, bh)); showc = false; }
         // emit only the rows that changed
         std::string o2 = "\x1b[?2026h\x1b[?25l";
+        const bool was_full = full;
+        std::vector<char> wrote(static_cast<size_t>(H), 0);
         if (full) { o2 += "\x1b[0m\x1b[2J"; prev.assign(static_cast<size_t>(H), std::string("\x01")); full = false; }
         if (static_cast<int>(prev.size()) != H) prev.assign(static_cast<size_t>(H), std::string("\x01"));
         for (int r = 0; r < H; ++r) {
             std::string s; St cs; bool first = true; int used = 0;
             for (const auto& sgm : fit(scr[static_cast<size_t>(r)], W)) { if (sgm.t.empty()) continue; if (first || !(sgm.s == cs)) { s += sgr(sgm.s); cs = sgm.s; first = false; } s += sgm.t; used += swidth(sgm.t); }
             s += "\x1b[0m"; if (used < W) s += "\x1b[K";
-            if (s != prev[static_cast<size_t>(r)]) { o2 += "\x1b[" + std::to_string(r + 1) + ";1H" + s; prev[static_cast<size_t>(r)] = s; }
+            if (s != prev[static_cast<size_t>(r)]) { o2 += "\x1b[" + std::to_string(r + 1) + ";1H" + s; prev[static_cast<size_t>(r)] = s; wrote[static_cast<size_t>(r)] = 1; }
         }
+        // the HD logo: art row r of the welcome card is transcript line 1 + r, drawn at column 4 (" " + "│ ")
+        if (g_gfx && std::min(MW - 2, 84) >= 60 && !lo.on && !to.on) {
+            const int crop = std::max(0, start - 1), last = std::min(LOGO_ROWS, th + start - 1);
+            const int srow = 1 + crop - start, nvis = std::min(last - crop, H - 1 - srow);
+            if (nvis > 0) {
+                bool need = was_full || !logo_on || srow != logo_row || nvis != logo_vis || (g_anim && now_ms() - logo_t >= 38);
+                for (int r = srow; r < srow + nvis && !need; ++r) if (wrote[static_cast<size_t>(r)]) need = true;
+                if (need) {
+                    // blank the cells first: terminals drop the old picture where a cell is written (Windows Terminal would
+                    // otherwise keep the last frame under the new one's transparent pixels and leave satellite trails)
+                    o2 += "\x1b[0m";
+                    for (int r = srow; r < srow + nvis; ++r) o2 += "\x1b[" + std::to_string(r + 1) + ";4H" + std::string(LOGO_W, ' ');
+                    o2 += "\x1b[" + std::to_string(srow + 1) + ";4H" + logo_sixel(g_anim ? now_ms() / 1000.0 : 1.2, crop, nvis); logo_t = now_ms();
+                }
+                logo_on = true; logo_row = srow; logo_vis = nvis;
+            } else logo_on = false;
+        } else logo_on = false;
         if (showc && crow < H) o2 += "\x1b[" + std::to_string(crow + 1) + ";" + std::to_string(std::min(W, ccol + 1)) + "H\x1b[?25h";
         o2 += "\x1b[?2026l";
         twrite(o2);
@@ -1990,6 +2312,7 @@ static int run(Opts o, const std::string& project) {
     wb->gen = [&a](int w, std::vector<Line>& out) { auto ls = a.welcome(w); out.insert(out.end(), ls.begin(), ls.end()); };
     a.blocks.push_back(wb);
     term_enter();
+    probe_graphics();
     twrite("\x1b]0;A.S.T.R.O AI \xC2\xB7 " + project + "\x07");
     a.load_models();
     if (!o.resume.empty()) a.resume(o.resume);
@@ -2008,7 +2331,8 @@ static int run(Opts o, const std::string& project) {
     while (!a.quit) {
         a.drain();
         std::vector<Key> keys;
-        read_keys(a.dirty ? 0 : 40, keys);
+        const bool hd_live = g_gfx && g_anim && a.welcome_visible && !a.lo.on && !a.to.on;   /* the HD logo animates at ~25 fps */
+        read_keys(a.dirty ? 0 : (hd_live ? 12 : 40), keys);
         for (const auto& k : keys) { a.key(k); if (a.quit) break; }
         a.drain();
         if (a.lo.on && a.lo.kind == "agents" && now_ms() - a.last_agents > 2000) a.refresh_agents();
@@ -2018,7 +2342,7 @@ static int run(Opts o, const std::string& project) {
         a.theme_preview_tick();
         const bool logo_anim = g_anim && a.welcome_visible && !a.lo.on && !a.to.on && a.W >= 64;
         if (logo_anim) anim = true;
-        if (a.dirty || (anim && now_ms() - last_anim >= 100)) { if (logo_anim && !a.blocks.empty()) a.blocks[0]->cw = -1; a.render(); last_anim = now_ms(); }
+        if (a.dirty || (anim && now_ms() - last_anim >= (hd_live ? 40 : 100))) { if (logo_anim && !a.blocks.empty()) a.blocks[0]->cw = -1; a.render(); last_anim = now_ms(); }
     }
     ++a.gen;
     term_leave();
