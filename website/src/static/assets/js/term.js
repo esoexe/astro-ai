@@ -1,5 +1,5 @@
 /* A.S.T.R.O AI terminal player.
-   Replays REAL recordings of the `astro` terminal app (captured with `script`, see trailer3/mksessions.js)
+   Replays REAL recordings of the `astro` terminal app (captured with `script`, see tools/term-demo/mksessions.js)
    through a tiny terminal emulator: text, colours, \r, cursor-up redraws and line clears.
    Works in the browser ([data-term] elements) and in Node (require('./term.js').Screen) for tests. */
 (function (root) {

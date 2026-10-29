@@ -28,6 +28,12 @@ cd "$CLONE"
 git config user.name "$LOGIN"; git config user.email "$UID_+$LOGIN@users.noreply.github.com"
 git add -A
 if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
+# Guard: a workspace restore can silently drop big files (videos, images). Old installers in website/downloads
+# are replaced every release; any other deletion must be confirmed with ALLOW_DELETE=1.
+DEL=$(git diff --cached --name-only --diff-filter=D | grep -v '^website/downloads/' || true)
+if [ -n "$DEL" ] && [ "${ALLOW_DELETE:-0}" != 1 ]; then
+  echo "refusing to push: these files would be DELETED from the repo (set ALLOW_DELETE=1 if intended):"; echo "$DEL" | head -30; exit 1
+fi
 git diff --cached --stat | tail -15
 git commit -q -m "$MSG"
 git push -q origin HEAD:main

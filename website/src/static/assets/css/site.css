@@ -176,11 +176,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -.02em; line-heigh
 .frame img { width: 100%; height: auto; display: block; }
 .frame.bare::before { display: none; }
 .frame-glow { position: absolute; inset: -12% -6% auto; height: 70%; z-index: -1; background: radial-gradient(closest-side, rgba(240,138,75,.35), transparent 70%); filter: blur(30px); pointer-events: none; }
-.frame.trailer::before { display: none; }
-.frame.trailer video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #000; }
 .showcase { position: relative; margin-top: -40px; padding-bottom: 40px; isolation: isolate; overflow-x: clip; }
-.trailer-note { text-align: center; margin-top: 18px; }
-.trailer-note a { color: var(--peach); }
 
 /* ---------------------------------------------------------------- the IDE hero */
 .ide-stage { position: relative; margin-top: 48px; padding-bottom: 24px; animation: ideIn 1.1s .35s var(--ease) both; }

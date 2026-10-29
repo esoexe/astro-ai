@@ -4,8 +4,6 @@
 <p align="center"><b>One brain, many minds.</b> A free desktop app where a team of free AI models answers as one.</p>
 <p align="center"><a href="https://esoexe.github.io/astro-ai/">Website</a> · <a href="https://esoexe.github.io/astro-ai/download.html">Download</a> · <a href="https://esoexe.github.io/astro-ai/docs.html">Docs</a> · <a href="https://esoexe.github.io/astro-ai/api.html">Astro API</a> · <a href="https://esoexe.github.io/astro-ai/changelog.html">Changelog</a></p>
 
-<p align="center"><a href="https://esoexe.github.io/astro-ai/#trailer"><img src="website/src/static/assets/video/astro-ai-trailer-poster.jpg" width="860" alt="Watch the A.S.T.R.O AI trailer"></a><br><sub>▶ <a href="https://esoexe.github.io/astro-ai/#trailer">Watch the 48-second launch film</a> (real app footage, 4K) · <a href="https://esoexe.github.io/astro-ai/assets/video/astro-ai-trailer.mp4">MP4</a> · <a href="https://esoexe.github.io/astro-ai/assets/video/astro-ai-trailer-4k.mp4">4K</a><br>Music: “Inspired” by Kevin MacLeod (incompetech.com), CC BY 4.0</sub></p>
-
 <p align="center"><img src="website/src/static/assets/img/shots/chat-answer.webp" width="860" alt="A.S.T.R.O AI: a One Brain answer written by 19 models"></p>
 
 > **Downloads:** Windows, Linux and macOS builds are on the [download page](https://esoexe.github.io/astro-ai/download.html). They are the *Clean* edition and ship with no API keys.
@@ -214,7 +212,6 @@ Answers stream token by token (`/api/chat/stream`, Server-Sent Events). The send
 
 `LLM_MAX_TOKENS` caps the length of each answer (default 1024).
 
-
 ### Hosted DeepSeek V4.1 Flash through Supabase (free tier)
 
 The large DeepSeek models can't run on Supabase or on a small machine. DeepSeek-V4.1-Flash has 552B parameters, and even its compressed local build is about 114 GB. Instead, A.S.T.R.O AI can use **NVIDIA's free developer endpoint**, which serves `deepseek-ai/deepseek-v4.1-flash` on NVIDIA's GPUs. A small **Supabase Edge Function** (`supabase/functions/workspace-ai`) sits in between:
@@ -233,7 +230,6 @@ chat:     Browser ──▶ A.S.T.R.O AI (C++) ──key held in memory──▶
 - Run `./start_workspace.sh`. It reads the private `.workspace.env` file (gateway URL, proxy token, model label, and optionally `LLM_WAIT_SECONDS`). Use `USE_LOCAL_MODEL=1 ./start_workspace.sh` to switch back to the local model.
 - NVIDIA's free tier is for development and prototyping. It is rate-limited (roughly 40 requests/minute), and NVIDIA can change its availability or terms. Prompts go to NVIDIA; review its terms before sending sensitive data.
 - Optional secret `UPSTREAM_EXTRA_BODY` lets you pass provider-specific switches. `UPSTREAM_BASE_URL` and `UPSTREAM_MODEL` let you point the gateway at another OpenAI-compatible provider, such as DeepSeek's paid API (`https://api.deepseek.com`, model `deepseek-flash`).
-
 
 ### OpenCode layer (free OpenCode models + your OpenCode key)
 
@@ -255,7 +251,6 @@ Browser ─▶ A.S.T.R.O AI (C++) ─▶ opencode serve (127.0.0.1:4097, all too
 - **Limits (tested 2026-10-26):** OpenCode's free models are *free for a limited time* and have a **daily usage limit** that resets at 00:00 UTC ("Free usage limit reached … subscribe to OpenCode Go"). They aren't unlimited or permanent.
 - **Your OpenCode key:** pay-as-you-go models need credits on the account (otherwise you get "Insufficient account funds"). OpenCode Go models need a Go subscription ($10/month).
 - Resources: OpenCode uses about 420 MB of RAM. The models themselves run on the providers' servers.
-
 
 ### Connect a hosted model
 
@@ -280,7 +275,6 @@ export LLM_MODEL="your-local-model-name"
 ```
 
 The local model server must be running and expose a compatible `/chat/completions` endpoint. `.env.example` is a reference template only; the app does not load `.env` files automatically.
-
 
 ## Project files
 

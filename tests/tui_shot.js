@@ -2,7 +2,7 @@
 //   node tests/tui_shot.js run.json out.png [--at ms] [--scale 2] [--title "astro — todo-api"]
 //   node tests/tui_shot.js run.json frames/ --frames 30   (one PNG per frame, for video)
 //   add --light to draw a light terminal (white background) for light-theme checks
-//   node tests/tui_shot.js run.json clipdir/ --clip [--from ms --to ms --clip-fps 30]   (trailer clip: a JPEG per change + frames.json)
+//   node tests/tui_shot.js run.json clipdir/ --clip [--from ms --to ms --clip-fps 30]   (video clip: a JPEG per change + frames.json)
 //   --sixel: draw Sixel images (the HD logo) with @xterm/addon-image; prints the cell size in CSS px.
 //   --bare: no window title bar, margin or shadow (for pages that frame the screenshot themselves).
 // Needs playwright + @xterm/xterm (NODE_PATH=/tmp/pw/node_modules).
@@ -57,7 +57,7 @@ html,body{margin:0;background:transparent}
     if (args.includes('--sixel')) console.log('cell px', JSON.stringify(await page.evaluate(() => window.cellPx())));
     const win = await page.$('#win');
     if (args.includes('--clip')) {
-      // trailer clip: a JPEG each time the screen changes (at most fps per second) + frames.json {frames:[{file,t}]} in seconds
+      // video clip: a JPEG each time the screen changes (at most fps per second) + frames.json {frames:[{file,t}]} in seconds
       fs.mkdirSync(out, { recursive: true });
       const fps2 = Number(opt('--clip-fps', 30)), from = Number(opt('--from', 0)), to = Number(opt('--to', 1e12));
       const paint = () => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));

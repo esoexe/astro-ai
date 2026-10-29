@@ -1,0 +1,11 @@
+Script started on 2026-10-28 22:42:21+00:00 [COMMAND="stty cols 96 rows 30; /home/user/astro models " <not executed on terminal>]
+[1mCoding models, best first[0m[2m (the agent falls back down this list automatically)[0m
+  [38;2;243;166;121m•[0m minimax-m3 (Router9)[2m  router9:minimax/minimax-m3[0m
+  [38;2;243;166;121m•[0m Qwen3.5-397B-A17B (OVHcloud AI Endpoints)[2m  ovh:Qwen3.5-397B-A17B[0m
+  [38;2;243;166;121m•[0m qwen3.5-397b-a17b (xKiro)[2m  xkiro:qwen/qwen3.5-397b-a17b:free[0m
+  [38;2;243;166;121m•[0m nemotron-3-ultra-550b-a55b (Kilo Gateway)[2m  kilo:nvidia/nemotron-3-ultra-550b-a55b:free[0m
+  [38;2;243;166;121m•[0m nemotron-3-ultra-550b-a55b (OpenRouter)[2m  openrouter:nvidia/nemotron-3-ultra-550b-a55b:free[0m
+  [38;2;243;166;121m•[0m nemotron-3-ultra (Ollama Cloud)[2m  ollama:nemotron-3-ultra[0m
+[2m641 models in total. Pick one with --model <id> or /model <id>.[0m
+
+Script done on 2026-10-28 22:42:22+00:00 [COMMAND_EXIT_CODE="0"]

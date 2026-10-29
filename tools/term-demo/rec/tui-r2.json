@@ -1,0 +1,15 @@
+[
+  {"until": "Welcome to", "timeout": 25000}, {"wait": 1800}, {"snap": "welcome"},
+  {"keys": "\u001b[Z"}, {"wait": 700}, {"keys": "\u001b[Z"}, {"wait": 1300}, {"snap": "askmode"},
+  {"keys": "Add a GET /health endpoint that returns {\"ok\":true}, with a test for it. Run the tests.", "type": 45}, {"wait": 900}, {"snap": "typed"},
+  {"keys": "\r"},
+  {"until": "Allow this\\?", "timeout": 300000}, {"wait": 2000}, {"snap": "approval"},
+  {"keys": "a"},
+  {"until": "Done  \u00b7|Needs attention", "timeout": 480000}, {"wait": 2500}, {"snap": "done"},
+  {"keys": "?"}, {"wait": 2300}, {"snap": "help"}, {"keys": "\u001b"}, {"wait": 900},
+  {"keys": "\u000f"}, {"wait": 2600}, {"snap": "models"}, {"keys": "\u001b"}, {"wait": 1100},
+  {"keys": "/parallel \"write CONTRIBUTING.md: how to install, run and test the project\" \"write README.md: what the API does, setup, and a curl example for every route\" --merge", "type": 22}, {"wait": 900}, {"keys": "\r"},
+  {"wait": 14000}, {"snap": "par_running"},
+  {"until": "merged", "timeout": 720000}, {"wait": 3500}, {"snap": "par_done"},
+  {"keys": "\u0004"}, {"wait": 1500}, {"snap": "exit"}
+]
