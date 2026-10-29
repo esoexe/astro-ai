@@ -94,9 +94,15 @@
 <section class="section-tight" id="terminal">
   <div class="wrap split">
     <div class="reveal">
-      <span class="eyebrow">Included</span>
+      <span class="eyebrow">Terminal only · no setup</span>
       <h2 class="h2">Terminal app &amp; <em class="accent">VS Code.</em></h2>
-      <p>Every desktop download includes <code class="mono small">astro</code>, the agent for your terminal: <code class="mono small">astro</code> in any folder, <code class="mono small">astro -p</code> for scripts, and <code class="mono small">astro parallel</code> to run several agents, each in an isolated copy. The .deb installs it as <code class="mono small">/usr/bin/astro</code>. On Windows, Setup adds it to your PATH. <a href="{{root}}docs.html#terminal">How to use it →</a></p>
+      <p>Only want the terminal? Install <code class="mono small">astro</code> with one command, without the setup wizard or admin rights. It downloads the Clean edition from the official GitHub release, checks it against <code class="mono small">SHA256SUMS.txt</code>, and puts <code class="mono small">astro</code> on your PATH.</p>
+      <ul class="os-notes">
+        <li>{{icon:linux}}<span><b>Linux (x64) &amp; macOS</b><code class="block">curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh</code></span></li>
+        <li>{{icon:windows}}<span><b>Windows 10/11</b> in PowerShell<code class="block">irm https://esoexe.github.io/astro-ai/install.ps1 | iex</code></span></li>
+      </ul>
+      <p class="small muted">It goes into <code class="mono small">~/.astro-ai</code> (Windows: <code class="mono small">%LOCALAPPDATA%\Programs\AstroAI-CLI</code>). Run the same command again to update. To remove it: <code class="mono small">curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh -s -- --uninstall</code>, or on Windows set <code class="mono small">$env:ASTRO_UNINSTALL="1"</code> first. Read the scripts before running them: <a href="{{root}}install.sh">install.sh</a> · <a href="{{root}}install.ps1">install.ps1</a>.</p>
+      <p>Every desktop download also includes <code class="mono small">astro</code>, the agent for your terminal: <code class="mono small">astro</code> in any folder, <code class="mono small">astro -p</code> for scripts, and <code class="mono small">astro parallel</code> to run several agents, each in an isolated copy. The .deb installs it as <code class="mono small">/usr/bin/astro</code>. On Windows, Setup adds it to your PATH. <a href="{{root}}docs.html#terminal">How to use it →</a></p>
     </div>
     <div class="card platform reveal" data-delay="1">
       <div class="files">

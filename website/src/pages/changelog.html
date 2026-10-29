@@ -21,6 +21,12 @@
         <li>A redesigned website that explains what the app is for, with real recordings of the terminal app</li>
       </ul>
 
+      <h3>Terminal-only install</h3>
+      <ul class="ticks">
+        <li>Install just the <code>astro</code> command, with no setup wizard and no admin rights: <code>curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh</code> on Linux and macOS, or <code>irm https://esoexe.github.io/astro-ai/install.ps1 | iex</code> in PowerShell</li>
+        <li>Downloads come from the official GitHub release and are checked against <code>SHA256SUMS.txt</code>. Run it again to update, or add <code>--uninstall</code> to remove it (your chats, settings and keys are kept)</li>
+      </ul>
+
       <h3>Agent engine</h3>
       <ul class="ticks">
         <li><strong>3-way merge.</strong> When you and an agent changed different parts of the same file, merging now combines both instead of stopping. Real conflicts are still shown and never overwritten</li>

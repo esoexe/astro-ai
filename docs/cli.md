@@ -9,6 +9,26 @@ The terminal app, the **Parallel** panel on the Agent page and the HTTP API all 
 
 ## Install
 
+### Terminal only (no setup wizard, no admin rights)
+
+```sh
+# Linux (x64) and macOS
+curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh
+```
+
+```powershell
+# Windows 10/11, in PowerShell
+irm https://esoexe.github.io/astro-ai/install.ps1 | iex
+```
+
+The script downloads the Clean portable build (macOS: the disk image) from the latest GitHub release and checks it against the release's `SHA256SUMS.txt`. It then installs `astro` and its engine into `~/.astro-ai` and links `~/.local/bin/astro`. On Windows the files go into `%LOCALAPPDATA%\Programs\AstroAI-CLI`, which is added to your user PATH. Run it again to update.
+
+Options: `ASTRO_VERSION=1.4.1` installs a specific version, `ASTRO_HOME` changes the install folder and `ASTRO_BIN` changes the link folder (Linux/macOS). Uninstall with `curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh -s -- --uninstall`, or on Windows set `$env:ASTRO_UNINSTALL="1"` and run the PowerShell line again. Uninstalling keeps your chats, settings and keys.
+
+It works right away with the free models that need no key. To add more providers, open `http://127.0.0.1:47612` in a browser while the engine runs and go to Settings → Providers.
+
+### With the desktop app
+
 | Platform | Where `astro` is |
 |---|---|
 | Linux `.deb` (Clean) | `/usr/bin/astro` (the personal edition installs `/usr/bin/astro-personal`) |

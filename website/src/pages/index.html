@@ -158,12 +158,12 @@
       </div>
       <div class="card reveal" data-delay="1">
         <h3 class="h3">Install</h3>
-        <p class="small muted">The terminal app comes with the desktop app. It talks to the same local engine, so your projects, keys and settings are shared.</p>
+        <p class="small muted">Terminal only, no setup wizard and no admin rights. One command downloads it from the official release, checks the SHA-256 and puts <code>astro</code> on your PATH.</p>
         <ul class="os-notes">
-          <li>{{icon:windows}}<span><b>Windows</b> The installer puts <code>astro</code> on your PATH. Open a new terminal.</span></li>
-          <li>{{icon:linux}}<span><b>Linux</b> The .deb installs <code>/usr/bin/astro</code>. The portable build has it next to the app.</span></li>
-          <li>{{icon:macos}}<span><b>macOS</b> Link it once:<code class="block">sudo ln -sf "/Applications/A.S.T.R.O AI Clean.app/Contents/Resources/astro" /usr/local/bin/astro</code></span></li>
+          <li>{{icon:linux}}<span><b>Linux &amp; macOS</b><code class="block">curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh</code></span></li>
+          <li>{{icon:windows}}<span><b>Windows</b> in PowerShell<code class="block">irm https://esoexe.github.io/astro-ai/install.ps1 | iex</code></span></li>
         </ul>
+        <p class="small muted">Already have the desktop app? <code>astro</code> is included: the Windows installer and the Linux .deb put it on your PATH, and on macOS the download page has the one-line link command. Both share the same engine, projects and keys.</p>
       </div>
     </div>
   </div>
