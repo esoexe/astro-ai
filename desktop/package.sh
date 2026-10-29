@@ -191,7 +191,7 @@ EOF
     # ---------------- macOS: source kit ----------------
     MK="$WORK/AstroAI-$VER-macos-source-$TAG"; mkdir -p "$MK/src/server" "$MK/src/desktop" "$MK/src/webview" "$MK/assets" "$MK/payload"
     cp workspace_server.cpp platform.h ./*.inc "$MK/src/server/"
-    mkdir -p "$MK/src/cli"; cp cli/astro.cpp cli/json.h "$MK/src/cli/"; echo "$CLI" > "$MK/payload/cli-name"
+    mkdir -p "$MK/src/cli"; cp cli/*.cpp cli/*.h cli/*.inc "$MK/src/cli/"; echo "$CLI" > "$MK/payload/cli-name"
     cp desktop/src/astro_desktop.cpp "$MK/src/desktop/"
     cp -r "$TP/webview/include" "$MK/src/webview/"
     cp desktop/assets/icon-mac-1024.png "$MK/assets/"
