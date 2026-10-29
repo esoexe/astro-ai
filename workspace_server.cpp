@@ -28,6 +28,8 @@
 #include <curl/curl.h>
 #include <regex>
 #include <set>
+#include <functional>
+#include <zlib.h>
 
 namespace {
 constexpr std::size_t MAX_BODY_BYTES = 12'000'000;

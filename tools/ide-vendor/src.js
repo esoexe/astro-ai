@@ -1,12 +1,13 @@
 // A.S.T.R.O AI Workspace editor + terminal bundle (CodeMirror 6 + xterm.js).
 // Built into web/vendor/ide.js as window.AstroIDE. Colours come from CSS variables (--cm-*),
 // so the editor follows the app's dark / light theme without rebuilding.
+import { hoverTooltip } from '@codemirror/view';
 import { EditorView, Decoration, WidgetType, ViewPlugin, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter, drawSelection, dropCursor,
   rectangularSelection, crosshairCursor, highlightSpecialChars } from '@codemirror/view';
-import { EditorState, Compartment, Prec, Text, StateField, StateEffect } from '@codemirror/state';
+import { EditorState, Compartment, Prec, Text, StateField, StateEffect, Facet } from '@codemirror/state';
 import { defaultKeymap, history, historyKeymap, indentWithTab, toggleComment, undo, redo, selectAll } from '@codemirror/commands';
 import { searchKeymap, highlightSelectionMatches, openSearchPanel, gotoLine, search, selectNextOccurrence } from '@codemirror/search';
-import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap, completeAnyWord, completeFromList, startCompletion, snippetCompletion } from '@codemirror/autocomplete';
+import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap, completeAnyWord, completeFromList, startCompletion, snippetCompletion, snippet } from '@codemirror/autocomplete';
 import { setDiagnostics, lintGutter } from '@codemirror/lint';
 import { foldGutter, foldKeymap, indentOnInput, bracketMatching, syntaxHighlighting, HighlightStyle, StreamLanguage, LanguageSupport,
   indentUnit, foldAll, unfoldAll } from '@codemirror/language';
@@ -201,6 +202,91 @@ function foldMarker(open) {
   return s;
 }
 
+// ---- language servers (LSP) ----
+// The app installs one language service: { handles(key, ext), complete(q), hover(q), definition(q), format(q), rename(q) }
+// where q = { key, ext, line, character } (0-based, UTF-16 like CodeMirror). The editor stays protocol-agnostic.
+let languageService = null;
+const fileInfo = Facet.define({ combine: (v) => v[0] || null });
+const posToLC = (doc, pos) => { const l = doc.lineAt(pos); return { line: l.number - 1, character: pos - l.from }; };
+const lcToPos = (doc, line, ch) => { const l = doc.line(Math.min(Math.max(1, (line | 0) + 1), doc.lines)); return Math.min(l.from + Math.max(0, ch | 0), l.to); };
+const KIND_TYPE = { 2: 'method', 3: 'function', 4: 'function', 5: 'property', 6: 'variable', 7: 'class', 8: 'interface', 9: 'namespace', 10: 'property', 12: 'constant', 13: 'enum', 14: 'keyword', 15: 'text', 20: 'enum', 21: 'constant', 22: 'type', 25: 'type' };
+function mdToDom(md) {
+  // Tiny, safe markdown: fenced code, headings, rules, lists, inline code, bold. Everything is escaped first.
+  const esc = (x) => x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const inline = (x) => esc(x).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+  const parts = String(md || '').split(/```[\w+-]*\n?/);
+  let html = '';
+  parts.forEach((p, i) => {
+    if (!p.trim()) return;
+    if (i % 2) { html += '<pre class="cm-lsp-code">' + esc(p.replace(/\n$/, '')) + '</pre>'; return; }
+    let para = [], list = [];
+    const flush = () => { if (para.length) html += '<p>' + inline(para.join(' ')) + '</p>'; if (list.length) html += '<ul>' + list.map((x) => '<li>' + inline(x) + '</li>').join('') + '</ul>'; para = []; list = []; };
+    for (const raw of p.split('\n')) {
+      const ln = raw.trim();
+      if (!ln) { flush(); continue; }
+      if (/^(-{3,}|\*{3,}|_{3,})$/.test(ln)) { flush(); html += '<hr>'; continue; }
+      const h = /^#{1,6}\s+(.*)$/.exec(ln); if (h) { flush(); html += '<div class="cm-lsp-h">' + inline(h[1]) + '</div>'; continue; }
+      const li = /^[-*+]\s+(.*)$/.exec(ln); if (li) { if (para.length) { const t = list; list = []; flush(); list = t; } list.push(li[1]); continue; }
+      if (list.length) flush();
+      para.push(ln);
+    }
+    flush();
+  });
+  const d = document.createElement('div'); d.className = 'cm-lsp-doc'; d.innerHTML = html; return d;
+}
+async function lspCompletionSource(ctx) {
+  const svc = languageService; const info = ctx.state.facet(fileInfo);
+  if (!svc || !info || !svc.handles(info.key, info.ext)) return null;
+  const word = ctx.matchBefore(/[\w$]+$/);
+  const prev = ctx.state.sliceDoc(Math.max(0, ctx.pos - 1), ctx.pos);
+  const trigger = /[.:>"'\/@<#]/.test(prev) ? prev : undefined;
+  if (!ctx.explicit && !trigger && !word) return null;
+  const lc = posToLC(ctx.state.doc, ctx.pos);
+  let res; try { res = await svc.complete({ key: info.key, ext: info.ext, line: lc.line, character: lc.character, trigger, explicit: ctx.explicit }); } catch (_e) { return null; }
+  if (!res || ctx.aborted || !res.items || !res.items.length) return null;
+  const n = res.items.length;
+  const options = res.items.slice(0, 400).map((it, i) => {
+    const text = it.insertText != null ? it.insertText : it.label;
+    const o = { label: String(it.label).trim(), detail: it.detail ? String(it.detail).slice(0, 80) : undefined, type: KIND_TYPE[it.kind] || 'text', boost: Math.max(-99, 40 - Math.round((i / n) * 80)) };
+    if (it.filterText && it.filterText.trim() !== o.label) { o.displayLabel = o.label; o.label = it.filterText.trim(); }
+    if (it.isSnippet) { try { o.apply = snippet(vscodeBody(text)); } catch (_e) { o.apply = text.replace(/\$\{?\d+:?([^}]*)\}?/g, '$1'); } }
+    else if (text !== o.label) o.apply = text;
+    if (it.documentation) o.info = () => mdToDom(it.documentation);
+    return o;
+  });
+  return { from: word ? word.from : ctx.pos, options, validFor: /^[\w$]*$/ };
+}
+const lspHover = hoverTooltip(async (view, pos, side) => {
+  const svc = languageService; const info = view.state.facet(fileInfo);
+  if (!svc || !info || !svc.handles(info.key, info.ext)) return null;
+  const w = view.state.wordAt(pos); if (!w && side < 0) return null;
+  const lc = posToLC(view.state.doc, pos);
+  let md; try { md = await svc.hover({ key: info.key, ext: info.ext, line: lc.line, character: lc.character }); } catch (_e) { return null; }
+  if (!md || !String(md).trim()) return null;
+  return { pos: w ? w.from : pos, end: w ? w.to : pos, above: true, create: () => { const dom = mdToDom(md); dom.classList.add('cm-lsp-hover'); return { dom }; } };
+}, { hoverTime: 350 });
+function lspAt(view, pos, fn) {
+  const svc = languageService; const info = view.state.facet(fileInfo);
+  if (!svc || !info || !svc.handles(info.key, info.ext) || !svc[fn]) return false;
+  const lc = posToLC(view.state.doc, pos == null ? view.state.selection.main.head : pos);
+  Promise.resolve(svc[fn]({ key: info.key, ext: info.ext, line: lc.line, character: lc.character, view })).catch(() => {});
+  return true;
+}
+const lspKeys = Prec.high(keymap.of([
+  { key: 'F12', preventDefault: true, run: (v) => lspAt(v, null, 'definition') },
+  { key: 'Shift-Alt-f', preventDefault: true, run: (v) => lspAt(v, null, 'format') },
+  { key: 'F2', preventDefault: true, run: (v) => lspAt(v, null, 'rename') },
+]));
+const lspMouse = EditorView.domEventHandlers({
+  mousedown(e, view) {
+    if (!(e.ctrlKey || e.metaKey) || e.button !== 0 || e.altKey || e.shiftKey) return false;
+    const pos = view.posAtCoords({ x: e.clientX, y: e.clientY }); if (pos == null) return false;
+    if (!lspAt(view, pos, 'definition')) return false;
+    e.preventDefault(); return true;
+  },
+});
+function setLanguageService(svc) { languageService = svc || null; }
+
 function langExtensions(ext) {
   const out = [];
   const lang = langFor(ext);
@@ -210,6 +296,7 @@ function langExtensions(ext) {
   // makes it drop the result and restart forever (the popup never shows those items).
   const snip = snippetSource(ext);
   out.push(EditorState.languageData.of(() => [{ autocomplete: snip }]));
+  out.push(EditorState.languageData.of(() => [{ autocomplete: lspCompletionSource }]), lspHover, lspKeys, lspMouse);
   const kw = KEYWORDS[kwFor(ext)];
   if (kw) { const kwSrc = completeFromList(kw.split(' ').map((label) => ({ label, type: 'keyword' }))); out.push(EditorState.languageData.of(() => [{ autocomplete: kwSrc }])); }
   return out;
@@ -224,11 +311,14 @@ function createEditor(parent, handlers = {}) {
   const wrapC = new Compartment();
   const roC = new Compartment();
   const problems = new Map();   // file key -> [{line, col, endLine, endCol, severity, message, source}]
+  const lspProblems = new Map(); // same shape, from the language server
+  const extProblems = new Map(); // same shape, from VS Code extensions
   let inlineSuggest = handlers.inlineSuggest || null; let ghostTimer = 0; let ghostSeq = 0;
   const fire = (name, ...args) => { try { if (handlers[name]) handlers[name](...args); } catch (e) { console.error(e); } };
 
-  function extensions(ext) {
+  function extensions(ext, k) {
     return [
+      fileInfo.of({ key: k == null ? key : k, ext }),
       lineNumbers(), highlightActiveLineGutter(), highlightSpecialChars(), history(), foldGutter({ markerDOM: foldMarker }),
       drawSelection(), dropCursor(), EditorState.allowMultipleSelections.of(true), indentOnInput(), syntaxHighlighting(highlight),
       bracketMatching(), closeBrackets(), autocompletion({ activateOnTyping: true, maxRenderedOptions: 80, icons: true }),
@@ -267,7 +357,7 @@ function createEditor(parent, handlers = {}) {
       if (key !== null) { states.set(key, view.state); scrolls.set(key, [view.scrollDOM.scrollTop, view.scrollDOM.scrollLeft]); }
       key = k; currentExt = ext || 'txt';
       let st = states.get(k);
-      if (!st || opts.reload) st = EditorState.create({ doc, extensions: extensions(ext) });
+      if (!st || opts.reload) st = EditorState.create({ doc, extensions: extensions(ext, k) });
       view.setState(st);
       if (view.state.doc.toString() !== doc) view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: doc } });
       view.dispatch({ effects: [roC.reconfigure(EditorState.readOnly.of(Boolean(opts.readOnly))), wrapC.reconfigure(wrap ? EditorView.lineWrapping : [])] });
@@ -306,6 +396,22 @@ function createEditor(parent, handlers = {}) {
     // Compiler / linter problems for a file (shown as squiggles + gutter marks). list: [{line, col?, endLine?, endCol?, severity, message, source?}]
     setProblems(k, list) { problems.set(k, list || []); if (k === key) applyProblems(); },
     clearProblems() { problems.clear(); applyProblems(); },
+    setLspProblems(k, list) { lspProblems.set(k, list || []); if (k === key) applyProblems(); },
+    setExtProblems(k, list) { extProblems.set(k, list || []); if (k === key) applyProblems(); },
+    getProblems(k) { return [...(problems.get(k == null ? key : k) || []), ...(lspProblems.get(k == null ? key : k) || []), ...(extProblems.get(k == null ? key : k) || [])]; },
+    // LSP helpers (0-based line / UTF-16 character)
+    posAt(line, character) { return lcToPos(view.state.doc, line, character); },
+    lcAt(pos) { return posToLC(view.state.doc, pos == null ? view.state.selection.main.head : pos); },
+    wordAt(pos) { const w = view.state.wordAt(pos == null ? view.state.selection.main.head : pos); return w ? view.state.sliceDoc(w.from, w.to) : ''; },
+    // edits: [{ range: { start: {line, character}, end: {line, character} }, newText }] in the coordinates of the current text
+    applyEdits(edits, userEvent = 'input') {
+      const doc = view.state.doc;
+      const changes = (edits || []).map((e) => ({ from: lcToPos(doc, e.range.start.line, e.range.start.character), to: lcToPos(doc, e.range.end.line, e.range.end.character), insert: e.newText || '' }))
+        .sort((a, b) => a.from - b.from);
+      for (let i = 1; i < changes.length; i++) if (changes[i].from < changes[i - 1].to) changes[i].from = changes[i - 1].to;   // drop overlaps
+      if (changes.length) view.dispatch({ changes, userEvent });
+      return changes.length;
+    },
     setSnippets,
     // AI ghost text: fn({ prefix, suffix, ext, path }) -> Promise<string>; null turns it off.
     setInlineSuggest(fn) { inlineSuggest = fn || null; if (!fn) view.dispatch({ effects: setGhost.of(null) }); },
@@ -313,7 +419,7 @@ function createEditor(parent, handlers = {}) {
     getSelection() { const sel = view.state.selection.main; return { from: sel.from, to: sel.to, text: view.state.sliceDoc(sel.from, sel.to) }; },
   };
   function applyProblems() {
-    const doc = view.state.doc; const list = problems.get(key) || [];
+    const doc = view.state.doc; const list = [...(problems.get(key) || []), ...(lspProblems.get(key) || []), ...(extProblems.get(key) || [])];
     const diags = [];
     for (const p of list) {
       try {
@@ -365,4 +471,4 @@ function diffStats(a = '', b = '') {
   return { added, removed };
 }
 
-export { createEditor, createDiff, diffStats, langFor, setSnippets, Terminal, FitAddon };
+export { createEditor, createDiff, diffStats, langFor, setSnippets, setLanguageService, Terminal, FitAddon };

@@ -26,7 +26,7 @@
       <div class="card reveal" data-delay="2"><div class="icon">{{icon:spark}}</div><h3>Skills &amp; rules</h3><p>Reads <span class="mono small">AGENTS.md</span>, <span class="mono small">CLAUDE.md</span>, <span class="mono small">GEMINI.md</span>, Cursor rules and Copilot instructions, plus <span class="mono small">SKILL.md</span> skills, custom slash commands and subagents.</p></div>
       <div class="card reveal"><div class="icon">{{icon:plug}}</div><h3>MCP servers</h3><p>Connect Model Context Protocol servers from the official registry, or your own <span class="mono small">.mcp.json</span>. Project servers run only after you trust them.</p></div>
       <div class="card reveal" data-delay="1"><div class="icon">{{icon:puzzle}}</div><h3>Plugins</h3><p>Install Claude Code plugins and plugin marketplaces straight from GitHub. They can bundle skills, commands, agents, hooks and MCP servers.</p></div>
-      <div class="card reveal" data-delay="2"><div class="icon">{{icon:palette}}</div><h3>Themes &amp; snippets</h3><p>Browse Open VSX and install VS Code colour themes and snippet packs, then switch themes with one click.</p></div>
+      <div class="card reveal" data-delay="2"><div class="icon">{{icon:palette}}</div><h3>Themes &amp; snippets</h3><p>19 built-in themes, and any VS Code colour theme from Open VSX recolours the whole app. Snippet packs install the same way.</p></div>
       <div class="card reveal"><div class="icon">{{icon:command}}</div><h3>Slash commands</h3><p><span class="mono small">/init</span>, <span class="mono small">/plan</span>, <span class="mono small">/review</span>, <span class="mono small">/test</span>, <span class="mono small">/commit</span>, <span class="mono small">/compact</span> and more, plus your own commands with <span class="mono small">$ARGUMENTS</span>.</p></div>
       <div class="card reveal" data-delay="1"><div class="icon">{{icon:bot}}</div><h3>Subagents &amp; CLIs</h3><p>The agent can hand a sub-task to a subagent, or to Claude Code, Codex, OpenCode, Gemini CLI or DeepSeek Harness if you have them installed.</p></div>
       <div class="card reveal" data-delay="2"><div class="icon">{{icon:team}}</div><h3>Agent Manager</h3><p>An Antigravity-style view of every agent session in the window. Run jobs in parallel across projects and stop any of them.</p></div>
@@ -76,6 +76,25 @@
         <div class="frame bare"><img src="{{root}}assets/img/shots/v11-agent-approval.webp" width="528" height="500" alt="Ask mode: the agent asks for approval before running mkdir -p src, with Allow, Allow all in this run and Deny buttons" loading="lazy"></div>
         <div class="card" style="display:flex;flex-direction:column;justify-content:center"><span class="badge soft" style="align-self:flex-start">Ask mode</span><h3>Nothing runs without a yes.</h3><p>Allow once, allow for the whole run, deny, or tell the agent what to do instead.</p></div>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="new-in-1-6">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="eyebrow">New in 1.6</span>
+      <h2 class="h2">Your editor, <em class="accent">your way.</em></h2>
+      <p>Themes for the whole app, real language servers installed in a click, VS Code extensions from Open VSX, and a logo that is alive.</p>
+    </div>
+    <div class="frame reveal"><div class="frame-glow"></div><img src="{{root}}assets/img/shots/v16-themes.webp" width="1440" height="900" alt="The Workspace in the Tokyo Night theme: clangd shows the signature and comment of average_period on hover in a C++ file" loading="lazy"></div>
+    <div class="grid-2" style="margin-top:14px">
+      <figure class="card reveal" style="margin:0;padding:0"><img src="{{root}}assets/img/shots/v16-tools.webp" width="1440" height="900" alt="Extensions, Tools tab: clangd running for this C++ project and CMake recommended" loading="lazy" style="border-bottom:1px solid var(--line)"><figcaption style="padding:16px 18px"><b>Tools.</b> <span class="muted">Compilers, runtimes and language servers (clangd, Pyright, TypeScript, rust-analyzer, Go, a JDK and more) installed portably: official downloads, SHA-256 checked, no admin rights.</span></figcaption></figure>
+      <figure class="card reveal" data-delay="1" style="margin:0;padding:0"><img src="{{root}}assets/img/shots/v16-vscode.webp" width="1440" height="900" alt="Extensions, VS Code tab in the Catppuccin theme: change-case and Path Intellisense installed, Path Intellisense suggesting app.ts and moons.ts" loading="lazy" style="border-bottom:1px solid var(--line)"><figcaption style="padding:16px 18px"><b>VS Code extensions (preview).</b> <span class="muted">Search Open VSX and run desktop extensions: commands, messages, completion, hover, diagnostics, formatting and more.</span></figcaption></figure>
+    </div>
+    <div class="grid-2" style="margin-top:14px">
+      <figure class="card reveal" style="margin:0;padding:0"><img src="{{root}}assets/img/shots/v16-tui-theme.webp" width="2208" height="1553" alt="The terminal app&#39;s /theme picker with live preview, listing A.S.T.R.O Peach, Teal, Tokyo Night, Catppuccin and more" loading="lazy" style="border-bottom:1px solid var(--line)"><figcaption style="padding:16px 18px"><b>Themes in the terminal.</b> <span class="muted"><code>/theme</code> previews as you move and remembers your pick.</span></figcaption></figure>
+      <figure class="card reveal" data-delay="1" style="margin:0;padding:0"><img src="{{root}}assets/img/shots/v16-tui-logo.webp" width="2208" height="1553" alt="The terminal app&#39;s welcome card with the live orbit logo in the Catppuccin Mocha theme" loading="lazy" style="border-bottom:1px solid var(--line)"><figcaption style="padding:16px 18px"><b>A live logo.</b> <span class="muted">Satellites orbit the core in the app, the desktop title bar and the terminal. <code>/logo off</code> keeps it still.</span></figcaption></figure>
     </div>
   </div>
 </section>
@@ -146,7 +165,7 @@
       <div class="card reveal" data-delay="1"><div class="icon">{{icon:globe}}</div><h3>Modes</h3><p>General for everyday questions, Compare to weigh options, and Web to bring in fresh results.</p></div>
       <div class="card reveal" data-delay="2"><div class="icon">{{icon:export}}</div><h3>Export</h3><p>Save any conversation as Markdown to keep or share.</p></div>
       <div class="card reveal"><div class="icon">{{icon:command}}</div><h3>Command palette</h3><p>Press <kbd style="font:12px var(--mono);padding:2px 6px;border:1px solid var(--line-2);border-radius:6px">Ctrl K</kbd> to jump anywhere, find a chat or run an action.</p></div>
-      <div class="card reveal" data-delay="1"><div class="icon">{{icon:palette}}</div><h3>Light &amp; dark</h3><p>Two carefully tuned themes, one click apart. They work on small windows too.</p></div>
+      <div class="card reveal" data-delay="1"><div class="icon">{{icon:palette}}</div><h3>Light &amp; dark</h3><p>Tuned light and dark versions of every built-in theme, one click apart in Settings or the command palette. They work on small windows too.</p></div>
       <div class="card reveal" data-delay="2"><div class="icon">{{icon:history}}</div><h3>Projects &amp; sessions</h3><p>Group chats by project, search past sessions, and pick up where you left off.</p></div>
     </div>
   </div>

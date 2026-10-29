@@ -47,7 +47,7 @@ using aj::Value;
 using aj::Object;
 using aj::Array;
 
-static const char* VERSION = "1.5.0";
+static const char* VERSION = "1.6.0";
 
 // ---------- terminal ----------
 static bool g_tty = false, g_color = false, g_err_tty = false;
@@ -628,6 +628,106 @@ static int cmd_models() {
     return 0;
 }
 
+// Compilers, runtimes and language servers, installed portably by the engine (Extensions > Tools in the app).
+// astro ext: VS Code extensions from Open VSX for the extension host (preview). They run in the app's editor.
+static int cmd_ext(const std::vector<std::string>& pos) {
+    const std::string sub = pos.empty() ? "list" : pos[0];
+    if (sub == "list" || sub == "ls") {
+        const Value r = api("/api/dev/exthost/list", Object{}, 30);
+        out(bold("VS Code extensions") + dim("  (preview) run inside the A.S.T.R.O AI editor"));
+        if (!r["ready"].truthy()) out(dim("  ") + red(r["why"].str()));
+        bool any = false;
+        if (auto o = r["extensions"].obj()) for (const auto& [id, e] : *o) {
+            any = true; std::string pad = id; if (pad.size() < 34) pad += std::string(34 - pad.size(), ' ');
+            out("  " + peach(pad) + " " + dim("v" + e["version"].str() + "  ") + (e["enabled"].truthy() || e["enabled"].is_null() ? green("enabled") : dim("disabled")) + dim("  " + e["displayName"].str()));
+        }
+        if (!any) out(dim("  none yet"));
+        out(dim("\nInstall: astro ext install <publisher.name>   Remove: astro ext remove <id>   Toggle: astro ext enable|disable <id>"));
+        return 0;
+    }
+    if (pos.size() < 2) { out(red("astro ext " + sub + " <publisher.name>")); return 2; }
+    if (sub == "install" || sub == "add") {
+        int rc = 0;
+        for (size_t i = 1; i < pos.size(); ++i) {
+            const auto dot = pos[i].find('.');
+            if (dot == std::string::npos) { out(red("Use publisher.name, for example wmaurer.change-case")); rc = 2; continue; }
+            out(dim("Downloading ") + pos[i] + dim(" from Open VSX\xE2\x80\xA6"));
+            try {
+                const Value r = api("/api/dev/exthost/install", Object{{"namespace", pos[i].substr(0, dot)}, {"name", pos[i].substr(dot + 1)}}, 600);
+                out(green("\xE2\x9C\x94 ") + r["displayName"].str() + " v" + r["version"].str() + dim(r["verified"].str() == "sha256" ? "  Checksum verified (SHA-256)" : "  (no checksum published)"));
+            } catch (const std::exception& e) { out(red("\xE2\x9C\x97 ") + e.what()); rc = 1; }
+        }
+        return rc;
+    }
+    if (sub == "remove" || sub == "rm" || sub == "uninstall") { api("/api/dev/exthost/remove", Object{{"id", pos[1]}}, 30); out(green("Removed ") + pos[1]); return 0; }
+    if (sub == "enable" || sub == "disable") { api("/api/dev/exthost/toggle", Object{{"id", pos[1]}, {"on", sub == "enable"}}, 30); out(green(sub == "enable" ? "Enabled " : "Disabled ") + pos[1]); return 0; }
+    out(red("astro ext list|install|remove|enable|disable")); return 2;
+}
+static int cmd_tools(const std::vector<std::string>& pos) {
+    const std::string sub = pos.empty() ? "list" : pos[0];
+    auto find = [](const Value& r, const std::string& id) -> const Value* { if (auto a = r["tools"].arr()) for (const auto& t : *a) if (t["id"].str() == id) return &t; return nullptr; };
+    if (sub == "list" || sub == "ls") {
+        const Value r = api("/api/dev/tools/list", Object{{"detect", true}}, 120);
+        out(bold("Tools") + dim("  portable, checksum-verified installs in " + r["root"].str() + " (" + r["platform"].str() + ")"));
+        std::string group;
+        if (auto a = r["tools"].arr()) for (const auto& t : *a) {
+            if (t["group"].str() != group) { group = t["group"].str(); out("\n" + bold(group)); }
+            std::string st;
+            if (!t["installed"].is_null()) st = green("installed ") + dim(t["installed"]["version"].str());
+            else if (!t["found"].is_null()) st = dim("on this computer: " + t["found"]["version"].str().substr(0, 40));
+            else if (t["installable"].truthy()) st = dim("not installed");
+            else st = dim("see: astro tools info " + t["id"].str());
+            std::string id = t["id"].str(); if (id.size() < 26) id += std::string(26 - id.size(), ' ');
+            out("  " + peach(id) + " " + st);
+        }
+        out(dim("\nInstall with: astro tools install <id> [<id>...]   Remove: astro tools remove <id>"));
+        return 0;
+    }
+    if (sub == "info") {
+        if (pos.size() < 2) { out(red("astro tools info <id>")); return 2; }
+        const Value r = api("/api/dev/tools/list", Object{{"detect", true}}, 120); const Value* t = find(r, pos[1]);
+        if (!t) { out(red("Unknown tool: " + pos[1])); return 2; }
+        out(bold((*t)["name"].str()) + dim("  " + (*t)["source"].str())); out("  " + (*t)["desc"].str());
+        if (!(*t)["installed"].is_null()) out("  " + green("installed ") + (*t)["installed"]["version"].str() + dim("  (" + (*t)["installed"]["verified"].str() + ") " + (*t)["installed"]["dir"].str()));
+        if (!(*t)["found"].is_null()) out(dim("  on this computer: " + (*t)["found"]["path"].str() + "  " + (*t)["found"]["version"].str()));
+        if (!(*t)["instructions"].str().empty()) out("  " + (*t)["instructions"].str());
+        return 0;
+    }
+    if (sub == "install" || sub == "add" || sub == "update") {
+        if (pos.size() < 2) { out(red("astro tools install <id> [<id>...]   (see: astro tools list)")); return 2; }
+        int failed = 0;
+        for (size_t i = 1; i < pos.size(); ++i) {
+            const std::string id = pos[i];
+            const Value s = api("/api/dev/tools/install", Object{{"id", id}});
+            if (!s["started"].truthy() && !s["running"].truthy()) { out(red("Could not start " + id)); ++failed; continue; }
+            std::string last;
+            for (;;) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(700));
+                const Value r = api("/api/dev/tools/list", Object{}); const Value* t = find(r, id);
+                if (!t) break;
+                const Value& j = (*t)["job"];
+                const std::string state = j["state"].str();
+                const int pct = static_cast<int>(j["progress"].num() * 100);
+                std::string line = "  " + id + "  " + std::to_string(pct) + "%  " + j["step"].str();
+                if (j["total"].num() > 0) line += "  " + std::to_string(static_cast<long long>(j["bytes"].num() / 1048576)) + "/" + std::to_string(static_cast<long long>(j["total"].num() / 1048576)) + " MB";
+                if (state == "running" || state == "cancel") { if (line != last) { std::cout << "\r\x1b[2K" << dim(line) << std::flush; last = line; } continue; }
+                std::cout << "\r\x1b[2K";
+                if (state == "done") out(green("\xE2\x9C\x94 ") + (*t)["name"].str() + " " + (*t)["installed"]["version"].str() + dim("  " + j["message"].str()));
+                else { out(red("\xE2\x9C\x98 " + (*t)["name"].str() + ": " + j["message"].str())); ++failed; }
+                break;
+            }
+        }
+        return failed ? 1 : 0;
+    }
+    if (sub == "remove" || sub == "rm" || sub == "uninstall") {
+        if (pos.size() < 2) { out(red("astro tools remove <id>")); return 2; }
+        for (size_t i = 1; i < pos.size(); ++i) { api("/api/dev/tools/remove", Object{{"id", pos[i]}}); out(dim("Removed " + pos[i] + ".")); }
+        return 0;
+    }
+    out(red("astro tools list | info <id> | install <id>... | remove <id>..."));
+    return 2;
+}
+
 // Several agents at once, each in its own isolated copy. Live table, then merge.
 static int cmd_parallel(const std::vector<std::string>& tasks, Opts o, const std::string& project) {
     if (tasks.empty()) { out(red("Give the tasks: astro parallel \"task one\" \"task two\"")); return 2; }
@@ -730,6 +830,8 @@ static void help() {
               << "  astro merge <id> [--partial|--force] [--keep]   bring an isolated agent's changes into the project\n"
               << "  astro discard <id> | stop <id> | undo <id>\n"
               << "  astro models                      coding models, best first\n"
+              << "  astro tools list|install|remove   compilers, runtimes and language servers (portable)\n"
+              << "  astro ext list|install|remove     VS Code extensions from Open VSX (preview, run in the editor)\n"
               << "  astro server status|start|stop    the local A.S.T.R.O AI engine\n\n"
               << bold("Options") << "\n"
               << "  -C <dir>            work in this folder (default: the current folder)\n"
@@ -905,7 +1007,7 @@ int main(int argc, char** argv) {
         else pos.push_back(a);
     }
     if (o.mode != "plan" && o.mode != "ask" && o.mode != "auto") { std::cerr << "--mode must be plan, ask or auto\n"; return 2; }
-    static const std::set<std::string> cmds = {"run", "parallel", "agents", "attach", "logs", "diff", "merge", "discard", "stop", "undo", "models", "server", "chat", "help"};
+    static const std::set<std::string> cmds = {"run", "parallel", "agents", "attach", "logs", "diff", "merge", "discard", "stop", "undo", "models", "server", "chat", "help", "tools", "ext"};
     if (!pos.empty() && cmds.count(pos[0])) { o.cmd = pos[0]; pos.erase(pos.begin()); }
     if (o.cmd == "help") { help(); return 0; }
     if (o.cmd == "run") o.print = true;
@@ -940,6 +1042,8 @@ int main(int argc, char** argv) {
         auto need_id = [&]() -> std::string { if (pos.empty()) { std::cerr << "Give the agent id (astro agents lists them).\n"; std::exit(2); } return pos[0]; };
         if (o.cmd == "agents") return cmd_agents(o);
         if (o.cmd == "models") return cmd_models();
+        if (o.cmd == "tools") return cmd_tools(pos);
+        if (o.cmd == "ext") return cmd_ext(pos);
         if (o.cmd == "diff") return cmd_diff(need_id());
         if (o.cmd == "merge") return cmd_merge(need_id(), o);
         if (o.cmd == "discard") { api("/api/agent/discard", Object{{"id", need_id()}}); out(dim("Discarded.")); return 0; }

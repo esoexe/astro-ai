@@ -9,8 +9,45 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
-    <article class="release latest reveal" id="v1-5-0">
-      <header><h2>1.5.0</h2><span class="badge">Latest</span><time datetime="2026-10-29">October 29, 2026</time></header>
+    <article class="release latest reveal" id="v1-6-0">
+      <header><h2>1.6.0</h2><span class="badge">Latest</span><time datetime="2026-10-29">October 29, 2026</time></header>
+      <p class="muted">Themes everywhere, real language tools, VS Code extensions (preview) and a live, animated logo.</p>
+
+      <h3>Themes</h3>
+      <ul class="ticks">
+        <li>19 built-in themes for the whole app (chat, Workspace, editor, terminal and Agent page): A.S.T.R.O Teal, Astro Peach, Tokyo Night, Catppuccin, Dracula, Nord, One Dark, Gruvbox, Ros&eacute; Pine, GitHub, Solarized, Midnight (OLED) and light versions</li>
+        <li>Any colour theme from Open VSX now recolours the <em>whole app</em>, not only the editor, with contrast checks so text stays readable</li>
+        <li>Pick a theme in Settings &rsaquo; Appearance or from the command palette (<kbd>Ctrl</kbd>+<kbd>K</kbd>)</li>
+        <li>The terminal app has the same themes: <code>/theme</code> opens a picker with live preview and remembers your choice</li>
+      </ul>
+
+      <h3>Language tools</h3>
+      <ul class="ticks">
+        <li>A new <strong>Tools</strong> tab in Extensions installs compilers, runtimes and language servers with one click: clangd, a C/C++ compiler, CMake, Ninja, Node.js, TypeScript, Python, Pyright, rust-analyzer, Go, gopls, a JDK, jdtls, Bash, YAML, Lua and PHP servers</li>
+        <li>Portable installs: no admin rights, official downloads only, saved in A.S.T.R.O's own tools folder, checked against the published SHA-256 checksum</li>
+        <li>Real language servers in the editor: completion, hover docs, live errors, go to definition (<kbd>F12</kbd> or <kbd>Ctrl</kbd>+click), formatting (<kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>) and rename (<kbd>F2</kbd>)</li>
+        <li>From the terminal: <code>astro tools list</code>, <code>astro tools install clangd cmake ninja</code>, <code>astro tools remove</code></li>
+        <li>For C and C++, A.S.T.R.O uses clangd (LLVM). Microsoft's C/C++ extension is licensed only for Microsoft's own VS Code products and is not on Open VSX</li>
+      </ul>
+
+      <h3>VS Code extensions (preview)</h3>
+      <ul class="ticks">
+        <li>A new <strong>VS Code</strong> tab searches Open VSX and installs desktop extensions, checksum-verified. They run in an extension host on Node.js</li>
+        <li>Supported so far: commands (in the command palette), messages with buttons, quick picks, input boxes, output channels, status-bar items, diagnostics, editor edits, completion, hover, go to definition, formatting and settings</li>
+        <li>Webviews, debuggers, tree views, custom editors and extensions that start their own language client may not work yet. The tab says which APIs your extensions asked for that aren't supported</li>
+        <li>From the terminal: <code>astro ext install publisher.name</code>, <code>astro ext list</code>, <code>astro ext remove</code></li>
+      </ul>
+
+      <h3>A live logo</h3>
+      <ul class="ticks">
+        <li>The orbit logo is now animated in the app and the desktop title bar: satellites travel along their orbits and pass behind the core, light runs along the rings and the core glows. It follows your theme colour</li>
+        <li>The terminal app draws the logo live in true colour, sharper than before, with moving satellites. Turn it off with <code>/logo off</code> or <code>ASTRO_NO_ANIM=1</code></li>
+        <li>Both respect "reduce motion" settings, and you can keep the logo still from the command palette</li>
+      </ul>
+    </article>
+
+    <article class="release reveal" id="v1-5-0">
+      <header><h2>1.5.0</h2><time datetime="2026-10-29">October 29, 2026</time></header>
       <p class="muted">A full-screen terminal app, a redesigned desktop Agent page and a new icon.</p>
 
       <h3>Full-screen terminal app</h3>

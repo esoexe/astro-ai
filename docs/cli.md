@@ -23,7 +23,7 @@ irm https://esoexe.github.io/astro-ai/install.ps1 | iex
 
 The script downloads the Clean portable build (macOS: the disk image) from the latest GitHub release and checks it against the release's `SHA256SUMS.txt`. It then installs `astro` and its engine into `~/.astro-ai` and links `~/.local/bin/astro`. On Windows the files go into `%LOCALAPPDATA%\Programs\AstroAI-CLI`, which is added to your user PATH. Run it again to update.
 
-Options: `ASTRO_VERSION=1.5.0` installs a specific version, `ASTRO_HOME` changes the install folder and `ASTRO_BIN` changes the link folder (Linux/macOS). Uninstall with `curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh -s -- --uninstall`, or on Windows set `$env:ASTRO_UNINSTALL="1"` and run the PowerShell line again. Uninstalling keeps your chats, settings and keys.
+Options: `ASTRO_VERSION=1.6.0` installs a specific version, `ASTRO_HOME` changes the install folder and `ASTRO_BIN` changes the link folder (Linux/macOS). Uninstall with `curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh -s -- --uninstall`, or on Windows set `$env:ASTRO_UNINSTALL="1"` and run the PowerShell line again. Uninstalling keeps your chats, settings and keys.
 
 It works right away with the free models that need no key. To add more providers, open `http://127.0.0.1:47612` in a browser while the engine runs and go to Settings → Providers.
 
@@ -64,6 +64,8 @@ Since version 1.5, `astro` opens a full-screen app in your terminal, in the styl
 - **Overlays.** Ctrl+O picks a model (Auto = best first with automatic fallback). Ctrl+G manages agents: Enter opens one, `d` shows the diff, `m` merges, `x` discards, `s` stops. Ctrl+R resumes a session and `?` lists every shortcut.
 - **Sessions.** `astro -c` continues the last session in this folder and `astro --resume <id>` (`-r`) opens a given one. When you quit (Ctrl+D, or Ctrl+C twice), the app prints the command that resumes it.
 - **Colours.** True colour when the terminal supports it (`COLORTERM=truecolor`), otherwise 256 colours. It follows a light or dark terminal; force one with `ASTRO_THEME=light|dark`. `NO_COLOR=1` turns colour off. `/mouse` turns on mouse-wheel scrolling (it is off by default so you can select text).
+- **Themes (1.6).** `/theme` opens a picker with the same themes as the app (A.S.T.R.O Peach, Teal, Tokyo Night, Catppuccin, Dracula, Nord, One Dark, Gruvbox, Rosé Pine, GitHub, Solarized, Midnight and light versions). Arrow keys preview, Enter keeps, Esc cancels. `/theme <name>` sets one directly. The choice is saved in `~/.config/astro-ai/tui.conf` (Windows: `%APPDATA%\astro-ai\tui.conf`); `ASTRO_THEME=<name>` overrides it. Themes change the text colours; the terminal's own background stays.
+- **Live logo (1.6).** The welcome card draws the orbit logo live in true colour, with satellites moving along the rings. `/logo off` (or `ASTRO_NO_ANIM=1`) keeps it still.
 
 | Command | What it does |
 |---|---|
@@ -76,6 +78,7 @@ Since version 1.5, `astro` opens a full-screen app in your terminal, in the styl
 | `/agents`, `/merge <id>`, `/discard <id>` | Manage isolated agents and apply or drop their changes. |
 | `/init` | Write `AGENTS.md`, a guide to this project for agents. |
 | `/export [file]`, `/copy` | Save the conversation as Markdown, or copy the last answer. |
+| `/theme [name]`, `/logo on\|off` | Colour theme with live preview; animated or still logo. |
 | `/panel`, `/mouse`, `/status`, `/help` | Side panel, mouse scrolling, engine and session details, help. |
 | `/stop`, `/quit` | Stop the agent (Esc), or quit (Ctrl+D). |
 
@@ -127,6 +130,22 @@ astro discard a1b2c3d4e5f    # drop the copy instead
 Up to 8 agents run at the same time. Set `ASTRO_MAX_AGENTS` on the server to change this. Agents beyond that number wait in a queue.
 
 In the app, the same feature is the **Parallel** chip on the Agent page. Enter one task per line, choose **Isolated copy**, a mode and an optional review, and follow each agent live. From there you can answer its questions, look at the diff, and merge or discard.
+
+## Language tools and VS Code extensions (1.6)
+
+```text
+$ astro tools list                       # compilers, runtimes and language servers: installed, found, available
+$ astro tools install clangd cmake ninja # portable installs, SHA-256 checked, no admin rights
+$ astro tools info cpp-compiler          # where to get a compiler on this OS
+$ astro tools remove ninja
+
+$ astro ext install wmaurer.change-case  # a VS Code extension from Open VSX (preview)
+$ astro ext list
+$ astro ext disable wmaurer.change-case
+$ astro ext remove wmaurer.change-case
+```
+
+Both talk to the engine, so the same installs show up in the app's Extensions › Tools and Extensions › VS Code tabs. Language servers and extensions run in the app's editor. See [extensions.md](extensions.md) for what's supported and how it works.
 
 ## Project tools (`.astro/tools/*.json`)
 

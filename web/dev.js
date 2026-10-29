@@ -603,7 +603,7 @@
   function renderProblems() {
     const box = document.getElementById('ws-probs'); if (!box || box.closest('[hidden]')) return;
     const by = new Map();
-    for (const p of D.problems) { if (!by.has(p.path)) by.set(p.path, []); by.get(p.path).push(p); }
+    for (const p of [...D.problems, ...(window.AstroLSP?.problems() || []), ...(window.AstroExtHost?.problems() || [])]) { if (!by.has(p.path)) by.set(p.path, []); by.get(p.path).push(p); }
     const auto = lsGet('prob-auto', '1') === '1';
     box.innerHTML = `<div class="ws-head"><span class="ws-head-title">Problems</span><span class="grow"></span><button type="button" class="ws-btn sm" data-prob="check">${D.probBusy ? '<span class="ag-spin"></span>' : icon('i-refresh')}<span>Check project</span></button></div>
       <label class="dev-toggle"><input type="checkbox" data-prob="auto"${auto ? ' checked' : ''}> Check the open file as you type</label>
@@ -808,7 +808,88 @@
   }
 
   // ---------- Extensions panel ----------
-  const EXT_TABS = [['library', 'Library', 'i-download'], ['skills', 'Skills', 'i-spark'], ['mcp', 'MCP', 'i-puzzle'], ['plugins', 'Plugins', 'i-puzzle'], ['themes', 'Themes', 'i-moon'], ['snippets', 'Snippets', 'i-code'], ['commands', 'Commands', 'i-keyboard'], ['agents', 'Agents', 'i-sparkles'], ['rules', 'Rules & hooks', 'i-read']];
+  const EXT_TABS = [['library', 'Library', 'i-download'], ['tools', 'Tools', 'i-wrench'], ['vscode', 'VS Code', 'i-code'], ['skills', 'Skills', 'i-spark'], ['mcp', 'MCP', 'i-puzzle'], ['plugins', 'Plugins', 'i-puzzle'], ['themes', 'Themes', 'i-moon'], ['snippets', 'Snippets', 'i-code'], ['commands', 'Commands', 'i-keyboard'], ['agents', 'Agents', 'i-sparkles'], ['rules', 'Rules & hooks', 'i-read']];
+  // ---------- Tools: compilers, runtimes and language servers (portable, checksum-verified) ----------
+  const TOOL_FOR_EXT = { c: ['cpp-compiler', 'clangd', 'cmake', 'ninja'], h: ['clangd'], cpp: ['cpp-compiler', 'clangd', 'cmake', 'ninja'], cc: ['cpp-compiler', 'clangd', 'cmake', 'ninja'], cxx: ['cpp-compiler', 'clangd'], hpp: ['clangd'],
+    py: ['python', 'pyright'], js: ['node', 'typescript'], mjs: ['node', 'typescript'], jsx: ['node', 'typescript'], ts: ['node', 'typescript'], tsx: ['node', 'typescript'],
+    rs: ['rust', 'rust-analyzer'], go: ['go', 'gopls'], java: ['jdk', 'jdtls'], lua: ['lua-language-server'], php: ['intelephense'], sh: ['bash-language-server'], yaml: ['yaml-language-server'], yml: ['yaml-language-server'],
+    html: ['vscode-langservers'], css: ['vscode-langservers'], scss: ['vscode-langservers'], json: ['vscode-langservers'] };
+  const NEEDS = { typescript: 'node', pyright: 'node', 'vscode-langservers': 'node', 'bash-language-server': 'node', 'yaml-language-server': 'node', intelephense: 'node', gopls: 'go', jdtls: 'jdk' };
+  const TOOL_ORDER = ['node', 'go', 'jdk', 'python', 'cpp-compiler', 'cmake', 'ninja', 'clangd', 'typescript', 'pyright', 'vscode-langservers', 'rust-analyzer', 'gopls', 'jdtls', 'bash-language-server', 'yaml-language-server', 'lua-language-server', 'intelephense', 'rust'];
+  const T = { list: null, at: 0, queue: [], queueBusy: false, poll: 0 };
+  async function toolsLoad(detect) {
+    const r = await dev('tools/list', { detect: Boolean(detect) });
+    if (!detect && T.list) { const found = new Map(T.list.tools.map((t) => [t.id, t.found])); for (const t of r.tools) if (!t.found && found.get(t.id)) t.found = found.get(t.id); }
+    T.list = r; T.at = Date.now(); return r;
+  }
+  const fmtMB = (n) => (n > 0 ? `${(n / 1048576).toFixed(n > 104857600 ? 0 : 1)} MB` : '');
+  function toolState(t) {
+    if (t.job && (t.job.state === 'running' || t.job.state === 'cancel')) return 'running';
+    if (t.installed) return 'installed';
+    if (t.found) return 'found';
+    return 'none';
+  }
+  function toolsRecommended() {
+    if (!T.list) return [];
+    const exts = new Set((A().ws.files || []).map((f) => (/\.([^./]+)$/.exec(f.path) || [])[1]).filter(Boolean).map((e) => e.toLowerCase()));
+    const want = new Set(); for (const e of exts) for (const id of TOOL_FOR_EXT[e] || []) want.add(id);
+    for (const id of [...want]) if (NEEDS[id]) want.add(NEEDS[id]);
+    const by = new Map(T.list.tools.map((t) => [t.id, t]));
+    return TOOL_ORDER.filter((id) => want.has(id)).map((id) => by.get(id)).filter((t) => t && t.installable && toolState(t) === 'none' && !(NEEDS[t.id] === 'node' && false));
+  }
+  async function toolsBody(force) {
+    if (force || !T.list || Date.now() - T.at > 30000) { try { await toolsLoad(true); } catch (err) { return `<div class="ws-note error">${esc(err.message)}</div>`; } }
+    const list = T.list.tools; const running = list.some((t) => toolState(t) === 'running') || T.queueBusy;
+    clearTimeout(T.poll);
+    if (running) T.poll = setTimeout(async () => { if (D.extTab !== 'tools') return; const was = new Map(T.list.tools.map((t) => [t.id, toolState(t)])); await toolsLoad(false).catch(() => {}); for (const t of T.list.tools) if (was.get(t.id) === 'running' && toolState(t) !== 'running') toolFinished(t); renderExt(); }, 900);
+    const L = window.AstroLSP; const rec = toolsRecommended();
+    const groups = new Map(); for (const t of list) { if (!groups.has(t.group)) groups.set(t.group, []); groups.get(t.group).push(t); }
+    const servers = L ? L.servers().filter((x) => x.state !== 'stopped') : [];
+    const row = (t) => {
+      const st = toolState(t); const j = t.job || {};
+      const badge = st === 'installed' ? `<span class="dev-scope s-ok">installed${t.installed.version ? ` · ${esc(clip(t.installed.version, 24))}` : ''}</span>` : st === 'found' ? `<span class="dev-scope" title="${esc(t.found.path)}">on this computer${t.found.version ? ` · ${esc(clip(t.found.version.replace(/^[^0-9]*/, ''), 22))}` : ''}</span>` : st === 'running' ? '<span class="dev-scope s-run">installing</span>' : '';
+      const verified = st === 'installed' ? ({ sha256: 'SHA-256 verified', npm: 'npm integrity checked', go: 'Go checksum database', 'https-only': 'HTTPS (no checksum published)' }[t.installed.verified] || '') : '';
+      let acts = '';
+      if (st === 'running') acts = `<button type="button" class="ag-act" data-x="tool-cancel" data-id="${esc(t.id)}">Cancel</button>`;
+      else if (st === 'installed') acts = `<button type="button" class="ag-act" data-x="tool-install" data-id="${esc(t.id)}">${icon('i-refresh')}Update</button><button type="button" class="ag-act danger" data-x="tool-remove" data-id="${esc(t.id)}">Remove</button>`;
+      else if (t.installable) acts = `<button type="button" class="ag-act primary" data-x="tool-install" data-id="${esc(t.id)}">${icon('i-download')}${st === 'found' ? 'Install portable copy' : 'Install'}</button>`;
+      if (t.instructions && st !== 'installed') acts += `<button type="button" class="ag-act" data-x="tool-copy" data-text="${esc(t.instructions)}">${icon('i-copy')}Copy install command</button>`;
+      const prog = st === 'running' ? `<div class="tool-prog"><i style="width:${Math.round((j.progress || 0) * 100)}%"></i></div><div class="dev-hint">${esc(j.step || 'Working')}${j.total > 0 ? ` · ${fmtMB(j.bytes)} of ${fmtMB(j.total)}` : j.bytes > 0 ? ` · ${fmtMB(j.bytes)}` : ''}</div>` : '';
+      const err = j.state === 'error' ? `<div class="ws-note error">${esc(j.message)}</div>` : '';
+      return `<div class="dev-item tool-${st}" data-tool="${esc(t.id)}"><div class="dev-it-h"><b>${esc(t.name)}</b><span class="dev-scope">${esc(t.kind === 'lsp' ? 'language server' : t.kind)}</span>${badge}</div>
+        <p>${esc(t.desc)}</p>${t.instructions && st !== 'installed' && !t.installable ? `<p class="tool-cmd"><code>${esc(t.instructions)}</code></p>` : ''}
+        <div class="dev-hint">${esc(t.source)}${verified ? ` · ${esc(verified)}` : ''}</div>${prog}${err}<div class="dev-it-a">${acts}</div></div>`;
+    };
+    return `<div class="dev-hint">Compilers, runtimes and language servers, installed <b>portably</b> into A.S.T.R.O's own folder from each project's official downloads. No admin rights, nothing changed system-wide, and every download is checked against the checksum its publisher lists. Language servers power completion, hover, go-to-definition (F12 / Ctrl+click), formatting (Shift+Alt+F), rename (F2) and live errors in the editor.</div>
+      <label class="dev-toggle"><input type="checkbox" data-x="lsp-toggle"${!L || L.enabled ? ' checked' : ''}> Use language servers in the editor</label>
+      ${servers.length ? `<div class="dev-sec">Running</div>${servers.map((x) => `<div class="dev-item lsp-${esc(x.state)}"><div class="dev-it-h"><span class="dev-dot"></span><b>${esc(x.lang)}</b><span class="dev-scope">${esc(x.state === 'ready' ? (x.busy || 'ready') : x.state)}</span></div>${x.error ? `<div class="ws-note error">${esc(x.error)}</div>` : ''}<div class="dev-it-a"><button type="button" class="ag-act" data-x="lsp-restart" data-lang="${esc(x.lang)}">${icon('i-refresh')}Restart</button></div></div>`).join('')}` : ''}
+      ${rec.length ? `<div class="dev-sec">Recommended for this project</div><div class="dev-item tool-rec"><p>${rec.map((t) => `<span class="dev-scope">${esc(t.name)}</span>`).join(' ')}</p><div class="dev-it-a"><button type="button" class="ag-act primary" data-x="tool-install-all" data-ids="${esc(rec.map((t) => t.id).join(','))}">${icon('i-download')}Install all (${rec.length})</button></div></div>` : ''}
+      ${[...groups].map(([g, ts]) => `<div class="dev-sec">${esc(g)}</div>${ts.map(row).join('')}`).join('')}
+      <div class="dev-hint">Folder: <code>${esc(T.list.root)}</code> · ${esc(T.list.platform)} · Terminal: <code>astro tools list</code>, <code>astro tools install clangd</code></div>`;
+  }
+  function toolFinished(t) {
+    if (t.job?.state === 'done') { A().toast(`${t.name} installed. ${t.job.message || ''}`); window.AstroLSP?.refreshStatus(true).then(() => window.AstroLSP?.restart()); }
+    else if (t.job?.state === 'error') A().toast(`${t.name}: ${t.job.message}`, 'error');
+  }
+  async function toolInstallQueue(ids) {
+    T.queue.push(...ids.filter((id) => !T.queue.includes(id)));
+    if (T.queueBusy) { renderExt(); return; }
+    T.queueBusy = true;
+    try {
+      while (T.queue.length) {
+        const id = T.queue.shift();
+        const r = await dev('tools/install', { id }); renderExt();
+        if (!r.started && !r.running) continue;
+        for (;;) {   // wait for it (npm servers need Node first, gopls needs Go...)
+          await sleep(1200);
+          const l = await toolsLoad(false).catch(() => null); const t = l && l.tools.find((x) => x.id === id);
+          if (!t || toolState(t) !== 'running') { if (t) toolFinished(t); break; }
+          if (D.extTab === 'tools') renderExt();
+        }
+      }
+    } finally { T.queueBusy = false; T.at = 0; renderExt(); }
+  }
+
   async function renderExt(force) {
     const box = document.getElementById('ws-ext'); if (!box || box.closest('[hidden]')) return;
     const project = A().ws.project;
@@ -818,6 +899,10 @@
     const scopeBadge = (x) => `<span class="dev-scope s-${esc(x.scope)}">${x.scope === 'user' ? 'your tools' : esc(x.scope)}${x.owner ? ` · ${esc(x.owner)}` : ''}</span>`;
     if (tab === 'library') {
       body = await libBody(force);
+    } else if (tab === 'tools') {
+      body = await toolsBody(force);
+    } else if (tab === 'vscode') {
+      body = await vscodeBody(force);
     } else if (tab === 'skills') {
       body = `<div class="dev-acts"><button type="button" class="ws-btn sm" data-x="new-skill">${icon('i-plus')}<span>New skill</span></button></div>
         <div class="dev-hint">Skills are folders with a SKILL.md (name, description, instructions). The agent sees every skill's description and loads one when a job matches. A.S.T.R.O reads <code>.astro/skills</code>, Claude Code <code>.claude/skills</code>, Codex <code>.codex/skills</code>, OpenCode and Cursor skill folders, in the project, in Extensions, and in your home folder.</div>
@@ -854,10 +939,10 @@
         ${scan.plugins.map((p) => { const m = p.manifest || {}; const parts = [scan.skills.filter((x) => x.owner === p.name).length && `${scan.skills.filter((x) => x.owner === p.name).length} skills`, scan.commands.filter((x) => x.owner === p.name).length && `${scan.commands.filter((x) => x.owner === p.name).length} commands`, scan.agents.filter((x) => x.owner === p.name).length && `${scan.agents.filter((x) => x.owner === p.name).length} agents`, scan.hooks.some((x) => x.owner === p.name) && 'hooks', scan.scripts.some((x) => x.owner === p.name) && 'script', scan.themes.some((x) => x.owner === p.name) && 'themes'].filter(Boolean); const hasScript = (D.lastRawScripts || []).includes(p.name) || scan.scripts.some((x) => x.owner === p.name); return `<div class="dev-item${p.enabled ? '' : ' off'}"><div class="dev-it-h"><b>${esc(m.displayName || m.name || p.name)}</b>${m.version ? `<span class="dev-scope">v${esc(m.version)}</span>` : ''}<span class="grow"></span><label class="switch sm"><input type="checkbox" data-x="plugin-toggle" data-name="${esc(p.name)}"${p.enabled ? ' checked' : ''}><span></span></label></div><p>${esc(clip(m.description || '', 220))}</p><small>${esc(parts.join(' · ') || 'no parts found')}</small><div class="dev-it-a">${hasScript ? `<label class="dev-toggle"><input type="checkbox" data-x="plugin-script" data-name="${esc(p.name)}"${lsGet(`script:${p.name}`) === '1' ? ' checked' : ''}> Allow its script (full access to A.S.T.R.O AI)</label>` : ''}<button type="button" class="ag-act" data-x="del" data-scope="global" data-path="plugins/${esc(p.name)}">${icon('i-trash')}Remove</button></div></div>`; }).join('') || '<div class="git-empty">No plugins yet. Try anthropics/claude-code (its plugins folder is a marketplace).</div>'}`;
     } else if (tab === 'themes' || tab === 'snippets') {
       const isTheme = tab === 'themes';
-      const active = lsGet('theme', '');
+      const active = window.AstroThemes ? window.AstroThemes.activeVsxPath() : lsGet('theme', '');
       const installed = isTheme ? scan.themes : scan.snippets;
       body = `<form class="dev-inst" data-x="vsx-search" data-cat="${isTheme ? 'Themes' : 'Snippets'}"><input class="input" name="q" placeholder="Search Open VSX ${isTheme ? 'themes' : 'snippets'}" value="${esc(D.vsx?.cat === tab ? D.vsx.q : '')}" aria-label="Search"><button type="submit" class="ws-btn sm">${icon('i-search')}<span>Search</span></button></form>
-        <div class="dev-hint">${isTheme ? 'Colour themes from VS Code extensions on Open VSX, applied to the editor.' : 'Snippets from VS Code extensions on Open VSX, or your own: type the prefix and pick it from the completion list.'} Extensions that run code are not supported.</div>
+        <div class="dev-hint">${isTheme ? 'Colour themes from VS Code extensions on Open VSX. They recolour the whole app: chat, workspace, editor and terminal. Built-in themes are in Settings › Appearance.' : 'Snippets from VS Code extensions on Open VSX, or your own: type the prefix and pick it from the completion list.'} Extensions that run code are not supported.</div>
         ${D.vsx?.cat === tab ? `<div class="dev-sec">Results</div>${D.vsx.busy ? '<div class="git-empty">Searching…</div>' : D.vsx.error ? `<div class="ws-note error">${esc(D.vsx.error)}</div>` : (D.vsx.items || []).map((x) => `<div class="dev-item"><div class="dev-it-h"><b>${esc(x.displayName || x.name)}</b><span class="dev-scope">${esc(x.namespace)}</span><span class="dev-scope">${Number(x.downloadCount || 0).toLocaleString()} ↓</span></div><p>${esc(clip(x.description || '', 200))}</p><div class="dev-it-a"><button type="button" class="ws-chip" data-x="vsx-install" data-ns="${esc(x.namespace)}" data-name="${esc(x.name)}">${icon('i-download')}Install</button></div></div>`).join('') || '<div class="git-empty">Nothing found.</div>'}` : ''}
         <div class="dev-sec">Installed</div>
         ${isTheme ? `<button type="button" class="dev-item dev-theme${active ? '' : ' on'}" data-x="theme-use" data-path="">${icon('i-moon')}<b>A.S.T.R.O (default)</b></button>` : `<div class="dev-acts"><button type="button" class="ws-btn sm" data-x="new-snippets">${icon('i-plus')}<span>My snippets</span></button></div>`}
@@ -871,14 +956,18 @@
   function onExtClick(e) {
     const t = e.target.closest('[data-xtab]');
     if (t) { D.extTab = t.dataset.xtab; lsSet('ext-tab', D.extTab); renderExt(); return; }
-    const b = e.target.closest('[data-x]'); if (!b || b.tagName === 'FORM' || b.tagName === 'INPUT') return;
+    const b = e.target.closest('[data-x]'); if (!b || b.tagName === 'FORM' || b.tagName === 'INPUT' || b.tagName === 'SELECT' || b.tagName === 'LABEL') return;
+    if (b.tagName === 'A') e.preventDefault();
     extAction(b.dataset.x, b.dataset).catch((err) => A().toast(err.message, 'error'));
   }
   function onExtChange(e) {
+    const s = e.target.closest('select[data-x="vsc-chan"]'); if (s) { window.AstroExtHost.showOutput = s.value; renderExt(); return; }
     const b = e.target.closest('input[data-x]'); if (!b) return;
     if (b.dataset.x === 'plugin-toggle') extAction('plugin-toggle', { name: b.dataset.name, on: b.checked }).catch((err) => A().toast(err.message, 'error'));
     if (b.dataset.x === 'plugin-script') { lsSet(`script:${b.dataset.name}`, b.checked ? '1' : null); A().toast(b.checked ? 'The plugin script runs after a reload' : 'Plugin script turned off (reload to unload it)'); }
     if (b.dataset.x === 'agent-lint') lsSet('agent-lint', b.checked ? '1' : '0');
+    if (b.dataset.x === 'lsp-toggle') { window.AstroLSP?.setEnabled(b.checked); renderExt(); }
+    if (b.dataset.x === 'vsc-toggle') extAction('vsc-toggle', { id: b.dataset.id, on: b.checked }).catch((err) => A().toast(err.message, 'error'));
     if (b.dataset.x === 'lib-reviewed') extAction('lib-reviewed', {}).catch((err) => A().toast(err.message, 'error'));
   }
   function onExtSubmit(e) {
@@ -906,6 +995,15 @@
   async function extAction(act, d) {
     const a = A(); const project = a.ws.project;
     switch (act) {
+      case 'tool-install': { const t = T.list?.tools.find((x) => x.id === d.id); const need = NEEDS[d.id]; const nt = need && T.list?.tools.find((x) => x.id === need);
+        const ids = nt && toolState(nt) === 'none' ? [need, d.id] : [d.id]; await toolInstallQueue(ids); if (t) A().toast(`Installing ${t.name}…`); return; }
+      case 'tool-install-all': await toolInstallQueue(String(d.ids || '').split(',').filter(Boolean)); return;
+      case 'tool-cancel': await dev('tools/cancel', { id: d.id }); T.queue = T.queue.filter((x) => x !== d.id); renderExt(); return;
+      case 'tool-remove': { const t = T.list?.tools.find((x) => x.id === d.id);
+        if (!(await A().wsDialog({ title: `Remove ${t ? t.name : d.id}?`, text: 'Deletes the portable copy from A.S.T.R.O\'s tools folder. Programs installed on your system are not touched.', ok: 'Remove', danger: true, input: false }))) return;
+        await dev('tools/remove', { id: d.id }); T.at = 0; await window.AstroLSP?.refreshStatus(true); window.AstroLSP?.restart(); renderExt(); A().toast('Removed'); return; }
+      case 'tool-copy': try { await navigator.clipboard.writeText(d.text); A().toast('Copied'); } catch (_e) { A().toast(d.text); } return;
+      case 'lsp-restart': await window.AstroLSP?.restart(d.lang); renderExt(); return;
       case 'view': editorModal(d.path, await readExt(d.scope, d.path), null, true); return;
       case 'lib-open': await libOpen(d.id); return;
       case 'lib-kind': lsSet('lib-kind', d.kind); if (D.lib) D.lib.shown = 60; renderExt(); return;
@@ -980,13 +1078,53 @@
         await writeExt('global', 'plugins.json', JSON.stringify(st, null, 2)); renderExt(true); applyLooks(); return;
       }
       case 'vsx-search': return vsxSearch(String(d.q || ''), d.cat);
+      case 'vsc-search': return vscSearch(String(d.q || '').trim());
+      case 'vsc-install': {
+        const id = `${d.ns}.${d.name}`; D.vsc = { ...(D.vsc || {}), installing: id }; renderExt();
+        try { const r = await dev('exthost/install', { namespace: d.ns, name: d.name }); A().toast(`${r.displayName || id} installed${r.verified === 'sha256' ? ' · checksum verified' : ''}`); }
+        finally { D.vsc.installing = ''; }
+        return vscAfterChange();
+      }
+      case 'vsc-remove': if (!(await A().wsDialog({ title: 'Remove extension?', text: d.id, ok: 'Remove', danger: true, input: false }))) return; await dev('exthost/remove', { id: d.id }); return vscAfterChange();
+      case 'vsc-toggle': await dev('exthost/toggle', { id: d.id, on: d.on }); return vscAfterChange();
+      case 'vsc-restart': await window.AstroExtHost.listInstalled(true); await window.AstroExtHost.restart(); renderExt(); return;
+      case 'vsc-run': { const r = await window.AstroExtHost.execute(d.cmd); if (r !== undefined && r !== null && typeof r !== 'object') A().toast(String(r).slice(0, 200)); renderExt(); return; }
+      case 'goto-tools': D.extTab = 'tools'; lsSet('ext-tab', 'tools'); renderExt(true); return;
       case 'vsx-install': return vsxInstall(d.ns, d.name);
-      case 'theme-use': lsSet('theme', d.path || null); applyLooks(); renderExt(); return;
+      case 'theme-use': { const T = window.AstroThemes; lsSet('theme', null); if (T) { if (d.path) T.set(`vsx:${d.path}`); else T.set(T.DEFAULT[T.mode()]); } applyLooks(); renderExt(); return; }
       case 'manager': return agentManager();
       default: break;
     }
   }
 
+  // ---------- VS Code extensions (extension host, preview) ----------
+  async function vscodeBody(force) {
+    const H = window.AstroExtHost; if (!H) return '<div class="git-empty">The extension host is not loaded.</div>';
+    let inst; try { inst = await H.listInstalled(force); } catch (err) { return `<div class="ws-note error">${esc(err.message)}</div>`; }
+    const exts = Object.values(inst.extensions || {}).sort((a, b) => String(a.displayName).localeCompare(String(b.displayName)));
+    const live = new Map((H.extensions || []).map((e) => [String(e.id).toLowerCase(), e]));
+    const st = H.state; const chans = [...H.outputs.keys()]; const chan = H.showOutput && H.outputs.has(H.showOutput) ? H.showOutput : chans[0];
+    const V = D.vsc || {};
+    const stateChip = st === 'ready' ? '<span class="lsp-dot ok"></span>Running' : st === 'starting' ? '<span class="lsp-dot busy"></span>Starting…' : st === 'error' ? '<span class="lsp-dot bad"></span>Stopped' : '<span class="lsp-dot"></span>Off';
+    return `<div class="dev-hint"><b class="vsc-preview">Preview</b> Run desktop VS Code extensions from Open VSX inside A.S.T.R.O AI. <details class="vsc-more"><summary>What works</summary>Commands (in the command palette), messages, quick picks, input boxes, output channels, status-bar items, diagnostics, editor edits, completion, hover, go to definition and formatting. Webviews, debuggers, tree views, custom editors and extensions that start their own language client may not work; for language servers use the <a href="#" data-x="goto-tools">Tools</a> tab. Themes and snippets install from their own tabs. Microsoft's licensed extensions (C/C++, Pylance, Remote) are not on Open VSX; A.S.T.R.O uses clangd and Pyright instead.</details></div>
+      ${inst.ready ? '' : `<div class="ws-note error">${esc(inst.why || 'Node.js is needed.')} <button type="button" class="ws-btn sm" data-x="goto-tools">Open Tools</button></div>`}
+      <div class="dev-acts vsc-state"><span class="vsc-chip">${stateChip}</span>${st === 'error' && H.error ? `<span class="dev-s">${esc(H.error)}</span>` : ''}<span class="grow"></span><button type="button" class="ws-btn sm" data-x="vsc-restart">${icon('i-refresh')}<span>Restart host</span></button></div>
+      <form class="dev-inst" data-x="vsc-search"><input class="input" name="q" placeholder="Search Open VSX extensions" value="${esc(V.q || '')}" aria-label="Search Open VSX"><button type="submit" class="ws-btn sm">${icon('i-search')}<span>Search</span></button></form>
+      ${V.items || V.busy || V.error ? `<div class="dev-sec">Results</div>${V.busy ? '<div class="git-empty">Searching…</div>' : V.error ? `<div class="ws-note error">${esc(V.error)}</div>` : V.items.map((x) => { const id = `${x.namespace}.${x.name}`; const have = exts.some((e) => e.id.toLowerCase() === id.toLowerCase()); return `<div class="dev-item"><div class="dev-it-h"><b>${esc(x.displayName || x.name)}</b><span class="dev-scope">${esc(x.namespace)}</span><span class="dev-scope">v${esc(x.version)}</span>${x.downloadCount ? `<span class="dev-scope">${Number(x.downloadCount).toLocaleString()} installs</span>` : ''}</div><div class="dev-d">${esc(String(x.description || '').slice(0, 180))}</div><div class="dev-it-a">${have ? '<span class="dev-s">Installed</span>' : V.installing === id ? '<span class="dev-s"><span class="spin"></span> Installing…</span>' : `<button type="button" class="ws-btn sm primary" data-x="vsc-install" data-ns="${esc(x.namespace)}" data-name="${esc(x.name)}">${icon('i-download')}<span>Install</span></button>`}</div></div>`; }).join('') || '<div class="git-empty">No extensions found.</div>'}` : ''}
+      <div class="dev-sec">Installed (${exts.length})</div>
+      ${exts.length ? exts.map((e) => { const L = live.get(e.id.toLowerCase()); const cmds = (H.commands || []).filter((c) => String(c.ext || '').toLowerCase() === e.id.toLowerCase()).slice(0, 8);
+        const status = e.enabled === false ? '<span class="dev-s">Disabled</span>' : !L ? '<span class="dev-s">Not running</span>' : L.error ? '<span class="dev-s bad">Failed to start</span>' : L.activated ? '<span class="dev-s ok">Active</span>' : '<span class="dev-s">Waiting for its activation event</span>';
+        return `<div class="dev-item"><div class="dev-it-h"><b>${esc(e.displayName || e.id)}</b><span class="dev-scope">${esc(e.id)}</span><span class="dev-scope">v${esc(e.version)}</span>${e.verified === 'sha256' ? '<span class="dev-scope" title="SHA-256 checked against Open VSX">verified</span>' : ''}${status}</div>${e.description ? `<div class="dev-d">${esc(e.description)}</div>` : ''}${L && L.error ? `<pre class="vsc-err">${esc(String(L.error).slice(0, 600))}</pre>` : ''}${cmds.length ? `<div class="vsc-cmds">${cmds.map((c) => `<button type="button" class="ag-act" data-x="vsc-run" data-cmd="${esc(c.command)}" title="${esc(c.command)}">${icon('i-play')}${esc(c.title || c.command)}</button>`).join('')}</div>` : ''}<div class="dev-it-a"><label class="dev-toggle"><input type="checkbox" data-x="vsc-toggle" data-id="${esc(e.id)}"${e.enabled === false ? '' : ' checked'}> Enabled</label><button type="button" class="ag-act" data-x="vsc-remove" data-id="${esc(e.id)}">Remove</button></div></div>`; }).join('') : '<div class="git-empty">No VS Code extensions yet. Search above, for example “change case”, “todo”, “prettier” or “path intellisense”.</div>'}
+      ${H.unsupported.length ? `<div class="dev-hint">APIs used by your extensions that A.S.T.R.O does not provide yet: ${esc(H.unsupported.slice(0, 12).join(', '))}</div>` : ''}
+      ${chans.length ? `<div class="dev-sec">Output</div><select class="input vsc-chan" data-x="vsc-chan">${chans.map((c) => `<option${c === chan ? ' selected' : ''}>${esc(c)}</option>`).join('')}</select><pre class="vsc-out">${esc((H.outputs.get(chan) || {}).text || '').slice(-12000)}</pre>` : ''}`;
+  }
+  async function vscSearch(q) {
+    D.vsc = { q, busy: true }; renderExt();
+    try { const r = await dev('fetch', { url: `https://open-vsx.org/api/-/search?size=24&sortBy=${q ? 'relevance' : 'downloadCount'}&sortOrder=desc${q ? `&query=${encodeURIComponent(q)}` : ''}` }); D.vsc.items = (JSON.parse(r.text).extensions || []).filter((x) => !/theme|icons?$/i.test(String(x.name)) || q); }
+    catch (err) { D.vsc.error = err.message; }
+    D.vsc.busy = false; renderExt();
+  }
+  async function vscAfterChange() { await window.AstroExtHost.listInstalled(true); await window.AstroExtHost.restart(); renderExt(); }
   // ---------- MCP: add + registry ----------
   async function mcpMerge(name, spec) {
     const r = await dev('mcp/config_get', {});
@@ -1170,7 +1308,7 @@
       };
       const th = await loadTheme(norm('extension', t.path));
       if (!th.colors && !th.tokenColors) continue;
-      const out = { name: t.label || th.name || pkg.displayName, type: /light/i.test(t.uiTheme || th.type || '') && !/dark/i.test(t.uiTheme || '') ? 'light' : 'dark', colors: th.colors || {}, tokenColors: Array.isArray(th.tokenColors) ? th.tokenColors : [], source: `${ns}.${name}@${meta.version}` };
+      const out = { name: t.label || th.name || pkg.displayName, type: (t.uiTheme === 'vs' || t.uiTheme === 'hc-light' || (!t.uiTheme && /light/i.test(th.type || ''))) ? 'light' : 'dark', colors: th.colors || {}, tokenColors: Array.isArray(th.tokenColors) ? th.tokenColors : [], source: `${ns}.${name}@${meta.version}` };
       await dev('ext/write', { scope: 'global', path: `themes/${slug(`${ns}.${name}-${t.label || th.name || n}`)}.json`, content: JSON.stringify(out) }); n++;
     }
     for (const sn of c.snippets || []) {
@@ -1212,13 +1350,25 @@
     const bg = c['editor.background'];
     return `#ws-cm .cm-editor, .ws-diff .cm-editor { ${Object.entries(v).map(([k, val]) => `${k}: ${val};`).join(' ')} }${bg ? ` #ws-cm, #ws-cm .cm-gutters { background: ${bg} !important; } #ws-cm .cm-editor { color: var(--cm-fg); }` : ''}`;
   }
+  function editorTheme() {
+    const want = window.AstroThemes ? window.AstroThemes.activeVsxPath() : lsGet('theme', '');
+    const th = (D.lastThemes || []).find((t) => t.path === want);
+    styleNode('theme').textContent = th ? themeCss(th.theme) : '';
+  }
+  window.addEventListener('astro-theme', () => editorTheme());
   function styleNode(id) { let n = D.styleNodes.get(id); if (!n) { n = document.createElement('style'); n.dataset.dev = id; document.head.append(n); D.styleNodes.set(id, n); } return n; }
   async function applyLooks() {
     if (!A()) return;
     const scan = await getScan(A().ws.project || '');
-    const want = lsGet('theme', '');
-    const th = scan.themes.find((t) => t.path === want);
-    styleNode('theme').textContent = th ? themeCss(th.theme) : '';
+    D.lastThemes = scan.themes;
+    const T = window.AstroThemes;
+    const legacy = lsGet('theme', '');
+    if (T && legacy) { // 1.5 and older: the Open VSX theme only coloured the editor. Now it is an app palette.
+      const old = scan.themes.find((t) => t.path === legacy);
+      if (old) { try { localStorage.setItem(`astro_palette_${T.fromVsx(old.theme).base}`, `vsx:${legacy}`); } catch (_e) { /* private mode */ } }
+      lsSet('theme', null);
+    }
+    if (T) T.setVsx(scan.themes); else editorTheme();
     styleNode('plugins').textContent = scan.styles.map((s) => `/* ${s.owner} */\n${s.content}`).join('\n');
     const sets = scan.snippets.map((s) => ({ langs: !s.data.language || s.data.language === '*' ? ['*'] : (VSC_LANG[s.data.language] || [s.data.language]), items: s.data.items || {} }));
     A().ws.cm?.setSnippets?.(sets);
@@ -1291,13 +1441,18 @@
       { label: 'MCP servers', icon: 'i-puzzle', run: () => { D.extTab = 'mcp'; showSide('ext'); } },
       { label: 'Browse the MCP registry', icon: 'i-globe', run: () => mcpRegistry() },
       { label: 'Install a plugin from GitHub', icon: 'i-download', run: () => { D.extTab = 'plugins'; showSide('ext'); } },
-      { label: 'Color theme (Open VSX)', icon: 'i-moon', run: () => { D.extTab = 'themes'; showSide('ext'); } },
+      { label: 'Color theme: get more from Open VSX', icon: 'i-moon', run: openThemes },
+      { label: window.AstroLogo?.still ? 'Logo: animate the A.S.T.R.O logo' : 'Logo: keep the A.S.T.R.O logo still', icon: 'i-sparkles', run: () => window.AstroLogo?.setStill(!window.AstroLogo.still) },
+      { label: 'VS Code extensions (preview): search and install from Open VSX', icon: 'i-code', run: () => window.AstroDev.openVscode() },
+      ...(window.AstroExtHost ? window.AstroExtHost.paletteItems() : []),
+      ...(window.AstroThemes ? window.AstroThemes.list().map((t) => ({ label: `Color theme: ${t.name}`, icon: 'i-moon', sub: `${t.base === 'light' ? 'Light' : 'Dark'}${t.vsx ? ' · Open VSX' : ''}${window.AstroThemes.chosen(t.base) === t.id ? ' · in use' : ''}`, run: () => { window.AstroThemes.set(t.id); A().toast(`Theme: ${t.name}`); } })) : []),
       { label: 'Agent Manager', icon: 'i-sparkles', sub: 'All agent sessions at once', run: agentManager },
       { label: `${ghostOn ? 'Turn off' : 'Turn on'} AI inline suggestions`, icon: 'i-spark', sub: 'Ghost text in the editor; Tab accepts', run: () => setGhost(!ghostOn) },
       ...Object.entries(MODES).map(([id, m]) => ({ label: `Agent mode: ${m.label}`, icon: m.icon, sub: m.sub, run: () => { const s = A().agCurSession?.(); setMode(s?.project || A().AG.project || A().ws.project, id, s); A().toast(`${m.label} mode`); } })),
       ...D.pluginCommands,
     ];
   }
+  function openThemes() { D.extTab = 'themes'; lsSet('ext-tab', 'themes'); return showSide('ext'); }
   async function showSide(name) {
     const a = A();
     a.switchView('workspace');
@@ -1311,9 +1466,13 @@
   function projectChanged(name) {
     if (D.probProject !== name) { D.problems = []; D.checkers = null; D.probProject = name; A()?.ws.cm?.clearProblems?.(); paintProbCount(); }
     applyLooks(); paintModeChips();
+    window.AstroLSP?.projectChanged(name);
+    window.AstroExtHost?.projectChanged(name);
   }
   function editorReady(cm) {
     if (lsGet('ghost') === '1') cm.setInlineSuggest?.(ghostSuggest);
+    window.AstroLSP?.attach(cm, A().ws.ide);
+    window.AstroExtHost?.attach(cm);
     applyLooks();
     const host = document.getElementById('ws-cm');
     if (host && !host._devProb) {
@@ -1357,6 +1516,8 @@
 
   window.AstroDev = {
     init, tools, beforeTool, afterTool, onStop, brief, agentInput, mode: modeOf, setMode, side, projectChanged, editorReady, inlineEdit,
-    openFolder, openLibrary, paletteItems, checkProblems, agentManager, mcpRegistry, installPlugin, vsxInstall, getScan, globRe, frontmatter, jsonc, unzipIndex, invalidate, applyLooks, renderExt,
+    openVscode: () => { D.extTab = 'vscode'; lsSet('ext-tab', 'vscode'); A().wsSide('ext'); renderExt(true); },
+    openTools: () => { D.extTab = 'tools'; lsSet('ext-tab', 'tools'); A().wsSide('ext'); renderExt(true); }, toolsLoad,
+    openFolder, openLibrary, paletteItems, checkProblems, agentManager, mcpRegistry, installPlugin, vsxInstall, openThemes, getScan, globRe, frontmatter, jsonc, unzipIndex, invalidate, applyLooks, renderExt,
   };
 })();

@@ -857,6 +857,7 @@ void dev_diagnostics(int fd, const Json& body) {
 }
 
 #include "astro_library.inc"
+#include "astro_tools.inc"
 
 bool handle_dev_api(int fd, const HttpRequest& request) {
     const std::string& path = request.path;
@@ -872,6 +873,9 @@ bool handle_dev_api(int fd, const HttpRequest& request) {
         if (action == "fs/open") { dev_open_folder(fd, body); return true; }
         if (action.rfind("mcp/", 0) == 0) { dev_mcp(fd, action.substr(4), body); return true; }
         if (action.rfind("library/", 0) == 0) { dev_library(fd, action.substr(8), body); return true; }
+        if (action.rfind("tools/", 0) == 0) { dev_tools(fd, action.substr(6), body); return true; }
+        if (action.rfind("lsp/", 0) == 0) { dev_lsp(fd, action.substr(4), body); return true; }
+        if (action.rfind("exthost/", 0) == 0) { dev_exthost(fd, action.substr(8), body); return true; }
         if (action == "scan") { dev_scan(fd, body); return true; }
         if (action.rfind("ext/", 0) == 0) { dev_ext(fd, action.substr(4), body); return true; }
         if (action == "fetch") { dev_fetch(fd, body); return true; }
@@ -883,6 +887,7 @@ bool handle_dev_api(int fd, const HttpRequest& request) {
 
 // Stops a project's MCP servers (the project was closed, deleted or renamed).
 void mcp_forget_project(const std::string& project) {
+    lsp_forget_project(project);
     std::lock_guard lk(g_mcp_mu);
     for (auto it = g_mcp.begin(); it != g_mcp.end();) {
         if (it->first.rfind(project + "/", 0) == 0) { if (it->second) { std::lock_guard l2(it->second->mu); mcp_kill(*it->second); } it = g_mcp.erase(it); } else ++it;

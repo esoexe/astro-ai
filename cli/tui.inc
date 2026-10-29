@@ -28,6 +28,7 @@ struct Seg { std::string t; St s; };
 using Line = std::vector<Seg>;
 static Seg sg(std::string t, uint32_t fg = 0, uint8_t a = 0, uint32_t bg = 0) { return Seg{std::move(t), St{fg, bg, a}}; }
 
+static void init_theme();
 static void detect_colors() {
     const std::string ct = env("COLORTERM"), tp = env("TERM_PROGRAM"), term = env("TERM");
     g_truecolor = ct.find("truecolor") != std::string::npos || ct.find("24bit") != std::string::npos || !env("WT_SESSION").empty() ||
@@ -43,11 +44,81 @@ static void detect_colors() {
     if (env("ASTRO_THEME") == "light") light = true;
     if (env("ASTRO_THEME") == "dark") light = false;
     g_light_bg = light;
-    if (light) {
+    init_theme();
+}
+// ===================================================================== themes (the same names as the app's built-in themes)
+struct TTheme { const char* id; const char* name; bool light; uint32_t a, t, t3, b, s3, o, d, w, fn, kw; };
+static const TTheme THEMES[] = {
+    {"astro", "A.S.T.R.O Peach (default)", false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {"astro-teal", "A.S.T.R.O Teal", false, 0x2dd4bf, 0xe7ecef, 0x7b8790, 0x0b0f12, 0x26313a, 0x4ade80, 0xf87171, 0xfbbf24, 0x7dd3fc, 0xc4b5fd},
+    {"tokyo-night", "Tokyo Night", false, 0x7aa2f7, 0xc0caf5, 0x565f89, 0x1a1b26, 0x2f3549, 0x9ece6a, 0xf7768e, 0xe0af68, 0x7aa2f7, 0xbb9af7},
+    {"catppuccin-mocha", "Catppuccin Mocha", false, 0xcba6f7, 0xcdd6f4, 0x7f849c, 0x1e1e2e, 0x45475a, 0xa6e3a1, 0xf38ba8, 0xf9e2af, 0x89b4fa, 0xcba6f7},
+    {"dracula", "Dracula", false, 0xbd93f9, 0xf8f8f2, 0x6272a4, 0x282a36, 0x44475a, 0x50fa7b, 0xff5555, 0xf1fa8c, 0x8be9fd, 0xff79c6},
+    {"nord", "Nord", false, 0x88c0d0, 0xeceff4, 0x8a93a6, 0x2e3440, 0x4c566a, 0xa3be8c, 0xbf616a, 0xebcb8b, 0x81a1c1, 0xb48ead},
+    {"one-dark", "One Dark", false, 0x61afef, 0xdcdfe4, 0x7f848e, 0x282c34, 0x3e4451, 0x98c379, 0xe06c75, 0xe5c07b, 0x61afef, 0xc678dd},
+    {"gruvbox-dark", "Gruvbox Dark", false, 0xfe8019, 0xebdbb2, 0x928374, 0x282828, 0x504945, 0xb8bb26, 0xfb4934, 0xfabd2f, 0x83a598, 0xd3869b},
+    {"rose-pine", "Ros\xC3\xA9 Pine", false, 0xebbcba, 0xe0def4, 0x6e6a86, 0x191724, 0x403d52, 0x9ccfd8, 0xeb6f92, 0xf6c177, 0x9ccfd8, 0xc4a7e7},
+    {"github-dark", "GitHub Dark", false, 0x2f81f7, 0xe6edf3, 0x7d8590, 0x0d1117, 0x30363d, 0x3fb950, 0xf85149, 0xd29922, 0x79c0ff, 0xd2a8ff},
+    {"solarized-dark", "Solarized Dark", false, 0x268bd2, 0xeee8d5, 0x657b83, 0x002b36, 0x194753, 0x859900, 0xdc322f, 0xb58900, 0x268bd2, 0x6c71c4},
+    {"midnight", "Midnight (OLED)", false, 0xa78bfa, 0xf2f2f2, 0x76767d, 0x000000, 0x1f1f23, 0x4ade80, 0xff6b6b, 0xfbbf24, 0x7dd3fc, 0xc4b5fd},
+    {"astro-light", "A.S.T.R.O Peach Light", true, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {"github-light", "GitHub Light", true, 0x0969da, 0x1f2328, 0x818b98, 0xffffff, 0xeaeef2, 0x1a7f37, 0xd1242f, 0x9a6700, 0x0550ae, 0x8250df},
+    {"catppuccin-latte", "Catppuccin Latte", true, 0x8839ef, 0x4c4f69, 0x8c8fa1, 0xeff1f5, 0xccd0da, 0x40a02b, 0xd20f39, 0xdf8e1d, 0x1e66f5, 0x8839ef},
+    {"solarized-light", "Solarized Light", true, 0x268bd2, 0x073642, 0x93a1a1, 0xfdf6e3, 0xeee8d5, 0x859900, 0xdc322f, 0xb58900, 0x268bd2, 0x6c71c4},
+    {"rose-pine-dawn", "Ros\xC3\xA9 Pine Dawn", true, 0xb4637a, 0x575279, 0x9893a5, 0xfaf4ed, 0xdfdad9, 0x286983, 0xb4637a, 0xea9d34, 0x286983, 0x907aa9},
+    {"gruvbox-light", "Gruvbox Light", true, 0xaf3a03, 0x3c3836, 0x928374, 0xfbf1c7, 0xebdbb2, 0x79740e, 0x9d0006, 0xb57614, 0x076678, 0x8f3f71},
+};
+static std::string g_theme = "astro";
+static bool g_anim = true;
+static uint32_t mix(uint32_t a, uint32_t b, double t);
+static const TTheme* find_theme(const std::string& id) { for (const auto& th : THEMES) if (id == th.id) return &th; return nullptr; }
+static void apply_theme(const std::string& id) {
+    const TTheme* th = find_theme(id); if (!th) th = find_theme(g_light_bg ? "astro-light" : "astro");
+    g_theme = th->id; g_light_bg = th->light;
+    if (std::string(th->id) == "astro") {
+        PEACH = rgb(0xf3a679); PEACH_D = rgb(0x9a6a50); MUTED = rgb(0x8f8a86); FAINT = rgb(0x5f5a56); GREEN = rgb(0x4ade80); RED = rgb(0xf87171);
+        AMBER = rgb(0xfbbf24); BLUE = rgb(0x7aa2f7); VIOLET = rgb(0xb4a0f8); SELBG = rgb(0x33241b); BORDER = rgb(0x4a4541); CODE = rgb(0xf0b48f);
+        WHITE = rgb(0xfff1e6); CORE_T = rgb(0xffd3b4); CORE_B = rgb(0xe98a55); return;
+    }
+    if (std::string(th->id) == "astro-light") {
         PEACH = rgb(0xc8622b); PEACH_D = rgb(0xe3b293); MUTED = rgb(0x78716c); FAINT = rgb(0xa8a29e); GREEN = rgb(0x15803d); RED = rgb(0xdc2626);
         AMBER = rgb(0xb45309); BLUE = rgb(0x2563eb); VIOLET = rgb(0x7c3aed); SELBG = rgb(0xfbe3d3); BORDER = rgb(0xc9c2bc); CODE = rgb(0xa94a17);
-        WHITE = rgb(0xc8622b); CORE_T = rgb(0xf6b48c); CORE_B = rgb(0xd0652c);
+        WHITE = rgb(0xc8622b); CORE_T = rgb(0xf6b48c); CORE_B = rgb(0xd0652c); return;
     }
+    const uint32_t a = rgb(th->a), tx = rgb(th->t), t3 = rgb(th->t3), b = rgb(th->b);
+    PEACH = a; GREEN = rgb(th->o); RED = rgb(th->d); AMBER = rgb(th->w); BLUE = rgb(th->fn); VIOLET = rgb(th->kw); BORDER = rgb(th->s3);
+    PEACH_D = mix(a, b, th->light ? 0.5 : 0.45); MUTED = mix(t3, tx, th->light ? 0.35 : 0.25); FAINT = mix(t3, b, th->light ? 0.2 : 0.3);
+    SELBG = mix(b, a, th->light ? 0.14 : 0.2); CODE = mix(a, tx, 0.35); WHITE = th->light ? a : mix(tx, a, 0.2);
+    CORE_T = mix(a, rgb(0xffffff), 0.45); CORE_B = mix(a, rgb(0x000000), 0.08);
+}
+// ~/.config/astro-ai/tui.conf (Windows: %APPDATA%\astro-ai\tui.conf): key=value lines
+static fs::path prefs_path() {
+#ifdef _WIN32
+    const std::string base = env("APPDATA"); if (base.empty()) return {};
+    return from_utf8(base) / "astro-ai" / "tui.conf";
+#else
+    std::string base = env("XDG_CONFIG_HOME"); if (base.empty()) { const std::string h = env("HOME"); if (h.empty()) return {}; base = h + "/.config"; }
+    return fs::path(base) / "astro-ai" / "tui.conf";
+#endif
+}
+static std::string pref_get(const std::string& key) {
+    const fs::path p = prefs_path(); if (p.empty()) return "";
+    std::ifstream f(p); std::string line;
+    while (std::getline(f, line)) { const auto e = line.find('='); if (e != std::string::npos && line.substr(0, e) == key) { std::string v = line.substr(e + 1); while (!v.empty() && (v.back() == '\r' || v.back() == ' ')) v.pop_back(); return v; } }
+    return "";
+}
+static void pref_set(const std::string& key, const std::string& value) {
+    const fs::path p = prefs_path(); if (p.empty()) return;
+    std::vector<std::string> lines; { std::ifstream f(p); std::string line; while (std::getline(f, line)) if (line.rfind(key + "=", 0) != 0 && !line.empty()) lines.push_back(line); }
+    lines.push_back(key + "=" + value);
+    std::error_code ec; fs::create_directories(p.parent_path(), ec);
+    std::ofstream f(p, std::ios::trunc); for (const auto& l : lines) f << l << "\n";
+}
+static void init_theme() {
+    const std::string e = env("ASTRO_THEME");
+    std::string want = find_theme(e) ? e : pref_get("theme");
+    if (!find_theme(want)) want = g_light_bg ? "astro-light" : "astro";
+    apply_theme(want);
+    g_anim = pref_get("anim") != "off" && env("ASTRO_NO_ANIM").empty() && env("NO_COLOR").empty();
 }
 static int to256(uint32_t c) {
     const int r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
@@ -246,23 +317,75 @@ static void md_paras(const std::string& text, const Line& first, const Line& res
 }
 
 // ===================================================================== the app icon (half-blocks, true colour)
-#include "logo.h"
-static std::vector<Line> logo_art() {
-    std::vector<Line> out;
-    const uint32_t bg = g_light_bg ? 0xffffffu : 0x0d0c0eu;
-    auto px = [&](int x, int y, bool& on) -> uint32_t {
-        const uint32_t p = LOGO[y * LOGO_N + x]; const uint32_t a = p >> 24;
-        on = a >= 24;
-        return on ? mix(0x1000000u | bg, 0x1000000u | (p & 0xffffff), a / 255.0) : 0;
+// Drawn live, not from a bitmap: the peach sphere, three tilted orbits and four satellites that travel along them
+// (the "refined orbit" icon). 4x4 supersampling keeps the rings smooth at this size; colours follow the theme.
+static const int LOGO_W = 26;
+static std::vector<Line> logo_art(double t) {
+    const int N = LOGO_W, SS = 4;
+    const uint32_t bg = g_light_bg ? 0x1ffffffu : 0x10d0c0eu;
+    struct Orbit { double rot, a, b; };
+    // geometry of desktop/assets/mark.svg: rings 392x128 at 0 / +60 / -60 degrees, core r=176 (of 512), scaled to fill
+    static const Orbit orb[3] = {{0.0, 0.93, 0.305}, {1.0472, 0.93, 0.305}, {-1.0472, 0.93, 0.305}};
+    static const double sat[4][3] = {{0, 3.3, 0.55}, {1, 0.9, 0.42}, {2, 2.2, -0.47}, {1, 4.0, 0.42}};
+    const double R = 0.37, LW = 0.095, SR = 0.085, pi2 = 6.283185307179586;
+    double sx[4], sy[4]; bool sf[4];
+    for (int i = 0; i < 4; ++i) {
+        const Orbit& o = orb[static_cast<int>(sat[i][0])]; const double th = std::fmod(sat[i][1] + sat[i][2] * t, pi2);
+        const double lx = o.a * std::cos(th), ly = o.b * std::sin(th);
+        sx[i] = lx * std::cos(o.rot) - ly * std::sin(o.rot); sy[i] = lx * std::sin(o.rot) + ly * std::cos(o.rot); sf[i] = std::sin(th) > 0;
+    }
+    const double pulse = 0.5 + 0.5 * std::sin(t * 1.6);
+    const uint32_t satF = g_light_bg ? mix(PEACH, rgb(0x000000), 0.15) : mix(PEACH, rgb(0xffffff), 0.82), satB = mix(PEACH, bg, 0.35);
+    auto ringc = [&](double u, double v, bool front) { const uint32_t c = mix(CORE_T, CORE_B, std::clamp((u + v + 1.4) / 2.8, 0.0, 1.0)); return front ? c : mix(bg, c, 0.5); };
+    auto sample = [&](double u, double v, uint32_t& col) -> double {   // returns coverage 0..1 of this sub-sample
+        double cov = 0; col = bg;
+        auto put = [&](uint32_t c, double al) { if (al <= 0) return; col = mix(col, c, al); cov = cov + (1 - cov) * al; };
+        auto ring = [&](bool front) {
+            for (const auto& o : orb) {
+                const double lx = u * std::cos(o.rot) + v * std::sin(o.rot), ly = -u * std::sin(o.rot) + v * std::cos(o.rot);
+                if ((ly > 0) != front) continue;
+                const double f = lx * lx / (o.a * o.a) + ly * ly / (o.b * o.b) - 1;
+                const double g = 2 * std::sqrt(lx * lx / (o.a * o.a * o.a * o.a) + ly * ly / (o.b * o.b * o.b * o.b));
+                if (g > 0 && std::fabs(f) / g < LW / 2) put(ringc(u, v, front), 1);
+            }
+        };
+        auto sats = [&](bool front) {
+            for (int i = 0; i < 4; ++i) { if (sf[i] != front) continue; const double d = std::hypot(u - sx[i], v - sy[i]);
+                if (d < SR) put(front ? satF : satB, 1); else if (front && d < SR * 2.2) put(satF, 0.35 * (1 - (d - SR) / (SR * 1.2))); }
+        };
+        ring(false); sats(false);
+        const double r = std::hypot(u, v);
+        if (r < R + 0.10 && r >= R) put(PEACH, (0.12 + 0.18 * pulse) * (1 - (r - R) / 0.10));   // breathing glow around the core
+        if (r < R) {   // the core: radial gradient lit from the upper left, with a soft rim
+            const double d = std::hypot(u + 0.24 * R, v + 0.36 * R) / (1.5 * R);
+            uint32_t c = d < 0.38 ? mix(mix(CORE_T, rgb(0xffffff), 0.45), CORE_T, d / 0.38) : d < 0.78 ? mix(CORE_T, PEACH, (d - 0.38) / 0.4) : mix(PEACH, CORE_B, std::min(1.0, (d - 0.78) / 0.22));
+            if (r > R * 0.86) c = mix(c, CORE_T, 0.3 * (r - R * 0.86) / (R * 0.14));
+            put(c, 1);
+        }
+        ring(true); sats(true);
+        return cov;
     };
-    for (int r = 0; r + 1 < LOGO_N; r += 2) {
+    auto px = [&](int x, int y, bool& on) -> uint32_t {
+        double cov = 0; double rr = 0, gg = 0, bb = 0;
+        for (int sy2 = 0; sy2 < SS; ++sy2) for (int sx2 = 0; sx2 < SS; ++sx2) {
+            const double u = ((x + (sx2 + 0.5) / SS) / N) * 2 - 1, v = ((y + (sy2 + 0.5) / SS) / N) * 2 - 1;
+            uint32_t c; const double cv = sample(u * 1.04, v * 1.04, c);
+            cov += cv; rr += ((c >> 16) & 255) * cv; gg += ((c >> 8) & 255) * cv; bb += (c & 255) * cv;
+        }
+        on = cov / (SS * SS) >= 0.12;
+        if (!on || cov <= 0) return 0;
+        const uint32_t avg = 0x1000000u | (static_cast<uint32_t>(rr / cov) << 16) | (static_cast<uint32_t>(gg / cov) << 8) | static_cast<uint32_t>(bb / cov);
+        return mix(bg, avg, std::min(1.0, cov / (SS * SS) * 1.15));
+    };
+    std::vector<Line> out;
+    for (int r = 0; r + 1 < N; r += 2) {
         Line l;
-        for (int x = 0; x < LOGO_N; ++x) {
-            bool t = false, b = false;
-            const uint32_t ct = px(x, r, t), cb = px(x, r + 1, b);
-            if (!t && !b) l.push_back(sg(" "));
-            else if (t && b) l.push_back(sg("\xE2\x96\x80", ct, 0, cb));
-            else if (t) l.push_back(sg("\xE2\x96\x80", ct));
+        for (int x = 0; x < N; ++x) {
+            bool tp = false, bt = false;
+            const uint32_t ct = px(x, r, tp), cb = px(x, r + 1, bt);
+            if (!tp && !bt) l.push_back(sg(" "));
+            else if (tp && bt) l.push_back(sg("\xE2\x96\x80", ct, 0, cb));
+            else if (tp) l.push_back(sg("\xE2\x96\x80", ct));
             else l.push_back(sg("\xE2\x96\x84", cb));
         }
         out.push_back(l);
@@ -570,6 +693,8 @@ static const Cmd CMDS[] = {
     {"copy", "", "Copy the last answer to the clipboard"},
     {"panel", "", "Show or hide the side panel (Ctrl+B)"},
     {"mouse", "", "Turn mouse-wheel scrolling on or off"},
+    {"theme", "[name]", "Colour theme (the same themes as the app), with live preview"},
+    {"logo", "on|off", "Animate the logo on the welcome card"},
     {"status", "", "Engine, project and session details"},
     {"quit", "", "Exit (also Ctrl+D)"},
 };
@@ -863,6 +988,26 @@ struct App {
             if (auto a = r["ranked"].arr(); a && !a->empty()) best_model = (*a)[0]["label"].str();
             if (then) then();
         });
+    }
+    std::string theme_saved;
+    void set_theme(const std::string& id, bool save) {
+        apply_theme(id); full = true; dirty = true; for (auto& b : blocks) b->cw = -1;
+        if (save) { pref_set("theme", g_theme); theme_saved = g_theme; say_toast(std::string("Theme: ") + find_theme(g_theme)->name, PEACH); }
+    }
+    void open_themes() {
+        theme_saved = g_theme;
+        lo = ListOv{}; lo.on = true; lo.kind = "themes"; lo.title = "Colour theme"; lo.hint = "\xE2\x86\x91\xE2\x86\x93 preview \xC2\xB7 enter keep \xC2\xB7 esc cancel";
+        for (const auto& th : THEMES) {
+            Line sw{sg("\xE2\x96\x88\xE2\x96\x88", th.a ? rgb(th.a) : rgb(th.light ? 0xc8622b : 0xf3a679)), sg(" ")};
+            sw.push_back(sg(th.name, 0, std::string(th.id) == g_theme ? BOLD : 0));
+            lo.items.push_back({sw, th.id, ascii_lower(std::string(th.name) + " " + th.id), Line{sg(th.light ? "light" : "dark", MUTED)}});
+        }
+        for (size_t i = 0; i < lo.items.size(); ++i) if (lo.items[i].id == g_theme) lo.sel = static_cast<int>(i);
+        lo.pick = [](App& a, const Item& it) { a.lo.on = false; a.set_theme(it.id, true); };
+    }
+    void theme_preview_tick() {   // live preview while the picker is open; restores the saved theme on Esc
+        if (lo.on && lo.kind == "themes") { if (lo.sel >= 0 && lo.sel < static_cast<int>(lo.items.size()) && lo.items[static_cast<size_t>(lo.sel)].id != g_theme) set_theme(lo.items[static_cast<size_t>(lo.sel)].id, false); }
+        else if (!theme_saved.empty() && g_theme != theme_saved) set_theme(theme_saved, false);
     }
     void open_models() {
         lo = ListOv{}; lo.on = true; lo.kind = "models"; lo.title = "Choose a model"; lo.hint = "type to filter \xC2\xB7 enter choose \xC2\xB7 esc close";
@@ -1212,6 +1357,16 @@ struct App {
             say_toast(g_mouse ? "Mouse wheel scrolls the conversation (hold Shift to select text)" : "Mouse off: select text freely; scroll with PgUp/PgDn", PEACH); return;
         }
         if (cmd == "status") { status_block(); return; }
+        if (cmd == "theme") {
+            if (arg.empty()) { open_themes(); return; }
+            if (!find_theme(arg)) { note("Unknown theme \"" + arg + "\". Type /theme to pick one.", AMBER); return; }
+            set_theme(arg, true); return;
+        }
+        if (cmd == "logo") {
+            g_anim = arg.empty() ? !g_anim : arg != "off"; pref_set("anim", g_anim ? "on" : "off");
+            if (!blocks.empty()) blocks[0]->cw = -1;
+            say_toast(g_anim ? "The logo is animated" : "The logo is still", PEACH); return;
+        }
         note("Unknown command /" + cmd + ". Type / to see them all.", AMBER);
     }
     void submit() {
@@ -1509,7 +1664,7 @@ struct App {
         std::vector<Line> out;
         const int bw = std::min(w, 84);
         const bool logo = bw >= 60;
-        std::vector<Line> art = logo ? logo_art() : std::vector<Line>{};
+        std::vector<Line> art = logo ? logo_art(g_anim ? now_ms() / 1000.0 : 1.2) : std::vector<Line>{};
         std::vector<Line> txt;
         txt.push_back(Line{sg("Welcome to "), sg("A.S.T.R.O AI", PEACH, BOLD), sg("  v" + std::string(VERSION), FAINT)});
         txt.push_back(Line{sg("All Systems Thinking, Reasoning as One", MUTED, ITAL)});
@@ -1521,11 +1676,11 @@ struct App {
         txt.push_back(Line{sg("best    ", FAINT), sg(best_model.empty() ? "picked per task, with automatic fallback" : best_model + ", with automatic fallback", MUTED)});
         out.push_back(box_top(bw, PEACH_D));
         const int rows = std::max(static_cast<int>(art.size()), static_cast<int>(txt.size()));
-        const int tw = bw - 4 - (logo ? LOGO_N + 3 : 0);
+        const int tw = bw - 4 - (logo ? LOGO_W + 3 : 0);
         for (int r = 0; r < rows; ++r) {
             const int ti = r - (rows - static_cast<int>(txt.size())) / 2;
             Line row;
-            if (logo) { row = r < static_cast<int>(art.size()) ? art[static_cast<size_t>(r)] : Line{sg(std::string(LOGO_N, ' '))}; row.push_back(sg("   ")); }
+            if (logo) { row = r < static_cast<int>(art.size()) ? art[static_cast<size_t>(r)] : Line{sg(std::string(LOGO_W, ' '))}; row.push_back(sg("   ")); }
             Line t = ti >= 0 && ti < static_cast<int>(txt.size()) ? txt[static_cast<size_t>(ti)] : Line{};
             row = cat(row, fit(t, tw, true));
             out.push_back(box_row(row, bw, PEACH_D));
@@ -1860,7 +2015,10 @@ static int run(Opts o, const std::string& project) {
         bool anim = a.running || (!a.toast.empty() && now_ms() - a.toast_t < 3600) || a.lo.loading;
         for (const auto& g : a.groups) if (!g->finished) anim = true;
         for (const auto& b : a.blocks) if (b->dynamic && b != a.blocks[0]) anim = true;
-        if (a.dirty || (anim && now_ms() - last_anim >= 100)) { a.render(); last_anim = now_ms(); }
+        a.theme_preview_tick();
+        const bool logo_anim = g_anim && a.welcome_visible && !a.lo.on && !a.to.on && a.W >= 64;
+        if (logo_anim) anim = true;
+        if (a.dirty || (anim && now_ms() - last_anim >= 100)) { if (logo_anim && !a.blocks.empty()) a.blocks[0]->cw = -1; a.render(); last_anim = now_ms(); }
     }
     ++a.gen;
     term_leave();

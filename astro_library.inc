@@ -205,6 +205,7 @@ std::mutex g_tool_path_mu;
 std::optional<std::string> g_base_path;
 // Only the commands each tool declares are exposed (through ext/tools/.bin), so a tool's own dependencies
 // (tsc, semver, ...) never shadow programs you already have.
+std::string tools_path_prefix(char sep);   /* astro_tools.inc: bin folders of installed compilers/runtimes/servers */
 void lib_tools_path_refresh() {
     std::lock_guard lk(g_tool_path_mu);
 #ifdef _WIN32
@@ -239,12 +240,17 @@ void lib_tools_path_refresh() {
             ++linked;
         }
     }
-    const std::string path = linked ? bin.string() + sep + *g_base_path : *g_base_path;
+    const std::string extra = tools_path_prefix(sep);   /* "dir1<sep>dir2<sep>" or "" */
+    const std::string path = (linked ? bin.string() + sep : std::string()) + extra + *g_base_path;
 #ifdef _WIN32
     SetEnvironmentVariableW(L"PATH", winp::widen(path).c_str());
 #else
     setenv("PATH", path.c_str(), 1);
-    if (linked) setenv("ASTRO_TOOL_BIN", bin.c_str(), 1); else unsetenv("ASTRO_TOOL_BIN");   // sandboxed runners use a fixed PATH
+    {   /* sandboxed runners use a fixed PATH plus these folders */
+        std::string tb = linked ? bin.string() : std::string();
+        if (!extra.empty()) tb += (tb.empty() ? "" : ":") + extra.substr(0, extra.size() - 1);
+        if (!tb.empty()) setenv("ASTRO_TOOL_BIN", tb.c_str(), 1); else unsetenv("ASTRO_TOOL_BIN");
+    }
 #endif
 }
 

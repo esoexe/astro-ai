@@ -1,6 +1,7 @@
 // Renders a recorded terminal run (from tui_drive.js --out) with xterm.js in headless Chromium.
 //   node tests/tui_shot.js run.json out.png [--at ms] [--scale 2] [--title "astro — todo-api"]
 //   node tests/tui_shot.js run.json frames/ --frames 30   (one PNG per frame, for video)
+//   add --light to draw a light terminal (white background) for light-theme checks
 //   node tests/tui_shot.js run.json clipdir/ --clip [--from ms --to ms --clip-fps 30]   (trailer clip: a JPEG per change + frames.json)
 //   --bare: no window title bar, margin or shadow (for pages that frame the screenshot themselves).
 // Needs playwright + @xterm/xterm (NODE_PATH=/tmp/pw/node_modules).
@@ -43,14 +44,15 @@ html,body{margin:0;background:transparent}
   try {
     const page = await browser.newPage({ deviceScaleFactor: DSF, viewport: { width: Math.ceil(run.cols * fontSize * 0.62 + 160 * S), height: Math.ceil(run.rows * fontSize * 1.3 + 200 * S) } });
     await page.setContent(html.replace('<div id="win">', (args.includes('--dom') ? '<script>window.NO_CANVAS=1</script>' : '') + (args.includes('--bare') ? '<style>#win{margin:0;border-radius:0;box-shadow:none}#bar{display:none}#t{padding:calc(var(--s)*14px) calc(var(--s)*16px)}</style>' : '') + '<style>:root{--s:' + S + '}</style><div id="win">'));
-    await page.evaluate(async ({ cols, rows, title, fontSize }) => {
+    await page.evaluate(async ({ cols, rows, title, fontSize, LIGHT }) => {
       document.querySelector('#bar b').textContent = title;
+      if (LIGHT) { document.getElementById('win').style.background = '#ffffff'; const bar = document.getElementById('bar'); bar.style.background = '#f1f1f1'; bar.style.color = '#57606a'; bar.style.borderBottomColor = 'rgba(0,0,0,.08)'; }
       await document.fonts.load(`${fontSize}px JBM`);
       window.term = new Terminal({ cols, rows, fontFamily: 'JBM, DejaVu Sans Mono, monospace', fontSize, lineHeight: 1.0, customGlyphs: true, allowProposedApi: true,
-        theme: { background: '#0d0c0e', foreground: '#e7e5e4', cursor: '#f3a679', cursorAccent: '#0d0c0e', selectionBackground: '#3a2a20' }, cursorStyle: 'bar', cursorBlink: false });
+        theme: LIGHT ? { background: '#ffffff', foreground: '#24292f', cursor: '#0969da', cursorAccent: '#ffffff', selectionBackground: '#cfe3ff' } : { background: '#0d0c0e', foreground: '#e7e5e4', cursor: '#f3a679', cursorAccent: '#0d0c0e', selectionBackground: '#3a2a20' }, cursorStyle: 'bar', cursorBlink: false });
       term.open(document.getElementById('t')); if (!window.NO_CANVAS) term.loadAddon(new CanvasAddon.CanvasAddon());
       window.feed = (s) => new Promise((r) => term.write(s, r));
-    }, { cols: run.cols, rows: run.rows, title, fontSize });
+    }, { cols: run.cols, rows: run.rows, title, fontSize, LIGHT: args.includes('--light') });   // --light: a light terminal (white background)
     const win = await page.$('#win');
     if (args.includes('--clip')) {
       // trailer clip: a JPEG each time the screen changes (at most fps per second) + frames.json {frames:[{file,t}]} in seconds

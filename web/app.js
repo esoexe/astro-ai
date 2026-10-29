@@ -508,6 +508,7 @@
     document.documentElement.dataset.theme = dark ? 'dark' : 'light';
     $('#theme-toggle').innerHTML = icon(dark ? 'i-sun' : 'i-moon');
     $('#theme-toggle').title = dark ? 'Switch to light theme' : 'Switch to dark theme';
+    window.AstroThemes?.apply();
   }
   function setTheme(theme) { state.theme = theme; ls.set(KEYS.theme, theme); applyTheme(); }
   darkQuery.addEventListener?.('change', () => { if (state.theme === 'system') applyTheme(); });
@@ -1803,9 +1804,24 @@
         <form class="calc-form" id="memory-form"><input class="input" id="memory-input" maxlength="300" placeholder="e.g. I live in Adrar and prefer short answers" autocomplete="off"><button type="submit" class="btn primary">Add</button></form>
         <ul class="memory-list">${state.memory.length ? state.memory.map((m) => `<li><span>${esc(m.fact)}</span><button type="button" class="act" data-mem="${esc(m.id)}" aria-label="Forget" data-tip="Forget">${icon('i-trash')}</button></li>`).join('') : '<li><span class="hint">No memories yet.</span></li>'}</ul>`;
     }
+    if (tab === 'appearance') {
+      const T = window.AstroThemes;
+      if (!T) return '<p class="sub">Themes could not load.</p>';
+      const card = (t) => { const w = T.swatch(t); const on = T.chosen(t.base) === t.id;
+        return `<button type="button" class="th-card${on ? ' on' : ''}" data-pal="${esc(t.id)}" aria-pressed="${on}" title="${esc(t.name)}">
+          <span class="th-prev" style="background:${esc(w.bg)};color:${esc(w.t)}"><span class="th-side" style="background:${esc(w.s)}"></span>
+            <span class="th-lines">${w.k.map((k, i) => `<i style="background:${esc(k)};width:${[62, 44, 70, 36][i]}%"></i>`).join('')}</span>
+            <span class="th-dot" style="background:${esc(w.a)}"></span></span>
+          <span class="th-name">${esc(t.name)}${t.vsx ? '<em>Open VSX</em>' : t.note ? `<em>${esc(t.note)}</em>` : ''}</span></button>`; };
+      const group = (base, title) => `<div class="th-group"><div class="th-head"><b>${title}</b><small>${base === T.mode() ? 'In use now' : `Used when the app is in ${base} mode`}</small></div>
+        <div class="th-grid">${T.list().filter((t) => t.base === base).map(card).join('')}</div></div>`;
+      return `<div class="set-row"><div class="lbl"><b>Mode</b><small>Pick one theme for dark mode and one for light mode. The sun/moon button switches between them.</small></div><div class="seg" id="set-theme">${['system', 'light', 'dark'].map((t) => `<button type="button" class="seg-btn${state.theme === t ? ' active' : ''}" data-v="${t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('')}</div></div>
+        ${group('dark', 'Dark themes')}${group('light', 'Light themes')}
+        <div class="set-row"><div class="lbl"><b>VS Code colour themes</b><small>Install any colour theme from Open VSX. It recolours the whole app: chat, workspace, editor and terminal.</small></div><button type="button" class="btn" id="set-vsx-themes">Get themes</button></div>`;
+    }
     if (tab === 'general') {
       return `<div class="set-row"><div class="lbl"><b>Your name</b><small>Used for the greeting only. Stays in this browser.</small></div><input class="input" id="set-name" maxlength="40" value="${esc(state.name)}" placeholder="Optional"></div>
-        <div class="set-row"><div class="lbl"><b>Theme</b></div><div class="seg" id="set-theme">${['system', 'light', 'dark'].map((t) => `<button type="button" class="seg-btn${state.theme === t ? ' active' : ''}" data-v="${t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('')}</div></div>
+        <div class="set-row"><div class="lbl"><b>Theme</b><small>Colour themes are in <a href="#" id="set-to-appearance">Appearance</a></small></div><div class="seg" id="set-theme">${['system', 'light', 'dark'].map((t) => `<button type="button" class="seg-btn${state.theme === t ? ' active' : ''}" data-v="${t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('')}</div></div>
         <div class="set-row"><div class="lbl"><b>Text size</b></div><div class="seg" id="set-density">${['compact', 'normal', 'large'].map((t) => `<button type="button" class="seg-btn${state.density === t ? ' active' : ''}" data-v="${t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('')}</div></div>
         <div class="set-row"><div class="lbl"><b>Response language</b><small>Sent to the model as an instruction</small></div><select class="input" id="set-lang">${Object.entries(LANGS).map(([id, l]) => `<option value="${id}"${state.language === id ? ' selected' : ''}>${id === 'auto' ? 'Match my message' : l}</option>`).join('')}</select></div>
         <div class="set-row"><div class="lbl"><b>Enter sends message</b><small>Off: use Ctrl+Enter to send, Enter for a new line</small></div><label class="switch"><input type="checkbox" id="set-enter"${state.enterSends ? ' checked' : ''}><span></span></label></div>`;
@@ -1836,7 +1852,7 @@
       <ul class="hint" style="line-height:1.8"><li>Chats, notes and tasks stay in this browser.</li><li>Compare mode asks two models at once; drafts let you keep several answers.</li><li>Free models are rate-limited and can change. Answers can be wrong, so double-check important information.</li></ul>`;
   }
   function openSettings(tab = 'general') {
-    const tabs = [['general', 'General'], ['brain', 'Brain'], ['providers', 'Providers & keys'], ['account', 'Account & sync'], ['voice', 'Voice'], ['memory', 'Memory'], ['data', 'Data & privacy'], ['shortcuts', 'Shortcuts'], ['about', 'About']];
+    const tabs = [['general', 'General'], ['appearance', 'Appearance'], ['brain', 'Brain'], ['providers', 'Providers & keys'], ['account', 'Account & sync'], ['voice', 'Voice'], ['memory', 'Memory'], ['data', 'Data & privacy'], ['shortcuts', 'Shortcuts'], ['about', 'About']];
     showModal(`<h2 id="modal-title">Settings</h2><p class="sub">${esc(models().length ? `${readyCount()} of ${models().length} free models ready` : 'A.S.T.R.O AI')}</p>
       <div class="tabs" role="tablist">${tabs.map(([id, label]) => `<button type="button" class="tab${id === tab ? ' active' : ''}" data-tab="${id}" role="tab">${label}</button>`).join('')}</div>
       <div id="settings-body">${settingsTab(tab)}</div>`);
@@ -1866,9 +1882,15 @@
       $('#set-bgcheck')?.addEventListener('change', (e) => { ls.set('astro_bgcheck', e.target.checked ? '1' : '0'); });
       $('#set-agent').addEventListener('change', (e) => { state.agent = e.target.checked; ls.set(KEYS.agent, state.agent ? '1' : '0'); });
     }
+    if (tab === 'appearance') {
+      $$('#set-theme .seg-btn').forEach((b) => b.addEventListener('click', () => { setTheme(b.dataset.v); openSettings('appearance'); }));
+      $$('[data-pal]', el.modal).forEach((b) => b.addEventListener('click', () => { window.AstroThemes.set(b.dataset.pal); openSettings('appearance'); }));
+      $('#set-vsx-themes')?.addEventListener('click', () => { closeModal(); window.AstroDev?.openThemes?.(); });
+    }
     if (tab === 'general') {
       $('#set-name').addEventListener('input', (e) => { state.name = e.target.value.trim().slice(0, 40); ls.set(KEYS.name, state.name); renderGreeting(); });
       $$('#set-theme .seg-btn').forEach((b) => b.addEventListener('click', () => { setTheme(b.dataset.v); openSettings('general'); }));
+      $('#set-to-appearance')?.addEventListener('click', (e) => { e.preventDefault(); openSettings('appearance'); });
       $$('#set-density .seg-btn').forEach((b) => b.addEventListener('click', () => { setDensity(b.dataset.v); openSettings('general'); }));
       $('#set-lang').addEventListener('change', (e) => setLanguage(e.target.value));
       $('#set-enter').addEventListener('change', (e) => { state.enterSends = e.target.checked; ls.set(KEYS.enter, state.enterSends ? '1' : '0'); });
@@ -4027,7 +4049,9 @@
     $('#ws-diff-pick').onchange = (e) => { if (ws.diff) wsShowDiff({ ...ws.diff, path: e.target.value }); };
     // status bar
     $('#ws-status').addEventListener('click', (e) => {
-      const b = e.target.closest('[data-st]'); if (!b || !ws.cm) { if (b?.dataset.st === 'preview') wsPreview(ws.active); return; }
+      const b = e.target.closest('[data-st]'); if (b?.dataset.st === 'lsp') { window.AstroDev?.openTools?.(); return; }
+      if (b?.dataset.st === 'ext') { window.AstroExtHost?.onStatusClick(b); return; }
+      if (!b || !ws.cm) { if (b?.dataset.st === 'preview') wsPreview(ws.active); return; }
       const a = b.dataset.st;
       if (a === 'find') ws.cm.find(); else if (a === 'replace') ws.cm.replace();
       else if (a === 'fold') { ws.folded = !ws.folded; if (ws.folded) ws.cm.foldAll(); else ws.cm.unfoldAll(); ws.cm.focus(); }
@@ -4561,7 +4585,7 @@
     ws.saving++; wsRenderBar();
     try {
       await wsApi('/api/fs/write', { path: f.path, content });
-      f.saved = content;
+      f.saved = content; window.AstroLSP?.saved(f.path); window.AstroExtHost?.saved(f.path);
       const known = ws.files.find((x) => x.path === f.path); if (known) known.size = new Blob([content]).size; else ws.files.push({ path: f.path, size: content.length });
       if (ws.panel === 'preview' && /^(html?|css|js|mjs|svg|md|json)$/.test(extOf(f.path))) wsRenderPreview(true);
       return true;
@@ -5070,7 +5094,7 @@
         wrap: ws.wrap,
         onChange: (k, text) => {
           const f = ws.open.find((o) => o.path === k); if (!f || f.content === text) return;
-          f.content = text; wsMarkDirty();
+          f.content = text; wsMarkDirty(); window.AstroLSP?.changed(k, text); window.AstroExtHost?.changed(k, text);
           clearTimeout(ws.autosave); ws.autosave = setTimeout(() => wsSave(f), 900);
           if (ws.panel === 'preview' && ws.previewMode === 'file' && ws.previewPath === k && extOf(k) === 'md') { clearTimeout(ws.mdTimer); ws.mdTimer = setTimeout(() => wsRenderPreview(true), 350); }
         },
@@ -5095,6 +5119,7 @@
     const indent = e === 'go' ? 'Tabs' : ['py', 'java', 'rs', 'php'].includes(e) ? 'Spaces: 4' : 'Spaces: 2';
     bar.innerHTML = `${ws.cm && c ? `<button type="button" data-st="goto" title="Go to line (Ctrl+G)">Ln ${c.line}, Col ${c.col}${c.selected ? ` (${c.selected} selected)` : ''}</button>${c.cursors > 1 ? `<span>${c.cursors} cursors</span>` : ''}<span>${c.lines} lines</span>` : `<span>${(f.content.match(/\n/g) || []).length + 1} lines</span>`}<span class="grow"></span>`
       + `${ws.cm ? `<button type="button" data-st="find" title="Find (Ctrl+F)">${icon('i-search')}Find</button><button type="button" data-st="replace" title="Find and replace (Ctrl+H)">Replace</button><button type="button" data-st="fold" title="Fold or unfold all blocks">${ws.folded ? 'Unfold' : 'Fold'}</button><button type="button" data-st="wrap" class="${ws.wrap ? 'on' : ''}" title="Word wrap (Alt+Z)">${icon('i-wrap')}Wrap</button>` : ''}`
+      + (window.AstroLSP?.chip(f.path) || '') + (window.AstroExtHost?.chips() || '')
       + `${prev ? `<button type="button" data-st="preview" title="Show in Preview">${icon('i-eye')}Preview</button>` : ''}<span>${indent}</span><span class="st-lang">${esc(LANG_NAME[e] || e.toUpperCase() || 'Text')}</span>`;
   }
   async function wsGoto(path, line, col, len) {
@@ -7339,6 +7364,11 @@
     if (!xt || !host || host.hidden || !host.offsetWidth || !host.offsetHeight) return;
     try { xt.fit.fit(); } catch (_e) { /* not visible */ }
   }
+  window.addEventListener('astro-theme', () => requestAnimationFrame(() => {
+    const host = $('#ws-xterm'); if (!ws.xt?.term || !host) return;
+    const cs = getComputedStyle(host); const v = (n, d) => cs.getPropertyValue(n).trim() || d;
+    ws.xt.term.options.theme = { background: v('--term-bg', '#0b0f17'), foreground: v('--term-fg', '#d7dce5'), cursor: v('--term-cursor', '#8ab4ff'), selectionBackground: v('--term-sel', 'rgba(138,180,255,.3)') };
+  }));
   function wsTermEnsure() {
     if (!ws.ide) return null;
     if (ws.xt && ws.xt.project === ws.project && !ws.xt.dead) return ws.xt;
@@ -7478,6 +7508,7 @@
   $('#tasks-count').textContent = String(state.tasks.filter((t) => !t.done).length);
   // Small, read-mostly API for the desktop shell (desktop.js). Nothing here changes behaviour on the web.
   window.AstroApp = {
+    setTheme,
     get view() { return state.view; },
     get activeId() { return state.activeId; },
     get loading() { return Boolean(state.loading); },
@@ -7503,6 +7534,8 @@
     get project() { return ws.project; },
   };
   window.AstroDev?.init?.();
+  window.AstroExtHost?.onChange(() => { cancelAnimationFrame(ws.extFrame); ws.extFrame = requestAnimationFrame(() => { wsRenderStatus(); if (document.getElementById('ws-probs')) window.AstroDev?.side?.('probs'); const x = document.getElementById('ws-ext'); if (x && !x.closest('[hidden]') && x.querySelector('.vsc-state')) { if (!x.contains(document.activeElement) || !/INPUT|SELECT/.test(document.activeElement.tagName)) window.AstroDev?.renderExt?.(); } }); });
+  window.AstroLSP?.onChange(() => { cancelAnimationFrame(ws.lspFrame); ws.lspFrame = requestAnimationFrame(() => { wsRenderStatus(); if (document.getElementById('ws-probs')) window.AstroDev?.side?.('probs'); }); });
   switchView('assistant');
   setGenerating(false);
   refreshStatus();

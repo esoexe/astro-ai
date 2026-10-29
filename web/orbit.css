@@ -480,3 +480,45 @@ input[type="text"], input[type="search"], input[type="url"], input[type="email"]
 .toast.error, [data-theme] .toast.error { background: #b4231a; color: #fff; }
 .toast.error button, [data-theme] .toast.error button { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
 .tm-orb.orbit-mark > svg.orbit-svg, #ag .tm-orb.orbit-mark > svg.orbit-svg, .ws-team .tm-orb.orbit-mark > svg.orbit-svg { width: 100%; height: 100%; }
+
+/* ---------- Settings › Appearance: colour themes ---------- */
+.th-group { padding: 14px 0 6px; border-bottom: 1px solid var(--border); }
+.th-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.th-head small { color: var(--text-3); font-size: 12px; }
+.th-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; }
+.th-card { display: grid; gap: 7px; padding: 6px 6px 8px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--text); cursor: pointer; text-align: left; font: inherit; transition: border-color .15s, transform .15s var(--ease), box-shadow .15s; }
+.th-card:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+.th-card.on { border-color: var(--accent); box-shadow: var(--glow); }
+.th-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.th-prev { position: relative; display: flex; height: 62px; border-radius: 9px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(127, 127, 127, .16); }
+.th-side { width: 26%; height: 100%; opacity: .95; }
+.th-lines { flex: 1; display: grid; align-content: center; gap: 6px; padding: 0 10px; }
+.th-lines i { display: block; height: 4px; border-radius: 3px; opacity: .9; }
+.th-dot { position: absolute; right: 8px; bottom: 8px; width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 0 2px rgba(0, 0, 0, .15); }
+.th-name { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 3px; font-size: 12.5px; font-weight: 550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.th-name em { flex: none; font-style: normal; font-size: 10.5px; font-weight: 500; color: var(--text-3); }
+.th-card.on .th-name em { color: var(--accent); }
+
+/* 1.6 — live logo (web/logo.js): refined orbit mark, satellites orbit behind and in front of the core */
+.orbit-svg.astro-live { color: var(--accent); overflow: visible; }
+.astro-live .al-ring { fill: none; stroke: currentColor; stroke-width: 1.1; stroke-linecap: round; }
+.astro-live .al-back { stroke-opacity: .34; }
+.astro-live .al-front { stroke-opacity: .92; }
+.astro-live .al-streak { fill: none; stroke: color-mix(in srgb, currentColor 25%, #fff); stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 16 220; stroke-dashoffset: 16; opacity: .9; animation: al-run 5.7s cubic-bezier(.45, .05, .55, .95) infinite; }
+@keyframes al-run { 0% { stroke-dashoffset: 16; opacity: 0; } 8% { opacity: .9; } 55% { stroke-dashoffset: -100; opacity: .9; } 56%, 100% { stroke-dashoffset: -100; opacity: 0; } }
+.astro-live .al-s0 { stop-color: color-mix(in srgb, currentColor 22%, #fff); }
+.astro-live .al-s1 { stop-color: color-mix(in srgb, currentColor 62%, #fff); }
+.astro-live .al-s2 { stop-color: currentColor; }
+.astro-live .al-s3 { stop-color: color-mix(in srgb, currentColor 72%, #000); }
+.astro-live .al-h0 { stop-color: currentColor; stop-opacity: .5; }
+.astro-live .al-h1 { stop-color: currentColor; stop-opacity: .13; }
+.astro-live .al-h2 { stop-color: currentColor; stop-opacity: 0; }
+.astro-live .al-halo { transform-origin: 24px 24px; transform-box: view-box; animation: al-breathe 4.2s ease-in-out infinite; }
+@keyframes al-breathe { 0%, 100% { opacity: .55; transform: scale(.9); } 50% { opacity: 1; transform: scale(1.06); } }
+.astro-live .al-rim { fill: none; stroke: #fff; stroke-opacity: .22; stroke-width: .5; }
+.astro-live .al-sat { fill: color-mix(in srgb, currentColor 18%, #fff); }
+.astro-live .al-sat.al-far { fill: currentColor; fill-opacity: .55; }
+.dt-brand svg.dt-logo { width: 20px; height: 20px; flex: none; }
+html.logo-still .astro-live .al-halo, html.logo-still .astro-live .al-streak { animation: none; }
+html.logo-still .astro-live .al-streak { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .astro-live .al-halo, .astro-live .al-streak { animation: none; } .astro-live .al-streak { opacity: 0; } }

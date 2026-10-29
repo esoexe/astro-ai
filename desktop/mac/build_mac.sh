@@ -15,7 +15,7 @@ W="$(mktemp -d)"; trap 'rm -rf "$W"' EXIT
 
 command -v clang++ >/dev/null || { echo "clang++ not found. Run: xcode-select --install"; exit 1; }
 echo "==> Building the server (C++20)"
-clang++ -std=c++20 -O2 $ARCHS $MIN -Isrc/server src/server/workspace_server.cpp -o "$W/astro-server" -lcurl
+clang++ -std=c++20 -O2 $ARCHS $MIN -Isrc/server src/server/workspace_server.cpp -o "$W/astro-server" -lcurl -lz
 echo "==> Building the desktop window (WKWebView)"
 clang++ -std=c++17 -O2 $ARCHS $MIN -Isrc/webview/include src/desktop/astro_desktop.cpp -o "$W/astro-desktop" -framework WebKit -framework Cocoa
 CLI="$(cat payload/cli-name 2>/dev/null || echo astro)"
@@ -52,8 +52,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleExecutable</key><string>astro-desktop</string>
   <key>CFBundleIconFile</key><string>astro.icns</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>1.5.0</string>
-  <key>CFBundleVersion</key><string>1.5.0</string>
+  <key>CFBundleShortVersionString</key><string>1.6.0</string>
+  <key>CFBundleVersion</key><string>1.6.0</string>
   <key>LSMinimumSystemVersion</key><string>11.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.developer-tools</string>
   <key>NSHighResolutionCapable</key><true/>

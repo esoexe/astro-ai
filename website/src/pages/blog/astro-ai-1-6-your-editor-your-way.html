@@ -1,0 +1,50 @@
+<!--meta {"title": "A.S.T.R.O AI 1.6: your editor, your way", "description": "A.S.T.R.O AI 1.6 adds 19 app-wide themes and Open VSX themes, one-click language tools with real language servers, VS Code extensions from Open VSX (preview) and a live, animated logo in the app and the terminal.", "nav": "blog"} -->
+<section class="page-hero">
+  <div class="wrap article" style="padding-bottom:0">
+    <a class="back" href="index.html">← All posts</a>
+    <div class="post-meta"><span>Release</span><span>October 29, 2026</span><span>4 min read</span></div>
+    <h1 class="h2" style="margin-top:0">A.S.T.R.O AI 1.6: <em class="accent">your editor, your way.</em></h1>
+    <p class="lead">Themes for the whole app, real language tools in one click, VS Code extensions from Open VSX, and a logo that's alive.</p>
+  </div>
+</section>
+<div class="wrap article">
+  <figure class="cover frame bare"><img src="{{root}}assets/img/shots/v16-themes.webp" width="1440" height="900" alt="The Workspace in the Tokyo Night theme, with clangd showing the documentation of a C++ function on hover"></figure>
+  <div class="prose">
+    <p>Since 1.1, people have used the Workspace for real projects. The most common requests were simple: make it look the way I like, and give me the language smarts I'm used to from VS Code. Version 1.6 does both, and it's still free.</p>
+
+    <h2>Themes for the whole app</h2>
+    <p>There are now <strong>19 built-in themes</strong>, including A.S.T.R.O Peach and Teal, Tokyo Night, Catppuccin, Dracula, Nord, One Dark, Gruvbox, Rosé Pine, Solarized and GitHub, in dark and light versions. A theme recolours everything: the sidebar, the chat, the agent and the editor. Pick one in <strong>Settings › Appearance</strong>, or press <kbd>Ctrl</kbd>+<kbd>K</kbd> and type "Color theme".</p>
+    <p>VS Code colour themes from Open VSX now apply to the whole app too, not only the editor. In the terminal app, <code>/theme</code> opens a picker that previews each theme as you move. <kbd>Enter</kbd> keeps the theme and <kbd>Esc</kbd> puts the old one back.</p>
+
+    <h2>Language tools in one click</h2>
+    <p>The new <strong>Extensions › Tools</strong> tab lists the compilers, runtimes and language servers each language needs, shows what's already on your computer, and recommends what fits the open project. A C++ project gets clangd and CMake, and a web project gets the HTML, CSS and JSON servers.</p>
+    <p>Installs are <strong>portable and need no admin rights</strong>. A.S.T.R.O downloads the official build straight from the project (GitHub releases, nodejs.org, go.dev, Adoptium, Eclipse) and checks it against the SHA-256 the project publishes. The files go into A.S.T.R.O's own tools folder, and nothing changes system-wide.</p>
+    <figure><img src="{{root}}assets/img/shots/v16-tools.webp" width="1440" height="900" alt="The Tools tab: clangd running for a C++ project, with CMake and the web language servers recommended" loading="lazy"><figcaption>The Tools tab recommends what the open project needs.</figcaption></figure>
+    <p>With a language server running, the editor gives you completion, hover docs, live errors, go to definition (<kbd>F12</kbd>), formatting (<kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>) and rename (<kbd>F2</kbd>). That covers clangd for C and C++, Pyright, TypeScript, rust-analyzer, gopls, a JDK with jdtls, Lua, YAML and more. You can also manage tools from a terminal: <code>astro tools list</code>, <code>astro tools install clangd</code>.</p>
+    <p>A note on C++: Microsoft's C/C++ extension is licensed only for Microsoft's own VS Code products and isn't on Open VSX, so A.S.T.R.O uses <strong>clangd</strong> from the LLVM project. On Windows, the Tools tab also offers a portable LLVM-MinGW compiler.</p>
+
+    <h2>VS Code extensions (preview)</h2>
+    <p>The <strong>Extensions › VS Code</strong> tab searches Open VSX and runs real desktop extensions in a small extension host on Node.js. Install Node.js from the Tools tab if you don't have it. Their commands appear in the command palette. Messages, quick picks, input boxes, status-bar items, output channels, problems, completion, hover and formatting all show up in the app. Downloads are checked against Open VSX's SHA-256.</p>
+    <figure><img src="{{root}}assets/img/shots/v16-vscode.webp" width="1440" height="900" alt="The VS Code tab in the Catppuccin theme, with Path Intellisense suggesting file names inside an import" loading="lazy"><figcaption>Path Intellisense completing an import path, in Catppuccin Mocha.</figcaption></figure>
+    <p>It's a preview, and we want to be clear about the limits. Webviews, debuggers, tree views, custom editors, notebooks and extensions that start their own language client may not work yet. The VS Code tab lists any API an extension uses that A.S.T.R.O doesn't provide. For language servers, use the Tools tab. The <a href="https://github.com/esoexe/astro-ai/blob/main/docs/extensions.md">extensions guide</a> lists exactly what's supported.</p>
+
+    <h2>A logo that's alive</h2>
+    <p>The orbit mark now really orbits. Four satellites circle the core, passing behind it and coming round in front, while light travels along the rings. It follows your theme's accent colour in the app and the desktop title bar. The terminal app draws its own animated version. If you prefer a still logo, type "logo" in the command palette (<kbd>Ctrl</kbd>+<kbd>K</kbd>) in the app, or <code>/logo off</code> in the terminal. Reduced-motion settings are respected.</p>
+    <figure><img src="{{root}}assets/img/shots/v16-tui-logo.webp" width="2208" height="1553" alt="The terminal app's welcome card with the animated orbit logo" loading="lazy"><figcaption>The live logo in the terminal app.</figcaption></figure>
+
+    <h2>Watch the tour</h2>
+    <p>We made a two-and-a-half-minute explainer and review of the whole app: One Brain, the workspace, the new tools, extensions and themes, the agent and the terminal app, plus the trade-offs. Like every A.S.T.R.O trailer, it's real footage of the app. <a href="{{root}}index.html#trailer">Watch it on the home page</a>.</p>
+
+    <h2>Good to know</h2>
+    <ul>
+      <li>VS Code extension support is a preview, so not every extension will work.</li>
+      <li>Tools are downloaded on demand. Large ones, like a JDK, take a while on slow connections.</li>
+      <li>The installers aren't code-signed yet, so Windows and macOS may warn the first time you open the app.</li>
+      <li>The models are free tiers with daily limits, and they can be wrong. Review changes before you ship them, and keep your work in git.</li>
+    </ul>
+
+    <h2>Get it</h2>
+    <p>A.S.T.R.O AI 1.6 is free for Windows, macOS and Linux, on the desktop, in the terminal and in VS Code. <a href="{{root}}download.html">Download it here</a>, and see the <a href="{{root}}changelog.html">changelog</a> for every detail.</p>
+    <p><em>The A.S.T.R.O AI team</em></p>
+  </div>
+</div>

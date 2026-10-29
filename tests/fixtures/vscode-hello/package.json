@@ -1,0 +1,17 @@
+{
+  "name": "hello",
+  "publisher": "astro-test",
+  "displayName": "Hello (A.S.T.R.O test extension)",
+  "version": "1.0.0",
+  "engines": { "vscode": "^1.80.0" },
+  "main": "./extension.js",
+  "activationEvents": ["onLanguage:plaintext", "onStartupFinished"],
+  "contributes": {
+    "commands": [
+      { "command": "hello.say", "title": "Say hello", "category": "Hello" },
+      { "command": "hello.upper", "title": "Uppercase selection", "category": "Hello" },
+      { "command": "hello.ask", "title": "Ask a question", "category": "Hello" }
+    ],
+    "configuration": { "properties": { "hello.greeting": { "type": "string", "default": "Hello" } } }
+  }
+}

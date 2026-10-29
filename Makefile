@@ -15,7 +15,7 @@ astro: cli/astro.cpp cli/json.h cli/tui.inc cli/logo.h
 	$(CXX) -std=c++20 -O2 -Wall -Wextra -pthread $(CURL_CFLAGS) $< -o $@ $(CURL_LIBS)
 
 $(TARGET): workspace_server.cpp platform.h $(wildcard *.inc)
-	$(CXX) $(CXXFLAGS) $(CURL_CFLAGS) $< -o $@ $(CURL_LIBS) -lcrypto -lutil
+	$(CXX) $(CXXFLAGS) $(CURL_CFLAGS) $< -o $@ $(CURL_LIBS) -lcrypto -lutil -lz
 
 run: $(TARGET)
 	./$(TARGET)
@@ -23,6 +23,7 @@ run: $(TARGET)
 test: $(TARGET) astro
 	bash tests/smoke_cpp.sh
 	node tests/agent_parse_test.js
+	node tests/exthost_test.js
 	node tests/code_detect_test.js
 	node library/build_library.js --check
 	bash tests/library_e2e.sh

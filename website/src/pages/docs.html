@@ -21,6 +21,7 @@
     <a href="#agent">Agent</a>
     <a href="#terminal">Terminal &amp; parallel agents</a>
     <a href="#extensions">Folders, skills, MCP &amp; plugins</a>
+    <a href="#themes-tools">Themes, tools &amp; VS Code extensions</a>
     <a href="#astro-key">A.S.T.R.O API key</a>
     <a href="#voice">Voice</a>
     <a href="#knowledge">Knowledge, notes &amp; tasks</a>
@@ -199,6 +200,15 @@ cd AstroAI-{{version}}-macos-source-CLEAN
       <li><strong>Coding CLIs.</strong> If Claude Code, Codex, OpenCode, Gemini CLI or DeepSeek Harness is installed, the agent can hand sub-tasks to it.</li>
     </ul>
     <div class="callout warn"><div><b>Only trust what you know.</b> MCP servers, hooks and plugins can run programs on your computer. Install them from sources you trust.</div></div>
+
+    <h2 id="themes-tools">Themes, tools &amp; VS Code extensions</h2>
+    <h3>Themes</h3>
+    <p>Open <strong>Settings › Appearance</strong>, or press <kbd>Ctrl</kbd>+<kbd>K</kbd> and type "Color theme", to pick one of 19 built-in themes. To use a VS Code theme, open <strong>Extensions › Themes</strong>, search Open VSX and click <strong>Install</strong>; it recolours the whole app, not only the editor. In the terminal app, type <code>/theme</code>.</p>
+    <h3>Tools: compilers and language servers</h3>
+    <p><strong>Extensions › Tools</strong> lists what each language needs and what is already on your computer. <strong>Install</strong> downloads the official build into A.S.T.R.O's own tools folder: no admin rights, nothing changed system-wide, and every download is checked against the SHA-256 checksum its publisher lists. A.S.T.R.O recommends tools for the files in your project. Once a language server is installed, the editor shows completion, hover docs and live errors. <kbd>F12</kbd> goes to a definition, <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> formats and <kbd>F2</kbd> renames.</p>
+    <p>For C and C++, install <strong>clangd</strong>, plus a compiler if you don't have one (on Windows A.S.T.R.O offers a portable LLVM-MinGW). Microsoft's C/C++ extension can only be used in Microsoft's own VS Code, so A.S.T.R.O uses clangd instead. From a terminal: <code>astro tools list</code>, <code>astro tools install clangd cmake ninja</code>.</p>
+    <h3>VS Code extensions (preview)</h3>
+    <p><strong>Extensions › VS Code</strong> searches Open VSX and installs desktop VS Code extensions. They need Node.js, which you can install in the Tools tab. Their commands appear in the command palette, and their messages, quick picks, status-bar items, output, problems, completion, hover and formatting show up in the app. Webviews, debuggers, tree views and extensions that start their own language client may not work yet. From a terminal: <code>astro ext install publisher.name</code>.</p>
 
     <h2 id="voice">Voice</h2>
     <p>Click the microphone to <strong>dictate</strong> a message, or the highlighted <strong>Live</strong> wave button for a spoken back-and-forth conversation. The speaker button under any answer reads it aloud. Voice uses your operating system's speech engine, so the available voices and languages depend on your system. The first time, allow microphone access when asked.</p>
