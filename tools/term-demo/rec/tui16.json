@@ -1,2 +1,0 @@
-[{"wait":4200},{"keys":"/"},{"wait":160},{"keys":"t"},{"wait":120},{"keys":"h"},{"wait":110},{"keys":"e"},{"wait":120},{"keys":"m"},{"wait":110},{"keys":"e"},{"wait":500},{"keys":"\r"},{"wait":1300},
-{"keys":"\u001b[B"},{"wait":1100},{"keys":"\u001b[B"},{"wait":1100},{"keys":"\u001b[B"},{"wait":1100},{"keys":"\u001b[B"},{"wait":1100},{"keys":"\u001b[B"},{"wait":1100},{"keys":"\u001b[A"},{"wait":1200},{"snap":"pick"},{"keys":"\r"},{"wait":4500},{"snap":"end"}]
