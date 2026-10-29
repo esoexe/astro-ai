@@ -9,8 +9,42 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
-    <article class="release latest reveal" id="v1-4-1">
-      <header><h2>1.4.1</h2><span class="badge">Latest</span><time datetime="2026-10-28">October 28, 2026</time></header>
+    <article class="release latest reveal" id="v1-5-0">
+      <header><h2>1.5.0</h2><span class="badge">Latest</span><time datetime="2026-10-29">October 29, 2026</time></header>
+      <p class="muted">A full-screen terminal app, a redesigned desktop Agent page and a new icon.</p>
+
+      <h3>Full-screen terminal app</h3>
+      <ul class="ticks">
+        <li><code>astro</code> now opens a full-screen app in the spirit of Claude Code and OpenCode: a calm conversation view, a status line, and a side panel with the project, mode, model, to-do list and changed files. The panel opens by itself on wide terminals; <kbd>Ctrl</kbd>+<kbd>B</kbd> toggles it</li>
+        <li>Approve changes right in the terminal in Ask mode (<kbd>y</kbd> once, <kbd>a</kbd> for the rest of the run, <kbd>n</kbd> no), and switch between Auto, Plan and Ask with <kbd>Shift</kbd>+<kbd>Tab</kbd></li>
+        <li>A model picker (<kbd>Ctrl</kbd>+<kbd>O</kbd>), session resume (<kbd>Ctrl</kbd>+<kbd>R</kbd>), a live list of parallel agents (<kbd>Ctrl</kbd>+<kbd>G</kbd>) and a shortcuts overlay (<kbd>?</kbd>)</li>
+        <li>23 slash commands, including <code>/parallel "task" "task" --merge</code>, <code>/diff</code>, <code>/undo</code>, <code>/review</code> and <code>/mode</code>. <kbd>Alt</kbd>+<kbd>Enter</kbd> or <kbd>Ctrl</kbd>+<kbd>J</kbd> adds a new line</li>
+        <li>Prefer the old line-by-line view? Use <code>astro --classic</code> or set <code>ASTRO_TUI=0</code>. Scripts using <code>astro -p</code> work exactly as before</li>
+      </ul>
+
+      <h3>Redesigned Agent page</h3>
+      <ul class="ticks">
+        <li>Three columns: your sessions with live status, time, files changed and mode; the run in the middle; and a new <strong>Session panel</strong> on the right</li>
+        <li>The Session panel shows context used, the git branch and uncommitted files, the checkpoint with Undo all, the rules and skills in use, and usage for the run</li>
+        <li>Switch the project's trusted MCP servers on or off for the agent, right from the panel</li>
+        <li>Steps are shown as flat, readable rows. Each run ends with a one-line recap of what changed and whether the tests passed, still fail or weren't run, plus turn stats</li>
+        <li>Works in the light and dark themes and on small screens. The flat steps and the recap also appear in the Workspace's Agent mode</li>
+      </ul>
+
+      <h3>New icon</h3>
+      <ul class="ticks">
+        <li>A refined orbit: a peach sphere with three orbits and four satellites, redrawn for every size from the 16 px favicon to the macOS dock</li>
+      </ul>
+
+      <h3>Fixes</h3>
+      <ul class="ticks">
+        <li>Some models write their own tool-call markup (for example MiniMax and Hermes-style <code>&lt;tool_call&gt;</code> blocks). The agent now reads these as real tool calls and never shows the raw markup in its replies</li>
+        <li>The Session panel's git count refreshes as soon as files change, and "1 step" is no longer written as "1 steps"</li>
+      </ul>
+    </article>
+
+    <article class="release reveal" id="v1-4-1">
+      <header><h2>1.4.1</h2><time datetime="2026-10-28">October 28, 2026</time></header>
       <p class="muted">A new name, a new website and a steadier agent engine.</p>
 
       <h3>Astro AI is now A.S.T.R.O AI</h3>

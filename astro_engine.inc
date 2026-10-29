@@ -195,6 +195,9 @@ std::string strip_reasoning(std::string t) {
         t.erase(a, b + 8 - a);
     }
     if (const auto b = t.find("</think>"); b != std::string::npos) t.erase(0, b + 8);
+    /* special tokens some free models leak into the text (MiniMax ]<]minimax[>[, <|...|>, [TOOL_CALLS]); <tool_call> stays for take_xml_calls */
+    static const std::regex marks(R"(\]<\][a-z0-9_:-]*\[>\[|\]~[a-z]\]|<\|[a-z0-9_]+\|>|\[TOOL_CALLS\])", std::regex::icase);
+    if (t.find("]<]") != std::string::npos || t.find("<|") != std::string::npos || t.find("[TOOL_CALLS]") != std::string::npos || t.find("]~") != std::string::npos) t = std::regex_replace(t, marks, "");
     return t;
 }
 // One streamed model turn through /api/chat/stream (server-side failover included).
@@ -576,11 +579,26 @@ std::string approval_text(const Json::Object& c) {
 std::string prefix_lines(const std::string& s, const std::string& pre) {
     std::string out = pre; for (char ch : s) { out += ch; if (ch == '\n') out += pre; } return out;
 }
+// Line diff of an edit for approval prompts: lines both sides share at the start and end are
+// dropped, keeping one as context ("  "), so only what really changes is marked - / +.
+std::string edit_preview(const std::string& a, const std::string& b) {
+    auto lines = [](const std::string& t) { std::vector<std::string> v; std::stringstream ss(t); std::string l; while (std::getline(ss, l)) v.push_back(l); if (v.empty()) v.push_back(""); return v; };
+    const auto x = lines(a), y = lines(b);
+    std::size_t p = 0; while (p < x.size() && p < y.size() && x[p] == y[p]) ++p;
+    std::size_t q = 0; while (q < x.size() - p && q < y.size() - p && x[x.size() - 1 - q] == y[y.size() - 1 - q]) ++q;
+    std::string out;
+    auto add = [&](const std::string& pre, const std::string& l) { if (!out.empty()) out += "\n"; out += pre + l; };
+    if (p > 0) add("  ", x[p - 1]);
+    for (std::size_t i = p; i < x.size() - q; ++i) add("- ", x[i]);
+    for (std::size_t i = p; i < y.size() - q; ++i) add("+ ", y[i]);
+    if (q > 0) add("  ", x[x.size() - q]);
+    return out;
+}
 std::string approval_preview(const Json::Object& c) {
     const std::string t = sfield(c, "tool");
     if (t == "bash" || t == "start_server") return "$ " + sfield(c, "command");
     if (t == "write_file") return clip(raw_field(c, "content"), 3000);
-    if (t == "edit_file") return clip(prefix_lines(raw_field(c, "old_text"), "- ") + "\n" + prefix_lines(raw_field(c, "new_text"), "+ "), 3000);
+    if (t == "edit_file") return clip(edit_preview(raw_field(c, "old_text"), raw_field(c, "new_text")), 3000);
     if (t == "mcp") { auto it = c.find("arguments"); return it != c.end() ? clip(dump_json(it->second), 3000) : "{}"; }
     if (t == "task") return clip(sfield(c, "prompt"), 3000);
     if (t == "remember") return sfield(c, "fact");
@@ -1592,6 +1610,27 @@ fs::path project_dir(const std::string& name) {
     const fs::path c = fs::canonical(p, ec);
     return ec ? p : c;
 }
+// Recreates the tree at src under dst with hard links (symlinks stay symlinks; files directly in the root,
+// like npm's .package-lock.json, are real copies because package managers rewrite them in place).
+bool link_tree(const fs::path& src, const fs::path& dst, std::size_t cap = 300000) {
+    std::error_code ec;
+    fs::create_directories(dst, ec);
+    if (ec) return false;
+    std::size_t n = 0;
+    for (auto it = fs::recursive_directory_iterator(src, fs::directory_options::skip_permission_denied, ec); !ec && it != fs::recursive_directory_iterator(); it.increment(ec)) {
+        if (++n > cap) return false;
+        std::error_code e2;
+        const fs::path to = dst / fs::relative(it->path(), src, e2);
+        if (e2) return false;
+        if (it->is_symlink(e2)) { if (it->is_directory(e2)) it.disable_recursion_pending(); fs::copy_symlink(it->path(), to, e2); continue; }
+        if (it->is_directory(e2)) { fs::create_directories(to, e2); if (e2) return false; continue; }
+        if (!it->is_regular_file(e2)) continue;
+        if (it.depth() == 0) fs::copy_file(it->path(), to, fs::copy_options::overwrite_existing, e2);
+        else fs::create_hard_link(it->path(), to, e2);
+        if (e2) return false;
+    }
+    return !ec;
+}
 void walk_files(const fs::path& root, const std::function<void(const std::string& rel, const fs::path& full)>& fn, std::size_t cap = 60000) {
     std::error_code ec;
     std::size_t n = 0;
@@ -1676,9 +1715,14 @@ std::string fork_project(Session& s, std::string& error) {
         });
         if (too_big) { fs::remove_all(work, ec); error = "The project is too large to copy (over 30,000 files). Put it in a git repository to use isolated agents."; return {}; }
     }
-    // dependencies are shared, not copied
+    // Dependencies: a hard-linked copy (instant, no extra disk space). Commands like "npm ci" in the copy then
+    // only remove the copy's links and never touch the project's own node_modules. A shared symlink is the
+    // fallback when hard links are impossible (other drive, FAT) or the folder is enormous.
     for (const char* dep : {"node_modules"})
-        if (fs::is_directory(base / dep, ec) && !fs::exists(work / dep, ec)) { std::error_code e3; fs::create_directory_symlink(base / dep, work / dep, e3); }
+        if (fs::is_directory(base / dep, ec) && !fs::exists(work / dep, ec)) {
+            std::error_code e3;
+            if (!link_tree(base / dep, work / dep)) { fs::remove_all(work / dep, e3); fs::create_directory_symlink(base / dep, work / dep, e3); }
+        }
     // manifest of the starting point, for merging back safely
     Json::Object man;
     // plus the starting text of small files (content-addressed), so a merge can do a real 3-way merge later

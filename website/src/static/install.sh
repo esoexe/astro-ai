@@ -8,7 +8,7 @@
 # Downloads come from the official GitHub release and are checked against SHA256SUMS.txt.
 #
 # Options (environment variables):
-#   ASTRO_VERSION=1.4.1     install a specific version (default: the latest release)
+#   ASTRO_VERSION=1.5.0     install a specific version (default: the latest release)
 #   ASTRO_HOME=~/.astro-ai  where the files go
 #   ASTRO_BIN=~/.local/bin  where the `astro` link goes
 # Uninstall:  sh install.sh --uninstall   (keeps your chats, settings and keys)
@@ -57,7 +57,7 @@ if [ -z "$VERSION" ]; then
   case "$LATEST" in */tag/v*) VERSION="${LATEST##*/tag/v}" ;; esac
 fi
 [ -n "$VERSION" ] || VERSION="$FALLBACK_VERSION"
-case "$VERSION" in __*) die "Could not find the latest version. Set one, e.g. ASTRO_VERSION=1.4.1";; esac
+case "$VERSION" in __*) die "Could not find the latest version. Set one, e.g. ASTRO_VERSION=1.5.0";; esac
 VERSION="${VERSION#v}"
 
 if [ "$PLATFORM" = linux ]; then FILE="astro-ai-clean-$VERSION-linux-x64-portable-CLEAN.tar.gz"

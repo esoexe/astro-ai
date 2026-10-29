@@ -10,6 +10,7 @@
 #include <curl/curl.h>
 
 #include <algorithm>
+#include <ctime>
 #include <atomic>
 #include <chrono>
 #include <csignal>
@@ -46,7 +47,7 @@ using aj::Value;
 using aj::Object;
 using aj::Array;
 
-static const char* VERSION = "1.4.1";
+static const char* VERSION = "1.5.0";
 
 // ---------- terminal ----------
 static bool g_tty = false, g_color = false, g_err_tty = false;
@@ -370,9 +371,9 @@ static bool is_local_url() { return g_url.find("://127.0.0.1") != std::string::n
 
 // ---------- options ----------
 struct Opts {
-    std::string project, dir, mode = "auto", model = "auto", prompt, cmd;
+    std::string project, dir, mode = "auto", model = "auto", prompt, cmd, resume;
     std::vector<std::string> args;
-    bool print = false, json = false, review = false, isolate = false, merge = false, keep = false, force = false, partial = false, all = false, yes = false;
+    bool print = false, json = false, review = false, isolate = false, merge = false, keep = false, force = false, partial = false, all = false, yes = false, classic = false, cont = false;
     int max_steps = 40;
 };
 static std::string resolve_project(const Opts& o) {
@@ -462,7 +463,7 @@ struct Renderer {
             final_text = e["text"].str();
             size_t nfiles = e["files"].arr() ? e["files"].arr()->size() : 0;
             line("");
-            line(green("\xE2\x9C\x94 Done") + dim("  \xC2\xB7 " + std::to_string(nfiles) + (nfiles == 1 ? " file" : " files") + " changed \xC2\xB7 " + e["steps"].str("0") + " steps \xC2\xB7 " + fmt_ms(e["ms"].num()) + (e["model"].str().empty() ? "" : " \xC2\xB7 " + e["model"].str())));
+            line(green("\xE2\x9C\x94 Done") + dim("  \xC2\xB7 " + std::to_string(nfiles) + (nfiles == 1 ? " file" : " files") + " changed \xC2\xB7 " + e["steps"].str("0") + (e["steps"].num() == 1 ? " step" : " steps") + " \xC2\xB7 " + fmt_ms(e["ms"].num()) + (e["model"].str().empty() ? "" : " \xC2\xB7 " + e["model"].str())));
             if (!to_stderr && !final_text.empty()) indent_block(final_text, "  ");
             if (auto a = e["files"].arr()) {
                 size_t n = 0;
@@ -676,7 +677,7 @@ static int cmd_parallel(const std::vector<std::string>& tasks, Opts o, const std
                 const bool run = a.status == "running" || a.status == "waiting" || a.status == "queued" || a.status == "starting";
                 const std::string icon = run ? peach(frames[(spin + drawn) % 10]) : a.status == "done" ? green("\xE2\x9C\x94") : a.status == "error" ? red("\xE2\x9C\x97") : yellow("\xE2\x96\xA0");
                 std::string head = a.id + "  " + clip(a.task, 34);
-                std::string tail = a.status + " \xC2\xB7 " + std::to_string(a.steps) + " steps" + (a.status == "done" ? " \xC2\xB7 " + std::to_string(a.files) + (a.files == 1 ? " file" : " files") : "") + (a.last.empty() ? "" : " \xC2\xB7 " + a.last);
+                std::string tail = a.status + " \xC2\xB7 " + std::to_string(a.steps) + (a.steps == 1 ? " step" : " steps") + (a.status == "done" ? " \xC2\xB7 " + std::to_string(a.files) + (a.files == 1 ? " file" : " files") : "") + (a.last.empty() ? "" : " \xC2\xB7 " + a.last);
                 std::fputs(("\x1b[2K  " + icon + " " + bold(head) + "  " + dim(clip(tail, static_cast<size_t>(std::max(10, w - 8 - static_cast<int>(vis_len(head)))))) + "\n").c_str(), stdout);
                 ++drawn;
             }
@@ -718,7 +719,8 @@ static int cmd_parallel(const std::vector<std::string>& tasks, Opts o, const std
 static void help() {
     std::cout << peach("\xE2\x97\x86 A.S.T.R.O AI") << " terminal " << VERSION << " \xE2\x80\x94 " << dim("one brain, many minds") << "\n\n"
               << bold("Usage") << "\n"
-              << "  astro [options] [task]           interactive agent in this folder\n"
+              << "  astro [options] [task]           full-screen terminal app in this folder (Ctrl+B side panel, / commands)\n"
+              << "  astro -c | --resume <id>          continue the latest session here, or a given one\n"
               << "  astro -p \"task\" [--json]         print mode: run once, report on stdout (JSON lines with --json)\n"
               << "  astro parallel \"A\" \"B\" [--merge] several agents at once, each in an isolated copy\n"
               << "  astro agents [--all]              list agent sessions (background and parallel)\n"
@@ -737,8 +739,9 @@ static void help() {
               << "  --review            a second model reviews the work (one fix round)\n"
               << "  --isolate           run in an isolated copy (git worktree or copy); merge later\n"
               << "  --max-steps <n>     steps per run (default 40)\n"
-              << "  --json              JSON lines output (print mode)\n\n"
-              << bold("Environment") << "  ASTRO_URL (server URL), ASTRO_TOKEN (sign-in token for a server with accounts), NO_COLOR\n";
+              << "  --json              JSON lines output (print mode)\n"
+              << "  --classic           the simple line-by-line prompt instead of the full-screen app (or ASTRO_TUI=0)\n\n"
+              << bold("Environment") << "  ASTRO_URL (server URL), ASTRO_TOKEN (sign-in token for a server with accounts), NO_COLOR,\n             ASTRO_THEME=light|dark, ASTRO_COLOR=256\n";
 }
 static void repl_help() {
     out(bold("Commands"));
@@ -751,8 +754,18 @@ static void repl_help() {
         out("  " + peach(c) + std::string(c.size() < 24 ? 24 - c.size() : 1, ' ') + dim(d));
     out(dim("End a line with \\ to write several lines. Ctrl+C stops the agent."));
 }
+// Tasks for /parallel: "quoted" "tasks", or task one | task two.
 static std::vector<std::string> split_tasks(const std::string& s) {
     std::vector<std::string> out; std::string cur;
+    if (s.find('"') != std::string::npos) {
+        bool q = false;
+        for (char c : s) {
+            if (c == '"') { if (q && !trim(cur).empty()) out.push_back(trim(cur)); cur.clear(); q = !q; continue; }
+            if (q) cur += c; else if (c == '|') continue; else if (!std::isspace(static_cast<unsigned char>(c))) cur += c;
+        }
+        if (!trim(cur).empty()) out.push_back(trim(cur));
+        return out;
+    }
     for (size_t i = 0; i < s.size(); ++i) {
         if (s[i] == '|' ) { if (!trim(cur).empty()) out.push_back(trim(cur)); cur.clear(); continue; }
         cur += s[i];
@@ -855,6 +868,8 @@ static int repl(Opts o, const std::string& project) {
     }
 }
 
+#include "tui.inc"
+
 int main(int argc, char** argv) {
     init_terminal();
     curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -880,6 +895,9 @@ int main(int argc, char** argv) {
         else if (a == "--all") o.all = true;
         else if (a == "-y" || a == "--yes") o.yes = true;
         else if (a == "--max-steps") o.max_steps = std::max(1, std::atoi(next("--max-steps").c_str()));
+        else if (a == "--classic") o.classic = true;
+        else if (a == "-c" || a == "--continue") o.cont = true;
+        else if (a == "-r" || a == "--resume") o.resume = next("--resume");
         else if (a == "--plan") o.mode = "plan";
         else if (a == "--ask") o.mode = "ask";
         else if (a == "--auto") o.mode = "auto";
@@ -950,6 +968,7 @@ int main(int argc, char** argv) {
             }
             return exit_code_for(st);
         }
+        if (tui::wanted(o)) return tui::run(o, project);
         return repl(o, project);
     } catch (const std::exception& e) {
         clear_status();

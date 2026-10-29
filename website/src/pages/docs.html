@@ -152,18 +152,37 @@ cd AstroAI-{{version}}-macos-source-CLEAN
       <li><strong>Ask</strong>: you approve every file change and command with <strong>Allow</strong>, <strong>Allow all in this run</strong> or <strong>Deny</strong>. Folders you open start in this mode.</li>
       <li><strong>Auto</strong>: the agent works on its own.</li>
     </ul>
-    <p>Type <code>/</code> for commands: <code>/init</code> writes an <code>AGENTS.md</code>, and there are also <code>/plan</code>, <code>/review</code>, <code>/test</code>, <code>/commit</code>, <code>/compact</code>, <code>/skills</code>, <code>/mcp</code> and <code>/agents</code>. The side panel shows <strong>Changes</strong> (with a diff per file), <strong>Files</strong>, <strong>Terminal</strong> and <strong>Preview</strong>. A checkpoint is taken before each job, so you can roll back.</p>
+    <p>Type <code>/</code> for commands: <code>/init</code> writes an <code>AGENTS.md</code>, and there are also <code>/plan</code>, <code>/review</code>, <code>/test</code>, <code>/commit</code>, <code>/compact</code>, <code>/skills</code>, <code>/mcp</code> and <code>/agents</code>. The icon rail on the right switches the side panel between <strong>Session</strong>, <strong>Changes</strong> (with a diff per file), <strong>Files</strong>, <strong>Terminal</strong> and <strong>Preview</strong>. A checkpoint is taken before each job, so you can roll back.</p>
+    <p>Your runs are listed on the left with their status, time, files changed and mode. Each finished run ends with a <strong>Recap</strong> line: how many files changed and whether the tests passed, still fail or weren't run. The <strong>Session</strong> panel shows:</p>
+    <ul>
+      <li><strong>Context</strong>: roughly how much of the model's context the conversation uses, and the cost (free models cost $0.00),</li>
+      <li><strong>Project</strong>: the git branch, uncommitted files, the mode, and the checkpoint with <strong>Undo all</strong>,</li>
+      <li><strong>Context sources</strong>: the rules files and skills the agent was given,</li>
+      <li><strong>MCP servers</strong>: switch each trusted server on or off for the agent (untrusted servers ask first),</li>
+      <li><strong>Usage</strong> and <strong>Turn stats</strong>: steps, actions, files and time.</li>
+    </ul>
     <div class="callout warn"><div><b>Use it with care.</b> The agent runs real commands on your computer. Give it a project folder you're happy for it to change, and keep backups of anything that matters.</div></div>
 
     <h2 id="terminal">Terminal &amp; parallel agents</h2>
     <p><strong>Terminal only:</strong> install <code>astro</code> without the desktop app or setup wizard with <code>curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh</code> on Linux and macOS, or <code>irm https://esoexe.github.io/astro-ai/install.ps1 | iex</code> in PowerShell on Windows. It installs to your user folder, verifies the download's SHA-256 and adds <code>astro</code> to your PATH. On the first run it starts its local engine by itself and works right away with the free models that need no key. To add more providers, open <code>http://127.0.0.1:47612</code> in your browser while it runs.</p>
     <p>The desktop downloads include <code>astro</code>, the A.S.T.R.O AI agent for your terminal. It is <code>/usr/bin/astro</code> with the Linux .deb. On Windows, Setup adds it to your PATH, so open a new terminal after installing. On macOS it is inside the app, and the installer prints the one-line link command. If the app is closed, <code>astro</code> uses the app's engine and starts it when needed.</p>
     <ul>
-      <li><code>cd my-project &amp;&amp; astro</code> starts an interactive session on that folder. Type <code>/help</code> for commands, press Ctrl+C to stop the agent and use <code>/undo</code> to put the folder back.</li>
+      <li><code>cd my-project &amp;&amp; astro</code> opens the full-screen terminal app on that folder: a conversation view, a status line and a side panel with the mode, model, changed files and to-do list. Type <code>/</code> for the 23 commands, press Ctrl+C to stop the agent and use <code>/undo</code> to put the folder back. <code>astro --classic</code> (or <code>ASTRO_TUI=0</code>) keeps the plain line-by-line view.</li>
       <li><code>astro -p "fix the failing test"</code> runs once for scripts and CI. Add <code>--json</code> for one JSON event per line, and <code>--plan</code>, <code>--ask</code> or <code>--auto</code> to choose the mode.</li>
       <li><code>astro parallel "add dark mode" "write tests" --merge</code> runs several agents at once, each in an <strong>isolated copy</strong> of the project: a git worktree in a repository, or a copy otherwise. Your files are not touched until you merge.</li>
       <li><code>astro agents</code>, <code>astro diff &lt;id&gt;</code>, <code>astro merge &lt;id&gt;</code>, <code>astro discard &lt;id&gt;</code> and <code>astro undo &lt;id&gt;</code> review and apply the work. If a file was also changed in the project after the agent started, <code>merge</code> combines both versions when the changes are in different places. If they overlap, it stops: use <code>--partial</code> to merge everything else, or <code>--force</code> to apply the agent's version anyway. When an agent's last test or build still fails, <code>parallel --merge</code> skips it so you can look first.</li>
     </ul>
+    <table>
+      <thead><tr><th>Key</th><th>In the terminal app</th></tr></thead>
+      <tbody>
+        <tr><td><kbd>Enter</kbd> · <kbd>Alt</kbd>+<kbd>Enter</kbd> or <kbd>Ctrl</kbd>+<kbd>J</kbd></td><td>send · new line</td></tr>
+        <tr><td><kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>switch mode: Auto → Plan → Ask</td></tr>
+        <tr><td><kbd>y</kbd> · <kbd>a</kbd> · <kbd>n</kbd></td><td>when asked "Allow this?": yes once · yes for the rest of the run · no, and tell the agent what to do instead</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>B</kbd></td><td>show or hide the side panel (it opens by itself in wide terminals)</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd> · <kbd>Ctrl</kbd>+<kbd>R</kbd> · <kbd>Ctrl</kbd>+<kbd>G</kbd></td><td>choose the model · resume a session · parallel agents</td></tr>
+        <tr><td><kbd>?</kbd> · <kbd>Esc</kbd> · <kbd>Ctrl</kbd>+<kbd>D</kbd></td><td>all shortcuts · close a panel · quit</td></tr>
+      </tbody>
+    </table>
     <p>In the app, the <strong>Parallel</strong> chip on the Agent page does the same: one task per line, follow each agent live, answer its questions, look at the diff and merge. These agents run in the engine, so they keep working when you close the window. The Clean downloads also include a <strong>VS Code extension</strong> (<code>.vsix</code>) with the same commands. A project can give the agent its own tools with JSON files in <code>.astro/tools/</code>. The full reference, including the HTTP API, is in <a href="https://github.com/esoexe/astro-ai/blob/main/docs/cli.md">docs/cli.md</a>.</p>
 
     <h2 id="extensions">Folders, skills, MCP &amp; plugins</h2>

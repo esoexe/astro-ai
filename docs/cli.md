@@ -1,6 +1,6 @@
 # A.S.T.R.O AI in the terminal (`astro`) and parallel agents
 
-Version 1.4.0 adds two things:
+Version 1.4.0 added two things, and 1.5.0 turned the terminal app into a full-screen app:
 
 - **`astro`**, a terminal app for the A.S.T.R.O AI agent: an interactive session, a print mode for scripts, and commands to run and manage several agents.
 - **The agent engine**, which runs agents inside the A.S.T.R.O AI server instead of the browser tab. Agents keep working when you close the window. Several can run at the same time, and each one can work in an **isolated copy** of the project that you review, then merge or discard.
@@ -23,7 +23,7 @@ irm https://esoexe.github.io/astro-ai/install.ps1 | iex
 
 The script downloads the Clean portable build (macOS: the disk image) from the latest GitHub release and checks it against the release's `SHA256SUMS.txt`. It then installs `astro` and its engine into `~/.astro-ai` and links `~/.local/bin/astro`. On Windows the files go into `%LOCALAPPDATA%\Programs\AstroAI-CLI`, which is added to your user PATH. Run it again to update.
 
-Options: `ASTRO_VERSION=1.4.1` installs a specific version, `ASTRO_HOME` changes the install folder and `ASTRO_BIN` changes the link folder (Linux/macOS). Uninstall with `curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh -s -- --uninstall`, or on Windows set `$env:ASTRO_UNINSTALL="1"` and run the PowerShell line again. Uninstalling keeps your chats, settings and keys.
+Options: `ASTRO_VERSION=1.5.0` installs a specific version, `ASTRO_HOME` changes the install folder and `ASTRO_BIN` changes the link folder (Linux/macOS). Uninstall with `curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh -s -- --uninstall`, or on Windows set `$env:ASTRO_UNINSTALL="1"` and run the PowerShell line again. Uninstalling keeps your chats, settings and keys.
 
 It works right away with the free models that need no key. To add more providers, open `http://127.0.0.1:47612` in a browser while the engine runs and go to Settings → Providers.
 
@@ -46,35 +46,42 @@ It works right away with the free models that need no key. To add more providers
 
 If none is running, `astro` starts the server that ships next to it, in the background. It uses the same data folder, keys and settings as the desktop app. `astro server stop` stops that server. It does not stop a server owned by the desktop app.
 
-## Interactive
+## The full-screen app (1.5)
 
 ```text
 $ cd my-project
 $ astro
-◆ A.S.T.R.O AI terminal 1.4.0
-  project my-project  ·  mode auto  ·  model auto
-› add a /health endpoint and a test for it
-● I'll look at the server first.
-  ✓ read_file src/server.js
-  ✓ edit_file src/server.js +6 −0
-  ✓ bash `npm test` exit 0 · 2.1s
-✔ Done  · 2 files changed · 6 steps · 14s · …
 ```
 
-`astro` opens the current folder in place, like the desktop app's **Open folder**. A checkpoint is saved before every run, and `/undo` puts the folder back the way it was. Press Ctrl+C to stop the agent and Ctrl+D to quit.
+Since version 1.5, `astro` opens a full-screen app in your terminal, in the style of other terminal coding agents. The conversation fills the screen and the prompt stays at the bottom. Every edit appears as a coloured diff, and the status line shows the mode, the model and what the agent is doing. `astro` opens the current folder in place, like the desktop app's **Open folder**. A checkpoint is saved before every run, and `/undo` puts the folder back the way it was.
+
+- **Modes.** Shift+Tab cycles **auto** (the agent acts on its own; the default), **plan** (read-only, it reports back a plan) and **ask** (you approve each change and command).
+- **Approvals.** In ask mode a dialog shows the exact diff or command. Press `y` to allow, `a` to allow everything for the rest of the run, or `n` (or Esc) to tell the agent what to do instead.
+- **Questions** from the agent appear as a menu. Pick an option or type your own answer.
+- **While it works** you can type a follow-up and press Enter. Esc stops the agent.
+- **Side panel.** It shows the project, the session, the mode and model, changed files, the to-do list and parallel agents. It opens by default in windows at least 140 columns wide, and Ctrl+B toggles it in windows from 96 columns.
+- **Prompt.** `/` opens the command menu (with your project commands and skills), `@path` mentions a file (Tab completes it) and `!command` runs a shell command in the folder. Alt+Enter or Ctrl+J adds a new line, and bracketed paste keeps pasted lines together. ↑/↓ is history, PgUp/PgDn scrolls, and Ctrl+A/E/U/K/W edit the line.
+- **Overlays.** Ctrl+O picks a model (Auto = best first with automatic fallback). Ctrl+G manages agents: Enter opens one, `d` shows the diff, `m` merges, `x` discards, `s` stops. Ctrl+R resumes a session and `?` lists every shortcut.
+- **Sessions.** `astro -c` continues the last session in this folder and `astro --resume <id>` (`-r`) opens a given one. When you quit (Ctrl+D, or Ctrl+C twice), the app prints the command that resumes it.
+- **Colours.** True colour when the terminal supports it (`COLORTERM=truecolor`), otherwise 256 colours. It follows a light or dark terminal; force one with `ASTRO_THEME=light|dark`. `NO_COLOR=1` turns colour off. `/mouse` turns on mouse-wheel scrolling (it is off by default so you can select text).
 
 | Command | What it does |
 |---|---|
-| `/mode plan\|ask\|auto` | **plan**: the agent can only read and reports back a plan. **ask**: you approve each change and command. **auto**: the agent acts on its own (the default). |
-| `/model <id>`, `/models` | Choose a preferred model. If it fails, the agent falls back to the next one in the ranked list. |
-| `/review` | Turn on a second-model review at the end of each run (one fix round). |
-| `/new`, `/sessions`, `/resume <id>` | Start a new session, list sessions, or continue one. |
-| `/agents` | List every agent in this project, including background ones. |
-| `/parallel A \| B \| C [--merge]` | Run several agents at once, each in an isolated copy. |
-| `/diff`, `/merge`, `/discard`, `/undo` | Review an isolated agent's changes and apply or drop them, or undo a run. |
-| `/stop`, `/quit` | Stop the agent, or quit. |
+| `/mode plan\|ask\|auto` | Set the mode (same as Shift+Tab). |
+| `/model [id]`, `/models` | Choose a preferred model, or list the ranked coding models. If a model fails, the agent falls back to the next one. |
+| `/review on\|off` | A second model reviews the work at the end of each run (one fix round). |
+| `/new`, `/clear`, `/sessions`, `/resume [id]` | Start a new session (`/clear` also clears the screen), browse sessions, or continue one. |
+| `/diff`, `/undo` | Show what this session changed, or put the folder back. |
+| `/parallel "A" "B" [--merge]` | Run several agents at once, each in an isolated copy (`A \| B` also works). |
+| `/agents`, `/merge <id>`, `/discard <id>` | Manage isolated agents and apply or drop their changes. |
+| `/init` | Write `AGENTS.md`, a guide to this project for agents. |
+| `/export [file]`, `/copy` | Save the conversation as Markdown, or copy the last answer. |
+| `/panel`, `/mouse`, `/status`, `/help` | Side panel, mouse scrolling, engine and session details, help. |
+| `/stop`, `/quit` | Stop the agent (Esc), or quit (Ctrl+D). |
 
-In **ask** mode the agent's request appears inline: `[y] allow  [a] allow all this run  [n] deny`. You can also type what it should do instead.
+### Classic prompt
+
+`astro --classic` (or `ASTRO_TUI=0`) keeps the line-by-line prompt from 1.4, which prints into your scrollback. It is also used automatically when stdin or stdout is not a terminal, or when `TERM=dumb`. It has the same commands. In ask mode the request appears inline as `[y] allow  [a] allow all this run  [n] deny`.
 
 ## Print mode (scripts and CI)
 
@@ -146,7 +153,7 @@ A project can give the agent its own tools. Each JSON file in `.astro/tools/` de
 
 ## VS Code extension
 
-`astro-ai-vscode-<version>.vsix` comes with the Clean downloads. It works in VS Code, VSCodium, Cursor, Windsurf and similar editors. To install it, run **Extensions → … → Install from VSIX** or `code --install-extension astro-ai-vscode-1.4.0.vsix`.
+`astro-ai-vscode-<version>.vsix` comes with the Clean downloads. It works in VS Code, VSCodium, Cursor, Windsurf and similar editors. To install it, run **Extensions → … → Install from VSIX** or `code --install-extension astro-ai-vscode-1.5.0.vsix`.
 
 | Command (Ctrl+Shift+P → "A.S.T.R.O AI") | What it does |
 |---|---|

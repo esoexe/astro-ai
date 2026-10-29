@@ -11,8 +11,8 @@ astro_measure: tools/astro_measure.cpp
 	$(CXX) -std=c++20 -O2 -Wall -Wextra $< -o $@
 
 # The terminal app (astro): a small client of the engine's /api/agent/* API.
-astro: cli/astro.cpp cli/json.h
-	$(CXX) -std=c++20 -O2 -Wall -Wextra $(CURL_CFLAGS) $< -o $@ $(CURL_LIBS)
+astro: cli/astro.cpp cli/json.h cli/tui.inc cli/logo.h
+	$(CXX) -std=c++20 -O2 -Wall -Wextra -pthread $(CURL_CFLAGS) $< -o $@ $(CURL_LIBS)
 
 $(TARGET): workspace_server.cpp platform.h $(wildcard *.inc)
 	$(CXX) $(CXXFLAGS) $(CURL_CFLAGS) $< -o $@ $(CURL_LIBS) -lcrypto -lutil

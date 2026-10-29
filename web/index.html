@@ -32,6 +32,7 @@
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/orbit.css">
   <link rel="stylesheet" href="/desktop.css">
+  <link rel="stylesheet" href="/agent.css">
   <script src="/dev.js" defer></script>
   <script src="/agents.js" defer></script>
   <script src="/app.js" defer></script>
@@ -123,7 +124,7 @@
 
   <div class="app" id="app">
     <aside class="rail" id="sidebar" aria-label="Main menu">
-      <div class="dock-brand" title="A.S.T.R.O AI"><svg class="orbit-svg" viewBox="0 0 48 48" aria-hidden="true"><circle class="o-ring" cx="24" cy="24" r="19"/><circle class="o-ring2" cx="24" cy="24" r="12.5"/><circle class="o-core" cx="24" cy="24" r="6.5"/><g class="o-spin"><circle class="o-moon" cx="24" cy="5" r="3"/></g><g class="o-spin2"><circle class="o-sat" cx="24" cy="36.5" r="1.8"/></g></svg><span class="dock-name">A.S.T.R.O AI</span></div>
+      <div class="dock-brand" title="A.S.T.R.O AI"><svg class="orbit-svg" viewBox="0 0 48 48" aria-hidden="true"><g class="o-spin o-atom"><g class="o-back"><path class="o-ring" d="M44 24A20 7.2 0 0 0 4 24"/><path class="o-ring" d="M34 41.32A20 7.2 60 0 0 14 6.68"/><path class="o-ring" d="M34 6.68A20 7.2 -60 0 0 14 41.32"/></g></g><circle class="o-core" cx="24" cy="24" r="7.6"/><g class="o-spin o-atom"><path class="o-ring o-front" d="M4 24A20 7.2 0 0 0 44 24"/><path class="o-ring o-front" d="M14 6.68A20 7.2 60 0 0 34 41.32"/><path class="o-ring o-front" d="M14 41.32A20 7.2 -60 0 0 34 6.68"/><circle class="o-moon" cx="5.2" cy="26.5" r="1.9"/><circle class="o-moon" cx="35.8" cy="37.6" r="1.6"/><circle class="o-sat" cx="18.1" cy="41.0" r="1.5"/></g></svg><span class="dock-name">A.S.T.R.O AI</span></div>
       <div class="rail-head">
         <button class="icon-btn" id="toggle-rail" type="button" aria-label="Chat history" title="Hide chat history (Ctrl+B)"><svg><use href="#i-history"/></svg></button>
         <button class="icon-btn rail-only-expanded" id="rail-search" type="button" aria-label="Search" title="Search everything (Ctrl+K)"><svg><use href="#i-search"/></svg></button>
@@ -187,7 +188,7 @@
       <section class="chat-view empty" id="chat-view">
         <div class="scroller" id="conversation-area">
           <div class="welcome" id="welcome-screen">
-            <div class="orbit-hero" aria-hidden="true"><svg class="orbit-svg" viewBox="0 0 48 48"><circle class="o-ring" cx="24" cy="24" r="19"/><circle class="o-ring2" cx="24" cy="24" r="12.5"/><circle class="o-core" cx="24" cy="24" r="6.5"/><g class="o-spin"><circle class="o-moon" cx="24" cy="5" r="3"/></g><g class="o-spin2"><circle class="o-sat" cx="24" cy="36.5" r="1.8"/></g></svg></div>
+            <div class="orbit-hero" aria-hidden="true"><svg class="orbit-svg" viewBox="0 0 48 48"><g class="o-spin o-atom"><g class="o-back"><path class="o-ring" d="M44 24A20 7.2 0 0 0 4 24"/><path class="o-ring" d="M34 41.32A20 7.2 60 0 0 14 6.68"/><path class="o-ring" d="M34 6.68A20 7.2 -60 0 0 14 41.32"/></g></g><circle class="o-core" cx="24" cy="24" r="7.6"/><g class="o-spin o-atom"><path class="o-ring o-front" d="M4 24A20 7.2 0 0 0 44 24"/><path class="o-ring o-front" d="M14 6.68A20 7.2 60 0 0 34 41.32"/><path class="o-ring o-front" d="M14 41.32A20 7.2 -60 0 0 34 6.68"/><circle class="o-moon" cx="5.2" cy="26.5" r="1.9"/><circle class="o-moon" cx="35.8" cy="37.6" r="1.6"/><circle class="o-sat" cx="18.1" cy="41.0" r="1.5"/></g></svg></div>
             <h1 class="hello"><span class="grad-text" id="hello-text">Hello there</span></h1>
             <p class="hello-sub" id="hello-sub">How can I help you today?</p>
           </div>

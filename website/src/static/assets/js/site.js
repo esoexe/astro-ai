@@ -120,8 +120,8 @@
   }
 
   /* ------------------------------------------------------------ orbit canvas */
-  // The same scene as the installer: twinkling stars, a tilted peach ring, a glowing core and a moon
-  // that passes in front of and behind it. Pauses off-screen; one still frame for reduced motion.
+  // Twinkling stars and the A.S.T.R.O AI mark: a glowing core inside three crossed orbits, with
+  // satellites that pass in front of and behind it. Pauses off-screen; one still frame for reduced motion.
   function orbit(canvas) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -132,7 +132,10 @@
     };
     let W = 0, H = 0, dpr = 1, stars = [], shoot = null, raf = 0, visible = true, t0 = performance.now();
     let px = 0, py = 0, tx = 0, ty = 0;
-    const TILT = -0.32;
+    let TILT = -0.32;
+    // The 1.5 icon: a flat orbit and two crossed at about ±60°, with four satellites.
+    const ORBITS = [-0.12, 1.02, -1.26];
+    const SATS = [[0, 0.42, 0.9], [1, 0.31, 2.6], [2, 0.36, 4.4], [1, 0.31, 5.7]]; // [orbit, speed, phase]
 
     function resize() {
       const r = canvas.getBoundingClientRect();
@@ -231,14 +234,12 @@
         }
       }
       const g = geom();
-      const a = reduced ? 0.9 : t * 0.42 + 0.9;
-      ring(g, false, 1.38, 0.16, 1);
-      ring(g, false, 1, 0.9, 1.6);
-      if (Math.sin(a) <= 0) moon(g, a);
-      core(g, t);
-      ring(g, true, 1, 0.9, 1.6);
-      ring(g, true, 1.38, 0.16, 1);
-      if (Math.sin(a) > 0) moon(g, a);
+      const sat = SATS.map(([o, v, ph]) => [o, reduced ? ph : t * v + ph]);
+      for (const front of [false, true]) {
+        if (front) core(g, t);
+        ORBITS.forEach((tilt, i) => { TILT = tilt; ring(g, front, 1, i ? 0.62 : 0.85, 1.3); });
+        for (const [o, a] of sat) if ((Math.sin(a) > 0) === front) { TILT = ORBITS[o]; moon(g, a); }
+      }
     }
 
     function loop(now) { draw(now); raf = visible && !document.hidden ? requestAnimationFrame(loop) : 0; }

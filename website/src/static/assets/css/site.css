@@ -750,3 +750,12 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -.02em; line-heigh
 @media (prefers-reduced-motion: reduce) { .term-float { animation: none; } .term-body .t-caret { animation: none; } }
 .term-body .t-head { white-space: pre-wrap; word-break: break-word; }
 @media (max-width: 700px) { .term-big .term-body { overflow-x: auto; font-size: 9px; } }
+
+/* 1.5: terminal app gallery + desktop Agent section */
+.tui-gallery { margin-bottom: 56px; }
+.tui-gallery .frame img { image-rendering: auto; }
+.term-sub { margin: 8px 0 6px; }
+.term-sub-p { margin: 0 0 18px; max-width: 62ch; }
+.agent-shots { margin-top: 48px; }
+
+@media (max-width: 720px) { .tui-gallery .tabs { overflow-x: auto; flex-wrap: nowrap; } .agent-shots { margin-top: 32px; } }

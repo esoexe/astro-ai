@@ -5007,7 +5007,7 @@
         ['Build an Express API with a live dashboard page and a JSON health endpoint', 'i-server'],
         ...(f && !f.binary ? [[`Explain how ${baseName(f.path)} works, as a spec with a data-flow diagram`, 'i-bulb'], [`Find and fix bugs in ${baseName(f.path)}`, 'i-check']] : []),
       ];
-      box.innerHTML = `<div class="tm-empty"><div class="tm-orb orbit-mark" aria-hidden="true"><svg class="orbit-svg" viewBox="0 0 48 48"><circle class="o-ring" cx="24" cy="24" r="19"/><circle class="o-ring2" cx="24" cy="24" r="12.5"/><circle class="o-core" cx="24" cy="24" r="6.5"/><g class="o-spin"><circle class="o-moon" cx="24" cy="5" r="3"/></g><g class="o-spin2"><circle class="o-sat" cx="24" cy="36.5" r="1.8"/></g></svg></div><h3>Workspace · AI engineering team</h3><p>${ws.fast ? 'One fast model' : `${n} AI models plan, write, review and test together`}. They read a live index of this project, its memory, git status and terminal, then write complete files, install packages, run the result and fix failures. Every change is saved as a version first, so you can diff or undo it. Turn on <b>Plan</b> for multi-step goals.</p><div class="tm-sugg">${sugg.map(([s, ic]) => `<button type="button" data-suggest="${esc(s)}">${icon(ic)}<span>${esc(s)}</span></button>`).join('')}</div></div>`;
+      box.innerHTML = `<div class="tm-empty"><div class="tm-orb orbit-mark" aria-hidden="true"><svg class="orbit-svg" viewBox="0 0 48 48"><g class="o-spin o-atom"><g class="o-back"><path class="o-ring" d="M44 24A20 7.2 0 0 0 4 24"/><path class="o-ring" d="M34 41.32A20 7.2 60 0 0 14 6.68"/><path class="o-ring" d="M34 6.68A20 7.2 -60 0 0 14 41.32"/></g></g><circle class="o-core" cx="24" cy="24" r="7.6"/><g class="o-spin o-atom"><path class="o-ring o-front" d="M4 24A20 7.2 0 0 0 44 24"/><path class="o-ring o-front" d="M14 6.68A20 7.2 60 0 0 34 41.32"/><path class="o-ring o-front" d="M14 41.32A20 7.2 -60 0 0 34 6.68"/><circle class="o-moon" cx="5.2" cy="26.5" r="1.9"/><circle class="o-moon" cx="35.8" cy="37.6" r="1.6"/><circle class="o-sat" cx="18.1" cy="41.0" r="1.5"/></g></svg></div><h3>Workspace · AI engineering team</h3><p>${ws.fast ? 'One fast model' : `${n} AI models plan, write, review and test together`}. They read a live index of this project, its memory, git status and terminal, then write complete files, install packages, run the result and fix failures. Every change is saved as a version first, so you can diff or undo it. Turn on <b>Plan</b> for multi-step goals.</p><div class="tm-sugg">${sugg.map(([s, ic]) => `<button type="button" data-suggest="${esc(s)}">${icon(ic)}<span>${esc(s)}</span></button>`).join('')}</div></div>`;
       return;
     }
     box.innerHTML = ws.team.map(wsMsgHtml).join('');
@@ -5943,7 +5943,7 @@
   // ===========================================================================================
   const AG = {
     sessions: new Map(), list: [], cur: '', project: '', runs: new Map(), waiters: new Map(), saveT: new Map(),
-    side: 'changes', sideOpen: true, changes: null, tree: null, view: null, prev: '', termExtra: [], mounted: false,
+    side: ls.get('astro_agent:side') || 'session', sideOpen: true, sinfo: null, changes: null, tree: null, view: null, prev: '', termExtra: [], mounted: false,
     team: ls.get('astro_agent:team') !== '0', tick: 0,
   };
   const AG_MAX = 40;
@@ -5985,7 +5985,7 @@
     AG.sessions.set(s.id, s);
     return s;
   }
-  function agMeta(s) { return { id: s.id, title: s.title, status: s.status, created: s.created, updated: s.updated, steps: s.steps, tools: s.tools, files: s.files, host: s.host, ms: s.ms }; }
+  function agMeta(s) { const d = [...(s.items || [])].reverse().find((it) => it.kind === 'done'); return { id: s.id, title: s.title, status: s.status, created: s.created, updated: s.updated, steps: s.steps, tools: s.tools, files: s.files, host: s.host, ms: s.ms, project: s.project, mode: s.mode || '', attention: !!d?.attention }; }
   function agSave(s, now = false) {
     clearTimeout(AG.saveT.get(s.id));
     const run = () => {
@@ -6072,6 +6072,7 @@
     if (t === 'remember') o.fact = o.fact ?? o.text ?? o.memory ?? '';
     return o;
   }
+  const AG_NATIVE_MARK = /\]<\][a-z0-9_:-]*\[>\[|\]~[a-z]\]|<\|[a-z0-9_]+\|>|\[TOOL_CALLS\]|<\/?(?:minimax:)?tool_call>|<\/?(?:antml:)?function_calls>|<\/?(?:antml:)?invoke[^>]*>|<\/?tool_calls?_?(?:begin|end|section)?[^>]*>/gi;
   function agParse(text) {
     text = stripReasoningLeak(text);
     const calls = []; let done = null; let narrative = ''; let last = 0; let m;
@@ -6094,6 +6095,10 @@
       if (!closed) break;
     }
     if (last < text.length) narrative += text.slice(last);
+    // Native tool-call formats some free models emit instead of a fenced block (Hermes / Qwen <tool_call>{...}</tool_call>,
+    // MiniMax ]<]minimax[>[ tokens, <|...|> special tokens, [TOOL_CALLS]). Real calls are used; the markup is never shown.
+    narrative = narrative.replace(/<tool_call>\s*([\s\S]*?)\s*(?:<\/tool_call>|$)/gi, (_all, body) => { for (const c of agJsonAll(body).filter((x) => x && (x.tool || x.name))) calls.push(agNorm(c)); return ''; });
+    narrative = narrative.replace(AG_NATIVE_MARK, '');
     if (!calls.length && !done) {
       const mm = text.match(/\{\s*"tool"\s*:\s*"[a-z_]+"[\s\S]*?\}\s*(?=$|\n)/);
       if (mm) { const c = agJson(mm[0]); if (c?.tool) { calls.push(agNorm(c)); narrative = narrative.replace(mm[0], ''); } }
@@ -6180,6 +6185,7 @@
     try { const m = new RegExp(parts.join('\\s+')).exec(text); if (m) return [m.index, m[0].length]; } catch (_e) { /* too long */ }
     return null;
   }
+  const AG_CHECK_CMD = /(^|[\s;&|(])(npm|pnpm|yarn|bun)\s+(run\s+)?(test|build|lint|check)\b|node\s+--test|\b(jest|vitest|mocha|pytest|tsc|eslint|ctest|phpunit|rspec)\b|\b(cargo|go|dotnet|mvn|gradle)\s+(test|build)\b|(^|[\s;&|])make(\s|$)/;
   async function agExec(s, call, item, signal) {
     const t = call.tool; const meta = item.meta = {};
     const need = (v, name) => { if (v === undefined || v === null || String(v).trim() === '') throw new Error(`${t} needs "${name}".`); return v; };
@@ -6406,7 +6412,7 @@
       const limit = opts.limit || AG_MAX;
       let noCall = 0; let fails = new Map(); let toolsUsed = 0;
       // Verification guard: files changed since the last command ran → the job is not checked yet.
-      let unverified = false; let verifyNudges = 0;
+      let unverified = false; let verifyNudges = 0; let failing = ''; let lastCheck = null;
       const VERIFY_MSG = 'VERIFY FIRST: you changed files but have not run anything since, so nothing is checked yet. Run the tests or the program now (for example the project\'s test command) with bash and read the output. Fix what fails. Only send the ```done block after a real run shows it works, and report the real result.';
       for (let step = 0; step < limit; step++) {
         if (signal.aborted) throw new DOMException('stopped', 'AbortError');
@@ -6455,12 +6461,15 @@
             ti.status = 'err'; ti.error = err.message || String(err); res = `ERROR: ${ti.error}`;
           }
           ti.ms = Math.round(performance.now() - t0);
-          if (ti.status === 'err' && (call.tool === 'bash' || ti.error)) ti.open = true;
+          // a failed command opens so you see why; an unreadable call (_bad) stays a collapsed red row: the model just retries
+          if (ti.status === 'err' && call.tool !== '_bad' && (call.tool === 'bash' || ti.error)) ti.open = true;
           if (call.tool === 'ask_user' || call.tool === 'present') ti.open = true;
           ti.v++; s.tools++;
           if (ti.status === 'err') batchErr = true;
           if (['write_file', 'edit_file', 'delete_file'].includes(call.tool) && ti.status === 'ok') unverified = true;
           if (call.tool === 'bash' && ti.status !== 'err' && !gateBlocked(ti)) unverified = false;
+          // only test / build / lint commands count as the check (same rule as the engine)
+          if (call.tool === 'bash' && !gateBlocked(ti) && ti.error !== 'Stopped' && AG_CHECK_CMD.test(String(call.command || ''))) { const bad = ti.status === 'err'; failing = bad ? agClip(String(call.command), 80) : ''; lastCheck = { cmd: agClip(String(call.command), 80), ok: !bad }; }
           if (['write_file', 'edit_file', 'delete_file', 'bash', 'remember', 'mcp', 'task'].includes(call.tool)) agChangesDirty(s);
           const sig = `${call.tool}|${call.command || call.path || ''}`;
           if (ti.status === 'err') { const n = (fails.get(sig) || 0) + 1; fails.set(sig, n); if (n >= 3) res += '\nNOTE: this exact action has now failed 3 times. Stop repeating it: read the error, change the approach.'; }
@@ -6527,7 +6536,12 @@
         const dup = [...s.items].reverse().find((it) => it.kind === 'say' && it.final);
         let via = '';
         if (dup && report && dup.text.trim() === String(report).trim()) { via = dup.model || ''; s.items.splice(s.items.indexOf(dup), 1); }
-        agPush(s, { kind: 'done', text: report, files: changes.length, steps: s.steps, ms: Math.round(s.ms + performance.now() - s._started), model: via });
+        if (!via) via = [...s.items].reverse().find((it) => it.kind === 'say' && it.model)?.model || '';
+        // Like the engine: a run whose last check still fails (or whose report says it failed) is not shown as a plain success.
+        const isPlan = window.AstroDev?.mode?.(s) === 'plan';
+        const attention = !isPlan && (!!failing || /^\s*(failed|could not|couldn't|unable to|i was unable|i could not)\b/i.test(String(report)));
+        agPush(s, { kind: 'done', text: report, files: changes.length, steps: s.steps, ms: Math.round(s.ms + performance.now() - s._started), model: via, attention, check: lastCheck ? (lastCheck.ok ? 'pass' : 'fail') : '', checkCmd: lastCheck?.cmd || '', mode: window.AstroDev?.mode?.(s) || '', team: !!s.team, at: Date.now() });
+        if (attention && failing) agPush(s, { kind: 'note', text: `Needs attention: the last check still fails (${failing}). Review the changes before using them, or send a follow-up asking the agent to fix it.` });
         if (window.AstroDev?.mode?.(s) === 'plan') agPush(s, { kind: 'note', text: 'Plan mode: nothing was changed. Review the plan, then run it.', runPlan: true });
         // Honesty check: files changed after the last real run, so any "tests pass" in the report is unproven.
         else if (unverified && changes.length) agPush(s, { kind: 'note', text: /\b(tests?|specs?)\b[^.\n]{0,40}\b(pass|passed|passing|green|succeed)|\bverified\b|\bworks\b/i.test(String(report)) ? 'Heads up: the report says the work was checked, but nothing was run after the last change. Treat it as untested and run it yourself, or press Continue so the agent tests it.' : 'Nothing was run after the last change, so this result is not tested yet. Press Continue to let the agent test it.', cont: true });
@@ -6599,7 +6613,7 @@
   }
   function agPaint(s) {
     for (const box of agHosts(s)) agRenderTl(box, s);
-    if (AG.cur === s.id) { agRenderHead(); if (AG.side === 'terminal') agRenderSide(); }
+    if (AG.cur === s.id) { agRenderHead(); if (AG.side === 'terminal') agRenderSide(); if (AG.side === 'session' && AG.sideOpen && Date.now() - (AG.sessT || 0) > 1500) { AG.sessT = Date.now(); const p = $('#ag-pane'); if (p && !p.contains(document.activeElement)) agRenderSide(); } }
     agWsHint();
   }
   function agToolSummary(it) {
@@ -6645,6 +6659,16 @@
     if (acts.length) h += `<div class="ag-acts">${acts.join('')}</div>`;
     return h;
   }
+  // End of a run: the report, then one quiet meta line (model · mode · steps · time · clock), the status and a factual recap.
+  function agDoneHtml(it) {
+    const att = !!it.attention;
+    const clock = it.at ? new Date(it.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    const modeL = { plan: 'plan', ask: 'ask', auto: 'auto' }[it.mode] || '';
+    const meta = [it.model ? `<b>${esc(it.model)}</b>` : '', modeL, it.team ? 'team review' : '', `${it.steps} step${it.steps === 1 ? '' : 's'}`, fmtSecs(it.ms || 0), clock].filter(Boolean).join('<i>·</i>');
+    const files = it.files ? `${it.files} file${it.files === 1 ? '' : 's'} changed` : 'no files changed';
+    const check = it.check === 'pass' ? `<code>${esc(it.checkCmd)}</code> passed` : it.check === 'fail' ? `<code>${esc(it.checkCmd)}</code> still fails` : it.mode === 'plan' ? 'read-only plan' : 'no tests were run';
+    return `<div class="ag-it ag-done v2${att ? ' attn' : ''}" data-agi="${it.id}">${it.text ? `<div class="md ag-md" dir="auto">${renderMarkdown(it.text)}</div>` : ''}<div class="ag-dmeta">${icon('i-spark')}<span>${meta}</span></div><div class="ag-dfoot"><span class="ag-dst">${icon(att ? 'i-alert' : 'i-check')}<b>${att ? 'Needs attention' : 'Done'}</b></span>${it.files ? `<button type="button" class="ag-act" data-agchanges>${icon('i-diff')}${files}</button>` : ''}</div><div class="ag-recap"><i>Recap:</i> ${files} · ${check}.</div></div>`;
+  }
   function agItemHtml(s, it) {
     if (it.kind === 'user') return `<div class="ag-it ag-user" data-agi="${it.id}"><div class="ag-bubble" dir="auto">${esc(it.text)}</div></div>`;
     if (it.kind === 'say') {
@@ -6664,7 +6688,7 @@
       const sub = it.status === 'running' ? '' : it.models ? `${it.models} model${it.models === 1 ? '' : 's'} · ${fmtSecs(it.ms || 0)}` : '';
       return `<div class="ag-it ag-card ag-${it.kind}${it.open === false ? ' shut' : ''}" data-agi="${it.id}"><button type="button" class="ag-ch" data-agcard="${it.id}"><span class="ag-ci">${it.status === 'running' ? '<span class="ag-spin"></span>' : icon(it.kind === 'plan' ? 'i-plan' : 'i-check')}</span><b>${title}</b>${chip}<span class="ag-sub">${esc(sub)}</span><span class="ag-chev">${icon('i-chev')}</span></button>${it.status === 'running' ? `<div class="ag-brain" data-brain="${it.id}"></div>` : it.text ? `<div class="md ag-md ag-cb" dir="auto">${renderMarkdown(it.text)}</div>` : ''}</div>`;
     }
-    if (it.kind === 'done') return `<div class="ag-it ag-done" data-agi="${it.id}"><div class="ag-done-h"><span class="ag-ok">${icon('i-check')}</span><b>Done</b><span class="ag-sub">${it.steps} steps · ${fmtSecs(it.ms || 0)}</span>${it.files ? `<button type="button" class="ag-act" data-agchanges>${icon('i-diff')}${it.files} file${it.files === 1 ? '' : 's'} changed</button>` : ''}</div>${it.text ? `<div class="md ag-md" dir="auto">${renderMarkdown(it.text)}</div>` : ''}${it.model ? `<div class="ag-via">${esc(it.model)}</div>` : ''}</div>`;
+    if (it.kind === 'done') return agDoneHtml(it);
     if (it.kind === 'error') return `<div class="ag-it ag-note bad" data-agi="${it.id}">${icon('i-x')}<span>${esc(it.text)}</span></div>`;
     if (it.kind === 'todo') return `<div class="ag-it ag-todo" data-agi="${it.id}"><div class="ag-todo-h">${icon('i-task')}<b>To-dos</b><span class="ag-sub">${(it.items || []).filter((x) => x.status === 'done').length}/${(it.items || []).length} done</span></div><ul>${(it.items || []).map((x) => `<li class="td-${esc(x.status)}"><i>${x.status === 'done' ? icon('i-check') : x.status === 'doing' ? '<span class="ag-spin"></span>' : ''}</i><span>${esc(x.text)}</span></li>`).join('')}</ul></div>`;
     if (it.kind === 'dev') return `<div class="ag-it ag-note ag-dev" data-agi="${it.id}">${icon(it.icon || 'i-spark')}<div class="md ag-md">${renderMarkdown(it.text || '')}</div></div>`;
@@ -6685,7 +6709,7 @@
       ['Write a C++20 program that benchmarks 3 sorting algorithms on 1M ints and prints a table, compile with -O2 and run it', 'i-bolt'],
       ['Inspect this project, find bugs, fix them and verify by running it', 'i-check'],
     ];
-    return `<div class="ag-empty"><div class="tm-orb ag-orb orbit-mark" aria-hidden="true"><svg class="orbit-svg" viewBox="0 0 48 48"><circle class="o-ring" cx="24" cy="24" r="19"/><circle class="o-ring2" cx="24" cy="24" r="12.5"/><circle class="o-core" cx="24" cy="24" r="6.5"/><g class="o-spin"><circle class="o-moon" cx="24" cy="5" r="3"/></g><g class="o-spin2"><circle class="o-sat" cx="24" cy="36.5" r="1.8"/></g></svg></div><h3>A.S.T.R.O AI Agent</h3><p>Give it a job. The agent plans with your team of models, then works on its own: it runs commands, writes and edits files, searches the web, starts servers, checks the results and fixes its own errors until the job is done. Every step and every file it touches is shown here${where === 'ws' ? '' : ' and in the side panel'}.</p><div class="ag-sugg">${sugg.map(([t, i]) => `<button type="button" data-agsuggest="${esc(t)}">${icon(i)}<span>${esc(t)}</span></button>`).join('')}</div></div>`;
+    return `<div class="ag-empty"><div class="tm-orb ag-orb orbit-mark" aria-hidden="true"><svg class="orbit-svg" viewBox="0 0 48 48"><g class="o-spin o-atom"><g class="o-back"><path class="o-ring" d="M44 24A20 7.2 0 0 0 4 24"/><path class="o-ring" d="M34 41.32A20 7.2 60 0 0 14 6.68"/><path class="o-ring" d="M34 6.68A20 7.2 -60 0 0 14 41.32"/></g></g><circle class="o-core" cx="24" cy="24" r="7.6"/><g class="o-spin o-atom"><path class="o-ring o-front" d="M4 24A20 7.2 0 0 0 44 24"/><path class="o-ring o-front" d="M14 6.68A20 7.2 60 0 0 34 41.32"/><path class="o-ring o-front" d="M14 41.32A20 7.2 -60 0 0 34 6.68"/><circle class="o-moon" cx="5.2" cy="26.5" r="1.9"/><circle class="o-moon" cx="35.8" cy="37.6" r="1.6"/><circle class="o-sat" cx="18.1" cy="41.0" r="1.5"/></g></svg></div><h3>A.S.T.R.O AI Agent</h3><p>Give it a job. The agent plans with your team of models, then works on its own: it runs commands, writes and edits files, searches the web, starts servers, checks the results and fixes its own errors until the job is done. Every step and every file it touches is shown here${where === 'ws' ? '' : ' and in the side panel'}.</p><div class="ag-sugg">${sugg.map(([t, i]) => `<button type="button" data-agsuggest="${esc(t)}">${icon(i)}<span>${esc(t)}</span></button>`).join('')}</div></div>`;
   }
   function agRenderTl(box, s) {
     if (!s || !s.items.length) { box.innerHTML = agEmptyHtml(box.id === 'ws-team-msgs' ? 'ws' : 'page'); box._sid = ''; box._nodes = null; return; }
@@ -6765,9 +6789,13 @@
     v.innerHTML = `
       <div class="ag" id="ag">
         <aside class="ag-sessions" id="ag-sessions">
-          <button type="button" class="ag-proj" id="ag-proj" title="Project the agent works in">${icon('i-folder')}<b id="ag-proj-name">Project</b>${icon('i-chev')}</button>
-          <button type="button" class="ag-newbtn" id="ag-new">${icon('i-plus')}New session</button>
-          <div class="ag-slabel">Sessions</div>
+          <div class="ag-sbar">
+            <button type="button" class="ag-proj" id="ag-proj" title="Project the agent works in">${icon('i-folder')}<b id="ag-proj-name">Project</b>${icon('i-chev')}</button>
+            <button type="button" class="ws-icon sm" id="ag-sfind" title="Filter sessions">${icon('i-search')}</button>
+          </div>
+          <button type="button" class="ag-newbtn" id="ag-new">${icon('i-plus')}<span>New session</span></button>
+          <div class="ag-sfilter" id="ag-sfilter" hidden><input id="ag-sq" type="search" placeholder="Filter sessions" aria-label="Filter sessions" spellcheck="false"></div>
+          <div class="ag-slabel">${icon('i-eye')}<span>In work</span><i id="ag-scount"></i></div>
           <div class="ag-slist" id="ag-slist"></div>
         </aside>
         <section class="ag-main">
@@ -6776,21 +6804,22 @@
             <div class="ag-titles"><b id="ag-title">New session</b><span class="ag-status" id="ag-status"></span></div>
             <span class="grow"></span>
             <button type="button" class="ws-chip ghost" id="ag-open-ws" title="Open this project in the Workspace editor">${icon('i-code')}<span>Workspace</span></button>
-            <button type="button" class="ws-icon sm" id="ag-side-btn" title="Show or hide the files panel">${icon('i-panel')}</button>
+            <button type="button" class="ws-icon sm" id="ag-side-btn" title="Show or hide the side panel">${icon('i-panel')}</button>
           </header>
           <div class="ag-tl" id="ag-tl" aria-live="polite"></div>
-          <form class="ag-comp" id="ag-form">
-            <textarea id="ag-in" rows="1" placeholder="Give the agent a job: build, fix, research, test…" aria-label="Message the agent"></textarea>
+          <form class="ag-comp" id="ag-form"><div class="ag-cbox">
+            <textarea id="ag-in" rows="1" placeholder="Plan, build, or ask. / for commands" aria-label="Message the agent"></textarea>
             <div class="ag-row">
               <button type="button" class="ws-chip ag-team-chip" id="ag-team" title="The whole team of models writes the plan first and reviews the result at the end (slower, stronger). Steps in between run on the best fast model.">${icon('i-brain')}<span>Team plan &amp; review</span></button>
               <button type="button" class="ws-chip ag-mode-chip" data-devmode title="Permission mode: Plan (read-only), Ask (approve each change) or Auto">${icon('i-hand')}<span>Mode</span></button>
               <span class="ag-hint" id="ag-hint"></span><span class="grow"></span>
               <button type="submit" class="ws-send" id="ag-send" title="Send (Enter)">${icon('i-send')}</button>
             </div>
-          </form>
+          </div></form>
         </section>
         <aside class="ag-side" id="ag-side">
           <div class="ag-tabs" role="tablist">
+            <button type="button" data-agtab="session">${icon('i-graph')}<span>Session</span></button>
             <button type="button" data-agtab="changes">${icon('i-diff')}<span>Changes</span><i id="ag-ccount"></i></button>
             <button type="button" data-agtab="files">${icon('i-folder')}<span>Files</span></button>
             <button type="button" data-agtab="terminal">${icon('i-terminal')}<span>Terminal</span></button>
@@ -6798,15 +6827,29 @@
           </div>
           <div class="ag-pane" id="ag-pane"></div>
         </aside>
+        <nav class="ag-rail" aria-label="Side panel">
+          <button type="button" data-agtab="session" title="Session: context, project, usage, MCP">${icon('i-graph')}</button>
+          <button type="button" data-agtab="changes" title="Changes">${icon('i-diff')}<i id="ag-ccount2"></i></button>
+          <button type="button" data-agtab="files" title="Files">${icon('i-folder')}</button>
+          <button type="button" data-agtab="terminal" title="Terminal">${icon('i-terminal')}</button>
+          <button type="button" data-agtab="preview" title="Preview">${icon('i-eye')}</button>
+          <span class="ag-rail-sep"></span>
+          <button type="button" data-agrail="ws" title="Open in the Workspace editor">${icon('i-code')}</button>
+          <button type="button" data-agrail="toggle" title="Show or hide the side panel">${icon('i-panel')}</button>
+        </nav>
       </div>`;
     if (matchMedia('(max-width: 860px)').matches) { AG.sideOpen = false; $('#ag').classList.add('side-off'); }
     $('#ag-new').onclick = () => { const s = agNew(AG.project); AG.cur = s.id; agRenderAll(); $('#ag-in').focus(); };
     $('#ag-proj').onclick = (e) => agProjectMenu(e.currentTarget);
     $('#ag-open-ws').onclick = () => agOpenInWorkspace();
-    $('#ag-side-btn').onclick = () => { AG.sideOpen = !AG.sideOpen; $('#ag').classList.toggle('side-off', !AG.sideOpen); };
+    $('#ag-side-btn').onclick = () => { AG.sideOpen = !AG.sideOpen; $('#ag').classList.toggle('side-off', !AG.sideOpen); if (AG.sideOpen) agRenderSide(); };
     $('#ag-show-sessions').onclick = () => $('#ag').classList.toggle('sess-on');
     $('#ag-team').onclick = () => { const s = agCurSession(); AG.team = !AG.team; if (s && !agBusy(s)) s.team = AG.team; ls.set('astro_agent:team', AG.team ? '1' : '0'); agRenderHead(); };
-    $$('[data-agtab]', v).forEach((b) => { b.onclick = () => agSetSide(b.dataset.agtab); });
+    $$('[data-agtab]', v).forEach((b) => { b.onclick = () => { if (AG.side === b.dataset.agtab && AG.sideOpen && b.closest('.ag-rail')) { AG.sideOpen = false; $('#ag').classList.add('side-off'); return; } agSetSide(b.dataset.agtab); }; });
+    $$('[data-agrail]', v).forEach((b) => { b.onclick = () => { if (b.dataset.agrail === 'ws') agOpenInWorkspace(); else { AG.sideOpen = !AG.sideOpen; $('#ag').classList.toggle('side-off', !AG.sideOpen); if (AG.sideOpen) agRenderSide(); } }; });
+    $('#ag-sfind').onclick = () => { const box = $('#ag-sfilter'); box.hidden = !box.hidden; if (!box.hidden) $('#ag-sq').focus(); else { $('#ag-sq').value = ''; agRenderSessions(); } };
+    $('#ag-sq').addEventListener('input', () => agRenderSessions());
+    $('#ag-sq').addEventListener('keydown', (e) => { if (e.key === 'Escape') $('#ag-sfind').click(); });
     const tin = $('#ag-in');
     tin.addEventListener('input', () => { tin.style.height = 'auto'; tin.style.height = `${Math.min(200, tin.scrollHeight)}px`; });
     tin.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#ag-form').requestSubmit(); } });
@@ -6839,6 +6882,7 @@
     });
     $('#ag-pane').addEventListener('click', (e) => agSideClick(e));
     $('#ag-pane').addEventListener('submit', (e) => agSideSubmit(e));
+    $('#ag-pane').addEventListener('change', (e) => { const t = e.target.closest('[data-agmcp]'); if (t) agMcpToggle(t); });
   }
   function agCurSession() { return AG.sessions.get(AG.cur) || null; }
   async function agShow() {
@@ -6913,11 +6957,27 @@
     const cur = agCurSession();
     const list = [...AG.list];
     if (cur && cur.project === AG.project && !list.some((m) => m.id === cur.id) && cur.items.length) list.unshift(agMeta(cur));
+    const cnt = $('#ag-scount'); if (cnt) cnt.textContent = list.length ? list.length : '';
+    const q = ($('#ag-sq')?.value || '').trim().toLowerCase();
+    const shown = q ? list.filter((m) => String(m.title || '').toLowerCase().includes(q)) : list;
     if (!list.length) { box.innerHTML = '<div class="ag-sempty">No sessions yet. Your agent jobs appear here.</div>'; return; }
-    box.innerHTML = list.map((m) => {
+    if (!shown.length) { box.innerHTML = '<div class="ag-sempty">No session matches.</div>'; return; }
+    box.innerHTML = shown.map((m) => {
       const live = AG.sessions.get(m.id); const st = live ? (agBusy(live) ? (live.status === 'waiting' ? 'waiting' : 'running') : live.status) : m.status;
-      return `<div class="ag-srow${m.id === AG.cur ? ' on' : ''}" data-agsess="${esc(m.id)}" title="${esc(m.title)}"><i class="ag-sdot st-${esc(st)}"></i><div class="ag-stext"><b>${esc(m.title || 'Session')}</b><small>${esc(agAgo(m.updated || m.created))}${m.steps ? ` · ${m.steps} steps` : ''}${m.files ? ` · ${m.files} files` : ''}</small></div><button type="button" class="ag-sdel" data-agdel="${esc(m.id)}" title="Delete session">${icon('i-trash')}</button></div>`;
+      return agSessRow(live ? { ...m, ...agMeta(live) } : m, st);
     }).join('');
+  }
+  const agAgoShort = (ts) => { const x = Math.max(0, (Date.now() - ts) / 1000); return x < 60 ? 'now' : x < 3600 ? `${Math.floor(x / 60)}m` : x < 86400 ? `${Math.floor(x / 3600)}h` : `${Math.floor(x / 86400)}d`; };
+  function agSessRow(m, st) {
+    const att = st === 'done' && m.attention;
+    const badge = st === 'running' ? '<span class="ag-sst run" title="Working"><span class="ag-spin"></span>working</span>'
+      : st === 'waiting' ? `<span class="ag-sst wait" title="Waiting for your answer">${icon('i-hand')}waiting</span>`
+      : att ? `<span class="ag-sst attn" title="Finished, but the last check still fails">${icon('i-alert')}${m.ms ? fmtSecs(m.ms) : 'check'}</span>`
+      : st === 'done' ? `<span class="ag-sst ok" title="Done">${icon('i-check')}${m.ms ? fmtSecs(m.ms) : ''}</span>`
+      : st === 'error' ? `<span class="ag-sst bad" title="Error">${icon('i-x')}error</span>`
+      : ['stopped', 'paused', 'interrupted'].includes(st) ? `<span class="ag-sst" title="${esc(st)}">${icon('i-stop')}${esc(st)}</span>` : '';
+    const mode = m.mode && m.mode !== 'auto' ? `<em class="ag-smode">${esc(m.mode)}</em>` : '';
+    return `<div class="ag-srow${m.id === AG.cur ? ' on' : ''}${st === 'running' || st === 'waiting' ? ' live' : ''}" data-agsess="${esc(m.id)}" title="${esc(m.title)}"><div class="ag-sl1"><b>${esc(m.title || 'Session')}</b>${badge}<small class="ag-sago">${esc(agAgoShort(m.updated || m.created))}</small></div><div class="ag-sl2">${icon('i-folder')}<span>${esc(m.project || AG.project || '')}</span>${m.files ? `<em class="ag-sfiles" title="${m.files} files changed">${icon('i-diff')}${m.files}</em>` : ''}${mode}${m.steps ? `<em>${m.steps} step${m.steps === 1 ? '' : 's'}</em>` : ''}</div><button type="button" class="ag-sdel" data-agdel="${esc(m.id)}" title="Delete session">${icon('i-trash')}</button></div>`;
   }
   function agStatusText(s) {
     if (!s) return '';
@@ -6937,13 +6997,13 @@
     $('#ag-team').classList.toggle('on', AG.team);
     const n = agCands().length; let all = 0; try { all = pickMinds(Infinity).length; } catch (_e) { /* not loaded */ }
     $('#ag-hint').textContent = busy ? 'Working on its own… press ■ to stop' : AG.team ? `Team of ${all} models plans & reviews · best of ${n} fast models acts` : `Best of ${n} fast models · automatic fallback`;
-    $('#ag-ccount').textContent = AG.changes && AG.changes.sid === AG.cur && AG.changes.list.length ? AG.changes.list.length : '';
-    if (AG.list.length) { const row = $(`#ag-slist [data-agsess="${CSS.escape(AG.cur)}"] .ag-sdot`); if (row && s) row.className = `ag-sdot st-${busy ? (s.status === 'waiting' ? 'waiting' : 'running') : s.status}`; }
+    { const c = AG.changes && AG.changes.sid === AG.cur && AG.changes.list.length ? AG.changes.list.length : ''; $('#ag-ccount').textContent = c; const c2 = $('#ag-ccount2'); if (c2) c2.textContent = c; }
+    if (s) { const row = $(`#ag-slist [data-agsess="${CSS.escape(AG.cur)}"]`); const st = busy ? (s.status === 'waiting' ? 'waiting' : 'running') : s.status; if (row && row.dataset.st !== `${st}:${s.files}:${s.title}`) { const html = agSessRow(agMeta(s), st); const t = document.createElement('div'); t.innerHTML = html; const n = t.firstElementChild; n.dataset.st = `${st}:${s.files}:${s.title}`; row.replaceWith(n); } }
   }
 
   // ---------- side panel: changes / files / terminal / preview ----------
   function agSetSide(tab) {
-    AG.side = tab; AG.sideOpen = true; $('#ag')?.classList.remove('side-off');
+    AG.side = tab; AG.sideOpen = true; $('#ag')?.classList.remove('side-off'); ls.set('astro_agent:side', tab);
     if (tab !== 'changes' && tab !== 'files') AG.view = null;
     agRenderSide();
   }
@@ -6952,6 +7012,7 @@
     if (!s || s.id !== AG.cur) return;
     clearTimeout(agChangesT);
     agChangesT = setTimeout(async () => {
+      if (AG.sinfo) AG.sinfo.at = 0;
       AG.changes = { sid: s.id, list: await agChangeList(s) };
       AG.tree = null;
       agRenderHead();
@@ -6964,6 +7025,7 @@
     $$('[data-agtab]').forEach((b) => b.classList.toggle('on', b.dataset.agtab === AG.side));
     const s = agCurSession();
     AG.ide = ws.ide;
+    if (AG.side === 'session') return agRenderSession(pane, s);
     if (AG.view && (AG.side === 'changes' || AG.side === 'files')) return agRenderView(pane);
     if (AG.side === 'changes') {
       if (!s || !s.checkpoint) { pane.innerHTML = `<div class="ag-pempty">${icon('i-diff')}<p>Files the agent creates, edits or deletes in this session appear here, with a diff for each one.</p></div>`; return; }
@@ -7014,12 +7076,120 @@
       pane.innerHTML = `<div class="ag-ph"><span class="ag-url" title="${esc(url || '')}">${esc(url ? url.replace(/^\/(preview|app)\/[^/]+\//, '') : 'Nothing to preview yet')}</span><span class="grow"></span><button type="button" class="ws-icon sm" data-agside="reload" title="Reload">${icon('i-refresh')}</button>${url ? `<a class="ws-icon sm" href="${esc(url)}" target="_blank" rel="noopener" title="Open in a new tab">${icon('i-ext')}</a>` : ''}</div>${url ? `<iframe class="ag-frame" src="${esc(url)}" title="Preview" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads allow-pointer-lock"></iframe>` : `<div class="ag-pempty">${icon('i-eye')}<p>Web pages the agent builds and servers it starts show here live.</p></div>`}`;
     }
   }
+  // ---------- Session panel: context, project, sources, usage, MCP, turn stats ----------
+  const AG_CTX_WINDOW = 128000;
+  const agMcpOff = (project) => ls.json(`astro_agent:mcp-off:${project}`, []);
+  async function agSessionInfo(project, force = false) {
+    const have = AG.sinfo;
+    if (!force && have && have.project === project && Date.now() - have.at < 15000) return have;
+    if (AG.sinfoLoading === project && !force) return have?.project === project ? have : null;
+    AG.sinfoLoading = project;
+    const [git, scan, mcp] = await Promise.all([
+      apiJson('/api/ide/git', { project, op: 'status' }).catch(() => null),
+      apiJson('/api/dev/scan', { project }).catch(() => null),
+      apiJson('/api/dev/mcp/list', { project }).catch(() => null),
+    ]);
+    const files = scan?.files || [];
+    AG.sinfo = { project, at: Date.now(), git, rules: files.filter((x) => x.kind === 'rule'), skills: files.filter((x) => x.kind === 'skill'), servers: mcp?.servers || [] };
+    AG.sinfoLoading = '';
+    return AG.sinfo;
+  }
+  function agTurnStats(s) {
+    const names = { read_file: 'Read', edit_file: 'Edit', write_file: 'Write', delete_file: 'Delete', bash: 'Run', list_files: 'List', glob: 'Find', grep: 'Search', web_search: 'Web search', fetch_url: 'Fetch', start_server: 'Server', mcp: 'MCP', task: 'Subagent', skill: 'Skill', todo: 'To-dos', ask_user: 'Questions' };
+    const tools = new Map(); let failed = 0;
+    // unreadable calls (_bad) are not a tool: they only count as failed actions
+    for (const it of s?.items || []) if (it.kind === 'tool') { if (it.status === 'err' || it.tool === '_bad') failed += 1; if (it.tool === '_bad') continue; const k = names[it.tool] || it.tool; tools.set(k, (tools.get(k) || 0) + 1); }
+    const models = [...new Set((s?.items || []).filter((it) => (it.kind === 'say' || it.kind === 'done') && it.model).map((it) => it.model))];
+    const turns = (s?.items || []).filter((it) => it.kind === 'user').length;
+    return { tools: [...tools.entries()].sort((a, b) => b[1] - a[1]), failed, models, turns };
+  }
+  function agSessionHtml(s, info) {
+    const chars = (s?.convo || []).reduce((n, m) => n + (typeof m.content === 'string' ? m.content.length : JSON.stringify(m.content || '').length), 0);
+    const tokens = Math.round(chars / 4); const pct = Math.min(100, (tokens / AG_CTX_WINDOW) * 100);
+    const live = s && agBusy(s); const ms = s ? (live ? s.ms + (performance.now() - (s._started || performance.now())) : s.ms) : 0;
+    const changed = AG.changes && AG.changes.sid === AG.cur ? AG.changes.list.length : (s?.files || 0);
+    const off = agMcpOff(AG.project);
+    const git = info?.git; const gitLine = !info ? '<span class="ag-dim">loading…</span>' : git?.repo ? `${esc(git.branch || 'detached')}${git.files?.length ? ` · <b>${git.files.length}</b> uncommitted` : ' · clean'}` : '<span class="ag-dim">not a git repository</span>';
+    const servers = info?.servers || []; const on = servers.filter((x) => x.status === 'running' && !off.includes(x.name)).length;
+    const st = agTurnStats(s);
+    const row = (label, value, ic) => `<div class="ag-kv">${ic ? icon(ic) : ''}<span>${label}</span><b>${value}</b></div>`;
+    const src = info ? [...info.rules.map((r) => ({ name: r.path, kind: 'rule', scope: r.scope })), ...info.skills.map((k) => ({ name: (k.path.split('/').slice(-2, -1)[0] || k.path), kind: 'skill', scope: k.scope }))] : [];
+    return `<div class="ag-scard">
+      <div class="ag-sch"><b>Session</b><span class="grow"></span><button type="button" class="ws-icon sm" data-agside="refresh-session" title="Refresh">${icon('i-refresh')}</button></div>
+      <div class="ag-ctx" title="About ${tokens.toLocaleString()} of ${AG_CTX_WINDOW.toLocaleString()} tokens (estimate). The agent uses free models only, so the cost is $0.">
+        <div class="ag-kv"><svg class="ag-ring" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.5"/><circle cx="10" cy="10" r="7.5" style="stroke-dasharray:${(pct / 100 * 47.1).toFixed(1)} 47.1"/></svg><span>Context</span><b>${pct < 0.1 && tokens ? '<0.1' : pct.toFixed(1)}% <i>·</i> $0.00</b></div>
+        <div class="ag-bar"><i style="width:${Math.max(pct, tokens ? 1 : 0).toFixed(1)}%"></i></div>
+      </div>
+      <div class="ag-ssec">
+        <div class="ag-kv"><span><b>Project</b> ${esc(AG.project || '—')}</span><button type="button" class="ws-icon sm" data-agrail="ws" title="Open in the Workspace editor">${icon('i-code')}</button></div>
+        <div class="ag-line">${icon('i-git')}<span>${gitLine}</span></div>
+        <div class="ag-line">${icon('i-hand')}<button type="button" class="ag-linkbtn" data-devmode title="Permission mode">Mode</button></div>
+        <div class="ag-line">${icon('i-history')}<span class="${s?.checkpoint ? '' : 'ag-dim'}">${s?.checkpoint ? 'Checkpoint saved' : 'No checkpoint yet'}</span>${s?.checkpoint && changed && !live ? '<button type="button" class="ag-linkbtn" data-agundo>Undo all</button>' : ''}</div>
+      </div>
+      <div class="ag-ssec">
+        <div class="ag-kv">${icon('i-book')}<span><b>Context sources</b></span><b class="ag-dim">${info ? `${info.rules.length} rule${info.rules.length === 1 ? '' : 's'} · ${info.skills.length} skill${info.skills.length === 1 ? '' : 's'}` : ''}</b></div>
+        ${src.slice(0, 6).map((x) => `<div class="ag-line sub">${icon(x.kind === 'rule' ? 'i-file' : 'i-spark')}<span>${esc(x.name)}</span><em>${esc(x.scope || '')}</em></div>`).join('')}${src.length > 6 ? `<div class="ag-line sub ag-dim">+${src.length - 6} more</div>` : ''}
+        ${row('Skills', info ? info.skills.length : '…')}${row('MCP servers', info ? servers.length : '…')}
+      </div>
+      <div class="ag-ssec">
+        <div class="ag-kv">${icon('i-graph')}<span><b>Usage</b></span><b class="ag-dim">free models · $0.00</b></div>
+        <div class="ag-grid4"><div><b>${s?.steps || 0}</b><small>steps</small></div><div><b>${s?.tools || 0}</b><small>actions</small></div><div><b>${changed}</b><small>files</small></div><div><b>${ms ? fmtSecs(ms) : '0s'}</b><small>time</small></div></div>
+      </div>
+      <div class="ag-ssec">
+        <div class="ag-kv">${icon('i-server')}<span><b>MCP</b></span><b class="ag-dim">${info ? `${on}/${servers.length}` : ''}</b></div>
+        ${servers.length ? servers.map((x) => { const isOn = x.status === 'running' && !off.includes(x.name); const note = x.status === 'untrusted' ? 'needs trust' : x.status === 'error' ? 'error' : x.status === 'disabled' ? 'disabled in config' : isOn ? `${(x.tools || []).length} tools` : 'off'; return `<label class="ag-mcp${x.status === 'error' ? ' bad' : ''}" title="${esc(x.command || '')}${x.error ? `\n${esc(x.error)}` : ''}"><span class="ag-mname">${esc(x.name)}<small>${esc(note)}</small></span><input type="checkbox" class="ag-switch" data-agmcp="${esc(x.name)}" data-st="${esc(x.status)}"${isOn ? ' checked' : ''}${x.status === 'disabled' ? ' disabled' : ''}></label>`; }).join('') : `<div class="ag-line sub ag-dim">${info ? 'No MCP servers. Add one in Extensions.' : 'loading…'}</div>`}
+      </div>
+      <details class="ag-ssec ag-stats"${AG.statsOpen ? ' open' : ''}><summary>${icon('i-graph')}<b>Turn stats</b><span class="grow"></span>${icon('i-chev')}</summary>
+        ${row('Turns', st.turns)}${st.tools.map(([k, v]) => row(esc(k), v)).join('')}${st.failed ? row('Failed actions', st.failed) : ''}
+        ${st.models.length ? `<div class="ag-line sub">${icon('i-brain')}<span>${st.models.map(esc).join(', ')}</span></div>` : ''}
+      </details>
+    </div>`;
+  }
+  function agRenderSession(pane, s) {
+    const info = AG.sinfo && AG.sinfo.project === AG.project ? AG.sinfo : null;
+    const keep = pane.querySelector('.ag-scard') ? pane.scrollTop : 0;
+    pane.innerHTML = agSessionHtml(s, info);
+    pane.scrollTop = keep;
+    if (!info || Date.now() - info.at > 15000) agSessionInfo(AG.project).then((x) => { if (x && AG.side === 'session' && AG.sideOpen) { const p = $('#ag-pane'); if (p) { const k = p.scrollTop; p.innerHTML = agSessionHtml(agCurSession(), x); p.scrollTop = k; agPaintModeChip(); } } });
+    agPaintModeChip();
+  }
+  function agPaintModeChip() {
+    const b = $('#ag-pane [data-devmode]'); if (!b) return;
+    const s = agCurSession(); const m = window.AstroDev?.mode?.(s || { project: AG.project }) || 'auto';
+    b.textContent = { plan: 'Plan mode · read-only', ask: 'Ask mode · approve each change', auto: 'Auto mode · works on its own' }[m] || m;
+    b.dataset.m = m;
+  }
+  async function agMcpToggle(input) {
+    const name = input.dataset.agmcp; const st = input.dataset.st; const project = AG.project;
+    const off = new Set(agMcpOff(project));
+    try {
+      if (input.checked) {
+        if (st === 'untrusted') {
+          const sv = (AG.sinfo?.servers || []).find((x) => x.name === name);
+          const ok = await wsDialog({ title: `Trust ${name}?`, text: `This project's MCP server runs a command on your computer:\n\n${sv?.command || name}\n\nOnly trust servers you know.`, ok: 'Trust and start', input: false });
+          if (!ok) { input.checked = false; return; }
+          await apiJson('/api/dev/mcp/trust', { project, server: name });
+        }
+        off.delete(name); ls.set(`astro_agent:mcp-off:${project}`, JSON.stringify([...off]));
+        toast(`Starting ${name}…`);
+        const r = await apiJson('/api/dev/mcp/restart', { project, server: name });
+        toast(r.status === 'running' ? `${name}: ${(r.tools || []).length} tools` : `${name}: ${r.error || r.status}`, r.status === 'running' ? '' : 'error');
+      } else {
+        off.add(name); ls.set(`astro_agent:mcp-off:${project}`, JSON.stringify([...off]));
+        await apiJson('/api/dev/mcp/stop', { project, server: name }).catch(() => {});
+        toast(`${name} is off for the agent`);
+      }
+    } catch (err) { toast(err.message, 'error'); }
+    window.AstroDev?.invalidate?.();
+    await agSessionInfo(project, true); if (AG.side === 'session') agRenderSide();
+  }
   async function agSideClick(e) {
     const s = agCurSession();
     const b = e.target.closest('[data-agside]');
     if (b) {
       const a = b.dataset.agside;
       if (a === 'refresh') { AG.changes = null; agRenderSide(); }
+      if (a === 'refresh-session') { AG.sinfo = null; await agSessionInfo(AG.project, true); agRenderSide(); }
       if (a === 'refresh-tree') { AG.tree = null; agRenderSide(); }
       if (a === 'reload') { const f = $('.ag-frame'); if (f) f.src = f.src; else { AG.prev = ''; agRenderSide(); } }
       if (a === 'back') { AG.view = null; agRenderSide(); }
@@ -7027,6 +7197,8 @@
       return;
     }
     if (e.target.closest('[data-agundo]')) { if (s) agUndoAll(s); return; }
+    const rl = e.target.closest('#ag-pane [data-agrail="ws"]'); if (rl) { agOpenInWorkspace(); return; }
+    const sm = e.target.closest('.ag-stats > summary'); if (sm) { setTimeout(() => { AG.statsOpen = sm.parentElement.open; }, 0); }
     const c = e.target.closest('[data-agcdiff]'); if (c && s) { agShowDiff(s, c.dataset.agcdiff); return; }
     const f = e.target.closest('[data-agfile]'); if (f) { agViewFile(f.dataset.agfile); }
   }
@@ -7319,7 +7491,7 @@
   // Internals used by web/dev.js (folders, extensions, MCP, skills, modes, hooks). Same page, same trust level.
   window.AstroAgent = {
     ws, AG, state, apiJson, toast, esc, icon, wsDialog, showModal, closeModal: () => (typeof closeModal === 'function' ? closeModal() : null), openMenu, renderMarkdown,
-    agPush, agPaint, agSave, agSend, agApi, agClip, agRead, agReadOrNull, agCands, agCurSession, agStop, agRun, streamDraft, makeId, okPath, cleanPath,
+    agPush, agPaint, agPaintModeChip, agParse, agSave, agSend, agApi, agClip, agRead, agReadOrNull, agCands, agCurSession, agStop, agRun, streamDraft, makeId, okPath, cleanPath,
     wsSwitch, wsShow, wsOpen, wsGoto, wsLoadTree, wsSide, wsRenderSide, wsSaveAll, wsApi, extOf, switchView, openSettings, fmtBytes, ls,
     get project() { return ws.project; },
   };

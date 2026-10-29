@@ -3,7 +3,7 @@
   <canvas class="hero-canvas" data-orbit data-cx="0.93" data-cy="0.09" data-size="0.1" data-stars="0.8" data-mcx="0.9" data-mcy="0.05" data-msize="0.22" aria-hidden="true" style="opacity:.75"></canvas>
   <div class="wrap">
     <div class="hero-copy">
-      <a class="announce reveal" href="#terminal"><b>New in 1.4</b><span>Terminal app &amp; parallel agents</span><span class="arrow">→</span></a>
+      <a class="announce reveal" href="#terminal"><b>New in 1.5</b><span>Full-screen terminal app &amp; a new Agent page</span><span class="arrow">→</span></a>
       <h1 class="display brandmark reveal" data-delay="1">A.S.T.R.O <em class="accent">AI</em></h1>
       <p class="acronym reveal" data-delay="1" aria-label="All Systems Thinking, Reasoning as One"><span><b>A</b>ll</span> <span><b>S</b>ystems</span> <span><b>T</b>hinking,</span> <span><b>R</b>easoning</span> <span>as <b>O</b>ne.</span></p>
       <p class="lead reveal" data-delay="2">A free AI workspace where many free models work as one team. Ask it anything, build software with an agent that plans, writes and tests, or hand it jobs from your terminal. One brain, many minds.</p>
@@ -129,12 +129,43 @@
   <div class="wrap">
     <div class="section-head row reveal">
       <div>
-        <span class="eyebrow"><span class="no">03 /</span> New in 1.4 · Terminal</span>
+        <span class="eyebrow"><span class="no">03 /</span> New in 1.5 · Terminal app</span>
         <h2 class="h2">The whole team, <em class="accent">in your terminal.</em></h2>
-        <p>Type <code>astro</code> in any folder. These are real recordings of version {{version}} working on a small todo API; only the waiting is shortened.</p>
+        <p>Type <code>astro</code> in any folder and a full-screen app opens, in the spirit of Claude Code and OpenCode: a calm conversation view, a side panel you can toggle, approvals right in the terminal, a model picker and parallel agents. These are real screenshots of version {{version}} working on a small todo API.</p>
       </div>
       <a class="btn btn-ghost" href="{{root}}docs.html#terminal">Terminal docs <span class="arrow">→</span></a>
     </div>
+    <div data-tabs class="reveal tui-gallery">
+      <div class="tabs" role="tablist" aria-label="Terminal app screenshots">
+        <button class="tab" role="tab" id="t-tui-ask" aria-controls="p-tui-ask" aria-selected="true">Approve a change</button>
+        <button class="tab" role="tab" id="t-tui-done" aria-controls="p-tui-done" aria-selected="false" tabindex="-1">Done</button>
+        <button class="tab" role="tab" id="t-tui-par" aria-controls="p-tui-par" aria-selected="false" tabindex="-1">Parallel agents</button>
+        <button class="tab" role="tab" id="t-tui-models" aria-controls="p-tui-models" aria-selected="false" tabindex="-1">Models</button>
+        <button class="tab" role="tab" id="t-tui-keys" aria-controls="p-tui-keys" aria-selected="false" tabindex="-1">Shortcuts</button>
+      </div>
+      <div class="tab-panel active" id="p-tui-ask" role="tabpanel" aria-labelledby="t-tui-ask">
+        <div class="frame"><div class="frame-glow"></div><img src="{{root}}assets/img/shots/v15-tui-ask.webp" width="2464" height="1386" alt="The astro terminal app in Ask mode asking: Allow this? before the agent edits a file, with the side panel showing the project, mode and changed files" loading="lazy"></div>
+        <p class="cap">Ask mode: the agent stops before each change. <kbd>y</kbd> allows it once, <kbd>a</kbd> allows the rest of the run, <kbd>n</kbd> says no.</p>
+      </div>
+      <div class="tab-panel" id="p-tui-done" role="tabpanel" aria-labelledby="t-tui-done">
+        <div class="frame"><img src="{{root}}assets/img/shots/v15-tui-done.webp" width="2464" height="1386" alt="The finished run in the terminal app: the files the agent changed, the test command it ran and a short report" loading="lazy"></div>
+        <p class="cap">A finished run: what changed, the check it ran and a short report. <code>/diff</code> shows the changes and <code>/undo</code> takes them back.</p>
+      </div>
+      <div class="tab-panel" id="p-tui-par" role="tabpanel" aria-labelledby="t-tui-par">
+        <div class="frame"><img src="{{root}}assets/img/shots/v15-tui-parallel.webp" width="2464" height="1386" alt="Two parallel agents writing README.md and CONTRIBUTING.md in isolated copies and being merged back" loading="lazy"></div>
+        <p class="cap"><code>/parallel "task" "task" --merge</code>: each agent works in its own copy, then the results are merged.</p>
+      </div>
+      <div class="tab-panel" id="p-tui-models" role="tabpanel" aria-labelledby="t-tui-models">
+        <div class="frame"><img src="{{root}}assets/img/shots/v15-tui-models.webp" width="2464" height="1386" alt="The model picker opened with Ctrl+O, listing free models from many providers" loading="lazy"></div>
+        <p class="cap"><kbd>Ctrl</kbd>+<kbd>O</kbd> picks a model, or leave it on auto and the engine fails over between free models.</p>
+      </div>
+      <div class="tab-panel" id="p-tui-keys" role="tabpanel" aria-labelledby="t-tui-keys">
+        <div class="frame"><img src="{{root}}assets/img/shots/v15-tui-help.webp" width="2464" height="1386" alt="The keyboard shortcuts overlay of the astro terminal app" loading="lazy"></div>
+        <p class="cap">Press <kbd>?</kbd> for every shortcut: <kbd>Shift</kbd>+<kbd>Tab</kbd> changes the mode, <kbd>Ctrl</kbd>+<kbd>B</kbd> toggles the side panel, <kbd>Ctrl</kbd>+<kbd>R</kbd> resumes a session.</p>
+      </div>
+    </div>
+    <h3 class="h3 term-sub reveal">Scripts, CI and parallel jobs</h3>
+    <p class="muted term-sub-p reveal">The same command also runs one-shot jobs for scripts and CI. Real recordings; only the waiting is shortened.</p>
     <div class="win term-big reveal" data-term="par,one,agents,models" data-term-rows="24">
       <div class="win-bar">
         <div class="win-dots"><i></i><i></i><i></i></div>
@@ -148,7 +179,7 @@
       <div class="card reveal">
         <h3 class="h3">Commands</h3>
         <dl class="cmds">
-          <dt>astro</dt><dd>a live session in this folder</dd>
+          <dt>astro</dt><dd>the full-screen app in this folder (<code>--classic</code> for plain lines)</dd>
           <dt>astro -p "task"</dt><dd>run once and print the report (<code>--json</code> for scripts)</dd>
           <dt>astro parallel "A" "B"</dt><dd>several agents, each in an isolated copy</dd>
           <dt>astro agents</dt><dd>list running and finished agents</dd>
@@ -169,10 +200,35 @@
   </div>
 </section>
 
+<section class="section band" id="agent">
+  <div class="wrap">
+    <div class="split">
+      <div class="reveal">
+        <span class="eyebrow"><span class="no">04 /</span> New in 1.5 · Desktop</span>
+        <h2 class="h2">A calmer Agent page. <em class="accent">Everything at a glance.</em></h2>
+        <p>The desktop Agent page is redesigned around three columns: your sessions on the left, the run in the middle, and a Session panel on the right that answers the questions you used to click around for.</p>
+        <ul class="ticks">
+          <li>Sessions with live status, time, files changed and mode</li>
+          <li>Flat, readable steps that end in a one-line recap: what changed and whether the tests passed</li>
+          <li>Session panel: context used, git branch, checkpoint and Undo all, rules and skills in use</li>
+          <li>Switch the project's MCP servers on and off for the agent</li>
+          <li>Turn stats: steps, actions, files and time for every run</li>
+        </ul>
+      </div>
+      <div class="frame reveal" data-delay="1"><div class="frame-glow"></div><img src="{{root}}assets/img/shots/v15-agent.webp" width="1440" height="900" alt="The redesigned Agent page: a session list on the left, a finished run with a recap in the middle, and the Session panel with context, project, usage and MCP switches on the right" loading="lazy"></div>
+    </div>
+    <div class="grid-3 agent-shots">
+      <div class="card reveal"><h3>Every change, reviewable</h3><p>The Changes panel keeps a diff of each file, with Undo all one click away.</p><div class="shot"><img src="{{root}}assets/img/shots/v15-agent-changes.webp" width="888" height="555" alt="The Changes panel listing the files the agent edited with their diffs" loading="lazy"></div></div>
+      <div class="card reveal" data-delay="1"><h3>Your tools, your call</h3><p>Trust a project's MCP server once, then switch it on or off for the agent.</p><div class="shot"><img src="{{root}}assets/img/shots/v15-agent-mcp.webp" width="888" height="555" alt="The Session panel with the project-notes MCP server switched on, offering 2 tools" loading="lazy"></div></div>
+      <div class="card reveal" data-delay="2"><h3>Light or dark</h3><p>Both themes, and a layout that folds down neatly on small screens.</p><div class="shot"><img src="{{root}}assets/img/shots/v15-agent-light.webp" width="1440" height="900" alt="The redesigned Agent page in the light theme" loading="lazy"></div></div>
+    </div>
+  </div>
+</section>
+
 <section class="section-tight" id="parallel">
   <div class="wrap split">
     <div class="reveal">
-      <span class="eyebrow"><span class="no">04 /</span> Parallel agents</span>
+      <span class="eyebrow"><span class="no">05 /</span> Parallel agents</span>
       <h2 class="h2">Three jobs, <em class="accent">three copies,</em> one project.</h2>
       <p>Each agent gets its own git worktree, or a copy if the folder isn't a git repo. They work side by side and can't break each other's work. When they finish, you review and merge.</p>
       <ul class="ticks">
@@ -197,7 +253,7 @@
 <section class="section" id="where">
   <div class="wrap">
     <div class="section-head center reveal">
-      <span class="eyebrow"><span class="no">05 /</span> Where it runs</span>
+      <span class="eyebrow"><span class="no">06 /</span> Where it runs</span>
       <h2 class="h2">Wherever <em class="accent">you work.</em></h2>
       <p>One engine on your computer, four ways in. Start a job in one place and follow it from another.</p>
     </div>
@@ -213,7 +269,7 @@
 <section class="section" id="modes">
   <div class="wrap">
     <div class="section-head center reveal">
-      <span class="eyebrow"><span class="no">06 /</span> Permissions</span>
+      <span class="eyebrow"><span class="no">07 /</span> Permissions</span>
       <h2 class="h2">You decide how much <em class="accent">it can touch.</em></h2>
       <p>Every folder you open has a permission mode. Change it any time from the composer or with <code class="mono small">/mode</code>. A checkpoint is saved before each run, so you can undo the whole job.</p>
     </div>
@@ -253,7 +309,7 @@
 <section class="section" id="tour">
   <div class="wrap">
     <div class="section-head center reveal">
-      <span class="eyebrow"><span class="no">07 /</span> The real thing</span>
+      <span class="eyebrow"><span class="no">08 /</span> The real thing</span>
       <h2 class="h2">Not a mockup. <em class="accent">Version {{version}}.</em></h2>
       <p>Screenshots straight from the app, working on the same todo-api project as the demos above.</p>
     </div>
@@ -268,8 +324,8 @@
         <button class="tab" role="tab" id="t-brain" aria-controls="p-brain" aria-selected="false" tabindex="-1">One Brain</button>
       </div>
       <div class="tab-panel active" id="p-agent" role="tabpanel" aria-labelledby="t-agent">
-        <div class="frame"><div class="frame-glow"></div><img src="{{root}}assets/img/shots/v11-agent-after.webp" width="1440" height="900" alt="The Agent page: the agent wrote src/limit.js, edited src/server.js and is starting the server. The Changes panel lists 3 changed files." loading="lazy"></div>
-        <p class="cap">A real Ask-mode run: every write is logged, and the Changes panel keeps a diff for each file.</p>
+        <div class="frame"><div class="frame-glow"></div><img src="{{root}}assets/img/shots/v15-agent-run.webp" width="1440" height="900" alt="The redesigned Agent page during a real run: the agent reading files and running the tests, with the Session panel on the right" loading="lazy"></div>
+        <p class="cap">A real run on the new Agent page: every step is logged, and the Session panel tracks context, changes and checks.</p>
       </div>
       <div class="tab-panel" id="p-mcp" role="tabpanel" aria-labelledby="t-mcp">
         <div class="frame"><img src="{{root}}assets/img/shots/v11-ext-mcp.webp" width="1440" height="900" alt="The Extensions panel in the Workspace showing the project-notes MCP server running with 2 tools" loading="lazy"></div>
@@ -302,13 +358,13 @@
 <section class="section" id="trailer">
   <div class="wrap split flip">
     <div class="reveal">
-      <span class="eyebrow"><span class="no">08 /</span> The 1.4 trailer</span>
+      <span class="eyebrow"><span class="no">09 /</span> The 1.5 trailer</span>
       <h2 class="h2">Ninety seconds of <em class="accent">the real thing.</em></h2>
-      <p>One Brain, an agent in Ask mode, the new terminal app and parallel agents, all recorded from the real app and the real <code>astro</code> command. No generated scenes. Sound on.</p>
+      <p>The new full-screen terminal app, the redesigned Agent page, parallel agents and One Brain, all recorded from the real app and the real <code>astro</code> command. No generated scenes. Sound on.</p>
       <p class="small muted">Music: “Clean Soul” by Kevin MacLeod (<a href="https://incompetech.com">incompetech.com</a>), licensed under <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">Creative Commons: By Attribution 4.0</a>. Narration is a synthesized voice. <a href="{{root}}assets/video/astro-ai-trailer.mp4" download>Download MP4</a></p>
     </div>
     <div class="frame trailer reveal" data-delay="1">
-      <video controls preload="none" playsinline width="1920" height="1080" poster="{{root}}assets/video/astro-ai-trailer-poster.jpg" aria-label="A.S.T.R.O AI 1.4 trailer, 90 seconds">
+      <video controls preload="none" playsinline width="1920" height="1080" poster="{{root}}assets/video/astro-ai-trailer-poster.jpg" aria-label="A.S.T.R.O AI 1.5 trailer, 90 seconds">
         <source src="{{root}}assets/video/astro-ai-trailer.mp4" type="video/mp4">
         <a href="{{root}}assets/video/astro-ai-trailer.mp4">Download the A.S.T.R.O AI trailer (MP4)</a>
       </video>
@@ -340,7 +396,7 @@
 <section class="section" id="platforms">
   <div class="wrap">
     <div class="section-head center reveal">
-      <span class="eyebrow"><span class="no">09 /</span> Download</span>
+      <span class="eyebrow"><span class="no">10 /</span> Download</span>
       <h2 class="h2">For the computer <em class="accent">you already have.</em></h2>
       <p>The models run in the cloud, so A.S.T.R.O AI stays light on your RAM, CPU and GPU.</p>
     </div>
@@ -377,7 +433,7 @@
 <section class="section" id="faq">
   <div class="wrap">
     <div class="section-head center reveal">
-      <span class="eyebrow"><span class="no">10 /</span> Questions</span>
+      <span class="eyebrow"><span class="no">11 /</span> Questions</span>
       <h2 class="h2">Good to <em class="accent">know.</em></h2>
     </div>
     <div class="faq reveal">

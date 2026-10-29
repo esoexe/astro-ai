@@ -10,7 +10,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
-VER="1.4.1"
+VER="1.5.0"
 OUT="$ROOT/desktop-builds"
 WORK="$ROOT/.cache/pkg"
 TP="$ROOT/desktop/third_party"
@@ -25,7 +25,7 @@ g++ -std=c++17 -O2 -I"$TP/webview/include" desktop/src/astro_desktop.cpp -o "$WO
     $(pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.1) -ldl -pthread "${COMPAT[@]}"
 wait
 # The terminal app (astro): a small client of the engine's agent API
-g++ -std=c++20 -O2 cli/astro.cpp -o "$WORK/bin/astro" $(pkg-config --cflags --libs libcurl) "${COMPAT[@]}"
+g++ -std=c++20 -O2 -pthread cli/astro.cpp -o "$WORK/bin/astro" $(pkg-config --cflags --libs libcurl) "${COMPAT[@]}"
 
 echo "==> Windows binaries"
 x86_64-w64-mingw32-gcc-posix -O2 -c desktop/src/win_compat.c -o "$WORK/win_compat.o"

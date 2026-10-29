@@ -5,6 +5,7 @@
 //   "ask me"                             -> ask_user, then done with the answer
 //   "slow job"                           -> bash sleep 30 (to test stop)
 //   "use tool NAME with K=V"            -> calls a project tool from .astro/tools, then done
+//   "wipe deps"                          -> bash rm -rf node_modules/* (isolated copies must not touch the project's)
 //   "edit NAME from A to B"              -> edit_file, bash cat, done
 //   review prompts                       -> VERDICT: PASS
 // Usage: node tests/mock_llm.js <port>
@@ -48,6 +49,10 @@ function reply(messages) {
   if (/missing brace/i.test(job)) {
     if (rounds === 0) return '```tool\n{"tool":"bash","command":"echo b > brace.txt"\n```';
     return 'Done.\n' + done('brace');
+  }
+  if (/wipe deps/i.test(job)) {
+    if (rounds === 0) return tool({ tool: 'bash', command: 'rm -rf node_modules/* node_modules/.package-lock.json && npm_ci_like=1 && mkdir -p node_modules/fresh && echo new > node_modules/fresh/index.js && ls node_modules' });
+    return 'Done.\n' + done('wiped');
   }
   if (/fork cwd/i.test(job)) {
     if (rounds === 0) return '```tool\n{"tool":"bash","command":"echo f > fork.txt","cwd":"demo"}\n```';

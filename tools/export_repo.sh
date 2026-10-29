@@ -28,8 +28,11 @@ rm -f "$OUT/website/netlify.toml"
 
 # the website's downloads: CLEAN edition only
 mkdir -p "$OUT/website/downloads"
-cp desktop-builds/clean/*CLEAN* "$OUT/website/downloads/"
-cp desktop-builds/clean/astro-ai-vscode-*.vsix "$OUT/website/downloads/"
+DL="website/downloads"; ls "$DL"/*CLEAN* >/dev/null 2>&1 || DL="desktop-builds/clean"
+for f in "$DL"/*CLEAN* "$DL"/astro-ai-vscode-*.vsix; do
+  case "$f" in *WITH-KEYS*|*with-keys*) echo "refusing $f" >&2; exit 1;; esac
+  cp "$f" "$OUT/website/downloads/"
+done
 
 # point the site at GitHub Pages
 node -e '

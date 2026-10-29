@@ -130,6 +130,12 @@ g=$(call get "{\"id\":\"$id\"}")
 echo "$g" | grep -q '"tool":"bash","type":"tool_done"' && ! echo "$g" | grep -q 'No folder' && ok "cwd=<project name> works in an isolated copy" || bad "fork cwd: $(echo "$g" | grep -o '"summary":"[^"]*"' | head -3)"
 call discard "{\"id\":\"$id\"}" > /dev/null
 
+# --- "npm ci" style wipes inside an isolated copy never reach the project's own node_modules ---
+mkdir -p "$D/demo/node_modules/pkg"; echo 'module.exports = 1' > "$D/demo/node_modules/pkg/index.js"; echo '{}' > "$D/demo/node_modules/.package-lock.json"
+id=$(call start '{"project":"demo","prompt":"wipe deps","isolate":true}' | jget id); wait_status "$id" '^done$' 20
+[ -f "$D/demo/node_modules/pkg/index.js" ] && [ -f "$D/demo/node_modules/.package-lock.json" ] && [ ! -e "$D/demo/node_modules/fresh" ] && ok "isolated copy gets its own node_modules (project's survives a wipe)" || bad "node_modules shared: $(ls -a "$D/demo/node_modules" 2>&1)"
+call discard "{\"id\":\"$id\"}" > /dev/null; rm -rf "$D/demo/node_modules"
+
 # --- native tool-call markup (GLM <arg_key> style and Qwen JSON style) runs and is hidden ---
 id=$(call start '{"project":"demo","prompt":"native markup"}' | jget id); wait_status "$id" '^done$' 20
 g=$(call get "{\"id\":\"$id\"}")

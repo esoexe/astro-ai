@@ -6,7 +6,7 @@
 # %LOCALAPPDATA%\Programs\AstroAI-CLI and adds that folder to your user PATH.
 # Downloads come from the official GitHub release and are checked against SHA256SUMS.txt.
 #
-# Options (set before running):  $env:ASTRO_VERSION = "1.4.1"   $env:ASTRO_HOME = "D:\Tools\astro"
+# Options (set before running):  $env:ASTRO_VERSION = "1.5.0"   $env:ASTRO_HOME = "D:\Tools\astro"
 # Uninstall:  $env:ASTRO_UNINSTALL = "1"; irm https://esoexe.github.io/astro-ai/install.ps1 | iex
 
 $ErrorActionPreference = 'Stop'
@@ -47,7 +47,7 @@ if (-not $Version) {
   } catch { }
 }
 if (-not $Version) { $Version = $Fallback }
-if ($Version -like '__*') { Fail 'Could not find the latest version. Set one first: $env:ASTRO_VERSION = "1.4.1"' }
+if ($Version -like '__*') { Fail 'Could not find the latest version. Set one first: $env:ASTRO_VERSION = "1.5.0"' }
 $Version = $Version.TrimStart('v')
 
 $File = "AstroAI-$Version-windows-x64-portable-CLEAN.zip"

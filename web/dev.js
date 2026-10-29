@@ -122,7 +122,8 @@
     const s = A().agCurSession?.();
     const project = s?.project || A().AG.project;
     const m = modeOf(s || { project });
-    document.querySelectorAll('[data-devmode]').forEach((b) => {
+    A().agPaintModeChip?.();
+    document.querySelectorAll('[data-devmode]:not(.ag-linkbtn)').forEach((b) => {
       const label = `${MODES[m].label} mode`;
       if (b.dataset.m !== m) { b.dataset.m = m; b.innerHTML = `${icon(MODES[m].icon)}<span>${label}</span>`; b.classList.toggle('on', m !== 'auto'); }
     });
@@ -297,7 +298,8 @@
     const r = await Promise.race([dev('mcp/list', { project, start: true }), sleep(25000).then(() => dev('mcp/list', { project }))]);
     D.mcp.set(project, r.servers || []);
     const out = [];
-    for (const sv of r.servers || []) if (sv.status === 'running') for (const t of sv.tools || []) out.push({ ...t, server: sv.name });
+    let off = []; try { off = JSON.parse(localStorage.getItem(`astro_agent:mcp-off:${project}`) || '[]') || []; } catch (_e) { off = []; }
+    for (const sv of r.servers || []) if (sv.status === 'running' && !off.includes(sv.name)) for (const t of sv.tools || []) out.push({ ...t, server: sv.name });
     return out;
   }
 

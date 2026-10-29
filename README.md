@@ -146,11 +146,11 @@ The editor bundle is built from `tools/ide-vendor` (`npm install && npm run buil
 The **Agent** works on its own, like Arena.ai's Agent Mode. You give it a job and it acts in a loop: run shell commands, read, write and edit files, list and search the project, search the web, read pages, start a server and read its logs, remember facts, and ask you a question when it is truly stuck. It keeps going until the job is done and checked, then writes a short report.
 
 - **Hybrid brain**: the whole team of models (every connected model) plans and reviews the work. One fast model carries out the steps, and if it fails another model takes over. The team plans **at the same time** as the agent starts working, and the plan is handed to the agent the moment it is ready, so a slow team never blocks the work. At the end the team reviews the changed files. If it answers `VERDICT: FIX`, the agent gets one fix round. Pressing ■ during the review skips it and keeps the finished work. You can turn team planning and review off with the **Team plan & review** chip.
-- **Full auto, fully logged**: no approval prompts. Every step is shown in the timeline: what the agent said, every tool call with its input and output, exit codes, timings and the model that wrote each step. A version (checkpoint) is saved before the first change, and **Undo all changes** puts the whole project back.
-- **Agent page** (sidebar → Agent), an OpenCode-style layout:
-  - **Left**: the project picker and the session list. Sessions are saved on the server in `data/.astro_agent/<project>/`, outside the project folder.
-  - **Centre**: the timeline and the job box.
-  - **Right**: **Changes** (every file added, modified or deleted since the session started, each with a diff), **Files** (the project tree), **Terminal** (every command the agent ran in order, plus a box to run your own) and **Preview** (the server the agent started).
+- **Plan, Ask or Auto, fully logged**: Plan is read-only, Ask stops for your approval before each change or command, and Auto works on its own. Every step is shown in the timeline: what the agent said, every tool call with its input and output, exit codes, timings and the model that wrote each step. A version (checkpoint) is saved before the first change, and **Undo all changes** puts the whole project back.
+- **Agent page** (sidebar → Agent), redesigned in 1.5:
+  - **Left**: the project picker and the session list, with live status, time, files changed, mode and steps for each run. Sessions are saved on the server in `data/.astro_agent/<project>/`, outside the project folder.
+  - **Centre**: flat, readable steps, the report, and a one-line **Recap** (files changed, and whether the tests passed, still fail or weren't run). The job box has the Team, mode and Parallel chips.
+  - **Right**: an icon rail switches between the **Session** panel (context used, git branch and uncommitted files, mode, checkpoint with Undo all, rules and skills in use, usage, MCP server switches and turn stats), **Changes** (a diff per file), **Files**, **Terminal** and **Preview**.
 - **Workspace Agent mode**: the team panel in the Workspace has a **Team / Fast / Agent** switch. In Agent mode the same agent runs in the panel, the editor and file tree update live as it works, and ⤢ opens the session in the full Agent page.
 - **Limits**: up to 40 steps per run (press **Continue** to go on), up to 6 tool calls per step, and commands time out after 120 s by default (up to 900 s). Long-running servers are started with `start_server` (the managed server process), not with `&`.
 - **APIs**:
@@ -161,10 +161,10 @@ The **Agent** works on its own, like Arena.ai's Agent Mode. You give it a job an
 
 ## Terminal app and parallel agents
 
-`astro` runs the A.S.T.R.O AI agent in your terminal:
+`astro` runs the A.S.T.R.O AI agent in your terminal. Since 1.5 it opens a **full-screen terminal app** (like other terminal coding agents): the conversation with a coloured diff for every edit, an approval dialog in Ask mode (`y` / `a` / `n`), Shift+Tab to switch auto / plan / ask, Esc to stop, a side panel (Ctrl+B) with changes, to-do and agents, a model picker (Ctrl+O), an agents manager (Ctrl+G), 23 slash commands, `@file` mentions with Tab completion and `!shell` commands. `astro -c` continues the last session; `astro --classic` (or `ASTRO_TUI=0`) keeps the line-by-line prompt. The app is `cli/tui.inc`.
 
 ```bash
-cd my-project && astro                                   # interactive
+cd my-project && astro                                   # the full-screen app
 astro -p "fix the failing test" --json                    # scripts and CI
 astro parallel "add dark mode" "write tests" --merge      # several agents, each in an isolated copy
 astro agents · astro diff <id> · astro merge <id> · astro undo <id>
@@ -302,6 +302,10 @@ The official A.S.T.R.O AI website lives in `website/`: static HTML, CSS and JS w
 `node website/build.js` builds it into `website/dist/`, the folder you deploy (Netlify, Cloudflare Pages, Vercel or GitHub Pages).
 Only the CLEAN desktop builds are copied into the site, and the build refuses to publish anything from the WITH-KEYS edition.
 See `website/README.md` for deploy steps. Set your domain in `website/site.json` first.
+
+## License
+
+A.S.T.R.O AI is available under your choice of the **MIT**, **Apache-2.0** or **GPL-3.0** license; see [LICENSE](LICENSE). Bundled third-party components keep their own licenses; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 ## License
 
