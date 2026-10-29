@@ -4,7 +4,9 @@ const fs = require('fs'); const path = require('path');
 const src = fs.readFileSync(path.join(__dirname, '..', 'web', 'app.js'), 'utf8');
 const grab = (name) => { const i = src.indexOf(`  function ${name}(`); if (i < 0) throw new Error('missing ' + name); const j = src.indexOf('\n  }\n', i); return src.slice(i, j + 4); };
 const alias = src.match(/const AG_ALIAS = (\{[\s\S]*?\});/);
+const nativeMark = (src.match(/^ *const AG_NATIVE_MARK = .*;$/m) || ['const AG_NATIVE_MARK = /$^/g;'])[0].trim();
 const code = `${alias ? 'const AG_ALIAS = ' + alias[1] + ';' : 'const AG_ALIAS = {};'}
+${nativeMark}
 const cleanPath = (p) => String(p || '').replace(/^\\.?\\//, '');
 ${grab('stripReasoningLeak')}${grab('agJson')}${grab('agJsonAll')}${grab('agNorm')}${grab('agParse')}
 module.exports = { agParse, stripReasoningLeak };`;
@@ -28,4 +30,10 @@ ok(/has no "content"/.test(src) && /Never wipe a file/.test(src), 'write_file gu
 ok(/let unverified = false/.test(src) && /VERIFY FIRST/.test(src) && /so your report is a guess/.test(src), 'done is held back until changed files were checked by a run, and never accepted in the same reply as tool calls');
 ok(stripReasoningLeak('analysisThe user wants a file. assistantfinalHere you go.') === 'Here you go.', 'gpt-oss reasoning leak is removed');
 ok(stripReasoningLeak('Normal answer about analysis.') === 'Normal answer about analysis.', 'normal text is untouched');
+{ // MiniMax-style native tool-call markup must never reach the user
+  const r = agParse('I will read the file now.\n<minimax:tool_call>\n<invoke name="read_file">\n<parameter name="path">src/a.js</parameter>\n</invoke>\n</minimax:tool_call>');
+  const shown = JSON.stringify(r && (r.narrative ?? r.text ?? ''));
+  ok(!/minimax|tool_call|invoke|parameter/.test(shown), 'MiniMax tool-call markup is hidden from the reply');
+  ok(r.calls.length === 1 && r.calls[0].tool === 'read_file' && r.calls[0].path === 'src/a.js', 'MiniMax XML call becomes a real read_file call');
+}
 console.log(`${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

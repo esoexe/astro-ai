@@ -6098,6 +6098,13 @@
     // Native tool-call formats some free models emit instead of a fenced block (Hermes / Qwen <tool_call>{...}</tool_call>,
     // MiniMax ]<]minimax[>[ tokens, <|...|> special tokens, [TOOL_CALLS]). Real calls are used; the markup is never shown.
     narrative = narrative.replace(/<tool_call>\s*([\s\S]*?)\s*(?:<\/tool_call>|$)/gi, (_all, body) => { for (const c of agJsonAll(body).filter((x) => x && (x.tool || x.name))) calls.push(agNorm(c)); return ''; });
+    // XML-style calls (MiniMax and others): <invoke name="read_file"><parameter name="path">a.js</parameter></invoke>
+    narrative = narrative.replace(/<(?:[a-z]+:)?invoke\s+name="([a-z_][\w-]*)"\s*>([\s\S]*?)(?:<\/(?:[a-z]+:)?invoke>|$)/gi, (_all, name, body) => {
+      const args = {};
+      body.replace(/<(?:[a-z]+:)?parameter\s+name="([^"]+)"\s*>([\s\S]*?)<\/(?:[a-z]+:)?parameter>/gi, (_p, k, v) => { args[k] = v.replace(/^\r?\n|\r?\n$/g, ''); return ''; });
+      calls.push(agNorm({ tool: name, ...args })); return '';
+    });
+    narrative = narrative.replace(/<(?:[a-z]+:)?parameter\s+name="[^"]*"\s*>[\s\S]*?<\/(?:[a-z]+:)?parameter>/gi, '');
     narrative = narrative.replace(AG_NATIVE_MARK, '');
     if (!calls.length && !done) {
       const mm = text.match(/\{\s*"tool"\s*:\s*"[a-z_]+"[\s\S]*?\}\s*(?=$|\n)/);
