@@ -1,0 +1,379 @@
+{
+  "meta": {
+    "date": "2026-10-29T23:35:06.143Z",
+    "mode": "auto",
+    "review": false,
+    "repeat": 2,
+    "tasks": 12,
+    "astro": "astro 1.7.0"
+  },
+  "results": [
+    {
+      "task": "js-off-by-one",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 4,
+      "tools": 3,
+      "tool_errors": 0,
+      "ms": 7296,
+      "models_used": [
+        "deepseek-v4-pro (Router9)",
+        "gpt-oss-120b (Groq)"
+      ]
+    },
+    {
+      "task": "js-off-by-one",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 4,
+      "tools": 3,
+      "tool_errors": 0,
+      "ms": 7344,
+      "models_used": [
+        "deepseek-v4-pro (Router9)",
+        "gpt-oss-120b (Groq)"
+      ]
+    },
+    {
+      "task": "js-add-slugify",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 6,
+      "tools": 4,
+      "tool_errors": 0,
+      "ms": 1405767,
+      "models_used": [
+        "gpt-oss-120b (OVHcloud AI Endpoints)",
+        "Meta-Llama-3_3-70B-Instruct (OVHcloud AI Endpoints)",
+        "Qwen3.5-397B-A17B (OVHcloud AI Endpoints)"
+      ]
+    },
+    {
+      "task": "js-add-slugify",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 5,
+      "tools": 4,
+      "tool_errors": 1,
+      "ms": 1411025,
+      "models_used": [
+        "gpt-oss-120b (OVHcloud AI Endpoints)",
+        "Meta-Llama-3_3-70B-Instruct (OVHcloud AI Endpoints)"
+      ]
+    },
+    {
+      "task": "js-async-foreach",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 4,
+      "tools": 9,
+      "tool_errors": 0,
+      "ms": 54274,
+      "models_used": [
+        "Meta-Llama-3_3-70B-Instruct (OVHcloud AI Endpoints)",
+        "flint-v1.0 (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "js-make-tests-pass",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 8,
+      "tools": 7,
+      "tool_errors": 1,
+      "ms": 16789,
+      "models_used": [
+        "nemotron-3-ultra-550b-a55b (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "js-make-tests-pass",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 5,
+      "tools": 5,
+      "tool_errors": 0,
+      "ms": 15149,
+      "models_used": [
+        "nemotron-3-ultra-550b-a55b (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "js-async-foreach",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 4,
+      "tools": 12,
+      "tool_errors": 1,
+      "ms": 103194,
+      "models_used": [
+        "Meta-Llama-3_3-70B-Instruct (OVHcloud AI Endpoints)",
+        "nemotron-3-ultra-550b-a55b (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "js-rename-across-files",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 5,
+      "tools": 11,
+      "tool_errors": 0,
+      "ms": 19915,
+      "models_used": [
+        "nemotron-3-ultra-550b-a55b (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "js-rename-across-files",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 5,
+      "tools": 11,
+      "tool_errors": 0,
+      "ms": 20113,
+      "models_used": [
+        "nemotron-3-ultra-550b-a55b (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "js-cli-flag",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 7,
+      "tools": 6,
+      "tool_errors": 0,
+      "ms": 29919,
+      "models_used": [
+        "nemotron-3-ultra-550b-a55b (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "js-cli-flag",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 7,
+      "tools": 6,
+      "tool_errors": 0,
+      "ms": 28227,
+      "models_used": [
+        "nemotron-3-ultra-550b-a55b (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "json-package-script",
+      "lang": "json",
+      "model": "auto",
+      "exit": 4,
+      "pass": true,
+      "check_out": "",
+      "steps": 7,
+      "tools": 5,
+      "tool_errors": 1,
+      "ms": 23573,
+      "models_used": [
+        "nemotron-3-ultra-550b-a55b (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "html-signup-form",
+      "lang": "html",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 4,
+      "tools": 3,
+      "tool_errors": 1,
+      "ms": 17471,
+      "models_used": [
+        "nemotron-3-ultra-550b-a55b (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "html-signup-form",
+      "lang": "html",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 4,
+      "tools": 3,
+      "tool_errors": 1,
+      "ms": 24071,
+      "models_used": [
+        "nemotron-3-ultra-550b-a55b (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "json-package-script",
+      "lang": "json",
+      "model": "auto",
+      "exit": 4,
+      "pass": true,
+      "check_out": "",
+      "steps": 7,
+      "tools": 5,
+      "tool_errors": 1,
+      "ms": 60133,
+      "models_used": [
+        "nemotron-3-ultra-550b-a55b (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "c-reverse-bug",
+      "lang": "c",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 4,
+      "tools": 5,
+      "tool_errors": 0,
+      "ms": 16487,
+      "models_used": [
+        "nemotron-3-ultra-550b-a55b (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "c-makefile",
+      "lang": "c",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 7,
+      "tools": 9,
+      "tool_errors": 0,
+      "ms": 14208,
+      "models_used": [
+        "nemotron-3-ultra-550b-a55b (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "c-makefile",
+      "lang": "c",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 7,
+      "tools": 9,
+      "tool_errors": 0,
+      "ms": 19819,
+      "models_used": [
+        "nemotron-3-ultra-550b-a55b (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "c-reverse-bug",
+      "lang": "c",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 4,
+      "tools": 5,
+      "tool_errors": 0,
+      "ms": 69280,
+      "models_used": [
+        "nemotron-3-ultra-550b-a55b (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "sh-count-lines",
+      "lang": "shell",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 7,
+      "tools": 7,
+      "tool_errors": 1,
+      "ms": 20787,
+      "models_used": [
+        "nemotron-3-ultra-550b-a55b (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "js-debug-from-error",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 5,
+      "tools": 7,
+      "tool_errors": 1,
+      "ms": 12143,
+      "models_used": [
+        "nemotron-3-ultra-550b-a55b (Kilo Gateway)"
+      ]
+    },
+    {
+      "task": "sh-count-lines",
+      "lang": "shell",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 4,
+      "tools": 4,
+      "tool_errors": 0,
+      "ms": 48156,
+      "models_used": [
+        "codestral-latest (Mistral)"
+      ]
+    },
+    {
+      "task": "js-debug-from-error",
+      "lang": "javascript",
+      "model": "auto",
+      "exit": 0,
+      "pass": true,
+      "check_out": "",
+      "steps": 4,
+      "tools": 5,
+      "tool_errors": 0,
+      "ms": 6441,
+      "models_used": [
+        "nemotron-3-ultra (Ollama Cloud)"
+      ]
+    }
+  ]
+}

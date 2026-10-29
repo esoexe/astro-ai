@@ -310,7 +310,7 @@ Json::Object norm_call(const Json& c) {
     std::string tt; bool sep = false;
     for (char ch : t) { if (ch == ' ' || ch == '-' || ch == '\t') { if (!sep) tt += '_'; sep = true; } else { tt += ch; sep = false; } }
     t = tt;
-    for (const char* k : {"arguments", "args"}) {
+    for (const char* k : {"arguments", "args", "parameters", "params", "input"}) {
         auto it = o.find(k);
         if (it != o.end() && it->second.is_string()) {   // OpenAI style: "arguments": "{\"path\": ...}"
             try { const Json inner = JsonParser(it->second.string_or()).parse(); if (inner.is_object()) for (const auto& [ik, iv] : *inner.object_ptr()) o[ik] = iv; } catch (...) {}
@@ -322,9 +322,9 @@ Json::Object norm_call(const Json& c) {
     auto set = [&](const char* key, std::initializer_list<const char*> keys) { o[key] = Json(first_of(o, keys)); };
     if (t == "bash") set("command", {"command", "cmd", "script", "code"});
     if (t == "read_file" || t == "write_file" || t == "edit_file" || t == "delete_file" || t == "present" || t == "list_files")
-        o["path"] = Json(clean_path(first_of(o, {"path", "file", "filename", "file_path", "target"})));
-    if (t == "write_file") set("content", {"content", "text", "data", "code"});
-    if (t == "edit_file") { set("old_text", {"old_text", "old_str", "old", "search", "find"}); set("new_text", {"new_text", "new_str", "new", "replace", "replacement"}); }
+        o["path"] = Json(clean_path(first_of(o, {"path", "file", "filename", "file_path", "filepath", "target"})));
+    if (t == "write_file") set("content", {"content", "contents", "file_text", "text", "data", "code", "new_content", "file_content", "body", "source"});
+    if (t == "edit_file") { set("old_text", {"old_text", "old_str", "old_string", "old", "search", "find"}); set("new_text", {"new_text", "new_str", "new_string", "new", "replace", "replacement"}); }
     if (t == "search" || t == "web_search") set("query", {"query", "q", "pattern", "text"});
     if (t == "fetch_page") set("url", {"url", "link", "href"});
     if (t == "start_server") set("command", {"command", "cmd"});
@@ -553,6 +553,42 @@ bool readonly_bash(const std::string& cmd) {
     static const std::regex re(R"(^\s*(ls|cat|head|tail|wc|pwd|echo|find|grep|rg|tree|file|stat|du|which|type|env|printenv|node\s+(-v|--version)|python3?\s+(-V|--version)|git\s+(status|log|diff|show|branch|remote|blame|ls-files|rev-parse))\b[^;&|><`$]*$)");
     return std::regex_search(cmd, re);
 }
+// Risky commands (1.7): Auto mode asks first (or refuses when nobody is watching). Same list as web/dev.js.
+std::string risky_command(const std::string& cmd) {
+    if (const char* a = std::getenv("ASTRO_ALLOW_RISKY"); a && std::string(a) == "1") return "";
+    static const std::vector<std::pair<std::regex, std::string>> rules = [] {
+        std::vector<std::pair<std::regex, std::string>> v;
+        const std::pair<const char*, const char*> src[] = {
+            {R"RX((^|[;&|(`]|\$\()\s*(sudo|doas|pkexec|runas)\s)RX", "runs with administrator rights"},
+            {R"RX((^|[;&|(`]|\$\()\s*su\s+(-|root|-c))RX", "switches to the administrator account"},
+            {R"RX(\b(curl|wget|iwr|irm|invoke-webrequest|invoke-restmethod)\b[^|;&]*\|\s*(sudo\s+)?(sh|bash|zsh|dash|ksh|fish|python3?|node|perl|ruby|iex|invoke-expression|pwsh|powershell)\b)RX", "runs a script downloaded from the internet"},
+            {R"RX(\b(iex|invoke-expression)\b[^;&|]*\b(iwr|irm|invoke-webrequest|invoke-restmethod|downloadstring|net\.webclient)\b)RX", "runs a script downloaded from the internet"},
+            {R"RX(\b(sh|bash|zsh)\s+(-c\s+)?["']?\$\(\s*(curl|wget)\b)RX", "runs a script downloaded from the internet"},
+            {R"RX(\brm\s+(-[a-z]*\s+)*-[a-z]*[rR][a-z]*\s+(-[a-z]+\s+)*(--no-preserve-root\s+)?("|')?(/|~|\$HOME|\.\.|\*(\s|$)|\.(\s|$|/\s|/$)))RX", "deletes files recursively outside the project (/, ~, .., * or .)"},
+            {R"RX(\brm\s+.*--no-preserve-root)RX", "deletes the whole disk"},
+            {R"RX(\bgit\s+push\b[^;&|]*(\s--force\b|\s-f\b|\s--force-with-lease\b|\s\+[\w/.-]+))RX", "force-pushes and can overwrite other people's commits"},
+            {R"RX(\bgit\s+clean\s+-[a-z]*f)RX", "deletes untracked files that git cannot bring back"},
+            {R"RX(\bgit\s+reset\s+--hard\s+(origin|upstream)/)RX", "throws away local commits and changes"},
+            {R"RX(\b(mkfs(\.\w+)?|diskpart|fdisk|parted|wipefs|format-volume|clear-disk|initialize-disk)\b)RX", "formats or repartitions a disk"},
+            {R"RX((^|[;&|(`]|\$\()\s*format(\.com)?\s+[a-z]:)RX", "formats a disk"},
+            {R"RX(\bdd\b[^;&|]*\bof=/dev/)RX", "overwrites a disk"},
+            {R"RX(>\s*/dev/(sd|nvme|hd|disk|mmcblk))RX", "overwrites a disk"},
+            {R"RX((^|[;&|(`]|\$\()\s*(del|erase)\s+(/[a-z]\s+)*/s\b)RX", "deletes files in every subfolder (del /s)"},
+            {R"RX((^|[;&|(`]|\$\()\s*(rd|rmdir)\s+(/[a-z]\s+)*/s\b)RX", "deletes a folder tree (rd /s)"},
+            {R"RX(\bremove-item\b[^;&|]*-recurse[^;&|]*\s("|')?([a-z]:\\|\\|/|~|\$env:|\$home|\.\.))RX", "deletes files recursively outside the project"},
+            {R"RX(\bchmod\s+(-[a-z]*\s+)*-[a-z]*R[a-z]*\s+\S+\s+/(\s|$)|\bchown\s+(-[a-z]*\s+)*-[a-z]*R[a-z]*\s+\S+\s+/(\s|$))RX", "changes permissions of the whole system"},
+            {R"RX(:\(\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:)RX", "a fork bomb that freezes the computer"},
+            {R"RX((^|[;&|(`]|\$\()\s*(shutdown|reboot|halt|poweroff)(\s|$)|\b(stop-computer|restart-computer)\b)RX", "shuts down or restarts the computer"},
+            {R"RX(\breg(\.exe)?\s+delete\b|\bremove-item(property)?\b[^;&|]*\bhk(lm|cu|ey_))RX", "deletes Windows registry entries"},
+            {R"RX(\b(npm|pnpm|yarn)\s+publish\b|\bcargo\s+publish\b|\btwine\s+upload\b|\bgem\s+push\b|\bdotnet\s+nuget\s+push\b)RX", "publishes a package to the public"},
+        };
+        for (const auto& [p, w] : src) { try { v.emplace_back(std::regex(p, std::regex::ECMAScript | std::regex::icase), w); } catch (...) {} }
+        return v;
+    }();
+    const std::string c = cmd.size() > 4000 ? cmd.substr(0, 4000) : cmd;
+    for (const auto& [re, why] : rules) if (std::regex_search(c, re)) return why;
+    return "";
+}
 bool cli_known(const std::string& name);
 bool is_mutating(const Json::Object& c) {
     const std::string t = sfield(c, "tool");
@@ -715,11 +751,13 @@ struct Session {
     std::vector<Json> todos;
     // runtime only
     std::string failing;                 // label of the last test/build command, while it is failing
+    int mut_ok = 0, mut_fail = 0;        // file changes that worked / failed in the current run (honest "Done")
+    bool broke_off = false;              // the run ended (no done block) right after a failed step
     std::set<std::string> seen;          // files this agent has read or written (write_file must not overwrite unread files)
     std::mutex mu;
     std::condition_variable cv;
     std::atomic<bool> cancel{false};
-    bool running = false, allow_all = false;
+    bool running = false, allow_all = false, allow_risky = false;
     std::string waiting_id, waiting_kind, live;
     std::optional<std::string> answer;
     std::deque<std::string> queue;
@@ -1380,10 +1418,11 @@ std::string review_prompt(Session& s, const std::string& job, const std::string&
 
 // One run of the loop. Returns true when the job finished (done block accepted).
 bool loop(Session& s, int limit, std::string& report, bool& unverified) {
-    int no_call = 0, tools_used = 0, verify_nudges = 0;
+    int no_call = 0, tools_used = 0, verify_nudges = 0, handovers = 0, empty_writes = 0;
+    bool last_batch_err = false;
     std::map<std::string, int> fails;
     unverified = false;
-    s.failing.clear();
+    s.failing.clear(); s.mut_ok = 0; s.mut_fail = 0; s.broke_off = false;
     static const std::regex check_cmd(R"((^|[\s;&|(])(npm|pnpm|yarn|bun)\s+(run\s+)?(test|build|lint|check)\b|node\s+--test|\b(jest|vitest|mocha|pytest|tsc|eslint|ctest|phpunit|rspec)\b|\b(cargo|go|dotnet|mvn|gradle)\s+(test|build)\b|(^|[\s;&|])make(\s|$))");
     for (int step = 0; step < limit; ++step) {
         if (s.cancel) throw Stopped{};
@@ -1422,6 +1461,18 @@ bool loop(Session& s, int limit, std::string& report, bool& unverified) {
         if (parsed.calls.empty()) {
             if (parsed.done && unverified && verify_nudges < 2 && s.mode != "plan") { ++verify_nudges; s.convo.emplace_back("user", VERIFY_MSG); note(s, "Checking the work before finishing."); continue; }
             if (parsed.done || ++no_call >= (tools_used ? 2 : 3)) {
+                // Stopping without a done block while the job is plainly not done (the last actions failed, or every
+                // file change failed): hand the job to the next model instead of calling it finished.
+                const bool stuck = !parsed.done && (last_batch_err || (s.mut_fail > 0 && s.mut_ok == 0));
+                if (stuck && handovers < 2 && cands.size() > 1) {
+                    ++handovers; no_call = 0;
+                    s.convo.emplace_back("user", "HANDOVER: the previous model stopped before the job was done (its last actions failed or nothing was changed). You are taking over now: read the TOOL RESULTS above, continue the JOB with tool calls (put the whole file in \"content\" for write_file), verify, and finish with the done block.");
+                    s.pref = (s.pref + 1) % static_cast<int>(cands.size());
+                    note(s, "Switching to another model: the last one stopped before the job was done.");
+                    save(s);
+                    continue;
+                }
+                s.broke_off = !parsed.done && last_batch_err;
                 report = !parsed.text.empty() ? parsed.text : parsed.done ? get_string(*parsed.done, "summary") : std::string();
                 return true;
             }
@@ -1462,6 +1513,20 @@ bool loop(Session& s, int limit, std::string& report, bool& unverified) {
                     else if (a == "deny" || a == "n" || a == "no") { blocked = true; throw std::runtime_error("BLOCKED: The user denied this action. Choose another approach, or ask_user what they want."); }
                     else if (!(a == "allow" || a == "y" || a == "yes")) { blocked = true; throw std::runtime_error("BLOCKED: The user denied this action and said: " + *ans); }
                 }
+                if ((tool == "bash" || tool == "start_server") && !s.allow_risky && s.mode != "plan") {
+                    const std::string why = risky_command(sfield(c, "command"));
+                    if (!why.empty()) {
+                        if (!s.interactive) { blocked = true; throw std::runtime_error("BLOCKED: This command " + why + ", and nobody is here to approve it. Find a safer way, or explain in the report what the user should run themselves."); }
+                        push(s, Json::Object{{"type", Json("approval")}, {"id", Json(tid)}, {"text", Json("Risky command: it " + why + ". Run it?")}, {"preview", Json(clip(sfield(c, "command"), 2000))}, {"tool", Json(tool)}, {"risky", Json(why)}});
+                        save(s);
+                        const auto ans = wait_answer(s, tid, "approval");
+                        if (!ans) throw Stopped{};
+                        push(s, Json::Object{{"type", Json("answered")}, {"id", Json(tid)}, {"answer", Json(*ans)}});
+                        const std::string a = lower(trim(*ans));
+                        if (a == "allow all" || a == "allow all in this run" || a == "a") s.allow_risky = true;
+                        else if (!(a == "allow" || a == "y" || a == "yes")) { blocked = true; throw std::runtime_error("BLOCKED: The user did not allow this risky command" + (a == "deny" || a == "n" || a == "no" ? std::string(".") : ": " + *ans) + " Choose a safer approach."); }
+                    }
+                }
                 out = exec_tool(s, c);
             } catch (const Stopped&) {
                 push(s, Json::Object{{"type", Json("tool_done")}, {"id", Json(tid)}, {"tool", Json(tool)}, {"label", Json(label)}, {"ok", Json(false)}, {"summary", Json("Stopped")}});
@@ -1473,6 +1538,11 @@ bool loop(Session& s, int limit, std::string& report, bool& unverified) {
             const long long ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count();
             ++s.tools;
             if (!out.ok) batch_err = true;
+            if ((tool == "write_file" || tool == "edit_file" || tool == "delete_file") && !blocked) { if (out.ok) ++s.mut_ok; else ++s.mut_fail; }
+            if (tool == "write_file" && !out.ok && out.error.find("has no \"content\"") != std::string::npos && ++empty_writes >= 2 && cands.size() > 1) {
+                empty_writes = 0; s.pref = (s.pref + 1) % static_cast<int>(cands.size());
+                note(s, "Switching to another model: the last one kept sending empty file writes.");
+            }
             if ((tool == "write_file" || tool == "edit_file" || tool == "delete_file") && out.ok) unverified = true;
             if (tool == "bash" && out.ok && !blocked) unverified = false;
             if (tool == "bash" && !out.ok && out.error.empty()) unverified = false;   // a command ran (non-zero exit): the agent saw real output
@@ -1501,6 +1571,7 @@ bool loop(Session& s, int limit, std::string& report, bool& unverified) {
             results += "### [" + std::to_string(idx) + "] " + label + "\n" + res + "\n\n";
         }
         if (parsed.calls.size() > 6) results += "(Only the first 6 tool calls ran; send the rest in the next reply.)";
+        last_batch_err = batch_err;
         s.convo.emplace_back("user", "TOOL RESULTS:\n" + trim(results));
         save(s);
         if (parsed.done && !s.cancel) {
@@ -1570,8 +1641,13 @@ void run(std::shared_ptr<Session> sp, std::string prompt) {
                 const long long ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - started).count();
                 Json::Object dn{{"type", Json("done")}, {"text", Json(report)}, {"files", Json(fl)}, {"steps", num(static_cast<double>(s.steps))}, {"ms", num(s.ms + ms)}, {"model", Json(s.last_model)}};
                 if (!s.failing.empty() && s.mode != "plan") dn["failing"] = Json(s.failing);
+                const bool nothing_done = s.mode != "plan" && changes.empty() && s.mut_fail > 0;
+                const bool broke_off = s.mode != "plan" && s.broke_off;
+                if (s.mode != "plan" && (!s.failing.empty() || nothing_done || broke_off)) dn["attention"] = Json(true);
                 push(s, std::move(dn));
                 if (!s.failing.empty() && s.mode != "plan") note(s, "Needs attention: the last check still fails (" + s.failing + "). Review the changes before using them.");
+                else if (nothing_done) note(s, "Needs attention: nothing was changed. Every file change the agent tried failed. Send \"continue\" or try again; a different model will pick it up.");
+                else if (broke_off) note(s, "Needs attention: the agent stopped right after a failed step without fixing it. Check the failed steps, then send \"continue\".");
                 static const std::regex claims(R"(\b(tests?|specs?)\b[^.\n]{0,40}\b(pass|passed|passing|green|succeed)|\bverified\b|\bworks\b)", std::regex::icase);
                 if (s.mode == "plan") note(s, "Plan mode: nothing was changed. Review the plan, then run it in Ask or Auto mode.");
                 else if (unverified && !changes.empty()) note(s, std::regex_search(report, claims) ? "Heads up: the report says the work was checked, but nothing was run after the last change. Treat it as untested." : "Nothing was run after the last change, so this result is not tested yet.");
@@ -1596,7 +1672,7 @@ void run(std::shared_ptr<Session> sp, std::string prompt) {
     {
         std::lock_guard<std::mutex> lk(s.mu);
         s.ms += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - started).count();
-        s.running = false; s.allow_all = false; s.live.clear(); s.queue.clear();
+        s.running = false; s.allow_all = false; s.allow_risky = false; s.live.clear(); s.queue.clear();
         save_locked(s);
         s.cv.notify_all();
     }

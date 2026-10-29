@@ -16,7 +16,7 @@ cat > "$WORK/edition.h" <<H
 #define APP_DISPLAY_A "$DISPLAY_NAME"
 #define APP_ID_W      L"$ID"
 #define EXE_NAME_W    L"$EXE"
-#define APP_VERSION_W L"1.6.1"
+#define APP_VERSION_W L"1.7.0"
 #define EDITION_KEYS  $KEYS
 #define SETUP_PAYLOAD "$WORK/payload.zip"
 #define SETUP_WV2     "$TP/webview2-bootstrapper/MicrosoftEdgeWebview2Setup.exe"

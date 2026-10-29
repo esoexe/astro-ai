@@ -522,3 +522,56 @@ input[type="text"], input[type="search"], input[type="url"], input[type="email"]
 html.logo-still .astro-live .al-halo, html.logo-still .astro-live .al-streak { animation: none; }
 html.logo-still .astro-live .al-streak { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .astro-live .al-halo, .astro-live .al-streak { animation: none; } .astro-live .al-streak { opacity: 0; } }
+
+/* ---------- 1.7 update banner ---------- */
+.update-banner { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 10px 14px 0; padding: 12px 14px; border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg)); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); color: var(--text);
+  animation: ubIn .35s ease both; font-size: 14px; }
+.update-banner .ub-text { flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.update-banner .ub-dim { color: var(--text-3); font-size: 13px; }
+.update-banner .ub-hl { margin: 4px 0 0; padding-left: 18px; color: var(--text-2); font-size: 13px; }
+.update-banner .ub-note:not(:empty) { color: var(--accent); font-size: 13px; }
+.update-banner .ub-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.update-banner a.btn { text-decoration: none; }
+.update-banner code { font-family: var(--mono, ui-monospace, monospace); font-size: 12.5px; }
+@keyframes ubIn { from { opacity: 0; transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .update-banner { animation: none; } }
+@media (max-width: 640px) { .update-banner { margin: 8px; } .update-banner .ub-actions { width: 100%; } }
+
+/* ---------- 1.7 guided free keys ---------- */
+.guide-card { border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+.guide-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.guide-row { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 12px; background: var(--hover); }
+.guide-row.on { opacity: .75; }
+.guide-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.guide-head a.btn { text-decoration: none; }
+.guide-row .key-line { display: flex; gap: 6px; }
+.guide-row .key-line .input { flex: 1; min-width: 0; }
+
+/* ---------- 1.7 plugin permission notice ---------- */
+.perm-list { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 8px; }
+.perm { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 12px; background: var(--hover); border-left: 3px solid var(--text-3); }
+.perm.warn { border-left-color: #d68b2f; }
+.perm.ok { border-left-color: #3a9a5b; }
+.perm small { color: var(--text-2); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+
+/* ---------- 1.7 right-to-left (Arabic) ---------- */
+[dir="rtl"] body { font-family: "Noto Sans Arabic", "Segoe UI", Tahoma, var(--font, Inter), sans-serif; }
+[dir="rtl"] pre, [dir="rtl"] code, [dir="rtl"] kbd, [dir="rtl"] .cm-editor, [dir="rtl"] .xterm, [dir="rtl"] .ws-editor, [dir="rtl"] .ws-term,
+[dir="rtl"] input[type="password"], [dir="rtl"] input[type="url"], [dir="rtl"] .key-line code { direction: ltr; text-align: left; unicode-bidi: isolate; }
+[dir="rtl"] .md, [dir="rtl"] .turn-user { unicode-bidi: plaintext; }
+[dir="rtl"] .guide-row .key-line, [dir="rtl"] .ub-actions { flex-direction: row-reverse; justify-content: flex-start; }
+[dir="rtl"] .early { border-left: 0; border-right: 3px solid var(--accent); padding: 2px 14px 2px 0; }
+[dir="rtl"] .perm { border-left: 0; border-right: 3px solid var(--text-3); }
+[dir="rtl"] .perm.warn { border-right-color: #d68b2f; } [dir="rtl"] .perm.ok { border-right-color: #3a9a5b; }
+[dir="rtl"] .update-banner .ub-hl { padding-left: 0; padding-right: 18px; }
+/* the model pill never runs under the centred search box (long labels, translations) */
+@media (min-width: 1081px) {
+  .topbar > .title-group { min-width: 0; max-width: calc(50% - min(190px, 17vw) - 34px); }
+  .main[data-view="workspace"] .topbar > .title-group, .main[data-view="agent"] .topbar > .title-group { max-width: calc(50% - min(150px, 13vw) - 34px); }
+  .title-group .model-switch { min-width: 0; max-width: 100%; }
+}
+[dir="rtl"] .model-switch { padding: 0 12px 0 10px; }
+[dir="rtl"] .model-switch::before { margin-right: 0; margin-left: 2px; }
+[dir="rtl"] .cmdk span { text-align: right; }

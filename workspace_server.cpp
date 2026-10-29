@@ -1342,6 +1342,66 @@ std::optional<std::string> route_blocked(const std::string& route) {
     return std::nullopt;
 }
 
+// ---------- Model health (1.7) ----------
+// A model the provider says is gone (404/410, "model not found", "decommissioned"...) is skipped for 24 hours,
+// and that survives restarts (model_health.json in the data folder). Every 6 hours the provider's free model
+// list is read again; a model that is listed again comes back early. The list never removes a model by
+// itself (some providers leave working aliases out of it); only a real "gone" answer does.
+std::string data_path(const std::string& name);
+bool write_file_private(const std::string& path, const std::string& content);
+std::mutex g_dead_mu;
+std::map<std::string, std::pair<long long, std::string>> g_dead;   // route id -> (until ms, reason)
+constexpr long long kDeadMs = 24LL * 3600 * 1000;
+bool looks_model_gone(long status, const std::string& error) {
+    if (status == 404 || status == 410) return true;
+    const std::string e = lower_copy(error);
+    for (const char* k : {"model_not_found", "model not found", "does not exist", "decommission", "no longer supported", "no longer available",
+                          "unknown model", "invalid model", "not a valid model", "no endpoints found", "model is deprecated", "has been deprecated"})
+        if (e.find(k) != std::string::npos) return true;
+    return false;
+}
+void dead_save_locked() {
+    Json::Object o;
+    for (const auto& [id, v] : g_dead) { Json::Object e; e["until"] = Json(static_cast<double>(v.first)); e["reason"] = Json(v.second); o[id] = Json(std::move(e)); }
+    write_file_private(data_path("model_health.json"), dump_json(Json(std::move(o))));
+}
+void mark_model_dead(const std::string& route, const std::string& reason) {
+    const long long until = now_ms() + kDeadMs;
+    block_route(route, until, reason + " (skipped for 24 h)");
+    std::lock_guard lk(g_dead_mu);
+    g_dead[route] = {until, reason};
+    dead_save_locked();
+}
+void revive_model(const std::string& route) {
+    { std::lock_guard<std::mutex> lock(g_block_mutex); g_blocked.erase(route); }
+    std::lock_guard lk(g_dead_mu);
+    if (g_dead.erase(route)) dead_save_locked();
+}
+void dead_load() {
+    std::ifstream in(data_path("model_health.json"), std::ios::binary);
+    if (!in) return;
+    std::stringstream ss; ss << in.rdbuf();
+    try {
+        const Json j = JsonParser(ss.str()).parse();
+        const auto* o = j.object_ptr(); if (!o) return;
+        const long long now = now_ms();
+        std::lock_guard lk(g_dead_mu);
+        for (const auto& [id, e] : *o) {
+            const Json* u = e.get("until");
+            const long long until = u && std::holds_alternative<double>(u->value) ? static_cast<long long>(std::get<double>(u->value)) : 0;
+            if (until <= now) continue;
+            g_dead[id] = {until, get_string(e, "reason")};
+            block_route(id, until, get_string(e, "reason") + " (skipped for 24 h)");
+        }
+    } catch (...) {}
+}
+Json dead_json() {
+    std::lock_guard lk(g_dead_mu);
+    Json::Array a;
+    for (const auto& [id, v] : g_dead) { Json::Object e; e["id"] = Json(id); e["until"] = Json(static_cast<double>(v.first)); e["reason"] = Json(v.second); a.emplace_back(std::move(e)); }
+    return Json(std::move(a));
+}
+
 long http_simple(const std::string& method, const std::string& url, const std::string& password,
                  const std::string& body, std::string* out, long timeout_seconds = 15) {
     CURL* curl = curl_easy_init();
@@ -1597,6 +1657,7 @@ struct ProviderInfo {
     std::vector<std::string> requires_keys;
     bool connected = false, keyless = false, trains = false, paid = false, local = false, paid_on = false;
     int models = 0;
+    int models_total = 0;   // models listed for this provider (what a key would add)
 };
 std::vector<Route> g_routes;            // built once at startup, read-only afterwards
 std::vector<ProviderInfo> g_providers;
@@ -1757,6 +1818,7 @@ void build_registry() {
     if (list && list->array_ptr()) {
         for (const Json& p : *list->array_ptr()) {
             ProviderInfo info;
+            if (const Json* ml = p.get("models"); ml && ml->array_ptr()) info.models_total = static_cast<int>(ml->array_ptr()->size());
             info.id = get_string(p, "id"); info.name = get_string(p, "name", info.id); info.key = get_string(p, "key");
             info.signup = get_string(p, "signup"); info.limits = get_string(p, "limits"); info.privacy = get_string(p, "privacy");
             info.keyless = json_bool(p, "keyless", false); info.trains = json_bool(p, "trains", false); info.requires_keys = json_strings(p.get("requires"));
@@ -2031,8 +2093,8 @@ void stream_chat(int fd,
                     block_route("provider:" + route.provider, now + 60LL * 60 * 1000, route.provider_name + ": key rejected or not allowed (check the secret)");
                 else if ((s == 429 || s == 402 || looks_rate_limited(result.error)) && route.shared_quota)
                     block_route("provider:" + route.provider, now + 10LL * 60 * 1000, route.provider_name + ": free quota or rate limit reached");
-                else if (s == 404 || s == 410)
-                    block_route(route.id, now + 6LL * 3600 * 1000, route.label + ": model not available on this account");
+                else if (looks_model_gone(s, result.error))
+                    mark_model_dead(route.id, route.label + ": the provider says this model is not available");
                 else if (result.error.find("length limit") != std::string::npos)
                     ;  // the request asked for too few tokens; the route itself is fine
                 else
@@ -2208,6 +2270,7 @@ void load_runtime_credentials() {
 #include "workspace_ide.inc"
 #include "astro_quality.inc"
 #include "astro_engine.inc"
+#include "astro_update.inc"
 
 void handle_api(int fd, const HttpRequest& request) {
     if (request.path.rfind("/api/auth/", 0) == 0) { handle_auth(fd, request); return; }
@@ -2221,12 +2284,14 @@ void handle_api(int fd, const HttpRequest& request) {
     if (handle_dev_api(fd, request)) return;
     if (handle_quality_api(fd, request)) return;
     if (handle_engine_api(fd, request)) return;
+    if (handle_update_api(fd, request)) return;
     if (handle_astro_api(fd, request)) return;
     if (request.method == "GET" && request.path == "/api/status") {
         const auto config = model_config();
         Json::Object obj;
         obj["configured"] = Json(!config.base_url.empty() && !config.model.empty());
         obj["mode"] = Json(!config.base_url.empty() && !config.model.empty() ? "live" : "demo");
+        obj["version"] = Json(std::string(ASTRO_APP_VERSION));
         // The desktop launcher tags its server so it can tell its own edition apart on a busy port.
         if (const char* inst = std::getenv("ASTRO_INSTANCE"); inst && *inst) obj["instance"] = Json(std::string(inst));
         Json::Array models;
@@ -2378,6 +2443,28 @@ int parse_port() {
 
 } // namespace
 
+// Every 6 hours: for providers with a skipped model, read their model list; a model listed again comes back.
+void model_health_loop() {
+    std::this_thread::sleep_for(std::getenv("ASTRO_HEALTH_TEST") ? std::chrono::seconds(20) : std::chrono::seconds(120));
+    for (;;) {
+        std::vector<std::string> dead;
+        { std::lock_guard lk(g_dead_mu); const long long now = now_ms();
+          for (auto it = g_dead.begin(); it != g_dead.end();) { if (it->second.first <= now) it = g_dead.erase(it); else { if (now - (it->second.first - kDeadMs) >= 6LL * 3600 * 1000 || std::getenv("ASTRO_HEALTH_TEST")) dead.push_back(it->first); ++it; } } }
+        std::map<std::string, std::vector<const Route*>> by_provider;
+        for (const auto& r : g_routes) if (r.kind == "openai" && std::find(dead.begin(), dead.end(), r.id) != dead.end()) by_provider[r.provider].push_back(&r);
+        for (const auto& [prov, routes] : by_provider) {
+            const auto listed = discover_models(routes.front()->base_url, routes.front()->api_key);
+            if (!listed || listed->empty()) continue;
+            for (const Route* r : routes)
+                if (std::find(listed->begin(), listed->end(), r->model) != listed->end()) {
+                    revive_model(r->id);
+                    std::cout << "Model health: " << r->label << " is listed again; trying it again." << std::endl;
+                }
+        }
+        std::this_thread::sleep_for(std::getenv("ASTRO_HEALTH_TEST") ? std::chrono::seconds(15) : std::chrono::seconds(6 * 3600));
+    }
+}
+
 int main() {
 #ifdef _WIN32
     WSADATA wsa;
@@ -2393,6 +2480,8 @@ int main() {
     load_runtime_credentials();
     load_app_keys();
     build_registry();
+    dead_load();                // models found gone earlier stay skipped (24 h)
+    std::thread(model_health_loop).detach();
     lib_tools_path_refresh();   // command-line tools installed from the Library
     const int port = parse_port();
     const int server = static_cast<int>(socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0));

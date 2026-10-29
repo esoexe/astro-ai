@@ -222,11 +222,51 @@
   }
 
   // ---------- agent hooks called by app.js ----------
+  // Risky commands (1.7): Auto mode asks before running them. Same list as astro_engine.inc.
+  const RISKY = [
+    [/(^|[;&|(`]|\$\()\s*(sudo|doas|pkexec|runas)\s/i, "runs with administrator rights"],
+    [/(^|[;&|(`]|\$\()\s*su\s+(-|root|-c)/i, "switches to the administrator account"],
+    [/\b(curl|wget|iwr|irm|invoke-webrequest|invoke-restmethod)\b[^|;&]*\|\s*(sudo\s+)?(sh|bash|zsh|dash|ksh|fish|python3?|node|perl|ruby|iex|invoke-expression|pwsh|powershell)\b/i, "runs a script downloaded from the internet"],
+    [/\b(iex|invoke-expression)\b[^;&|]*\b(iwr|irm|invoke-webrequest|invoke-restmethod|downloadstring|net\.webclient)\b/i, "runs a script downloaded from the internet"],
+    [/\b(sh|bash|zsh)\s+(-c\s+)?["']?\$\(\s*(curl|wget)\b/i, "runs a script downloaded from the internet"],
+    [/\brm\s+(-[a-z]*\s+)*-[a-z]*[rR][a-z]*\s+(-[a-z]+\s+)*(--no-preserve-root\s+)?("|')?(\/|~|\$HOME|\.\.|\*(\s|$)|\.(\s|$|\/\s|\/$))/i, "deletes files recursively outside the project (/, ~, .., * or .)"],
+    [/\brm\s+.*--no-preserve-root/i, "deletes the whole disk"],
+    [/\bgit\s+push\b[^;&|]*(\s--force\b|\s-f\b|\s--force-with-lease\b|\s\+[\w/.-]+)/i, "force-pushes and can overwrite other people's commits"],
+    [/\bgit\s+clean\s+-[a-z]*f/i, "deletes untracked files that git cannot bring back"],
+    [/\bgit\s+reset\s+--hard\s+(origin|upstream)\//i, "throws away local commits and changes"],
+    [/\b(mkfs(\.\w+)?|diskpart|fdisk|parted|wipefs|format-volume|clear-disk|initialize-disk)\b/i, "formats or repartitions a disk"],
+    [/(^|[;&|(`]|\$\()\s*format(\.com)?\s+[a-z]:/i, "formats a disk"],
+    [/\bdd\b[^;&|]*\bof=\/dev\//i, "overwrites a disk"],
+    [/>\s*\/dev\/(sd|nvme|hd|disk|mmcblk)/i, "overwrites a disk"],
+    [/(^|[;&|(`]|\$\()\s*(del|erase)\s+(\/[a-z]\s+)*\/s\b/i, "deletes files in every subfolder (del /s)"],
+    [/(^|[;&|(`]|\$\()\s*(rd|rmdir)\s+(\/[a-z]\s+)*\/s\b/i, "deletes a folder tree (rd /s)"],
+    [/\bremove-item\b[^;&|]*-recurse[^;&|]*\s("|')?([a-z]:\\|\\|\/|~|\$env:|\$home|\.\.)/i, "deletes files recursively outside the project"],
+    [/\bchmod\s+(-[a-z]*\s+)*-[a-z]*R[a-z]*\s+\S+\s+\/(\s|$)|\bchown\s+(-[a-z]*\s+)*-[a-z]*R[a-z]*\s+\S+\s+\/(\s|$)/i, "changes permissions of the whole system"],
+    [/:\(\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:/i, "a fork bomb that freezes the computer"],
+    [/(^|[;&|(`]|\$\()\s*(shutdown|reboot|halt|poweroff)(\s|$)|\b(stop-computer|restart-computer)\b/i, "shuts down or restarts the computer"],
+    [/\breg(\.exe)?\s+delete\b|\bremove-item(property)?\b[^;&|]*\bhk(lm|cu|ey_)/i, "deletes Windows registry entries"],
+    [/\b(npm|pnpm|yarn)\s+publish\b|\bcargo\s+publish\b|\btwine\s+upload\b|\bgem\s+push\b|\bdotnet\s+nuget\s+push\b/i, "publishes a package to the public"],
+  ];
+  function riskyCommand(cmd) { const c = String(cmd || '').slice(0, 4000); for (const [re, why] of RISKY) if (re.test(c)) return why; return ''; }
   async function beforeTool(s, call, ti, signal) {
     const mode = modeOf(s);
     if (mode === 'plan' && isMutating(call)) return { block: 'Plan mode is read-only: inspect with read_file, list_files, glob, search, diagnostics or read-only bash (ls, cat, grep, git diff...), then write the plan and finish with the done block. Do not change anything.' };
     const pre = await runHooks(s, 'PreToolUse', { tool_name: hookToolName(call), tool_input: hookInput(call) }, hookToolName(call)).catch(() => ({}));
     if (pre.block) return { block: `A PreToolUse hook blocked this: ${pre.block}` };
+    const why = (call.tool === 'bash' || call.tool === 'start_server') && mode !== 'plan' && !pre.allow ? riskyCommand(call.command) : '';
+    if (why) {
+      const run = A().AG.runs.get(s.id);
+      if (!(run && s._allowRisky === run)) {
+        ti.approve = `Risky command: it ${why}. Run it?`; ti.preview = String(call.command || '').slice(0, 2000); ti.risky = why; ti.v++; s.status = 'waiting'; A().agPaint(s); A().agSave(s);
+        const answer = await new Promise((resolve) => { A().AG.waiters.set(ti.id, resolve); signal.addEventListener('abort', () => resolve(null), { once: true }); });
+        A().AG.waiters.delete(ti.id);
+        delete ti.approve; delete ti.preview; ti.v++; s.status = 'running';
+        if (answer === null) throw new DOMException('stopped', 'AbortError');
+        if (answer === 'Allow all in this run') s._allowRisky = run;
+        else if (answer !== 'Allow') return { block: answer === 'Deny' ? 'The user did not allow this risky command. Choose a safer approach.' : `The user did not allow this risky command and said: ${answer}` };
+        if (mode === 'ask' && isMutating(call)) return null;   // already approved
+      }
+    }
     if (mode === 'ask' && isMutating(call) && !pre.allow) {
       const run = A().AG.runs.get(s.id);
       if (run && s._allowAll === run) return null;
@@ -1262,12 +1302,38 @@
     const files = entries.filter((e) => rel(e).startsWith(pre) && !/(^|\/)(\.git|node_modules)\//.test(rel(e)));
     if (!files.length) throw new Error(`Nothing found in ${sub || 'the repository'}.`);
     if (files.length > 1500) throw new Error('That plugin is too big (over 1,500 files).');
+    if (!(await pluginPermissionNotice(name, files.map((e) => rel(e).slice(pre.length))))) throw new Error('Install cancelled.');
     let total = 0;
     for (const e of files) {
       total += e.size; if (total > 25e6) throw new Error('That plugin is too big (over 25 MB).');
       const data = await unzipRead(u, e);
       await dev('ext/write', { scope: 'global', path: `plugins/${name}/${rel(e).slice(pre.length)}`, content: bytesToB64(data), base64: true });
     }
+  }
+
+  // 1.7: say plainly what a plugin can do before it is installed.
+  function pluginPermissionNotice(name, paths) {
+    const has = (re) => paths.filter((p) => re.test(p));
+    const hooks = has(/(^|\/)hooks\/[^/]*\.json$|(^|\/)hooks\.json$/);
+    const mcp = has(/(^|\/)\.mcp\.json$/);
+    const code = has(/\.(js|mjs|cjs|ts|py|sh|bash|ps1|bat|cmd|exe|rb|pl)$/i);
+    const text = has(/(^|\/)(commands|agents|skills|output-styles)\/.*\.md$|(^|\/)SKILL\.md$/i);
+    const rows = [];
+    if (hooks.length) rows.push(['warn', 'Runs commands automatically', 'It has hooks: shell commands that run on your computer by themselves when the agent uses tools or finishes.']);
+    if (mcp.length) rows.push(['warn', 'Starts programs (MCP servers)', 'It can start local programs that run with your user rights while A.S.T.R.O AI is open.']);
+    if (code.length) rows.push(['warn', `Contains ${code.length} script file(s)`, 'Hooks, MCP servers or commands may run them.']);
+    if (text.length) rows.push(['ok', `Adds ${text.length} command(s), agent(s) or skill(s)`, 'Plain text instructions for the AI; they do not run by themselves.']);
+    if (!rows.length) rows.push(['ok', 'Text and settings only', 'Nothing in it runs by itself.']);
+    const risky = rows.some((r) => r[0] === 'warn');
+    return new Promise((resolve) => {
+      A().showModal(`<h2 id="modal-title">Install ${esc(name)}?</h2><p class="sub">Here is what this plugin can do.${risky ? ' Only install plugins from people you trust.' : ''}</p>
+        <ul class="perm-list">${rows.map(([k, h, d]) => `<li class="perm ${k}"><b>${esc(h)}</b><small>${esc(d)}</small></li>`).join('')}</ul>
+        <p class="hint">You can remove it any time in Extensions → Plugins. Hooks also stop if you turn the plugin off.</p>
+        <div class="modal-actions"><button type="button" class="btn ghost" id="modal-close">Cancel</button><button type="button" class="btn primary" id="perm-ok">Install</button></div>`);
+      const done = (v) => { A().closeModal(); resolve(v); };
+      document.getElementById('modal-close').onclick = () => done(false);
+      document.getElementById('perm-ok').onclick = () => done(true);
+    });
   }
 
   // ---------- Open VSX themes + snippets ----------
@@ -1515,7 +1581,7 @@
   }
 
   window.AstroDev = {
-    init, tools, beforeTool, afterTool, onStop, brief, agentInput, mode: modeOf, setMode, side, projectChanged, editorReady, inlineEdit,
+    init, tools, beforeTool, afterTool, riskyCommand, pluginPermissionNotice, onStop, brief, agentInput, mode: modeOf, setMode, side, projectChanged, editorReady, inlineEdit,
     openVscode: () => { D.extTab = 'vscode'; lsSet('ext-tab', 'vscode'); A().wsSide('ext'); renderExt(true); },
     openTools: () => { D.extTab = 'tools'; lsSet('ext-tab', 'tools'); A().wsSide('ext'); renderExt(true); }, toolsLoad,
     openFolder, openLibrary, paletteItems, checkProblems, agentManager, mcpRegistry, installPlugin, vsxInstall, openThemes, getScan, globRe, frontmatter, jsonc, unzipIndex, invalidate, applyLooks, renderExt,

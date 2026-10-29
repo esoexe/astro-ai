@@ -11,6 +11,7 @@
 //   /S                    silent install / uninstall (no window)
 //   /D=<dir>              install folder (must be last, like NSIS)
 //   --no-desktop-shortcut skip the desktop shortcut
+//   --launch              start the app after a silent install (used by the in-app updater)
 //   --uninstall           force uninstall mode;  --purge  also delete user data (with /S)
 // Environment (testing): ASTRO_SETUP_SKIP_WV2=1 skips the WebView2 runtime step.
 //
@@ -1199,6 +1200,7 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int) {
         CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
         if (g_uninstall) uninstallWork(); else installWork();
         int rc = g_state == 1 ? 0 : 2;
+        if (!g_uninstall && rc == 0 && hasArg(argc, argv, L"--launch")) launchApp();
         if (g_fromTemp) selfDeleteLater();
         return rc;
     }

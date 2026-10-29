@@ -782,7 +782,7 @@ void send_keys_list(int fd) {
     for (const auto& p : g_providers) {
         Json::Object o;
         o["id"] = Json(p.id); o["name"] = Json(p.name); o["key"] = Json(p.key); o["keyless"] = Json(p.keyless);
-        o["connected"] = Json(p.connected); o["models"] = Json(p.models); o["status"] = Json(p.status);
+        o["connected"] = Json(p.connected); o["models"] = Json(p.models); o["models_total"] = Json(std::max(p.models, p.models_total)); o["status"] = Json(p.status);
         o["signup"] = Json(p.signup); o["limits"] = Json(p.limits); o["privacy"] = Json(p.privacy); o["trains"] = Json(p.trains);
         o["key_set"] = Json(!p.key.empty() && !secret_value(p.key).empty());
         o["key_source"] = Json(p.key.empty() ? std::string("") : g_app_keys.count(p.key) ? std::string("app") : g_keys.count(p.key) ? std::string("gateway") : std::getenv(p.key.c_str()) ? std::string("env") : std::string(""));

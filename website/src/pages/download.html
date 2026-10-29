@@ -13,7 +13,7 @@
        data-note-linux="Debian and Ubuntu package · 64-bit · {{dl:_amd64:size}}"
        data-note-macos="macOS 11+ · Apple Silicon and Intel · {{dl:macos-universal:size}}"
        data-note-mobile="A.S.T.R.O AI is a desktop app. Open this page on your computer to download it.">Pick your system below.</p>
-    <div class="tools-row" style="margin:30px 0 0"><a href="{{root}}changelog.html#v1-5-0"><span>New in {{version}}: terminal app &amp; Agent page</span></a><a href="{{root}}index.html#modes"><span>Plan / Ask / Auto</span></a><a href="{{root}}features.html#extensions"><span>MCP · plugins · themes</span></a></div>
+    <div class="tools-row" style="margin:30px 0 0"><a href="{{root}}changelog.html#v1-7-0"><span>New in {{version}}: auto updates, safer agent, French &amp; Arabic</span></a><a href="{{root}}index.html#modes"><span>Plan / Ask / Auto</span></a><a href="{{root}}features.html#extensions"><span>MCP · plugins · themes</span></a></div>
   </div>
 </section>
 
@@ -101,7 +101,8 @@
         <li>{{icon:linux}}<span><b>Linux (x64) &amp; macOS</b><code class="block">curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh</code></span></li>
         <li>{{icon:windows}}<span><b>Windows 10/11</b> in PowerShell<code class="block">irm https://esoexe.github.io/astro-ai/install.ps1 | iex</code></span></li>
       </ul>
-      <p class="small muted">It goes into <code class="mono small">~/.astro-ai</code> (Windows: <code class="mono small">%LOCALAPPDATA%\Programs\AstroAI-CLI</code>). Run the same command again to update. To remove it: <code class="mono small">curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh -s -- --uninstall</code>, or on Windows set <code class="mono small">$env:ASTRO_UNINSTALL="1"</code> first. Read the scripts before running them: <a href="{{root}}install.sh">install.sh</a> · <a href="{{root}}install.ps1">install.ps1</a>.</p>
+      <p class="small muted">It goes into <code class="mono small">~/.astro-ai</code> (Windows: <code class="mono small">%LOCALAPPDATA%\Programs\AstroAI-CLI</code>). Update with <code class="mono small">astro update</code> (or run the same command again). To remove it: <code class="mono small">curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh -s -- --uninstall</code>, or on Windows set <code class="mono small">$env:ASTRO_UNINSTALL="1"</code> first. Read the scripts before running them: <a href="{{root}}install.sh">install.sh</a> · <a href="{{root}}install.ps1">install.ps1</a>.</p>
+      <p><b>Package managers:</b> Windows <code class="mono small">scoop bucket add astro-ai https://github.com/esoexe/astro-ai</code> then <code class="mono small">scoop install astro-ai</code> · macOS <code class="mono small">brew install --cask esoexe/tap/astro-ai</code> · Linux <code class="mono small">brew install esoexe/tap/astro-ai</code></p>
       <p>Every desktop download also includes <code class="mono small">astro</code>, the agent for your terminal: <code class="mono small">astro</code> in any folder, <code class="mono small">astro -p</code> for scripts, and <code class="mono small">astro parallel</code> to run several agents, each in an isolated copy. The .deb installs it as <code class="mono small">/usr/bin/astro</code>. On Windows, Setup adds it to your PATH. <a href="{{root}}docs.html#terminal">How to use it →</a></p>
     </div>
     <div class="card platform reveal" data-delay="1">

@@ -7,6 +7,21 @@
 <p align="center"><img src="website/src/static/assets/img/shots/chat-answer.webp" width="860" alt="A.S.T.R.O AI: a One Brain answer written by 19 models"></p>
 
 > **Downloads:** Windows, Linux and macOS builds are on the [download page](https://esoexe.github.io/astro-ai/download.html). They are the *Clean* edition and ship with no API keys.
+>
+> **Package managers:** `scoop bucket add astro-ai https://github.com/esoexe/astro-ai` then `scoop install astro-ai` (Windows) · `brew install --cask esoexe/tap/astro-ai` (macOS) · `brew install esoexe/tap/astro-ai` (Linux) · terminal only: `irm https://esoexe.github.io/astro-ai/install.ps1 | iex` or `curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh`
+
+### New in 1.7
+
+- **A more reliable agent:** no more empty file writes, a handover when a model stalls, and an honest *Needs attention* result (exit code 4) instead of a false "Done". 24/24 on our [12-task benchmark](bench/results/latest.md) with free models.
+- **Automatic updates** with SHA-256 checks; `astro update` in the terminal.
+- **Fastest answer first** in One Brain mode while the whole team keeps working.
+- **Get more free models** (Settings → Providers, or `/free-keys`): guided free keys for Groq, OpenRouter, Mistral and Cohere.
+- **Model health:** removed or renamed models are skipped for 24 hours instead of failing again and again.
+- **Safer:** the agent asks before risky commands (`ASTRO_ALLOW_RISKY=1` turns this off), and plugins show what they can do before installing.
+- **Problem reports** you read and send yourself (Settings → General, or `astro bug`); nothing is sent automatically.
+- **French and Arabic** interface, with right-to-left layout.
+
+Full notes: [changelog](https://esoexe.github.io/astro-ai/changelog.html#v1-7-0).
 
 ## About
 
@@ -296,6 +311,11 @@ The official A.S.T.R.O AI website lives in `website/`: static HTML, CSS and JS w
 `node website/build.js` builds it into `website/dist/`, the folder you deploy (Netlify, Cloudflare Pages, Vercel or GitHub Pages).
 Only the CLEAN desktop builds are copied into the site, and the build refuses to publish anything from the WITH-KEYS edition.
 See `website/README.md` for deploy steps. Set your domain in `website/site.json` first.
+
+## Community and support
+
+- **Questions, ideas, show and tell:** [GitHub Discussions](https://github.com/esoexe/astro-ai/discussions).
+- **Bugs:** [open an issue](https://github.com/esoexe/astro-ai/issues/new?labels=bug). In the app, Settings → General → *Report a problem* fills in your version and recent errors (scrubbed of keys, emails and your user name); in the terminal, run `astro bug`. Nothing is sent automatically.
 
 ## License
 

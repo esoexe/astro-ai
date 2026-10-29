@@ -9,6 +9,11 @@
 // code paths for Linux/macOS; Windows-only branches are marked with #ifdef _WIN32 where they are used.
 #pragma once
 
+// The app version reported by the engine (/api/status, update checks). Bumped with every release.
+#ifndef ASTRO_APP_VERSION
+#define ASTRO_APP_VERSION "1.7.0"
+#endif
+
 #if defined(_WIN32)
 #  ifndef _WIN32_WINNT
 #    define _WIN32_WINNT 0x0A00

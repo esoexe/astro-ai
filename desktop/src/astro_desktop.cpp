@@ -62,7 +62,7 @@ using namespace std::chrono_literals;
 
 namespace {
 
-constexpr const char* kVersion = "1.6.1";
+constexpr const char* kVersion = "1.7.0";
 
 // ------------------------------------------------------------------------------------------------
 // Small utilities
@@ -729,6 +729,29 @@ static int run_app() {
     });
     w.bind("astroOpenDataFolder", [&](const std::string&) -> std::string { os_open(pstr(cfg.data)); return "true"; });
     w.bind("astroGetInfo", [&](const std::string&) -> std::string { return info; });
+    // 1.7 updates: the engine downloads the installer into <data>/updates and checks its SHA-256 against the
+    // published latest.json; here we only start that file (it has to outlive the engine, which we own).
+    w.bind("astroRunUpdate", [&](const std::string& req) -> std::string {
+        const std::string name = safe_name(arg(req, 0));
+        const fs::path p = cfg.data / "updates" / upath(name);
+        std::error_code e3;
+        if (name.empty() || !fs::is_regular_file(p, e3)) return "{\"ok\":false,\"error\":\"The update file is missing. Download it again.\"}";
+#ifdef _WIN32
+        if (p.extension() != ".exe") return "{\"ok\":false,\"error\":\"Not an installer.\"}";
+        std::wstring cmd = L"\"" + p.wstring() + L"\" /S --launch";
+        STARTUPINFOW si{}; si.cb = sizeof(si); PROCESS_INFORMATION pi{};
+        BOOL ok = CreateProcessW(nullptr, cmd.data(), nullptr, nullptr, FALSE, CREATE_BREAKAWAY_FROM_JOB, nullptr, nullptr, &si, &pi);
+        if (!ok) ok = CreateProcessW(nullptr, cmd.data(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi);
+        if (!ok) return "{\"ok\":false,\"error\":\"Could not start the installer.\"}";
+        CloseHandle(pi.hThread); CloseHandle(pi.hProcess);
+        // Close now so the installer can replace our files; it starts the new version when it is done.
+        w.dispatch([&w] { w.terminate(); });
+        return "{\"ok\":true,\"restarting\":true}";
+#else
+        os_open(pstr(p));    // macOS mounts the DMG, Linux opens the package installer
+        return "{\"ok\":true,\"opened\":true}";
+#endif
+    });
     // Hidden self-test used by the build checks: ASTRO_DESKTOP_SELFTEST=<result file>.
     const std::string selftest = get_env("ASTRO_DESKTOP_SELFTEST");
     if (!selftest.empty()) {

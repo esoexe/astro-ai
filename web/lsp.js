@@ -51,7 +51,7 @@
         const init = await this.request('initialize', {
           processId: null, rootUri: this.root, rootPath: st.rootPath, workspaceFolders: [{ uri: this.root, name: this.project }],
           initializationOptions: st.initializationOptions,
-          clientInfo: { name: 'A.S.T.R.O AI', version: '1.6.0' },
+          clientInfo: { name: 'A.S.T.R.O AI', version: '1.7.0' },
           capabilities: {
             general: { positionEncodings: ['utf-16'] },
             workspace: { configuration: true, workspaceFolders: true, applyEdit: false, workspaceEdit: { documentChanges: true } },

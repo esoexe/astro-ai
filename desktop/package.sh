@@ -10,7 +10,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
-VER="1.6.1"
+VER="1.7.0"
 OUT="$ROOT/desktop-builds"
 WORK="$ROOT/.cache/pkg"
 TP="$ROOT/desktop/third_party"

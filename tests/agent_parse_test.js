@@ -36,4 +36,14 @@ ok(stripReasoningLeak('Normal answer about analysis.') === 'Normal answer about 
   ok(!/minimax|tool_call|invoke|parameter/.test(shown), 'MiniMax tool-call markup is hidden from the reply');
   ok(r.calls.length === 1 && r.calls[0].tool === 'read_file' && r.calls[0].path === 'src/a.js', 'MiniMax XML call becomes a real read_file call');
 }
+// 1.7: OpenAI-style native calls carry arguments as a JSON string (gpt-oss): the content must survive
+r = agParse(`${T}tool\n{"name":"write_file","arguments":"{\\"path\\":\\"a.js\\",\\"content\\":\\"let x = 1;\\"}"}\n${T}`);
+ok(r.calls.length === 1 && r.calls[0].tool === 'write_file' && r.calls[0].path === 'a.js' && r.calls[0].content === 'let x = 1;', 'string arguments (OpenAI style) are unpacked: write_file keeps its content');
+r = agParse(`${T}tool\n{"tool":"write_file","path":"b.txt","content":"","file_text":"hello"}\n${T}`);
+ok(r.calls[0].content === 'hello', 'an empty "content" does not hide the real text in an alias (file_text)');
+r = agParse(`${T}tool\n{"tool":"edit_file","path":"c.js","old_string":"a","new_string":""}\n${T}`);
+ok(r.calls[0].old_text === 'a' && r.calls[0].new_text === '', 'old_string/new_string aliases; an empty new_text stays empty');
+ok(/HANDOVER: the previous model stopped/.test(src) && /kept sending empty file writes/.test(src), 'a model that stops after failed steps hands the job to the next model');
+ok(/nothingDone/.test(src) && /Needs attention: nothing was changed/.test(src), 'a run whose file changes all failed is shown as Needs attention, never Done');
+ok(/AG_REASONING\.test/.test(src), 'leaked reasoning text is hidden on the Agent page');
 console.log(`${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

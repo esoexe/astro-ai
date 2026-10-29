@@ -123,7 +123,7 @@
     memory: (() => { const v = ls.json(KEYS.memory, []); return Array.isArray(v) ? v.filter((x) => x && typeof x.fact === 'string').map((x) => ({ id: str(x.id, 80) || makeId(), fact: x.fact.slice(0, 300), at: num(x.at) || Date.now() })).slice(0, 80) : []; })(),
     reminders: (() => { const v = ls.json(KEYS.reminders, []); return Array.isArray(v) ? v.filter((x) => x && typeof x.text === 'string' && num(x.at)).map((x) => ({ id: str(x.id, 80) || makeId(), text: x.text.slice(0, 200), at: num(x.at), fired: Boolean(x.fired) })).slice(0, 100) : []; })(),
     voice: (() => { const v = ls.json(KEYS.voice, {}) || {}; return { name: str(v.name, 200), rate: Math.min(Math.max(num(v.rate) || 1, 0.6), 1.6), autoSpeak: Boolean(v.autoSpeak) }; })(),
-    brain: (() => { const v = ls.json(KEYS.brain, {}) || {}; return { minds: v.minds === undefined || num(v.minds) === 0 ? 0 : Math.min(Math.max(num(v.minds), 2), 12), grace: Math.min(Math.max(num(v.grace) || 8, 2), 20), allowTrain: v.allowTrain !== false, waitAll: v.waitAll !== false }; })(),
+    brain: (() => { const v = ls.json(KEYS.brain, {}) || {}; return { minds: v.minds === undefined || num(v.minds) === 0 ? 0 : Math.min(Math.max(num(v.minds), 2), 12), grace: Math.min(Math.max(num(v.grace) || 8, 2), 20), allowTrain: v.allowTrain !== false, waitAll: v.waitAll !== false, fastFirst: v.fastFirst !== false }; })(),
     agent: ls.get(KEYS.agent, '1') !== '0', lastInputVoice: false,
     compareWith: null,
     theme: ['system', 'light', 'dark'].includes(ls.get(KEYS.theme, 'system')) ? ls.get(KEYS.theme, 'system') : 'system',
@@ -552,7 +552,8 @@
     const ready = readyCount();
     $('#model-switch-label').textContent = state.model === 'brain' ? (list.length ? `One Brain · ${brainSizeLabel(false)} together` : 'One Brain') : state.model === 'auto' ? (list.length ? `Auto · fastest of ${ready}` : 'Auto') : modelName(state.model);
     $('#live-brain-label') && ($('#live-brain-label').textContent = live.brain ? `One Brain · ${brainSizeLabel(true)}` : 'Fast');
-    $('#sidebar-mode').textContent = list.length ? `Brain · ${ready}/${list.length} models · ${connected} platforms` : (state.status.configured ? 'Live model' : 'Demo mode');
+    $('#sidebar-mode').textContent = list.length ? `Using ${ready} models · ${connected} platforms` : (state.status.configured ? 'Live model' : 'Demo mode');
+    $('#brain-status').title = list.length ? `One Brain uses ${ready} of ${list.length} models right now (${list.length - ready} resting or limited). Add free keys in Settings → Providers for more.` : 'Brain: free model platforms';
     const dot = $('#brain-dot');
     dot.className = `pulse-dot${list.length ? (ready ? ' on' : ' warn') : ''}`;
     updateComposerChips();
@@ -695,6 +696,9 @@
       return `${partial}<div class="error-card"><div><strong>Couldn't get an answer</strong>${esc(d.error || 'Something went wrong.')}${byok ? '' : `<div><button type="button" class="btn small" data-act="retry">${icon('i-redo')}Try again</button></div>`}</div></div>${byok}`;
     }
     const shown = extractActions(stripConfidence(d.content)).clean;
+    const early = d.early && d.status === 'streaming' && d.brain && d.brain.phase !== 'done' && state.brain.fastFirst !== false;
+    // One Brain: the first finished draft stays on screen until the team's answer has caught up with it.
+    if (early && shown.length < Math.min(900, d.early.content.length * 0.6)) return earlyHtml(d);
     if (!shown && d.status === 'streaming') return d.brain && d.brain.phase !== 'done' ? '' : waitingHtml(d);
     let html = renderMarkdown(shown);
     if (d.status === 'streaming') html = /<\/p>$/.test(html) ? `${html.slice(0, -4)}<span class="cursor"></span></p>` : `${html}<span class="cursor"></span>`;
@@ -1301,7 +1305,7 @@
         await runGeneration(ai, [state.model]);
         break;
       }
-      case 'byok': openSettings('providers'); break;
+      case 'byok': openGuide(); break;
       case 'copy': copyText(textOf(msg)); break;
       case 'up': case 'down':
         msg.feedback = msg.feedback === act ? null : act;
@@ -1377,6 +1381,7 @@
     { cmd: '/lab', desc: 'Open Model Lab (test models)', run: () => switchView('lab') },
     { cmd: '/read', desc: 'Open the Reader', run: () => switchView('reader') },
     { cmd: '/keys', desc: 'Providers & keys', run: () => openSettings('providers') },
+    { cmd: '/free-keys', desc: 'Get more free models (guided, about a minute each)', run: () => openGuide() },
     { cmd: '/general', desc: 'General mode', run: () => setMode('general') },
     { cmd: '/write', desc: 'Writing mode', run: () => setMode('writing') },
     { cmd: '/tutor', desc: 'Tutor mode', run: () => setMode('tutor') },
@@ -1824,11 +1829,16 @@
         <div class="set-row"><div class="lbl"><b>Theme</b><small>Colour themes are in <a href="#" id="set-to-appearance">Appearance</a></small></div><div class="seg" id="set-theme">${['system', 'light', 'dark'].map((t) => `<button type="button" class="seg-btn${state.theme === t ? ' active' : ''}" data-v="${t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('')}</div></div>
         <div class="set-row"><div class="lbl"><b>Text size</b></div><div class="seg" id="set-density">${['compact', 'normal', 'large'].map((t) => `<button type="button" class="seg-btn${state.density === t ? ' active' : ''}" data-v="${t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('')}</div></div>
         <div class="set-row"><div class="lbl"><b>Response language</b><small>Sent to the model as an instruction</small></div><select class="input" id="set-lang">${Object.entries(LANGS).map(([id, l]) => `<option value="${id}"${state.language === id ? ' selected' : ''}>${id === 'auto' ? 'Match my message' : l}</option>`).join('')}</select></div>
-        <div class="set-row"><div class="lbl"><b>Enter sends message</b><small>Off: use Ctrl+Enter to send, Enter for a new line</small></div><label class="switch"><input type="checkbox" id="set-enter"${state.enterSends ? ' checked' : ''}><span></span></label></div>`;
+        <div class="set-row"><div class="lbl"><b>Enter sends message</b><small>Off: use Ctrl+Enter to send, Enter for a new line</small></div><label class="switch"><input type="checkbox" id="set-enter"${state.enterSends ? ' checked' : ''}><span></span></label></div>
+        <div class="set-row"><div class="lbl"><b>Interface language</b><small>Menus and buttons. Answers follow “Response language”.</small></div><select class="input" id="set-uilang" data-no-i18n>${Object.entries(window.AstroI18n?.LANGS || { en: 'English' }).map(([id, l]) => `<option value="${id}"${(window.AstroI18n?.get() || 'en') === id ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></div>
+        <div class="set-row"><div class="lbl"><b>Updates</b><small id="set-upd-note">Version ${esc((window.__ASTRO_DESKTOP__ || {}).version || state.status?.version || '')}. A.S.T.R.O AI checks the website for new versions (nothing about you is sent).</small></div><button type="button" class="btn small" id="set-upd">Check now</button></div>
+        <div class="set-row"><div class="lbl"><b>Report a problem</b><small>Opens a GitHub issue form, filled in with your version and recent errors. You read it and send it yourself; nothing is sent automatically.</small></div><button type="button" class="btn small" id="set-report">Report…</button></div>
+        <div class="set-row"><div class="lbl"><b>Questions and ideas</b><small>Ask the community, suggest features and share what you built.</small></div><a class="btn ghost" href="https://github.com/esoexe/astro-ai/discussions" target="_blank" rel="noopener">Discussions ↗</a></div>`;
     }
     if (tab === 'brain') {
       return `<div class="set-row"><div class="lbl"><b>Minds per answer</b><small>How many models think at the same time. All = every free model that is available right now (uses the most free quota)</small></div><div class="seg" id="set-minds">${[3, 4, 6, 8, 0].map((n) => `<button type="button" class="seg-btn${state.brain.minds === n ? ' active' : ''}" data-v="${n}">${n || `All (${pickMinds(Infinity).length})`}</button>`).join('')}</div></div>
         <div class="set-row"><div class="lbl"><b>Wait for every mind</b><small>All mode: every model runs and finishes before the merge (none skipped for being slow). Busy or rate-limited models wait their turn and retry. Answers take longer.</small></div><label class="switch"><input type="checkbox" id="set-waitall"${state.brain.waitAll !== false ? ' checked' : ''}><span></span></label></div>
+        <div class="set-row"><div class="lbl"><b>Show the fastest answer first</b><small>While the team works, the first finished draft is shown right away (labelled), then replaced by the team's answer.</small></div><label class="switch"><input type="checkbox" id="set-fastfirst"${state.brain.fastFirst !== false ? ' checked' : ''}><span></span></label></div>
         <div class="set-row"><div class="lbl"><b>Patience</b><small>When “Wait for every mind” is off (or for Live voice): how long to wait for slower minds after the first one answers</small></div><div class="seg" id="set-grace">${[4, 8, 12, 20].map((n) => `<button type="button" class="seg-btn${state.brain.grace === n ? ' active' : ''}" data-v="${n}">${n}s</button>`).join('')}</div></div>
         <div class="set-row"><div class="lbl"><b>Check code in the background</b><small>After a coding answer is shown, A.S.T.R.O AI quietly compiles or runs the code (only self-contained code, 6 s limit, on this computer). If it fails, a coder model fixes it, and the fix is added only if it passes the check.</small></div><label class="switch"><input type="checkbox" id="set-bgcheck"${bgCheckOn() ? ' checked' : ''}><span></span></label></div>
         <div class="set-row"><div class="lbl"><b>A.S.T.R.O AI actions</b><small>Let the AI create notes, tasks, reminders and memories, and change settings when you ask</small></div><label class="switch"><input type="checkbox" id="set-agent"${state.agent ? ' checked' : ''}><span></span></label></div>
@@ -1876,6 +1886,7 @@
     }
     if (tab === 'brain') {
       const saveBrain = () => { ls.set(KEYS.brain, JSON.stringify(state.brain)); updateStatus({}); };
+      $('#set-fastfirst')?.addEventListener('change', (e) => { state.brain.fastFirst = e.target.checked; saveBrain(); });
       $('#set-waitall')?.addEventListener('change', (e) => { state.brain.waitAll = e.target.checked; saveBrain(); toast(e.target.checked ? 'Every mind will finish before the merge' : 'Slow minds may be skipped for speed'); });
       $$('#set-minds .seg-btn').forEach((b) => b.addEventListener('click', () => { state.brain.minds = Number(b.dataset.v); saveBrain(); openSettings('brain'); }));
       $$('#set-grace .seg-btn').forEach((b) => b.addEventListener('click', () => { state.brain.grace = Number(b.dataset.v); saveBrain(); openSettings('brain'); }));
@@ -1894,6 +1905,15 @@
       $$('#set-density .seg-btn').forEach((b) => b.addEventListener('click', () => { setDensity(b.dataset.v); openSettings('general'); }));
       $('#set-lang').addEventListener('change', (e) => setLanguage(e.target.value));
       $('#set-enter').addEventListener('change', (e) => { state.enterSends = e.target.checked; ls.set(KEYS.enter, state.enterSends ? '1' : '0'); });
+      $('#set-report')?.addEventListener('click', () => openReport());
+      $('#set-uilang')?.addEventListener('change', (e) => { window.AstroI18n?.set(e.target.value); openSettings('general'); });
+      $('#set-upd')?.addEventListener('click', async (e) => {
+        const b = e.currentTarget; b.disabled = true; b.textContent = 'Checking…';
+        const st = await checkUpdates(true);
+        b.disabled = false; b.textContent = 'Check now';
+        const n = $('#set-upd-note'); if (!n) return;
+        n.textContent = !st ? 'Could not reach the update server. Try again later.' : st.available ? `Version ${st.latest} is available (you have ${st.current}). See the banner at the top.` : st.error ? `Could not check: ${st.error}` : `You have the latest version (${st.current}).`;
+      });
     }
     if (tab === 'brain') {
       $('#refresh-brain').addEventListener('click', async () => { await refreshStatus(); openSettings('brain'); toast('Brain status refreshed'); });
@@ -3371,7 +3391,10 @@
   }
   function earlyHtml(d) {
     const shown = extractActions(d.early.content).clean;
-    return `<div class="early"><div class="early-head">${icon('i-bolt')}<span>First answer from <b>${esc(d.early.name)}</b> · the other minds are still checking it</span></div><div class="md" dir="auto">${renderMarkdown(shown)}</div></div>`;
+    const b = d.brain || {};
+    const working = (b.minds || []).filter((m) => !['failed', 'cut', 'resting'].includes(m.status)).length;
+    const what = b.phase === 'final' ? 'writing the team answer' : b.phase === 'review' ? 'reviewers are checking it' : b.phase === 'merging' ? `merging ${working} drafts` : `refining with ${working} models`;
+    return `<div class="early"><div class="early-head">${icon('i-bolt')}<span>Quick answer from <b>${esc(d.early.name)}</b> · ${esc(what)}…</span><span class="early-spin" aria-hidden="true"></span></div><div class="md" dir="auto">${renderMarkdown(shown)}</div></div>`;
   }
 
   // ---------- code runner (sandboxed iframe, no access to A.S.T.R.O AI or your data) ----------
@@ -3415,6 +3438,52 @@
       paintProviders();
     } catch (error) { const b = $('#prov-box'); if (b) b.innerHTML = `<p class="hint">Couldn't load providers: ${esc(error.message)}</p>`; }
   }
+  // ---------- Guided free keys (1.7): four providers with real free tiers, one paste each ----------
+  const GUIDE = [
+    { id: 'groq', why: 'Very fast answers', how: 'Sign in, open API Keys, Create API Key.' },
+    { id: 'openrouter', why: 'Many free models in one key', how: 'Sign in, Keys, Create Key (no card needed for :free models).' },
+    { id: 'mistral', why: 'Strong code models (Codestral)', how: 'Choose the free Experiment plan (phone check), then API Keys, Create new key.' },
+    { id: 'cohere', why: 'Good in Arabic and French', how: 'Sign in, API Keys: a trial key is created for you.' },
+  ];
+  const guideMsg = {};
+  function guidedHtml() {
+    const provs = keysCache?.providers || [];
+    const rows = GUIDE.map((g) => {
+      const p = provs.find((x) => x.id === g.id); if (!p) return '';
+      const msg = guideMsg[g.id];
+      return `<li class="guide-row ${p.connected ? 'on' : ''}"><div class="guide-head"><b>${esc(p.name)}</b><span class="pbadge ${p.connected ? 'on' : 'off'}">${p.connected ? 'connected' : `+${p.models_total || p.models || ''} models`}</span><span class="grow"></span>${/^https:\/\//.test(p.signup || '') ? `<a class="btn small" href="${esc(p.signup)}" target="_blank" rel="noopener noreferrer">1 · Get a free key ↗</a>` : ''}</div>
+        <small>${esc(g.why)} · ${esc(p.limits || '')}</small><small class="hint">${esc(g.how)}</small>
+        ${p.connected ? '' : `<div class="key-line"><input class="input" type="password" autocomplete="off" data-guide-key="${esc(g.id)}" placeholder="2 · Paste the ${esc(p.name)} key here" aria-label="${esc(p.name)} key"><button type="button" class="btn small primary" data-guide-save="${esc(g.id)}">3 · Save &amp; test</button></div>`}
+        ${msg ? `<small class="test-out ${msg.ok ? 'ok' : 'bad'}">${esc(msg.text)}</small>` : ''}</li>`;
+    }).join('');
+    const left = GUIDE.filter((g) => !provs.find((x) => x.id === g.id)?.connected).length;
+    if (!rows || (!left && !Object.keys(guideMsg).length)) return '';
+    return `<div class="box guide-card" id="guide-card"><div class="prov-head">${icon('i-bolt')}<h3>Get more free models</h3><span class="grow"></span><small>${left ? `${left} of ${GUIDE.length} not connected` : 'All connected'}</small></div>
+      <p class="hint">Each key is free and takes about a minute. More keys = more minds in One Brain and fewer "limit reached" pauses. Free tiers have daily limits; they are not unlimited. Keys stay on your computer.</p>
+      <ul class="guide-list">${rows}</ul></div>`;
+  }
+  async function guideSave(id, btn) {
+    const p = (keysCache?.providers || []).find((x) => x.id === id); if (!p) return;
+    const input = $(`input[data-guide-key="${CSS.escape(id)}"]`, el.modal); const v = (input?.value || '').trim();
+    if (!v) { toast('Paste the key first'); input?.focus(); return; }
+    if (v.length < 16 || /\s/.test(v)) { guideMsg[id] = { ok: false, text: 'That does not look like an API key. Copy the whole key and paste it again.' }; paintProviders(); return; }
+    btn.disabled = true; btn.textContent = 'Saving…';
+    const before = readyCount();
+    await saveKey(p.key, v);
+    let ok = false; let text = '';
+    try {
+      const j = await apiJson('/api/keys/test', { provider: id });
+      ok = !!j.ok;
+      const gain = readyCount() - before;
+      text = ok ? `✓ Works: ${j.model} replied in ${fmtSecs(j.ms)}. ${gain > 0 ? `+${gain} models, ` : ''}${readyCount()} models ready now.` : `✗ Saved, but the test failed: ${j.error}. Check that the key was copied whole.`;
+    } catch (e) { text = `✗ ${e.message}`; }
+    guideMsg[id] = { ok, text };
+    if (!keysCache || !$('#prov-box')) return;
+    try { keysCache = await apiJson('/api/keys', null, 'GET'); } catch (_e) { /* keep */ }
+    paintProviders();
+  }
+  function openGuide() { openSettings('providers'); setTimeout(() => $('#guide-card')?.scrollIntoView({ block: 'start', behavior: 'smooth' }), 400); }
+
   let provKind = 'all';
   function paintProviders() {
     const b = $('#prov-box');
@@ -3445,7 +3514,7 @@
     const astroCard = ap ? `<div class="box astro-key-card"><div class="prov-head">${icon('i-spark')}<h3>A.S.T.R.O API key</h3>${ap.connected ? '<span class="pbadge on">connected</span>' : '<span class="pbadge off">not set</span>'}<span class="grow"></span>${ap.connected ? '<button type="button" class="btn small" data-prov-test="astro">' + icon('i-bolt') + 'Test</button>' : ''}</div>
       <p class="hint">One key for every provider you saved in your <a href="${esc(ap.signup || 'https://esoexe.github.io/astro-ai/profile')}" target="_blank" rel="noopener noreferrer">A.S.T.R.O account</a> (Account → API keys → Create key; it starts with <code>astro_sk_</code>). <b>A.S.T.R.O auto</b> fails over across your free providers, and <b>A.S.T.R.O API: pick any model</b> lists all of your account's models for manual picking. Limit: 5,000 requests/day.</p>
       <div class="key-line"><code>ASTRO_API_KEY</code><input class="input" type="password" autocomplete="off" data-key-name="ASTRO_API_KEY" placeholder="${ap.key_set ? '•••••• saved (' + esc(ap.key_source || 'server') + ')' : 'astro_sk_…'}"><button type="button" class="btn small" data-key-save="ASTRO_API_KEY">Save</button>${ap.key_source === 'app' ? '<button type="button" class="btn small ghost" data-key-clear="ASTRO_API_KEY">Remove</button>' : ''}</div><small class="test-out" id="test-astro"></small></div>` : '';
-    b.innerHTML = `${astroCard}<div class="stat-grid"><div class="stat"><strong>${(keysCache.providers || []).filter((p) => p.connected).length}/${(keysCache.providers || []).length}</strong><span>platforms connected</span></div><div class="stat"><strong>${totals.ok}/${totals.req}</strong><span>requests ok today (UTC)</span></div><div class="stat"><strong>${readyCount()}</strong><span>models ready now</span></div></div>
+    b.innerHTML = `${guidedHtml()}${astroCard}<div class="stat-grid"><div class="stat"><strong>${(keysCache.providers || []).filter((p) => p.connected).length}/${(keysCache.providers || []).length}</strong><span>platforms connected</span></div><div class="stat"><strong>${totals.ok}/${totals.req}</strong><span>requests ok today (UTC)</span></div><div class="stat"><strong>${readyCount()}</strong><span>models ready now</span></div></div>
       <div class="btn-row"><button type="button" class="btn" id="prov-test-all">${icon('i-bolt')}Test all connected</button><button type="button" class="btn ghost" id="prov-reload">${icon('i-redo')}Refresh</button></div>
       <div class="prov-kinds" role="tablist">${[['all', 'All'], ['free', 'Free'], ['paid', 'Paid'], ['local', 'Local']].map(([k, l]) => `<button type="button" class="chip${provKind === k ? ' on' : ''}" data-prov-kind="${k}">${l} <small>${(keysCache.providers || []).filter((p) => k === 'all' || (k === 'paid' ? p.paid : k === 'local' ? p.local : !p.paid && !p.local)).length}</small></button>`).join('')}</div>
       <ul class="prov-list">${rows || '<li class="hint">No provider matches.</li>'}</ul>
@@ -3486,6 +3555,8 @@
     $('#prov-filter').addEventListener('input', paintProviders);
     if (el.modal._prov) el.modal.removeEventListener('click', el.modal._prov);
     el.modal._prov = async (e) => {
+      const gs = e.target.closest('[data-guide-save]');
+      if (gs) { await guideSave(gs.dataset.guideSave, gs); return; }
       const save = e.target.closest('[data-key-save]');
       if (save) { const name = save.dataset.keySave; const input = $(`input[data-key-name="${CSS.escape(name)}"]`, el.modal); const v = input.value.trim(); if (!v) { toast('Paste the key first'); input.focus(); return; } save.disabled = true; await saveKey(name, v); return; }
       const clear = e.target.closest('[data-key-clear]');
@@ -6081,20 +6152,28 @@
     const out = parts.map((p) => agJson(p));
     return out.every(Boolean) ? out : [];
   }
+  const AG_REASONING = /^\s*(we (need|should|must|might|have to|can|could|will need|'ll need)\b|the user (wants|asks|is asking|said|requested)\b|i need to (figure|think|check whether)\b|let me think\b|ok(ay)?,? so\b|hmm\b|thinking:)/i;
   function agNorm(c) {
     const o = { ...c }; let t = String(o.tool || o.name || o.action || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
-    if (o.arguments && typeof o.arguments === 'object') Object.assign(o, o.arguments);
-    if (o.args && typeof o.args === 'object' && !Array.isArray(o.args)) Object.assign(o, o.args);
+    // Arguments arrive as an object, or (OpenAI-style native calls, e.g. gpt-oss) as a JSON *string*: unpack both,
+    // otherwise a write_file's content is silently lost and the write looks empty.
+    for (const k of ['arguments', 'args', 'parameters', 'params', 'input']) {
+      let v = o[k];
+      if (typeof v === 'string' && /^\s*\{/.test(v)) { try { v = JSON.parse(v); } catch (_e) { v = null; } }
+      if (v && typeof v === 'object' && !Array.isArray(v)) for (const [ik, iv] of Object.entries(v)) if (o[ik] === undefined || o[ik] === '' || o[ik] === null) o[ik] = iv;
+    }
+    // first non-empty value among the aliases ("" from one key must not hide the real value in another)
+    const pick = (...ks) => { for (const k of ks) { const v = o[k]; if (v !== undefined && v !== null && String(v).trim() !== '') return v; } for (const k of ks) if (o[k] !== undefined && o[k] !== null) return o[k]; return ''; };
     t = AG_ALIAS[t] || t; o.tool = t;
-    if (t === 'bash') o.command = o.command ?? o.cmd ?? o.script ?? o.code ?? '';
-    if (['read_file', 'write_file', 'edit_file', 'delete_file', 'present', 'list_files'].includes(t)) o.path = cleanPath(o.path ?? o.file ?? o.filename ?? o.file_path ?? o.target ?? '');
-    if (t === 'write_file') o.content = o.content ?? o.text ?? o.data ?? o.code ?? '';
-    if (t === 'edit_file') { o.old_text = o.old_text ?? o.old_str ?? o.old ?? o.search ?? o.find ?? ''; o.new_text = o.new_text ?? o.new_str ?? o.new ?? o.replace ?? o.replacement ?? ''; }
-    if (t === 'search' || t === 'web_search') o.query = o.query ?? o.q ?? o.pattern ?? o.text ?? '';
-    if (t === 'fetch_page') o.url = o.url ?? o.link ?? o.href ?? '';
-    if (t === 'start_server') o.command = o.command ?? o.cmd ?? '';
-    if (t === 'ask_user') { o.question = o.question ?? o.text ?? o.prompt ?? ''; if (!Array.isArray(o.options)) o.options = []; }
-    if (t === 'remember') o.fact = o.fact ?? o.text ?? o.memory ?? '';
+    if (t === 'bash') o.command = pick('command', 'cmd', 'script', 'code');
+    if (['read_file', 'write_file', 'edit_file', 'delete_file', 'present', 'list_files'].includes(t)) o.path = cleanPath(pick('path', 'file', 'filename', 'file_path', 'filepath', 'target'));
+    if (t === 'write_file') o.content = pick('content', 'contents', 'file_text', 'text', 'data', 'code', 'new_content', 'file_content', 'body', 'source');
+    if (t === 'edit_file') { o.old_text = pick('old_text', 'old_str', 'old_string', 'old', 'search', 'find'); o.new_text = pick('new_text', 'new_str', 'new_string', 'new', 'replace', 'replacement'); }
+    if (t === 'search' || t === 'web_search') o.query = pick('query', 'q', 'pattern', 'text');
+    if (t === 'fetch_page') o.url = pick('url', 'link', 'href');
+    if (t === 'start_server') o.command = pick('command', 'cmd');
+    if (t === 'ask_user') { o.question = pick('question', 'text', 'prompt'); if (!Array.isArray(o.options)) o.options = []; }
+    if (t === 'remember') o.fact = pick('fact', 'text', 'memory');
     return o;
   }
   const AG_NATIVE_MARK = /\]<\][a-z0-9_:-]*\[>\[|\]~[a-z]\]|<\|[a-z0-9_]+\|>|\[TOOL_CALLS\]|<\/?(?:minimax:)?tool_call>|<\/?(?:antml:)?function_calls>|<\/?(?:antml:)?invoke[^>]*>|<\/?tool_calls?_?(?:begin|end|section)?[^>]*>/gi;
@@ -6445,6 +6524,9 @@
       let noCall = 0; let fails = new Map(); let toolsUsed = 0;
       // Verification guard: files changed since the last command ran → the job is not checked yet.
       let unverified = false; let verifyNudges = 0; let failing = ''; let lastCheck = null;
+      // Honesty guards: a run whose file changes all failed, or that stops right after a failed step, is not "Done".
+      let handovers = 0; let mutOk = 0; let mutFail = 0; let emptyWrites = 0; let lastBatchErr = false; let endedNoDone = false;
+      const nextModel = (why) => { const n = Math.max(1, agCands().length); s.pref = ((s.pref || 0) + 1) % n; agPush(s, { kind: 'note', text: `Switching to another model: ${why}` }); };
       const VERIFY_MSG = 'VERIFY FIRST: you changed files but have not run anything since, so nothing is checked yet. Run the tests or the program now (for example the project\'s test command) with bash and read the output. Fix what fails. Only send the ```done block after a real run shows it works, and report the real result.';
       for (let step = 0; step < limit; step++) {
         if (signal.aborted) throw new DOMException('stopped', 'AbortError');
@@ -6461,6 +6543,8 @@
         if (reply === null) throw new DOMException('stopped', 'AbortError');
         s.steps++;
         const parsed = agParse(reply);
+        // Some models think out loud in the visible text ("We need to...", "The user wants..."): never show that (same rule as the engine).
+        if (parsed.calls.length && AG_REASONING.test(String(parsed.text || '').slice(0, 200))) parsed.text = '';
         say.text = parsed.text; say.live = false; say.writing = false; say.v++;
         if (!say.text && parsed.calls.length) { s.items.splice(s.items.indexOf(say), 1); }
         s.convo.push({ role: 'assistant', content: reply });
@@ -6468,7 +6552,18 @@
           // A model that only describes what it will do (no tool call, no done block) before acting at all hands over to
           // the next model, with one extra try, so a chatty model cannot end the job with nothing done.
           if (parsed.done && unverified && verifyNudges < 2) { verifyNudges++; s.convo.push({ role: 'user', content: VERIFY_MSG }); agPush(s, { kind: 'note', text: 'Checking the work before finishing.' }); agPaint(s); continue; }
-          if (parsed.done || ++noCall >= (toolsUsed ? 2 : 3)) { finished = true; report = parsed.text || parsed.done?.summary || ''; if (say.text && parsed.done) say.final = true; break; }
+          if (parsed.done || ++noCall >= (toolsUsed ? 2 : 3)) {
+            // Stopping without a done block while the job is plainly not done (the last actions failed, or every file
+            // change failed): hand the job to the next model instead of calling it finished.
+            const stuck = !parsed.done && (lastBatchErr || (mutFail > 0 && mutOk === 0));
+            if (stuck && handovers < 2 && agCands().length > 1) {
+              handovers++; noCall = 0;
+              s.convo.push({ role: 'user', content: 'HANDOVER: the previous model stopped before the job was done (its last actions failed or nothing was changed). You are taking over now: read the TOOL RESULTS above, continue the JOB with tool calls (put the whole file in "content" for write_file), verify, and finish with the done block.' });
+              nextModel('the last one stopped before the job was done.'); agPaint(s); continue;
+            }
+            endedNoDone = !parsed.done;
+            finished = true; report = parsed.text || parsed.done?.summary || ''; if (say.text && parsed.done) say.final = true; break;
+          }
           s.convo.push({ role: 'user', content: 'TOOL RESULTS: (none — your reply had no tool call.) Continue the job with tool calls in ```tool blocks, or, if the job is completely done and verified, reply with the report and the ```done block.' });
           if (!toolsUsed) s.pref = ((s.pref || 0) + 1) % Math.max(1, agCands().length);
           agPaint(s); continue;
@@ -6498,6 +6593,8 @@
           if (call.tool === 'ask_user' || call.tool === 'present') ti.open = true;
           ti.v++; s.tools++;
           if (ti.status === 'err') batchErr = true;
+          if (['write_file', 'edit_file', 'delete_file'].includes(call.tool) && !gateBlocked(ti) && ti.error !== 'Stopped') { if (ti.status === 'ok') mutOk++; else mutFail++; }
+          if (call.tool === 'write_file' && ti.status === 'err' && /has no "content"/.test(ti.error || '') && ++emptyWrites >= 2 && agCands().length > 1) { emptyWrites = 0; nextModel('the last one kept sending empty file writes.'); }
           if (['write_file', 'edit_file', 'delete_file'].includes(call.tool) && ti.status === 'ok') unverified = true;
           if (call.tool === 'bash' && ti.status !== 'err' && !gateBlocked(ti)) unverified = false;
           // only test / build / lint commands count as the check (same rule as the engine)
@@ -6509,6 +6606,7 @@
           agPaint(s); agSave(s);
         }
         if (parsed.calls.length > 6) results.push(`(Only the first 6 tool calls ran; send the rest in the next reply.)`);
+        lastBatchErr = batchErr;
         s.convo.push({ role: 'user', content: `TOOL RESULTS:\n${results.join('\n\n')}` });
         if (parsed.done && !signal.aborted) {
           // A done block sent together with tool calls was written before the model saw their results: never accept it as is.
@@ -6571,9 +6669,13 @@
         if (!via) via = [...s.items].reverse().find((it) => it.kind === 'say' && it.model)?.model || '';
         // Like the engine: a run whose last check still fails (or whose report says it failed) is not shown as a plain success.
         const isPlan = window.AstroDev?.mode?.(s) === 'plan';
-        const attention = !isPlan && (!!failing || /^\s*(failed|could not|couldn't|unable to|i was unable|i could not)\b/i.test(String(report)));
+        const nothingDone = !isPlan && !changes.length && mutFail > 0;
+        const brokeOff = !isPlan && endedNoDone && lastBatchErr;
+        const attention = !isPlan && (!!failing || nothingDone || brokeOff || /^\s*(failed|could not|couldn't|unable to|i was unable|i could not)\b/i.test(String(report)));
         agPush(s, { kind: 'done', text: report, files: changes.length, steps: s.steps, ms: Math.round(s.ms + performance.now() - s._started), model: via, attention, check: lastCheck ? (lastCheck.ok ? 'pass' : 'fail') : '', checkCmd: lastCheck?.cmd || '', mode: window.AstroDev?.mode?.(s) || '', team: !!s.team, at: Date.now() });
         if (attention && failing) agPush(s, { kind: 'note', text: `Needs attention: the last check still fails (${failing}). Review the changes before using them, or send a follow-up asking the agent to fix it.` });
+        else if (nothingDone) agPush(s, { kind: 'note', text: 'Needs attention: nothing was changed. Every file change the agent tried failed. Send "continue" or try again; a different model will pick it up.' });
+        else if (brokeOff) agPush(s, { kind: 'note', text: 'Needs attention: the agent stopped right after a failed step without fixing it. Check the red steps above, then send "continue".' });
         if (window.AstroDev?.mode?.(s) === 'plan') agPush(s, { kind: 'note', text: 'Plan mode: nothing was changed. Review the plan, then run it.', runPlan: true });
         // Honesty check: files changed after the last real run, so any "tests pass" in the report is unproven.
         else if (unverified && changes.length) agPush(s, { kind: 'note', text: /\b(tests?|specs?)\b[^.\n]{0,40}\b(pass|passed|passing|green|succeed)|\bverified\b|\bworks\b/i.test(String(report)) ? 'Heads up: the report says the work was checked, but nothing was run after the last change. Treat it as untested and run it yourself, or press Continue so the agent tests it.' : 'Nothing was run after the last change, so this result is not tested yet. Press Continue to let the agent test it.', cont: true });
@@ -7526,9 +7628,114 @@
     },
     toast,
   };
+  // ===========================================================================================
+  // Updates (1.7): the engine reads the site's latest.json (no data about you is sent). A quiet banner
+  // offers the new version; the desktop CLEAN build downloads it, checks the SHA-256 and installs it.
+  // ===========================================================================================
+  const UPD_SKIP = 'astro.update.skip';
+  const SITE_URL = 'https://esoexe.github.io/astro-ai';
+  const upd = { busy: false, last: null };
+  function updPlatform() {
+    const d = window.__ASTRO_DESKTOP__;
+    if (d && d.platform) return d.platform;
+    const ua = navigator.userAgent;
+    return /Windows/.test(ua) ? 'windows' : /Mac/.test(ua) ? 'macos' : 'linux';
+  }
+  function updAssetKey(st) {
+    const a = st.assets || {}; const p = updPlatform();
+    if (p === 'windows') return a['windows-setup'] ? 'windows-setup' : 'windows-portable';
+    if (p === 'macos') return 'macos-dmg';
+    return a['linux-deb'] ? 'linux-deb' : 'linux-portable';
+  }
+  function updCanInstall(st) {
+    const d = window.__ASTRO_DESKTOP__; const key = updAssetKey(st);
+    return !!(d && d.edition === 'clean' && typeof window.astroRunUpdate === 'function' && (st.assets || {})[key] && key !== 'windows-portable' && key !== 'linux-portable');
+  }
+  async function checkUpdates(force = false) {
+    let st;
+    try { st = await apiJson('/api/update/check' + (force ? '?force=1' : ''), null, 'GET'); } catch (_e) { return null; }
+    upd.last = st;
+    if (st.available && (force || localStorage.getItem(UPD_SKIP) !== st.latest)) showUpdateBanner(st);
+    return st;
+  }
+  async function updInstall(st, btn, note) {
+    if (upd.busy) return; upd.busy = true;
+    const key = updAssetKey(st);
+    try {
+      btn.disabled = true; note.textContent = 'Downloading and checking the file…';
+      const r = await apiJson('/api/update/download', { asset: key });
+      note.textContent = 'Verified (SHA-256 matches the published file). Starting the installer…';
+      const res = JSON.parse(await window.astroRunUpdate(r.name) || '{}');
+      if (!res.ok) throw new Error(res.error || 'Could not start the installer');
+      note.textContent = res.restarting ? 'Installing. A.S.T.R.O AI will reopen by itself in a moment.' : 'The installer is open. Follow it to finish, then reopen A.S.T.R.O AI.';
+    } catch (e) {
+      note.textContent = ''; btn.disabled = false;
+      toast('Update failed: ' + e.message, 'error');
+    } finally { upd.busy = false; }
+  }
+  function showUpdateBanner(st) {
+    document.getElementById('update-banner')?.remove();
+    const bar = document.createElement('div');
+    bar.id = 'update-banner'; bar.className = 'update-banner'; bar.setAttribute('role', 'status');
+    const hl = (st.highlights || []).slice(0, 3).map((h) => `<li>${esc(h)}</li>`).join('');
+    const mgr = st.manager === 'scoop' ? 'scoop update astro-ai' : st.manager === 'homebrew' ? 'brew upgrade astro-ai' : '';
+    const can = !mgr && updCanInstall(st);
+    const terminal = !mgr && !window.__ASTRO_DESKTOP__;
+    bar.innerHTML = `<div class="ub-text"><b>A.S.T.R.O AI ${esc(st.latest)} is available</b> <span class="ub-dim">You have ${esc(st.current)}${st.date ? ' · released ' + esc(st.date) : ''}</span>
+      ${hl ? `<ul class="ub-hl">${hl}</ul>` : ''}
+      ${terminal ? '<span class="ub-dim">Terminal install: run <code>astro update</code></span>' : ''}${mgr ? `<span class="ub-dim">Installed with ${st.manager === 'scoop' ? 'Scoop' : 'Homebrew'}: run <code>${mgr}</code></span>` : ''}<span class="ub-note" aria-live="polite"></span></div>
+      <div class="ub-actions">
+        ${mgr ? '' : can ? `<button type="button" class="btn primary ub-go">${updPlatform() === 'windows' ? 'Update now' : 'Download update'}</button>` : `<a class="btn primary" href="${SITE_URL}/download.html" target="_blank" rel="noopener">Get it</a>`}
+        <a class="btn ghost" href="${esc(st.notes || SITE_URL + '/changelog.html')}" target="_blank" rel="noopener">What's new</a>
+        <button type="button" class="btn ghost ub-later" title="Hide until the next version">Later</button>
+      </div>`;
+    bar.querySelector('.ub-later').addEventListener('click', () => { localStorage.setItem(UPD_SKIP, st.latest); bar.remove(); });
+    bar.querySelector('.ub-go')?.addEventListener('click', (ev) => updInstall(st, ev.currentTarget, bar.querySelector('.ub-note')));
+    (document.getElementById('main') || document.body).prepend(bar);
+  }
+  setTimeout(() => checkUpdates(), 5000);
+
+  // ===========================================================================================
+  // Problem reports (1.7): nothing is sent by itself. Errors stay in memory; "Report" opens a GitHub issue
+  // form, filled in, that you read and send yourself. Paths with your user name and anything key-like are removed.
+  // ===========================================================================================
+  const crash = { list: [], toasted: new Set() };
+  const REPO_ISSUES = 'https://github.com/esoexe/astro-ai/issues/new';
+  function scrub(t) {
+    return String(t || '')
+      .replace(/([A-Za-z]:\\Users\\)[^\\/\s]+/g, '$1<user>').replace(/(\/(?:home|Users)\/)[^/\s]+/g, '$1<user>')
+      .replace(/\b(sk|pk|rk|gsk|xai|ghp|gho|github_pat|astro_sk|AIza|hf)[-_A-Za-z0-9]{12,}/g, '<key removed>')
+      .replace(/\b[A-Za-z0-9_-]{32,}\b/g, '<long token removed>')
+      .replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '<email removed>');
+  }
+  function reportUrl(extra = '') {
+    const d = window.__ASTRO_DESKTOP__ || {};
+    const ver = d.version || state.status?.version || '?';
+    const errs = crash.list.slice(-3).map((e) => `- ${e.when}: ${e.msg}${e.stack ? `\n\`\`\`\n${e.stack}\n\`\`\`` : ''}`).join('\n');
+    const body = `**What happened?**\n\n(Describe what you did and what you expected.)\n\n**Details** (filled in by A.S.T.R.O AI; please check them before sending)\n- Version: ${ver}${d.edition ? ` (${d.edition} desktop)` : ' (web)'}\n- System: ${d.platform || navigator.platform || '?'} · ${navigator.language}\n- Page: ${state.view || '?'}\n${extra ? `\n${extra}\n` : ''}${errs ? `\n**Recent errors**\n${errs}\n` : ''}`;
+    const title = crash.list.length ? `Problem: ${crash.list[crash.list.length - 1].msg.slice(0, 80)}` : 'Problem: ';
+    return `${REPO_ISSUES}?labels=bug&title=${encodeURIComponent(scrub(title))}&body=${encodeURIComponent(scrub(body).slice(0, 6000))}`;
+  }
+  function openReport(extra = '') {
+    const url = reportUrl(extra);
+    if (typeof window.astroOpenExternal === 'function') window.astroOpenExternal(url); else window.open(url, '_blank', 'noopener');
+  }
+  function noteCrash(msg, stack) {
+    msg = String(msg || 'Unknown error').slice(0, 300);
+    if (/ResizeObserver loop|AbortError|Failed to fetch|NetworkError|Load failed|Script error\.?$/i.test(msg)) return;   // noise, not bugs
+    crash.list.push({ msg, stack: String(stack || '').split('\n').slice(0, 8).join('\n').slice(0, 1200), when: new Date().toISOString().slice(0, 19) });
+    if (crash.list.length > 10) crash.list.shift();
+    if (crash.toasted.has(msg) || crash.toasted.size >= 2) return;
+    crash.toasted.add(msg);
+    toast('Something went wrong in A.S.T.R.O AI.', 'error', { label: 'Report it', run: () => openReport() });
+  }
+  window.addEventListener('error', (e) => { if (e.error || e.message) noteCrash(e.message || e.error?.message, e.error?.stack); });
+  window.addEventListener('unhandledrejection', (e) => { const r = e.reason; noteCrash(r?.message || String(r), r?.stack); });
+  setInterval(() => { if (!document.hidden) checkUpdates(); }, 6 * 3600 * 1000);
+
   // Internals used by web/dev.js (folders, extensions, MCP, skills, modes, hooks). Same page, same trust level.
   window.AstroAgent = {
-    ws, AG, state, apiJson, toast, esc, icon, wsDialog, showModal, closeModal: () => (typeof closeModal === 'function' ? closeModal() : null), openMenu, renderMarkdown,
+    checkUpdates, ws, AG, state, apiJson, toast, esc, icon, wsDialog, showModal, closeModal: () => (typeof closeModal === 'function' ? closeModal() : null), openMenu, renderMarkdown,
     agPush, agPaint, agPaintModeChip, agParse, agSave, agSend, agApi, agClip, agRead, agReadOrNull, agCands, agCurSession, agStop, agRun, streamDraft, makeId, okPath, cleanPath,
     wsSwitch, wsShow, wsOpen, wsGoto, wsLoadTree, wsSide, wsRenderSide, wsSaveAll, wsApi, extOf, switchView, openSettings, fmtBytes, ls,
     get project() { return ws.project; },

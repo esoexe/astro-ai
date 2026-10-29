@@ -71,6 +71,24 @@ if (fs.existsSync(dlDir)) {
 }
 const dlKey = (pattern) => Object.keys(downloads).find((f) => f.includes(pattern));
 
+// ------------------------------------------------------------------ latest.json (the in-app update check reads this)
+{
+  const kinds = {
+    'windows-setup': /windows-x64-Setup-CLEAN\.exe$/, 'windows-portable': /windows-x64-portable-CLEAN\.zip$/,
+    'linux-deb': /_amd64-CLEAN\.deb$/, 'linux-portable': /linux-x64-portable-CLEAN\.tar\.gz$/,
+    'macos-dmg': /macos-universal-CLEAN\.dmg$/, 'vscode': /^astro-ai-vscode-[\d.]+\.vsix$/,
+  };
+  const assets = {};
+  for (const [k, re] of Object.entries(kinds)) {
+    const f = Object.keys(downloads).find((n) => re.test(n) && n.includes(SITE.version));
+    if (!f) continue;
+    assets[k] = { name: f, url: `${SITE.url}/downloads/${f}`, sha256: downloads[f].sha, bytes: fs.statSync(path.join(dlDir, f)).size };
+  }
+  const latest = { version: SITE.version, date: SITE.dateLabel, notes: `${SITE.url}/changelog.html`, highlights: SITE.highlights || [], assets };
+  if (Object.keys(assets).length) fs.writeFileSync(path.join(OUT, 'latest.json'), JSON.stringify(latest, null, 2) + '\n');
+  else console.warn('latest.json skipped: no downloads for ' + SITE.version);
+}
+
 // ------------------------------------------------------------------ A.S.T.R.O AI Library (validated + checksummed)
 const LIB = require(path.join(ROOT, '..', 'library', 'build_library.js')).build(path.join(OUT, 'library'));
 
@@ -146,7 +164,7 @@ ${body}
       <span class="footer-status"><i></i>v${SITE.version} · ${SITE.dateLabel}</span>
     </div>
     <div><h4>Product</h4><a href="${r}features.html">Features</a><a href="${r}features.html#extensions">Extensions</a><a href="${r}download.html">Download</a><a href="${r}changelog.html">Changelog</a></div>
-    <div><h4>Resources</h4><a href="${r}docs.html">Docs</a><a href="${r}api.html">A.S.T.R.O API</a><a href="${r}profile">Account</a><a href="${r}blog/index.html">Blog</a><a href="${r}press.html">Press kit</a>${SITE.repo ? `<a href="${SITE.repo}" rel="noopener">Source on GitHub</a>` : ''}</div>
+    <div><h4>Resources</h4><a href="${r}docs.html">Docs</a><a href="${r}api.html">A.S.T.R.O API</a><a href="${r}profile">Account</a><a href="${r}blog/index.html">Blog</a><a href="${r}press.html">Press kit</a>${SITE.repo ? `<a href="${SITE.repo}" rel="noopener">Source on GitHub</a><a href="${SITE.repo}/discussions" rel="noopener">Community discussions</a>` : ''}</div>
     <div><h4>Legal</h4><a href="${r}privacy.html">Privacy</a><a href="${r}assets/fonts/FONTS-LICENSE.txt">Font licenses</a></div>
   </div>
   <div class="wrap footer-word" aria-hidden="true">A.S.T.R.O <em>AI</em></div>

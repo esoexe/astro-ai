@@ -1123,7 +1123,8 @@ struct App {
             final_text = e["text"].str();
             if (!e["model"].str().empty()) model_used = e["model"].str();
             const size_t nf = e["files"].arr() ? e["files"].arr()->size() : 0;
-            Line h{sg("\xE2\x9C\x94 Done", GREEN, BOLD), sg("  \xC2\xB7 " + std::to_string(nf) + (nf == 1 ? " file" : " files") + " changed \xC2\xB7 " + e["steps"].str("0") + (e["steps"].num() == 1 ? " step" : " steps") + " \xC2\xB7 " + fmt_ms(e["ms"].num()) + (e["model"].str().empty() ? "" : " \xC2\xB7 " + e["model"].str()), MUTED)};
+            const bool attn = e["attention"].truthy();
+            Line h{attn ? sg("! Needs attention", AMBER, BOLD) : sg("\xE2\x9C\x94 Done", GREEN, BOLD), sg("  \xC2\xB7 " + std::to_string(nf) + (nf == 1 ? " file" : " files") + " changed \xC2\xB7 " + e["steps"].str("0") + (e["steps"].num() == 1 ? " step" : " steps") + " \xC2\xB7 " + fmt_ms(e["ms"].num()) + (e["model"].str().empty() ? "" : " \xC2\xB7 " + e["model"].str()), MUTED)};
             std::vector<Para> ps{{h, Line{}, Line{sg("  ")}}};
             if (!final_text.empty()) { ps.push_back({Line{}, Line{}, Line{}}); md_paras(final_text, Line{sg("  ")}, Line{sg("  ")}, ps); }
             if (auto a = e["files"].arr()) {

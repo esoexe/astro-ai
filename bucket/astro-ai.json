@@ -1,0 +1,38 @@
+{
+    "version": "1.6.1",
+    "description": "Free desktop app and terminal agent for chat, code and agents, powered by a team of free AI models that answer as one.",
+    "homepage": "https://esoexe.github.io/astro-ai/",
+    "license": "MIT OR Apache-2.0 OR GPL-3.0-only",
+    "notes": [
+        "Run \"astro\" in a terminal, or open A.S.T.R.O AI from the Start menu.",
+        "Free model tiers have daily limits; add your own free keys in Settings -> Providers for more."
+    ],
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/esoexe/astro-ai/releases/download/v1.6.1/AstroAI-1.6.1-windows-x64-portable-CLEAN.zip",
+            "hash": "3a67b5e61da149de145bb83a160ef957692f9c32d47efe14a4ae500e4c2110b7",
+            "extract_dir": "AstroAI-1.6.1-windows-x64-CLEAN"
+        }
+    },
+    "bin": "astro.exe",
+    "shortcuts": [
+        [
+            "AstroAI-Clean.exe",
+            "A.S.T.R.O AI"
+        ]
+    ],
+    "checkver": {
+        "github": "https://github.com/esoexe/astro-ai"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/esoexe/astro-ai/releases/download/v$version/AstroAI-$version-windows-x64-portable-CLEAN.zip",
+                "extract_dir": "AstroAI-$version-windows-x64-CLEAN"
+            }
+        },
+        "hash": {
+            "url": "$baseurl/SHA256SUMS.txt"
+        }
+    }
+}

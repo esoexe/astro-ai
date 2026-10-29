@@ -6,7 +6,7 @@
 # %LOCALAPPDATA%\Programs\AstroAI-CLI and adds that folder to your user PATH.
 # Downloads come from the official GitHub release and are checked against SHA256SUMS.txt.
 #
-# Options (set before running):  $env:ASTRO_VERSION = "1.6.1"   $env:ASTRO_HOME = "D:\Tools\astro"
+# Options (set before running):  $env:ASTRO_VERSION = "1.7.0"   $env:ASTRO_HOME = "D:\Tools\astro"
 # Uninstall:  $env:ASTRO_UNINSTALL = "1"; irm https://esoexe.github.io/astro-ai/install.ps1 | iex
 
 $ErrorActionPreference = 'Stop'
@@ -26,7 +26,9 @@ function Fail($m) { Write-Host "$($Sym.bad) $m" -ForegroundColor Red; throw $m }
 
 # Stops every astro / astro-server started from $dir and waits until Windows has released their files.
 function Stop-Astro([string]$dir) {
-  $procs = @(Get-Process astro, astro-server -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path -like "$dir\*" })
+  # `astro update` runs this script itself: leave that astro.exe alone (its file is renamed aside instead).
+  $keep = 0; if ($env:ASTRO_UPDATER_PID) { [void][int]::TryParse($env:ASTRO_UPDATER_PID, [ref]$keep) }
+  $procs = @(Get-Process astro, astro-server -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path -like "$dir\*" -and $_.Id -ne $keep })
   if ($procs.Count -eq 0) { return }
   Write-Host "  stopping the running A.S.T.R.O engine ($($procs.Count) process(es))" -ForegroundColor DarkGray
   $procs | Stop-Process -Force -ErrorAction SilentlyContinue
@@ -72,7 +74,7 @@ if (-not $Version) {
   } catch { }
 }
 if (-not $Version) { $Version = $Fallback }
-if ($Version -like '__*') { Fail 'Could not find the latest version. Set one first: $env:ASTRO_VERSION = "1.6.1"' }
+if ($Version -like '__*') { Fail 'Could not find the latest version. Set one first: $env:ASTRO_VERSION = "1.7.0"' }
 $Version = $Version.TrimStart('v')
 
 $File = "AstroAI-$Version-windows-x64-portable-CLEAN.zip"

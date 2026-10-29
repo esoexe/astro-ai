@@ -26,9 +26,13 @@
     <a href="#voice">Voice</a>
     <a href="#knowledge">Knowledge, notes &amp; tasks</a>
     <a href="#shortcuts">Shortcuts</a>
+    <a href="#updates">Updates</a>
+    <a href="#languages">Languages</a>
     <h4>Reference</h4>
     <a href="#data">Where your data lives</a>
     <a href="#silent">Silent install (IT)</a>
+    <a href="#package-managers">Package managers</a>
+    <a href="#benchmark">Coding benchmark</a>
     <a href="#troubleshooting">Troubleshooting</a>
     <a href="#uninstall">Uninstall</a>
   </aside>
@@ -97,6 +101,7 @@ cd AstroAI-{{version}}-macos-source-CLEAN
     <div class="callout"><div>Free tiers have rate and daily limits, and providers can change them at any time. When one runs out, the rest of the team keeps answering. Limits reset on the provider's schedule, usually daily.</div></div>
 
     <h2 id="keys">Adding free keys</h2>
+    <p>The quickest way: open <strong>Settings → Providers</strong> and use the <strong>Get more free models</strong> card at the top (or type <code>/free-keys</code> in chat). For Groq, OpenRouter, Mistral and Cohere it opens the sign-up page, you paste the key, and A.S.T.R.O AI tests it straight away and shows how many models it added. It takes about a minute each. Free tiers have daily limits set by each provider; more keys give you more room, not unlimited use.</p>
     <p>Out of the box, A.S.T.R.O AI uses providers that need no key. To grow the team, create free API keys with your own accounts and paste them into <strong>Settings → Providers &amp; keys</strong>. New models join One Brain straight away.</p>
     <table>
       <thead><tr><th>Provider</th><th>Get a free key</th></tr></thead>
@@ -162,6 +167,8 @@ cd AstroAI-{{version}}-macos-source-CLEAN
       <li><strong>MCP servers</strong>: switch each trusted server on or off for the agent (untrusted servers ask first),</li>
       <li><strong>Usage</strong> and <strong>Turn stats</strong>: steps, actions, files and time.</li>
     </ul>
+    <h3 id="risky">Risky commands</h3>
+    <p>Even in <strong>Auto</strong> mode, the agent stops and asks before commands that are hard to undo: <code>sudo</code>/<code>su</code>, piping a download into a shell (<code>curl … | sh</code>), deleting your home folder, a drive root or everything with <code>*</code>, force-pushing with git, formatting or overwriting disks (<code>mkfs</code>, <code>dd</code>, <code>diskpart</code>), <code>del /s</code>, recursive <code>chmod</code> on <code>/</code>, shutting down, deleting Windows registry keys and publishing packages. You can <strong>Allow</strong> it once, <strong>Allow all in this run</strong> or <strong>Deny</strong>. When nobody can answer (for example <code>astro -p</code> in a script), the command is blocked and the agent is told why. Everyday clean-ups such as <code>rm -rf node_modules dist</code> are not affected. To turn the check off, start A.S.T.R.O AI with <code>ASTRO_ALLOW_RISKY=1</code>.</p>
     <div class="callout warn"><div><b>Use it with care.</b> The agent runs real commands on your computer. Give it a project folder you're happy for it to change, and keep backups of anything that matters.</div></div>
 
     <h2 id="terminal">Terminal &amp; parallel agents</h2>
@@ -199,6 +206,7 @@ cd AstroAI-{{version}}-macos-source-CLEAN
       <li><strong>Hooks.</strong> Hooks from <code>.claude/settings.json</code> run your scripts before or after the agent's tools. Project hooks run only after you trust them.</li>
       <li><strong>Coding CLIs.</strong> If Claude Code, Codex, OpenCode, Gemini CLI or DeepSeek Harness is installed, the agent can hand sub-tasks to it.</li>
     </ul>
+    <p>Before a plugin is installed, A.S.T.R.O AI lists what it can do: <em>runs commands automatically</em> (hooks), <em>starts programs</em> (MCP servers), <em>contains script files</em>, adds commands, agents or skills, or is <em>text and settings only</em>. Nothing is written until you press <strong>Install</strong>. Themes and snippet packs from Open VSX are data only and never run code.</p>
     <div class="callout warn"><div><b>Only trust what you know.</b> MCP servers, hooks and plugins can run programs on your computer. Install them from sources you trust.</div></div>
 
     <h2 id="themes-tools">Themes, tools &amp; VS Code extensions</h2>
@@ -235,6 +243,17 @@ cd AstroAI-{{version}}-macos-source-CLEAN
     </table>
     <p>On macOS, use <kbd>⌘</kbd> wherever this table says <kbd>Ctrl</kbd>.</p>
 
+    <h2 id="updates">Updates</h2>
+    <p>A.S.T.R.O AI checks for a new version when it starts and then at most every 6 hours. Only the public version file is downloaded; nothing about you is sent. When an update is out, a banner shows what's new:</p>
+    <ul>
+      <li><strong>Update now</strong> downloads the installer from the official site and checks its SHA-256 checksum. On Windows it installs quietly and reopens the app. On macOS it opens the disk image, and on Linux the package, for you to finish.</li>
+      <li><strong>Later</strong> hides the banner for this version. <strong>Settings → General → Check now</strong> checks straight away.</li>
+      <li>Terminal installs: <code>astro update</code> installs the newest version, and <code>astro update --check</code> only tells you if there is one. A copy of <code>astro</code> that came with the desktop app is updated by the app.</li>
+    </ul>
+
+    <h2 id="languages">Languages</h2>
+    <p>Menus and buttons are available in English, French and Arabic (right-to-left). A.S.T.R.O AI picks your system language the first time; change it in <strong>Settings → General → Interface language</strong>. Code, file names, chat messages and anything you type are never translated. The language of answers is a separate setting, <strong>Response language</strong>. A few rarely used screens are still in English.</p>
+
     <h2 id="data">Where your data lives</h2>
     <p>Chats, notes, tasks, projects, settings and keys are stored locally, in a per-user folder:</p>
     <table>
@@ -253,6 +272,31 @@ cd AstroAI-{{version}}-macos-source-CLEAN
     <p>By default it installs to <code>%LOCALAPPDATA%\Programs\Astro AI Clean</code>, for the current user. To remove it silently (add <code>--purge</code> to delete the user's data as well):</p>
 <pre><code>"%LOCALAPPDATA%\Programs\Astro AI Clean\Uninstall.exe" /S [--purge]</code></pre>
 
+    <h2 id="package-managers">Package managers</h2>
+    <p><strong>Windows (Scoop)</strong>, installs the portable app and the <code>astro</code> command:</p>
+<pre><code>scoop bucket add astro-ai https://github.com/esoexe/astro-ai
+scoop install astro-ai</code></pre>
+    <p><strong>macOS (Homebrew)</strong>, installs the app and the <code>astro</code> command:</p>
+<pre><code>brew install --cask esoexe/tap/astro-ai</code></pre>
+    <p><strong>Linux (Homebrew)</strong>, installs <code>astro</code> and its engine:</p>
+<pre><code>brew install esoexe/tap/astro-ai</code></pre>
+    <p>Update with <code>scoop update astro-ai</code> or <code>brew upgrade astro-ai</code>.</p>
+
+    <h2 id="benchmark">Coding benchmark</h2>
+    <p>We test the agent with a small set of 12 everyday coding tasks: fix an off-by-one bug, add a function, repair async code, make failing tests pass, rename across files, add a CLI flag, edit <code>package.json</code>, build an HTML form, fix a C bug, write a Makefile, write a shell script and debug from an error message. Each task starts in a fresh folder. A hidden check, which the agent never sees, runs after it finishes and decides pass or fail. The tasks, checks and runner are in the repository under <a href="https://github.com/esoexe/astro-ai/tree/main/bench" rel="noopener"><code>bench/</code></a>, so you can run them yourself with <code>node bench/run.js</code>.</p>
+    <h3>Results for 1.7.0 (October 29, 2026)</h3>
+    <table>
+      <thead><tr><th>Setup</th><th>Passed</th><th>Median time</th><th>Average steps</th></tr></thead>
+      <tbody><tr><td>Auto mode, free models only (27 free providers connected; paid models off), each task run twice</td><td><strong>24 / 24</strong></td><td>21 s</td><td>5.3</td></tr></tbody>
+    </table>
+    <ul>
+      <li><strong>Models that did the work:</strong> mostly Nemotron 3 Ultra (via Kilo Gateway, 17 of 24 runs), with Llama 3.3 70B and gpt-oss-120b (OVHcloud), gpt-oss-120b (Groq), DeepSeek V4 Pro (Router9), Qwen 3.5, Codestral and others when a model was busy or rate-limited. That failover is part of what is being measured.</li>
+      <li><strong>Mistakes along the way:</strong> 9 of 148 tool calls failed (for example an edit that did not match), and the agent recovered every time.</li>
+      <li><strong>Flagged for attention:</strong> both <code>json-package-script</code> runs passed the hidden check, but ended as <em>Needs attention</em>. The task asks for an <code>npm test</code> script that runs <code>node test.js</code>, and that file does not exist, so the agent ran it, saw it fail and said so. That is the behaviour we want.</li>
+      <li><strong>Time:</strong> most runs took 15 to 60 seconds; the slowest normal run took 103 seconds. Two runs of <code>js-add-slugify</code> are left out of the timing: the test machine was paused while they ran, so their clock times (about 23 minutes) are not real. Both passed.</li>
+    </ul>
+    <div class="callout"><div><b>Read this with care.</b> Twelve small tasks show trends; they are not a leaderboard and say little about large projects. Free models change often and have daily limits, so results vary from run to run and from day to day. Earlier result (1.4.0, each task once): 12 / 12.</div></div>
+
     <h2 id="troubleshooting">Troubleshooting</h2>
     <h3>The window doesn't open on Windows</h3>
     <p>Install the <a href="https://developer.microsoft.com/microsoft-edge/webview2/" rel="noopener">Microsoft Edge WebView2 Runtime</a> (the "Evergreen" version), then start A.S.T.R.O AI again.</p>
@@ -264,8 +308,12 @@ cd AstroAI-{{version}}-macos-source-CLEAN
     <p>One Brain is slow by design (see <a href="#one-brain">above</a>). If a single model fails, it has probably hit a free-tier limit. Try another model, wait for the limit to reset, or add more free keys.</p>
     <h3>Code won't run in the Workspace</h3>
     <p>Install the language's tools (Node.js, Python, gcc/clang, a JDK) and make sure they're on your <code>PATH</code>, then restart A.S.T.R.O AI.</p>
+    <h3>A model keeps failing with "not found"</h3>
+    <p>Providers sometimes remove or rename models. A.S.T.R.O AI notices this and skips that model for 24 hours (it checks again later), so the rest of the team carries on. You don't need to do anything.</p>
+    <h3>"Access denied" when reinstalling from the terminal on Windows</h3>
+    <p>Run the install command again: the installer now closes A.S.T.R.O AI first. If it still fails, close all A.S.T.R.O AI windows, or run <code>Stop-Process -Name astro,astro-server</code>, and try again.</p>
     <h3>Still stuck?</h3>
-    <p>Look at <code>logs/server.log</code> in your <a href="#data">data folder</a>. It usually says exactly what went wrong.</p>
+    <p>Look at <code>logs/server.log</code> in your <a href="#data">data folder</a>. It usually says exactly what went wrong. Then use <strong>Settings → General → Report a problem</strong> (or <code>astro bug</code> in the terminal). It opens a GitHub issue form filled in with your version and recent errors, with keys, email addresses and your user name removed. You can read and edit it before sending; nothing is sent automatically. For questions, ask in <a href="https://github.com/esoexe/astro-ai/discussions" rel="noopener">Discussions</a>.</p>
 
     <h2 id="uninstall">Uninstall</h2>
     <ul>

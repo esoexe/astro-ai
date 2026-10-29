@@ -9,8 +9,75 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
-    <article class="release latest reveal" id="v1-6-1">
-      <header><h2>1.6.1</h2><span class="badge">Latest</span><time datetime="2026-10-29">October 29, 2026</time></header>
+    <article class="release latest reveal" id="v1-7-0">
+      <header><h2>1.7.0</h2><span class="badge">Latest</span><time datetime="2026-10-29">October 29, 2026</time></header>
+      <p class="muted">A more reliable agent, automatic updates, faster first answers, easy free keys, safer plugins and commands, and French and Arabic.</p>
+
+      <h3>A more reliable agent</h3>
+      <ul class="ticks">
+        <li>Fixed empty file writes from models that send tool arguments as a JSON string (such as gpt-oss). The file content now arrives intact</li>
+        <li>The agent never replaces a file with empty content. If a model keeps sending empty writes, or stops after failed steps, the next model takes over with a short handover note</li>
+        <li>More argument spellings are understood (<code>file_text</code>, <code>old_string</code>/<code>new_string</code>), and an intentionally empty replacement stays empty</li>
+        <li>A run is only marked done after the changed files have been checked. If every file change failed, it is shown as <strong>Needs attention</strong> instead of done, and the terminal app exits with code <code>4</code></li>
+        <li>Leaked model reasoning text is hidden on the Agent page as well as in chat</li>
+      </ul>
+
+      <h3>Automatic updates</h3>
+      <ul class="ticks">
+        <li>The app checks for a new version (at most every 6 hours; no personal data is sent) and shows a banner with what's new</li>
+        <li><strong>Update now</strong> downloads the installer from the official site and checks its SHA-256 before using it. On Windows it installs quietly and restarts the app; on macOS and Linux it opens the disk image or package for you</li>
+        <li>Terminal installs: <code>astro update</code> (or <code>astro update --check</code>). Settings &rsaquo; General has a <em>Check now</em> button</li>
+        <li>The Windows terminal installer no longer fails with "Access denied" when A.S.T.R.O AI is running: it closes it first, and moves locked files out of the way</li>
+      </ul>
+
+      <h3>Faster first answer</h3>
+      <ul class="ticks">
+        <li>In One Brain mode, the fastest model's answer appears within seconds while the whole team keeps working. It is then replaced by the merged team answer. Turn it off in Settings &rsaquo; Brain &rsaquo; <em>Show the fastest answer first</em></li>
+      </ul>
+
+      <h3>More free models in a minute</h3>
+      <ul class="ticks">
+        <li>A new <strong>Get more free models</strong> card (Settings &rsaquo; Providers, or <code>/free-keys</code> in chat) walks you through free keys from Groq, OpenRouter, Mistral and Cohere: open the sign-up page, paste the key, done. It shows how many models each key adds and tests the key as soon as you paste it</li>
+        <li>Free tiers have daily limits that the providers set; extra keys give you more room, not unlimited use</li>
+      </ul>
+
+      <h3>Model health</h3>
+      <ul class="ticks">
+        <li>Models that a provider has removed or renamed are skipped for 24 hours instead of failing again and again, and they are checked again later. This is saved across restarts</li>
+      </ul>
+
+      <h3>Safer by default</h3>
+      <ul class="ticks">
+        <li>The agent asks before risky commands, in Auto mode too: <code>sudo</code>, piping a download into a shell, deleting whole folders such as your home or drive, force-pushing, formatting disks, shutting down, editing the Windows registry or publishing packages. Choose Allow, Allow all in this run, or Deny. Runs with nobody to ask are blocked and told why. Everyday commands such as <code>rm -rf node_modules</code> are not affected. Set <code>ASTRO_ALLOW_RISKY=1</code> to turn this off</li>
+        <li>Before a plugin is installed, A.S.T.R.O AI shows what it can do: run commands automatically (hooks), start programs (MCP servers), include scripts, or only add text and settings. Nothing is installed until you agree</li>
+      </ul>
+
+      <h3>Problem reports</h3>
+      <ul class="ticks">
+        <li>When something breaks, a small notice offers <strong>Report it</strong>. It opens a GitHub issue form filled in with your version, system and the last errors, scrubbed of keys, email addresses and your user name. You read it and send it yourself; nothing is sent automatically</li>
+        <li>Also in Settings &rsaquo; General &rsaquo; <em>Report a problem</em>, and <code>astro bug</code> in the terminal</li>
+        <li>New: <a href="https://github.com/esoexe/astro-ai/discussions" rel="noopener">GitHub Discussions</a> for questions, ideas and show and tell</li>
+      </ul>
+
+      <h3>Languages</h3>
+      <ul class="ticks">
+        <li>The app's menus and buttons are now available in <strong>French</strong> and <strong>Arabic</strong> (right-to-left), picked from your system language or in Settings &rsaquo; General &rsaquo; <em>Interface language</em>. Code, file names and your own text are never translated. Answers follow the separate <em>Response language</em> setting</li>
+      </ul>
+
+      <h3>Install with a package manager</h3>
+      <ul class="ticks">
+        <li>Windows (Scoop): <code>scoop bucket add astro-ai https://github.com/esoexe/astro-ai</code> then <code>scoop install astro-ai</code></li>
+        <li>macOS (Homebrew): <code>brew install --cask esoexe/tap/astro-ai</code>. Linux (Homebrew): <code>brew install esoexe/tap/astro-ai</code></li>
+      </ul>
+
+      <h3>Coding benchmark</h3>
+      <ul class="ticks">
+        <li>New results from our small 12-task coding benchmark, run with free models only, are on the <a href="docs.html#benchmark">docs page</a>, including what failed</li>
+      </ul>
+    </article>
+
+    <article class="release reveal" id="v1-6-1">
+      <header><h2>1.6.1</h2><time datetime="2026-10-29">October 29, 2026</time></header>
       <p class="muted">A sharp, smooth HD logo in the terminal.</p>
 
       <h3>HD logo in the terminal</h3>

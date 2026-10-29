@@ -2161,3 +2161,6 @@ body { background: var(--bg); letter-spacing: -.003em; }
 .dev-item .dev-s { font-size: 11px; color: var(--text-3); }
 .dev-item .dev-d { margin: 0; font-size: 12px; line-height: 1.45; color: var(--text-2); }
 .dev-item .dev-s.ok { color: #16a34a; } .dev-item .dev-s.bad { color: #ef4444; }
+.early-spin { width: 10px; height: 10px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--accent) 30%, transparent); border-top-color: var(--accent); animation: earlySpin .9s linear infinite; margin-left: 2px; }
+@keyframes earlySpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .early-spin { animation: none; } }

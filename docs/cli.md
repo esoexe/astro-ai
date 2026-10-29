@@ -23,7 +23,18 @@ irm https://esoexe.github.io/astro-ai/install.ps1 | iex
 
 The script downloads the Clean portable build (macOS: the disk image) from the latest GitHub release and checks it against the release's `SHA256SUMS.txt`. It then installs `astro` and its engine into `~/.astro-ai` and links `~/.local/bin/astro`. On Windows the files go into `%LOCALAPPDATA%\Programs\AstroAI-CLI`, which is added to your user PATH. Run it again to update.
 
-Options: `ASTRO_VERSION=1.6.1` installs a specific version, `ASTRO_HOME` changes the install folder and `ASTRO_BIN` changes the link folder (Linux/macOS). Uninstall with `curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh -s -- --uninstall`, or on Windows set `$env:ASTRO_UNINSTALL="1"` and run the PowerShell line again. Uninstalling keeps your chats, settings and keys.
+Options: `ASTRO_VERSION=1.7.0` installs a specific version, `ASTRO_HOME` changes the install folder and `ASTRO_BIN` changes the link folder (Linux/macOS). Uninstall with `curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh -s -- --uninstall`, or on Windows set `$env:ASTRO_UNINSTALL="1"` and run the PowerShell line again. Uninstalling keeps your chats, settings and keys.
+
+With a package manager: `scoop bucket add astro-ai https://github.com/esoexe/astro-ai; scoop install astro-ai` (Windows), `brew install esoexe/tap/astro-ai` (Linux) or `brew install --cask esoexe/tap/astro-ai` (macOS app plus `astro`).
+
+### Updating (1.7)
+
+```sh
+astro update           # install the newest version (terminal installs)
+astro update --check   # only say whether there is one
+```
+
+`astro update` reads the public version file, then reruns the official installer for your system, which checks the SHA-256 again. A copy of `astro` that came with the desktop app (or Scoop/Homebrew) is updated by the app or the package manager instead. Set `ASTRO_UPDATE_URL` to use a mirror.
 
 It works right away with the free models that need no key. To add more providers, open `http://127.0.0.1:47612` in a browser while the engine runs and go to Settings → Providers.
 
@@ -96,7 +107,11 @@ astro -p --plan "how would you add OAuth?"                     # read-only
 astro -p --isolate "try upgrading to React 19" && astro diff <id>
 ```
 
-Exit codes: `0` done, `1` error, `2` stopped, `3` paused at the step limit (`astro attach <id>`, then continue).
+### Risky commands (1.7)
+
+The agent asks before commands that are hard to undo (sudo, `curl … | sh`, deleting home or a drive root, force push, disk formatting, shutdown, registry deletes, package publishing), even in Auto mode. In print mode nobody can answer, so those commands are blocked and the agent gets a `BLOCKED:` message explaining why. Set `ASTRO_ALLOW_RISKY=1` for the engine to turn the check off, for example in a throwaway container.
+
+Exit codes: `0` done, `1` error, `2` stopped, `3` paused at the step limit (`astro attach <id>`, then continue), `4` finished but needs attention (a check still fails, or nothing could be changed).
 
 In ask mode with no one to answer (print mode without a terminal), the agent does not wait forever. Each change it would need approval for is blocked, and it explains in its report what it would have done.
 
@@ -213,6 +228,10 @@ To work on a folder outside the server's projects folder, open it first with `PO
 **Session statuses:** `queued`, `running`, `waiting`, `paused`, `done`, `stopped`, `error`, `interrupted`.
 
 Sessions are saved in `<data>/.astro_engine/runs/`. If the server restarts, a session that was running is marked `interrupted`. Send a follow-up to continue it.
+
+## Reporting a problem (1.7)
+
+`astro bug` prints a link to a GitHub issue form filled in with your version, system and terminal, and opens it in your browser. Nothing is sent until you submit the form yourself. Questions and ideas: https://github.com/esoexe/astro-ai/discussions
 
 ## Limits
 

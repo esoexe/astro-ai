@@ -47,7 +47,7 @@ using aj::Value;
 using aj::Object;
 using aj::Array;
 
-static const char* VERSION = "1.6.1";
+static const char* VERSION = "1.7.0";
 
 // ---------- terminal ----------
 static bool g_tty = false, g_color = false, g_err_tty = false;
@@ -344,6 +344,21 @@ static bool spawn_server(const ServerKit& k, int port, std::string& log_path) {
     return true;
 #endif
 }
+// After an update, an engine the terminal app started earlier can still be the old version: replace it.
+// Only engines started by the terminal app agree to stop (the desktop app owns its own), so this is safe.
+static bool stop_if_stale(const std::string& url, int kit_port) {
+    if (env("ASTRO_KEEP_ENGINE") == "1" || url != "http://127.0.0.1:" + std::to_string(kit_port)) return false;
+    const Http r = http("GET", url + "/api/status", "", 3);
+    Value j;
+    if (r.status != 200 || !aj::try_parse(r.body, j) || j["version"].str() == VERSION) return false;
+    const std::string keep = g_url; g_url = url;
+    bool stopped = false;
+    try { api("/api/agent/server-stop", {}, 10); stopped = true; } catch (...) {}
+    g_url = keep;
+    if (!stopped) return false;
+    for (int i = 0; i < 60 && server_alive(url); ++i) std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    return true;
+}
 static bool connect_server(bool allow_start, bool quiet = false) {
     g_token = env("ASTRO_TOKEN");
     std::string u = env("ASTRO_URL");
@@ -352,7 +367,15 @@ static bool connect_server(bool allow_start, bool quiet = false) {
     std::vector<int> ports;
     if (kit) ports.push_back(kit->port);
     for (int p : {47612, 47611, 4173}) if (std::find(ports.begin(), ports.end(), p) == ports.end()) ports.push_back(p);
-    for (int p : ports) { const std::string url = "http://127.0.0.1:" + std::to_string(p); if (server_alive(url)) { g_url = url; return true; } }
+    for (int p : ports) {
+        const std::string url = "http://127.0.0.1:" + std::to_string(p);
+        if (!server_alive(url)) continue;
+        if (allow_start && kit && stop_if_stale(url, kit->port)) {
+            if (!quiet) std::cerr << dim("The running engine was an older version; restarting it.") << "\n";
+            break;
+        }
+        g_url = url; return true;
+    }
     if (!allow_start) return false;
     if (!kit) {
         std::cerr << red("No A.S.T.R.O AI server is running, and none was found next to this program.") << "\n"
@@ -368,6 +391,84 @@ static bool connect_server(bool allow_start, bool quiet = false) {
     return false;
 }
 static bool is_local_url() { return g_url.find("://127.0.0.1") != std::string::npos || g_url.find("://localhost") != std::string::npos || g_url.find("://[::1]") != std::string::npos; }
+
+// ---------- astro update (1.7) ----------
+static int version_cmp(const std::string& a, const std::string& b) {
+    auto parts = [](std::string v) { std::vector<long long> o; if (!v.empty() && (v[0] == 'v' || v[0] == 'V')) v.erase(0, 1);
+        v = v.substr(0, v.find_first_of("-+")); std::stringstream ss(v); std::string x; while (std::getline(ss, x, '.')) o.push_back(std::atoll(x.c_str())); return o; };
+    const auto x = parts(a), y = parts(b);
+    for (size_t i = 0; i < std::max(x.size(), y.size()); ++i) { const long long p = i < x.size() ? x[i] : 0, q = i < y.size() ? y[i] : 0; if (p != q) return p < q ? -1 : 1; }
+    return 0;
+}
+static int cmd_update(const std::vector<std::string>& pos) {
+    const bool check_only = std::find(pos.begin(), pos.end(), "--check") != pos.end() || (!pos.empty() && pos[0] == "check");
+    std::string feed = env("ASTRO_UPDATE_URL"); if (feed.empty()) feed = "https://esoexe.github.io/astro-ai/latest.json";
+    const std::string saved = g_token; g_token.clear();            // never send the engine token to the website
+    const Http r = http("GET", feed, "", 20); g_token = saved;
+    Value j;
+    if (!r.err.empty() || r.status != 200 || !aj::try_parse(r.body, j) || j["version"].str().empty()) {
+        std::cerr << red("Could not read the update feed (" + (r.err.empty() ? "HTTP " + std::to_string(r.status) : r.err) + ").") << "\n"; return 1;
+    }
+    const std::string latest = j["version"].str();
+    if (version_cmp(latest, VERSION) <= 0) { out(green("\xE2\x9C\x93 ") + "A.S.T.R.O AI " + VERSION + " is the latest version."); return 0; }
+    out(peach("A.S.T.R.O AI " + latest) + " is available " + dim("(you have " + std::string(VERSION) + ")"));
+    if (const auto* h = j["highlights"].arr()) for (const auto& x : *h) out(dim("  \xC2\xB7 ") + x.str());
+    if (!j["notes"].str().empty()) out(dim("  What's new: " + j["notes"].str()));
+    if (check_only) { out(dim("  Run astro update to install it.")); return 0; }
+    const fs::path dir = exe_path().parent_path();
+    const std::string ds = to_utf8(dir);
+    std::error_code ec;
+    const bool app_copy = fs::exists(dir / "Uninstall.exe", ec) || ds.find(".app/") != std::string::npos || ds.rfind("/usr/", 0) == 0 || ds.rfind("/opt/", 0) == 0;
+    std::string low = ds; for (auto& c : low) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c))); std::replace(low.begin(), low.end(), '\\', '/');
+    if (low.find("/scoop/apps/") != std::string::npos) { out("This astro was installed with Scoop. Run: " + bold("scoop update astro-ai")); return 0; }
+    if (low.find("/cellar/") != std::string::npos || low.find("/caskroom/") != std::string::npos || low.find("linuxbrew") != std::string::npos) { out("This astro was installed with Homebrew. Run: " + bold("brew upgrade astro-ai")); return 0; }
+    if (app_copy) {
+        out("This astro came with the A.S.T.R.O AI app. Open the app and click " + bold("Update now") + ", or download it from https://esoexe.github.io/astro-ai/download.html");
+        return 0;
+    }
+    out(dim("Updating " + ds + " ..."));
+    set_env("ASTRO_HOME", ds); set_env("ASTRO_VERSION", latest);
+#ifdef _WIN32
+    set_env("ASTRO_UPDATER_PID", std::to_string(GetCurrentProcessId()));
+    const int rc = _wsystem(L"powershell -NoProfile -ExecutionPolicy Bypass -Command \"irm https://esoexe.github.io/astro-ai/install.ps1 | iex\"");
+#else
+    const int rc = std::system("curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh");
+#endif
+    if (rc != 0) { std::cerr << red("The update did not finish. Your current version still works; try again later.") << "\n"; return 1; }
+    out(green("\xE2\x9C\x93 ") + "Updated to " + latest + ". The engine restarts with the new version the next time you run astro.");
+    return 0;
+}
+
+// ---------- astro bug (1.7): a filled-in GitHub issue form; nothing is sent by itself ----------
+static std::string url_enc(const std::string& s) {
+    static const char* hex = "0123456789ABCDEF"; std::string o;
+    for (unsigned char c : s) { if (std::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') o += static_cast<char>(c); else { o += '%'; o += hex[c >> 4]; o += hex[c & 15]; } }
+    return o;
+}
+static int cmd_bug() {
+#ifdef _WIN32
+    const std::string os = "Windows";
+#elif defined(__APPLE__)
+    const std::string os = "macOS";
+#else
+    const std::string os = "Linux";
+#endif
+    std::string term = env("WT_SESSION").empty() ? env("TERM_PROGRAM") : "Windows Terminal";
+    if (term.empty()) term = env("TERM");
+    const std::string body = "**What happened?**\n\n(Describe what you ran and what you expected.)\n\n**Details** (filled in by astro; check before sending)\n- Version: " + std::string(VERSION) +
+        " (terminal)\n- System: " + os + "\n- Terminal: " + (term.empty() ? "?" : term) + "\n";
+    const std::string url = "https://github.com/esoexe/astro-ai/issues/new?labels=bug&title=" + url_enc("Problem (terminal): ") + "&body=" + url_enc(body);
+    out("Opening a filled-in issue form in your browser. Nothing is sent until you press Submit there.");
+    out(dim(url));
+#ifdef _WIN32
+    ShellExecuteW(nullptr, L"open", from_utf8(url).wstring().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+#elif defined(__APPLE__)
+    (void)!std::system(("open '" + url + "' >/dev/null 2>&1 &").c_str());
+#else
+    (void)!std::system(("xdg-open '" + url + "' >/dev/null 2>&1 &").c_str());
+#endif
+    return 0;
+}
 
 // ---------- options ----------
 struct Opts {
@@ -398,6 +499,7 @@ struct Renderer {
     bool to_stderr = false;      // print mode: progress on stderr, the report on stdout
     std::map<std::string, Value> pending;   // approval / question events by id
     std::string final_text;
+    bool attention = false;      // the run finished but the engine flagged it (nothing changed, a check still fails...)
     std::string last_tool;
     std::string skip_user;       // the REPL already shows what the user typed
     int spin = 0;
@@ -411,7 +513,7 @@ struct Renderer {
     }
     void event(const Value& e) {
         const std::string t = e["type"].str();
-        if (!human) { std::fputs((aj::dump(e) + "\n").c_str(), stdout); std::fflush(stdout); if (t == "done") final_text = e["text"].str(); return; }
+        if (!human) { std::fputs((aj::dump(e) + "\n").c_str(), stdout); std::fflush(stdout); if (t == "done") attention = e["attention"].truthy() || !e["failing"].str().empty(); if (t == "done") final_text = e["text"].str(); return; }
         if (t == "user") { if (!skip_user.empty() && e["text"].str() == skip_user) { skip_user.clear(); return; } line(""); line(peach("\xE2\x80\xBA ") + bold(e["text"].str())); return; }
         if (t == "say") {
             if (e["final"].truthy()) return;   // the done event repeats it
@@ -461,9 +563,10 @@ struct Renderer {
         }
         if (t == "done") {
             final_text = e["text"].str();
+            attention = e["attention"].truthy() || !e["failing"].str().empty();
             size_t nfiles = e["files"].arr() ? e["files"].arr()->size() : 0;
             line("");
-            line(green("\xE2\x9C\x94 Done") + dim("  \xC2\xB7 " + std::to_string(nfiles) + (nfiles == 1 ? " file" : " files") + " changed \xC2\xB7 " + e["steps"].str("0") + (e["steps"].num() == 1 ? " step" : " steps") + " \xC2\xB7 " + fmt_ms(e["ms"].num()) + (e["model"].str().empty() ? "" : " \xC2\xB7 " + e["model"].str())));
+            line((e["attention"].truthy() ? yellow("! Needs attention") : green("\xE2\x9C\x94 Done")) + dim("  \xC2\xB7 " + std::to_string(nfiles) + (nfiles == 1 ? " file" : " files") + " changed \xC2\xB7 " + e["steps"].str("0") + (e["steps"].num() == 1 ? " step" : " steps") + " \xC2\xB7 " + fmt_ms(e["ms"].num()) + (e["model"].str().empty() ? "" : " \xC2\xB7 " + e["model"].str())));
             if (!to_stderr && !final_text.empty()) indent_block(final_text, "  ");
             if (auto a = e["files"].arr()) {
                 size_t n = 0;
@@ -522,6 +625,7 @@ static std::optional<std::string> ask_terminal(Renderer& R, const Value& e) {
 // Follows a session until it stops working. Returns the final status.
 static std::string follow(const std::string& id, long long& since, Renderer& R, bool interactive) {
     std::string live_seen;
+    R.attention = false;
     std::set<std::string> asked;
     int seen_interrupts = g_interrupts.load();
     bool stop_sent = false;
@@ -563,7 +667,7 @@ static Object start_body(const Opts& o, const std::string& project, const std::s
     if (o.isolate) b["isolate"] = true;
     return b;
 }
-static int exit_code_for(const std::string& st) { return st == "done" ? 0 : st == "error" ? 1 : st == "paused" ? 3 : 2; }
+static int exit_code_for(const std::string& st) { return st == "done" ? 0 : st == "error" ? 1 : st == "paused" ? 3 : st == "needs attention" ? 4 : 2; }
 
 static void print_diff(const std::string& diff) {
     std::stringstream ss(diff); std::string l;
@@ -761,7 +865,7 @@ static int cmd_parallel(const std::vector<std::string>& tasks, Opts o, const std
                 const std::string t = e["type"].str();
                 if (t == "tool_done") a.last = (e["ok"].truthy() ? "\xE2\x9C\x93 " : "\xE2\x9C\x97 ") + e["label"].str();
                 else if (t == "say") a.last = one_line(e["text"].str());
-                else if (t == "done") { a.failing = e["failing"].str(); a.report = e["text"].str(); a.files = e["files"].arr() ? static_cast<int>(e["files"].arr()->size()) : 0; a.ms = e["ms"].num(); }
+                else if (t == "done") { a.failing = e["failing"].str(); if (a.failing.empty() && e["attention"].truthy()) a.failing = "nothing usable was changed"; a.report = e["text"].str(); a.files = e["files"].arr() ? static_cast<int>(e["files"].arr()->size()) : 0; a.ms = e["ms"].num(); }
                 else if (t == "error") a.last = "error: " + e["text"].str();
                 if (!g_tty) out(dim("[" + a.id + "] ") + t + " " + clip(one_line(e["label"].str() + e["text"].str() + " " + e["summary"].str()), 120));
             }
@@ -832,7 +936,9 @@ static void help() {
               << "  astro models                      coding models, best first\n"
               << "  astro tools list|install|remove   compilers, runtimes and language servers (portable)\n"
               << "  astro ext list|install|remove     VS Code extensions from Open VSX (preview, run in the editor)\n"
-              << "  astro server status|start|stop    the local A.S.T.R.O AI engine\n\n"
+              << "  astro server status|start|stop    the local A.S.T.R.O AI engine\n"
+              << "  astro update [--check]            install the newest version (terminal installs)\n"
+              << "  astro bug                         report a problem (opens a filled-in GitHub issue)\n\n"
               << bold("Options") << "\n"
               << "  -C <dir>            work in this folder (default: the current folder)\n"
               << "  --project <name>    use an existing A.S.T.R.O AI project instead of a folder\n"
@@ -1003,11 +1109,12 @@ int main(int argc, char** argv) {
         else if (a == "--plan") o.mode = "plan";
         else if (a == "--ask") o.mode = "ask";
         else if (a == "--auto") o.mode = "auto";
+        else if (a == "--check") pos.push_back(a);
         else if (a.size() > 1 && a[0] == '-' && a != "-") { std::cerr << "Unknown option " << a << " (astro --help)\n"; return 2; }
         else pos.push_back(a);
     }
     if (o.mode != "plan" && o.mode != "ask" && o.mode != "auto") { std::cerr << "--mode must be plan, ask or auto\n"; return 2; }
-    static const std::set<std::string> cmds = {"run", "parallel", "agents", "attach", "logs", "diff", "merge", "discard", "stop", "undo", "models", "server", "chat", "help", "tools", "ext"};
+    static const std::set<std::string> cmds = {"run", "parallel", "agents", "attach", "logs", "diff", "merge", "discard", "stop", "undo", "models", "server", "chat", "help", "tools", "ext", "update", "bug"};
     if (!pos.empty() && cmds.count(pos[0])) { o.cmd = pos[0]; pos.erase(pos.begin()); }
     if (o.cmd == "help") { help(); return 0; }
     if (o.cmd == "run") o.print = true;
@@ -1022,6 +1129,8 @@ int main(int argc, char** argv) {
     }
 
     try {
+        if (o.cmd == "update") return cmd_update(pos);
+        if (o.cmd == "bug") return cmd_bug();
         if (o.cmd == "server") {
             const std::string sub = pos.empty() ? "status" : pos[0];
             if (sub == "status") {
@@ -1065,7 +1174,8 @@ int main(int argc, char** argv) {
             Renderer R; R.human = !o.json; R.to_stderr = !o.json;
             const Value r = api("/api/agent/start", start_body(o, project, o.prompt, false), 600);
             long long since = 0;
-            const std::string st = follow(r["id"].str(), since, R, false);
+            const std::string st0 = follow(r["id"].str(), since, R, false);
+            const std::string st = st0 == "done" && R.attention ? "needs attention" : st0;
             if (!o.json) {
                 if (!R.final_text.empty()) std::cout << R.final_text << "\n";
                 std::cerr << dim("session " + r["id"].str() + " \xC2\xB7 " + st) << "\n";

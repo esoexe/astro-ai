@@ -2,8 +2,16 @@
   "name": "A.S.T.R.O AI",
   "url": "https://esoexe.github.io/astro-ai",
   "description": "A.S.T.R.O AI is a free desktop app for chat, code and agents, powered by a team of free AI models that answer as one. Windows, Linux and macOS.",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "dateLabel": "October 29, 2026",
   "year": 2026,
-  "repo": "https://github.com/esoexe/astro-ai"
+  "repo": "https://github.com/esoexe/astro-ai",
+  "highlights": [
+    "A more reliable agent: no more empty file writes, honest \"Needs attention\" results",
+    "Automatic updates with checksum checks (astro update in the terminal)",
+    "Fastest answer first while the whole team works",
+    "Get more free models in a minute with guided keys",
+    "Asks before risky commands; shows what a plugin can do before installing",
+    "French and Arabic interface"
+  ]
 }
