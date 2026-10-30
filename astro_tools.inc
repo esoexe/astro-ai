@@ -14,6 +14,9 @@
 // ------------------------------------------------------------------ catalog
 // asset regexes per platform key: linux-x64, mac-arm64, mac-x64, win-x64
 const char* TOOLS_CATALOG = R"JSON([
+ {"id":"piper","name":"Natural voice (Piper)","group":"Voice","kind":"voice","bins":["piper"],"desc":"Offline neural text-to-speech: replies are read in a natural voice generated on your computer (about 90 MB with the English voice). Piper is MIT-licensed; the English voice (LJSpeech) is public domain. Checksums pinned by A.S.T.R.O AI (the release lists none).","src":{"type":"pinned","version":"2023.11.14-2","files":{"linux-x64":{"url":"https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_linux_x86_64.tar.gz","sha256":"a50cb45f355b7af1f6d758c1b360717877ba0a398cc8cbe6d2a7a3a26e225992"},"linux-arm64":{"url":"https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_linux_aarch64.tar.gz","sha256":"fea0fd2d87c54dbc7078d0f878289f404bd4d6eea6e7444a77835d1537ab88eb"},"mac-arm64":{"url":"https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_macos_aarch64.tar.gz","sha256":"6b1eb03b3735946cb35216e063e7eebcc33a6bbf5dd96ec0217959bf1cdcb0cc"},"mac-x64":{"url":"https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_macos_x64.tar.gz","sha256":"ced85c0a3df13945b1e623b878a48fdc2854d5c485b4b67f62857cf551deaf8b"},"win-x64":{"url":"https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_windows_amd64.zip","sha256":"f3c58906402b24f3a96d92145f58acba6d86c9b5db896d207f78dc80811efcea"}}},"extras":[{"url":"https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/en/en_US/ljspeech/medium/en_US-ljspeech-medium.onnx","sha256":"6f52a751e2349abe7a76735eb09dc1875298c77ea2342ffd2fef79ff81b87f22","path":"voices/en_US-ljspeech-medium.onnx"},{"url":"https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/en/en_US/ljspeech/medium/en_US-ljspeech-medium.onnx.json","sha256":"141d612cc0a95ed7efc1ca936b845c2364967f2e9217c5dbfcf69fc4d6c65860","path":"voices/en_US-ljspeech-medium.onnx.json"}],"bindirs":["piper","*"]},
+ {"id":"piper-voice-fr","name":"French voice (Piper)","group":"Voice","kind":"voice","bins":[],"desc":"French voice for the natural voice (about 63 MB). Needs \"Natural voice (Piper)\". Voice: SIWIS database, CC BY 4.0.","src":{"type":"files","version":"siwis-medium"},"extras":[{"url":"https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/fr/fr_FR/siwis/medium/fr_FR-siwis-medium.onnx","sha256":"641d1ab097da2b81128c076810edb052b385decc8be3381814802a64a73baf99","path":"voices/fr_FR-siwis-medium.onnx"},{"url":"https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/fr/fr_FR/siwis/medium/fr_FR-siwis-medium.onnx.json","sha256":"39479916c2db192b5ac9764daddd0c744d83e023ad890c6976c0633ae4df8959","path":"voices/fr_FR-siwis-medium.onnx.json"}]},
+ {"id":"piper-voice-ar","name":"Arabic voice (Piper)","group":"Voice","kind":"voice","bins":[],"desc":"Arabic (Jordan) voice for the natural voice (about 63 MB). Needs \"Natural voice (Piper)\". The dataset does not state a license: personal use only.","src":{"type":"files","version":"kareem-medium"},"extras":[{"url":"https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/ar/ar_JO/kareem/medium/ar_JO-kareem-medium.onnx","sha256":"9e95cab07b679da603bba17c4dec7ab3111320571964ee95c0379603c086491e","path":"voices/ar_JO-kareem-medium.onnx"},{"url":"https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/ar/ar_JO/kareem/medium/ar_JO-kareem-medium.onnx.json","sha256":"ea6d9b9d9076dbdb6bf5c98c6a141ef154959d2359709b37855727964e7d6c4d","path":"voices/ar_JO-kareem-medium.onnx.json"}]},
  {"id":"clangd","name":"clangd","group":"C / C++","kind":"lsp","bins":["clangd"],
   "desc":"Completion, errors, hover, go-to-definition and formatting for C and C++ (LLVM).",
   "src":{"type":"github","repo":"clangd/clangd","asset":{"linux-x64":"^clangd-linux-[0-9.]+\\.zip$","mac-arm64":"^clangd-mac-[0-9.]+\\.zip$","mac-x64":"^clangd-mac-[0-9.]+\\.zip$","win-x64":"^clangd-windows-[0-9.]+\\.zip$"}},"bindirs":["*/bin"]},
@@ -87,7 +90,11 @@ fs::path tpath(const std::string& s) {
 
 std::string tools_platform() {
 #if defined(_WIN32)
+#  if defined(_M_ARM64) || defined(__aarch64__)
+    return "win-arm64";
+#  else
     return "win-x64";
+#  endif
 #elif defined(__APPLE__)
 #  if defined(__aarch64__) || defined(__arm64__)
     return "mac-arm64";
@@ -95,8 +102,19 @@ std::string tools_platform() {
     return "mac-x64";
 #  endif
 #else
+#  if defined(__aarch64__)
+    return "linux-arm64";
+#  else
     return "linux-x64";
+#  endif
 #endif
+}
+// Windows on ARM runs x64 programs through emulation, so x64 downloads are a fallback there.
+const Json* tools_plat_entry(const Json* map, const std::string& plat) {
+    if (!map) return nullptr;
+    if (const Json* e = map->get(plat)) return e;
+    if (plat == "win-arm64") return map->get("win-x64");
+    return nullptr;
 }
 fs::path tools_root() { std::error_code ec; const fs::path p = fs::path(data_dir()) / "tools"; fs::create_directories(p, ec); return p; }
 fs::path tools_manifest_path() { return tools_root() / "installed.json"; }
@@ -174,7 +192,7 @@ bool tools_host_ok(const std::string& url) {
     const std::string rest = url.substr(8); const std::string host = rest.substr(0, rest.find_first_of("/:?#"));
     static const std::set<std::string> ok = {"api.github.com", "github.com", "objects.githubusercontent.com", "release-assets.githubusercontent.com",
                                              "nodejs.org", "go.dev", "dl.google.com", "api.adoptium.net", "download.eclipse.org",
-                                             "open-vsx.org", "openvsxorg.blob.core.windows.net"};
+                                             "open-vsx.org", "openvsxorg.blob.core.windows.net", "huggingface.co"};
     return ok.count(host) > 0;
 }
 struct Sha256Stream {
@@ -492,7 +510,7 @@ void tools_install_run(const std::string id) {
         const std::string type = src.get("type") ? src.get("type")->string_or() : "";
         std::string url, want_sha, fname;
         if (type == "github") {
-            const Json* rx = src.get("asset") ? src.get("asset")->get(plat) : nullptr;
+            const Json* rx = tools_plat_entry(src.get("asset"), plat);
             if (!rx) throw std::runtime_error("Not available for this system.");
             tool_job_step(id, "Finding the latest release", 0.02);
             const Json rel = JsonParser(tools_get_text("https://api.github.com/repos/" + src.get("repo")->string_or() + "/releases/latest")).parse();
@@ -513,8 +531,8 @@ void tools_install_run(const std::string id) {
             const Json idx = JsonParser(tools_get_text("https://nodejs.org/dist/index.json")).parse();
             if (const auto* a = idx.array_ptr()) for (const auto& r : *a) { const Json* lts = r.get("lts"); if (lts && lts->string_ptr()) { version = r.get("version")->string_or(); break; } }
             if (version.empty()) throw std::runtime_error("Could not find a Node.js LTS release.");
-            const std::string p = plat == "win-x64" ? "win-x64" : plat == "mac-arm64" ? "darwin-arm64" : plat == "mac-x64" ? "darwin-x64" : "linux-x64";
-            fname = "node-" + version + "-" + p + (plat == "win-x64" ? ".zip" : ".tar.gz");
+            const std::string p = plat == "win-x64" ? "win-x64" : plat == "win-arm64" ? "win-arm64" : plat == "mac-arm64" ? "darwin-arm64" : plat == "mac-x64" ? "darwin-x64" : plat == "linux-arm64" ? "linux-arm64" : "linux-x64";
+            fname = "node-" + version + "-" + p + (plat.rfind("win", 0) == 0 ? ".zip" : ".tar.gz");
             url = "https://nodejs.org/dist/" + version + "/" + fname;
             const std::string sums = tools_get_text("https://nodejs.org/dist/" + version + "/SHASUMS256.txt");
             std::stringstream ss(sums); std::string line;
@@ -522,7 +540,7 @@ void tools_install_run(const std::string id) {
         } else if (type == "go") {
             tool_job_step(id, "Finding the latest Go", 0.02);
             const Json rel = JsonParser(tools_get_text("https://go.dev/dl/?mode=json")).parse();
-            const std::string os = plat == "win-x64" ? "windows" : plat.rfind("mac", 0) == 0 ? "darwin" : "linux", arch = plat == "mac-arm64" ? "arm64" : "amd64";
+            const std::string os = plat.rfind("win", 0) == 0 ? "windows" : plat.rfind("mac", 0) == 0 ? "darwin" : "linux", arch = plat.find("arm64") != std::string::npos ? "arm64" : "amd64";
             if (const auto* a = rel.array_ptr(); a && !a->empty())
                 if (const auto* files = (*a)[0].get("files") ? (*a)[0].get("files")->array_ptr() : nullptr)
                     for (const auto& f : *files)
@@ -532,7 +550,7 @@ void tools_install_run(const std::string id) {
             if (url.empty()) throw std::runtime_error("No Go download for this system.");
         } else if (type == "adoptium") {
             tool_job_step(id, "Finding the latest JDK", 0.02);
-            const std::string os = plat == "win-x64" ? "windows" : plat.rfind("mac", 0) == 0 ? "mac" : "linux", arch = plat == "mac-arm64" ? "aarch64" : "x64";
+            const std::string os = plat.rfind("win", 0) == 0 ? "windows" : plat.rfind("mac", 0) == 0 ? "mac" : "linux", arch = plat.find("arm64") != std::string::npos ? "aarch64" : "x64";
             const int feat = src.get("feature") ? static_cast<int>(std::get<double>(src.get("feature")->value)) : 21;
             const Json r = JsonParser(tools_get_text("https://api.adoptium.net/v3/assets/latest/" + std::to_string(feat) + "/hotspot?architecture=" + arch + "&image_type=jdk&os=" + os + "&vendor=eclipse")).parse();
             if (const auto* a = r.array_ptr(); a && !a->empty()) {
@@ -584,6 +602,13 @@ void tools_install_run(const std::string id) {
             const Captured r = run_capture({go, "install", src.get("package")->string_or()}, stage, env, 900, 400'000);
             if (r.code != 0) throw std::runtime_error("go install failed: " + (r.err.empty() ? r.out : r.err).substr(0, 600));
             version = "latest"; verified = "go";
+        } else if (type == "pinned") {
+            const Json* f = tools_plat_entry(src.get("files"), plat);
+            if (!f) throw std::runtime_error("Not available for this system.");
+            url = f->get("url")->string_or(); want_sha = f->get("sha256")->string_or(); fname = url.substr(url.rfind('/') + 1);
+            version = src.get("version") ? src.get("version")->string_or() : "pinned";
+        } else if (type == "files") {
+            version = src.get("version") ? src.get("version")->string_or() : "1";
         } else if (type == "system") {
             throw std::runtime_error("Install this one with its official installer (see the instructions).");
         } else throw std::runtime_error("Unknown source type.");
@@ -603,6 +628,24 @@ void tools_install_run(const std::string id) {
                 const auto bins = json_strings(spec->get("bins")); tools_extract_gz_single(dl, stage / (bins.empty() ? id : bins[0]));
             } else throw std::runtime_error("Unsupported archive: " + fname);
             fs::remove(dl, ec);
+        }
+        // Extra files (voice models): each one checked against its pinned SHA-256 before it is kept.
+        if (const auto* ex = spec->get("extras") ? spec->get("extras")->array_ptr() : nullptr) {
+            fs::create_directories(stage, ec);
+            std::size_t k = 0;
+            for (const auto& e : *ex) {
+                const std::string eu = e.get("url")->string_or(), es = e.get("sha256")->string_or(), ep = e.get("path")->string_or();
+                if (ep.empty() || ep[0] == '/' || ep.find("..") != std::string::npos || es.size() != 64) throw std::runtime_error("Bad extra file in the catalog.");
+                tool_job_step(id, "Downloading " + fs::path(ep).filename().string(), 0.05 + 0.75 * static_cast<double>(k) / static_cast<double>(ex->size()));
+                const fs::path dest = stage / ep, part = stage / (ep + ".part");
+                fs::create_directories(dest.parent_path(), ec);
+                const std::string got = tools_download(id, eu, part);
+                if (got != es) { fs::remove(part, ec); throw std::runtime_error("Checksum mismatch for " + fs::path(ep).filename().string() + ". Nothing was installed."); }
+                fs::rename(part, dest, ec);
+                if (ec) throw std::runtime_error("Could not save " + ep + ": " + ec.message());
+                if (source_url.empty()) source_url = eu;
+                ++k;
+            }
         }
         // Folders that hold the executables
         std::vector<std::string> bindirs;
@@ -662,9 +705,11 @@ Json tools_list_json(bool detect) {
         for (const char* k : {"id", "name", "group", "kind", "desc"}) if (t.get(k)) o[k] = *t.get(k);
         const Json& src = *t.get("src"); const std::string type = src.get("type")->string_or();
         bool available = type != "system";
-        if (type == "github") available = src.get("asset") && src.get("asset")->get(plat);
+        if (type == "github") available = tools_plat_entry(src.get("asset"), plat) != nullptr;
+        if (type == "pinned") available = tools_plat_entry(src.get("files"), plat) != nullptr;
+        if ((type == "node" || type == "go" || type == "adoptium") && plat == "linux-arm64") available = true;
         o["installable"] = Json(available);
-        o["source"] = Json(type == "github" ? "GitHub · " + src.get("repo")->string_or() : type == "node" ? std::string("nodejs.org") : type == "go" ? std::string("go.dev") : type == "adoptium" ? std::string("Adoptium") : type == "url" ? std::string("download.eclipse.org") : type == "npm" ? std::string("npm") : type == "goinstall" ? std::string("go install") : std::string("official installer"));
+        o["source"] = Json(type == "github" ? "GitHub · " + src.get("repo")->string_or() : type == "node" ? std::string("nodejs.org") : type == "go" ? std::string("go.dev") : type == "adoptium" ? std::string("Adoptium") : type == "url" ? std::string("download.eclipse.org") : type == "npm" ? std::string("npm") : type == "goinstall" ? std::string("go install") : type == "pinned" || type == "files" ? std::string("GitHub / Hugging Face (pinned SHA-256)") : std::string("official installer"));
         if (const Json* sys = t.get("system")) { const Json* s = sys->get(plat); if (!s) s = sys->get("*"); if (s) o["instructions"] = *s; }
         if (const Json* in = m.get(id)) o["installed"] = *in;
         if (auto it = jobs.find(id); it != jobs.end()) {
@@ -988,4 +1033,66 @@ void dev_exthost(int fd, const std::string& action, const Json& body) {
         send_json(fd, 200, Json(Json::Object{{"ok", Json(true)}})); return;
     }
     send_json(fd, 404, error_json("Unknown exthost action."));
+}
+
+// ------------------------------------------------------------------ natural voice (Piper, offline neural TTS)
+// POST /api/dev/tts/status {} -> {available, voices:[{lang, name}]}
+// POST /api/dev/tts/speak {text, lang, rate?} -> audio/wav (generated on this computer; nothing is sent anywhere)
+struct PiperVoice { std::string lang, name; fs::path model; };
+std::string piper_bin() {
+    Json m; { std::lock_guard<std::mutex> lk(g_tools_mu); m = tools_manifest_locked(); }
+    std::error_code ec;
+    if (const Json* e = m.get("piper"))
+        for (const auto& d : json_strings(e->get("bindirs")))
+            for (const char* n : {"piper", "piper.exe"}) { const fs::path p = fs::path(d) / n; if (fs::is_regular_file(p, ec)) return p.string(); }
+    return tools_which("piper");
+}
+std::vector<PiperVoice> piper_voices() {
+    std::vector<PiperVoice> out; std::error_code ec;
+    for (const auto& t : fs::directory_iterator(tools_root(), ec)) {
+        const fs::path vd = t.path() / "voices";
+        if (!fs::is_directory(vd, ec)) continue;
+        for (const auto& f : fs::directory_iterator(vd, ec)) {
+            const std::string n = f.path().filename().string();
+            if (n.size() < 6 || n.compare(n.size() - 5, 5, ".onnx") != 0) continue;
+            if (!fs::exists(fs::path(f.path().string() + ".json"), ec)) continue;
+            PiperVoice v; v.model = f.path(); v.lang = n.substr(0, n.find('-')); v.name = n.substr(0, n.size() - 5);
+            out.push_back(std::move(v));
+        }
+    }
+    std::sort(out.begin(), out.end(), [](const PiperVoice& a, const PiperVoice& b) { return a.name < b.name; });
+    return out;
+}
+void dev_tts(int fd, const std::string& action, const Json& body) {
+    const std::string bin = piper_bin();
+    const auto voices = piper_voices();
+    if (action == "status") {
+        Json::Array vs; for (const auto& v : voices) { Json::Object o; o["lang"] = Json(v.lang); o["name"] = Json(v.name); vs.push_back(Json(std::move(o))); }
+        Json::Object o; o["available"] = Json(!bin.empty() && !voices.empty()); o["installed"] = Json(!bin.empty()); o["voices"] = Json(std::move(vs));
+        send_json(fd, 200, Json(std::move(o))); return;
+    }
+    if (action != "speak") { send_json(fd, 404, error_json("Unknown voice action.")); return; }
+    if (bin.empty()) { send_json(fd, 404, error_json("The natural voice is not installed (Settings > Voice).")); return; }
+    std::string text = get_string(body, "text");
+    if (trim(text).empty()) { send_json(fd, 400, error_json("Nothing to say.")); return; }
+    if (text.size() > 3000) text = text.substr(0, 3000);
+    for (char& c : text) if (c == '\r' || c == '\n') c = ' ';
+    std::string lang = get_string(body, "lang", "en"); for (char& c : lang) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    const std::string want = lang.substr(0, 2), voice_name = get_string(body, "voice");
+    const PiperVoice* pick = nullptr;
+    for (const auto& v : voices) if (!voice_name.empty() && v.name == voice_name) pick = &v;
+    if (!pick) for (const auto& v : voices) if (v.lang.size() >= 2 && std::tolower(static_cast<unsigned char>(v.lang[0])) == want[0] && std::tolower(static_cast<unsigned char>(v.lang[1])) == (want.size() > 1 ? want[1] : ' ')) { pick = &v; break; }
+    if (!pick) { send_json(fd, 404, error_json("No natural voice for this language.")); return; }
+    double rate = 1.0; if (const Json* r = body.get("rate")) if (const auto* d = std::get_if<double>(&r->value)) rate = std::clamp(*d, 0.5, 2.0);
+    std::error_code ec;
+    const fs::path dir = fs::path(data_dir()) / ".astro_tts"; fs::create_directories(dir, ec);
+    const fs::path out = dir / (random_hex(8) + ".wav");
+    char ls[32]; std::snprintf(ls, sizeof ls, "%.3f", 1.0 / rate);
+    const std::string input = text + "\n";
+    const Captured r = run_capture({bin, "-m", pick->model.string(), "-f", out.string(), "--length_scale", ls}, fs::path(bin).parent_path(), {}, 90, 200'000, &input);
+    std::string wav;
+    { std::ifstream in(out, std::ios::binary); std::stringstream ss; ss << in.rdbuf(); wav = ss.str(); }
+    fs::remove(out, ec);
+    if (r.code != 0 || wav.size() < 100) { send_json(fd, 500, error_json("The natural voice failed: " + trim((r.err.empty() ? r.out : r.err).substr(0, 300)))); return; }
+    send_response(fd, 200, "audio/wav", wav);
 }

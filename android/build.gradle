@@ -1,0 +1,4 @@
+// A.S.T.R.O AI for Android. The app itself has no library dependencies: plain Android APIs only.
+plugins {
+    id 'com.android.application' version '9.4.0' apply false
+}

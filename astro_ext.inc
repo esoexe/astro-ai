@@ -157,8 +157,22 @@ void send_session(int fd, const HttpRequest& r, const std::string& token) {
 }
 // Requests the agent engine makes to the server itself (astro_engine.inc) are already authorised.
 thread_local bool t_internal_call = false;
+// App-token mode (the Android app): the shell that starts the engine generates a random secret per launch and
+// hands it only to its own WebView (as the session cookie). Every other program on the device - including other
+// apps, which can all reach 127.0.0.1 - is refused, even though there is no password.
+const std::string& app_token() {
+    static const std::string t = [] { const char* e = std::getenv("ASTRO_APP_TOKEN"); std::string s = e ? e : ""; return s.size() >= 32 ? s : std::string(); }();
+    return t;
+}
+bool app_token_ok(const HttpRequest& r) {
+    for (const auto& token : request_tokens(r))
+        if (token.size() == app_token().size() && astro_memeq(token.data(), app_token().data(), token.size())) return true;
+    return false;
+}
 bool auth_ok(const HttpRequest& r) {
-    if (t_internal_call || auth_disabled()) return true;
+    if (t_internal_call) return true;
+    if (!app_token().empty()) return app_token_ok(r);
+    if (auth_disabled()) return true;
     std::lock_guard<std::mutex> lock(g_auth_mutex);
     auth_load_locked();
     if (g_auth.hash.empty()) return false;
@@ -177,6 +191,7 @@ bool login_throttled_locked() {
 void handle_auth(int fd, const HttpRequest& request) {
     if (request.path == "/api/auth/state") {
         Json::Object obj;
+        if (!app_token().empty()) { obj["enabled"] = Json(false); obj["setup"] = Json(false); obj["ok"] = Json(app_token_ok(request)); send_json(fd, 200, Json(std::move(obj))); return; }
         if (auth_disabled()) { obj["enabled"] = Json(false); obj["setup"] = Json(false); obj["ok"] = Json(true); send_json(fd, 200, Json(std::move(obj))); return; }
         bool setup = false;
         { std::lock_guard<std::mutex> lock(g_auth_mutex); auth_load_locked(); setup = g_auth.hash.empty(); }
@@ -184,6 +199,7 @@ void handle_auth(int fd, const HttpRequest& request) {
         send_json(fd, 200, Json(std::move(obj)));
         return;
     }
+    if (!app_token().empty()) { send_json(fd, 403, error_json("This copy is protected by its app; passwords are not used.")); return; }
     if (request.method != "POST") { send_json(fd, 405, error_json("Use POST.")); return; }
     const auto body_opt = parse_request_json(request, fd);
     if (!body_opt) return;

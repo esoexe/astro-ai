@@ -4,7 +4,7 @@
 #   curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh
 #
 # Installs the CLEAN edition of the `astro` command and its local engine into ~/.astro-ai
-# and links `astro` into ~/.local/bin. Linux x64 and macOS (Apple Silicon + Intel).
+# and links `astro` into ~/.local/bin. Linux x64 and arm64 (1.8.0+), macOS (Apple Silicon + Intel).
 # Downloads come from the official GitHub release and are checked against SHA256SUMS.txt.
 #
 # Options (environment variables):
@@ -43,7 +43,8 @@ sha256() {
 OS="$(uname -s)"; ARCH="$(uname -m)"
 case "$OS" in
   Linux)
-    case "$ARCH" in x86_64|amd64) ;; *) die "Linux $ARCH isn't built yet (x64 only). You can build from source: https://github.com/$REPO";; esac
+    case "$ARCH" in x86_64|amd64) LARCH=x64 ;; aarch64|arm64) LARCH=arm64 ;;
+      *) die "Linux $ARCH isn't built yet (x64 and arm64 only). You can build from source: https://github.com/$REPO";; esac
     PLATFORM=linux ;;
   Darwin) PLATFORM=mac ;;
   MINGW*|MSYS*|CYGWIN*) die "On Windows, run this in PowerShell instead:  irm https://esoexe.github.io/astro-ai/install.ps1 | iex" ;;
@@ -60,7 +61,10 @@ fi
 case "$VERSION" in __*) die "Could not find the latest version. Set one, e.g. ASTRO_VERSION=1.7.0";; esac
 VERSION="${VERSION#v}"
 
-if [ "$PLATFORM" = linux ]; then FILE="astro-ai-clean-$VERSION-linux-x64-portable-CLEAN.tar.gz"
+if [ "$PLATFORM" = linux ]; then FILE="astro-ai-clean-$VERSION-linux-$LARCH-portable-CLEAN.tar.gz"
+  if [ "$LARCH" = arm64 ] && ! curl -fsSLI -o /dev/null "https://github.com/$REPO/releases/download/v$VERSION/$FILE" 2>/dev/null; then
+    die "There is no Linux arm64 build of v$VERSION (they start at 1.8.0). Try the latest version, or build from source: https://github.com/$REPO"
+  fi
 else FILE="AstroAI-$VERSION-macos-universal-CLEAN.dmg"; fi
 BASE="https://github.com/$REPO/releases/download/v$VERSION"
 

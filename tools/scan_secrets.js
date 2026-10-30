@@ -44,6 +44,10 @@ const tokensIn = (f, label) => {
 ['.astro_keys.env', '.workspace.env', '.env'].forEach(envFile);
 tokensIn('.astro_auth.json'); tokensIn('.astro_sessions'); tokensIn('desktop-builds/.gofile-links.txt'); tokensIn('.cache/gh/token', 'github token'); tokensIn('.config/astro-ai/gh_token', 'github token');
 if (fs.existsSync(path.join(ROOT, 'uploads'))) for (const f of fs.readdirSync(path.join(ROOT, 'uploads'))) tokensIn(path.join('uploads', f), 'uploads/<file>');
+// Android release signing key: its password, and a slice of the keystore itself (catches a copied .jks file)
+envFile('.astro_android/keystore.properties');
+{ const ks = path.join(ROOT, '.astro_android/astro-release.jks');
+  if (fs.existsSync(ks)) { const b = fs.readFileSync(ks); if (b.length > 600) secrets.push({ name: 'android keystore (bytes)', value: b.subarray(200, 264).toString('latin1') }); } }
 const uniq = new Map(secrets.map((s) => [s.value, s])); const known = [...uniq.values()];
 
 // ---- 2. generic key shapes
@@ -62,7 +66,9 @@ const PUBLIC_HOST_OK = new Set(['website/src/static/assets/js/account.js', 'webs
   // the Astro API gateway URL (same public host) for the built-in "astro" provider: the app needs it to use astro_sk_ keys
   'providers.json', 'tools/providers_extra.json',
   // opt-in feedback: an insert-only table (RLS; the public key cannot read rows back)
-  'astro_quality.inc']);
+  'astro_quality.inc',
+  // the website's feedback / beta / waitlist forms: the same insert-only astro_reports table (column grants, no SELECT)
+  'website/src/static/assets/js/site.js']);
 
 // ---- scan
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => {
@@ -75,7 +81,7 @@ for (const f of walk(dir)) {
   files++;
   const buf = fs.readFileSync(f);
   const rel = path.relative(dir, f);
-  for (const s of known) if (buf.includes(s.value) && !(s.name.endsWith(' (host)') && PUBLIC_HOST_OK.has(rel.split(path.sep).join('/')))) { problems++; console.log(`SECRET VALUE  ${rel}  <- ${s.name} (${s.value.length} chars)`); }
+  for (const s of known) if (buf.includes(s.name === 'android keystore (bytes)' ? Buffer.from(s.value, 'latin1') : s.value) && !(s.name.endsWith(' (host)') && PUBLIC_HOST_OK.has(rel.split(path.sep).join('/')))) { problems++; console.log(`SECRET VALUE  ${rel}  <- ${s.name} (${s.value.length} chars)`); }
   const isText = !buf.subarray(0, 8000).includes(0);
   if (isText) {
     const t = buf.toString('utf8');

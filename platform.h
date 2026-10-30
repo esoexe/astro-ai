@@ -11,7 +11,7 @@
 
 // The app version reported by the engine (/api/status, update checks). Bumped with every release.
 #ifndef ASTRO_APP_VERSION
-#define ASTRO_APP_VERSION "1.7.1"
+#define ASTRO_APP_VERSION "1.8.0"
 #endif
 
 #if defined(_WIN32)
@@ -78,6 +78,22 @@ extern char** environ;   // the process environment (used to start MCP servers w
 #include <cstring>
 #include <string>
 
+#if defined(__ANDROID__)
+// Android has no /bin/bash or /bin/sh: the system shell is /system/bin/sh (mksh). Every place that starts a
+// shell keeps its normal path; these wrappers swap it at the last moment, so no call site needs an #ifdef.
+inline const char* astro_android_shell(const char* path) {
+    if (path && (std::strcmp(path, "/bin/bash") == 0 || std::strcmp(path, "/bin/sh") == 0 || std::strcmp(path, "bash") == 0))
+        return "/system/bin/sh";
+    return path;
+}
+inline int astro_android_execve(const char* p, char* const* a, char* const* e) { return (execve)(astro_android_shell(p), a, e); }
+inline int astro_android_execvp(const char* p, char* const* a) { return (execvp)(astro_android_shell(p), a); }
+inline int astro_android_execvpe(const char* p, char* const* a, char* const* e) { return (execvpe)(astro_android_shell(p), a, e); }
+#  define execve astro_android_execve
+#  define execvp astro_android_execvp
+#  define execvpe astro_android_execvpe
+#endif
+
 #ifndef O_BINARY
 #  define O_BINARY 0
 #endif
@@ -101,7 +117,7 @@ inline bool astro_secret_env(const std::string& name_in) {
     auto starts = [&](const char* s) { return n.rfind(s, 0) == 0; };
     auto ends = [&](const char* s) { const std::size_t l = std::strlen(s); return n.size() >= l && n.compare(n.size() - l, l, s) == 0; };
     return starts("LLM_") || starts("FALLBACK_") || starts("ASTRO_KEY") || n == "OPENCODE_SERVER_PASSWORD" || n == "SUPABASE_SERVICE_ROLE_KEY" ||
-           n == "ASTRO_KMS_KEY" || n == "GH_TOKEN" || n == "GITHUB_TOKEN" || ends("_API_KEY") || ends("_API_TOKEN") || ends("_SECRET_KEY") ||
+           n == "ASTRO_KMS_KEY" || n == "ASTRO_APP_TOKEN" || n == "GH_TOKEN" || n == "GITHUB_TOKEN" || ends("_API_KEY") || ends("_API_TOKEN") || ends("_SECRET_KEY") ||
            ends("_ACCESS_TOKEN");
 }
 

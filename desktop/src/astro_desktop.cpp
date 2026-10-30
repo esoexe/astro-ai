@@ -62,7 +62,7 @@ using namespace std::chrono_literals;
 
 namespace {
 
-constexpr const char* kVersion = "1.7.1";
+constexpr const char* kVersion = "1.8.0";
 
 // ------------------------------------------------------------------------------------------------
 // Small utilities
@@ -684,10 +684,17 @@ static int run_app() {
 #else
         "linux";
 #endif
+    const std::string arch =
+#if defined(__aarch64__) || defined(_M_ARM64)
+        "arm64";   /* the updater picks the matching ARM64 installer */
+#else
+        "x64";
+#endif
     const std::string info = std::string("{\"edition\":") + webview::detail::json_escape(cfg.edition) +
                              ",\"name\":" + webview::detail::json_escape(display) +
                              ",\"version\":" + webview::detail::json_escape(kVersion) +
                              ",\"platform\":" + webview::detail::json_escape(platform) +
+                             ",\"arch\":" + webview::detail::json_escape(arch) +
                              ",\"port\":" + std::to_string(cfg.port) +
                              ",\"data_dir\":" + webview::detail::json_escape(pstr(cfg.data)) + "}";
 

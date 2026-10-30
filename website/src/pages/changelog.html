@@ -9,8 +9,71 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
-    <article class="release latest reveal" id="v1-7-1">
-      <header><h2>1.7.1</h2><span class="badge">Latest</span><time datetime="2026-10-29">October 29, 2026</time></header>
+    <article class="release latest reveal" id="v1-8-0">
+      <header><h2>1.8.0</h2><span class="badge">Latest</span><time datetime="2026-10-30">October 30, 2026</time></header>
+      <p class="muted">An Android app with the engine inside, an Agent that gives the honest answer the first time, opt-in error reports and feedback, an offline natural voice, ARM64 builds, and an accessibility pass.</p>
+
+      <h3>Android app (new)</h3>
+      <ul class="ticks">
+        <li>The same engine as the desktop app runs inside the app, on your phone: chats, One Brain, the Workspace, the Agent, notes and settings. Android 8.0 or newer, 64-bit ARM</li>
+        <li>Only the app can use its engine. Each start makes a new random key that only the app's own window gets, so other apps on the phone are refused even though the engine listens on 127.0.0.1</li>
+        <li>Voice input and read-aloud use your phone's own speech services. Saved files go to Downloads/A.S.T.R.O AI. "Share" text from any app straight into the chat box</li>
+        <li>Two permissions only: internet, and the microphone (asked the first time you use voice). No cloud backup of your data</li>
+        <li>Signed APK on the download page, with its SHA-256 and the signing certificate's fingerprint. Not on Google Play yet</li>
+        <li>Honest status: built and tested on a computer (the engine under arm64 emulation, the app's voice, files and links in a browser with a stand-in for the phone), <b>not yet on many real phones</b>. Please <a href="{{root}}beta.html">tell us how it runs</a></li>
+      </ul>
+
+      <h3>The Agent: honest the first time, the whole job at once</h3>
+      <ul class="ticks">
+        <li>No more "100% complete" followed by "actually, not complete" when you push. A finished-job report that claims more than the job's own checks prove is sent back: the Agent must run the build and tests and confirm each requirement, or rewrite the report as a calibrated status (verified, not verified, missing)</li>
+        <li>Questions like "is it done?", "what's missing?" or "be honest" make the Agent inspect the real files and run the checks before answering, instead of answering from memory</li>
+        <li>It doesn't flip its answer just because you push back. If new evidence shows it was wrong, it says what was wrong and why. If it was right, it keeps the answer and explains it</li>
+        <li>It does the whole job in one run: no stubs or "TODO: implement" left behind, and no stopping halfway to ask whether to continue</li>
+      </ul>
+
+      <h3>Faster-feeling answers (One Brain stays the default)</h3>
+      <ul class="ticks">
+        <li>While the team works you see its steps (Plan, Work, Review, Answer) and an honest time estimate based on your last answers, instead of an open-ended spinner</li>
+        <li><b>Local only</b> (Settings › Brain): answer only with models on your own computer through Ollama. Private, works offline, slower on most PCs</li>
+      </ul>
+
+      <h3>Feedback, reports and first run</h3>
+      <ul class="ticks">
+        <li><b>Send feedback</b> from the menu: a short form, sent only when you press Send</li>
+        <li><b>Anonymous error reports</b>, off by default. Turn them on in the welcome screen or Settings › Data &amp; privacy. Only errors and engine crashes, with keys, tokens, e-mail addresses and personal paths removed. Never chats, files or prompts</li>
+        <li>A simpler first run: a short welcome screen and a <b>Simple menu</b> that shows the main things first (everything else is one tap away)</li>
+        <li>New pages: <a href="{{root}}beta.html">Beta testing</a>, <a href="{{root}}limits.html">What it can't do (yet)</a>, <a href="{{root}}support.html">Support the project</a>, and an updated <a href="{{root}}privacy.html">privacy page</a>. New SECURITY.md with how to report a vulnerability privately</li>
+        <li>A.S.T.R.O AI Pro: only the plumbing for now (a license check and a waitlist). Nothing is for sale and nothing in the app is locked</li>
+      </ul>
+
+      <h3>Natural voice (offline)</h3>
+      <ul class="ticks">
+        <li>Settings › Voice › <b>Natural voice</b>: a neural voice (Piper) that runs on your computer, works offline and sounds much better than most system voices. English, French and Arabic. Downloads are checked against pinned SHA-256 hashes</li>
+        <li>Voice credits: the French voice "siwis" is based on the SIWIS dataset (CC BY 4.0). The Arabic voice "kareem" has no stated dataset license, so it is offered for personal use only. The English voices are public domain or CC0</li>
+      </ul>
+
+      <h3>Agent sandbox</h3>
+      <ul class="ticks">
+        <li>Settings › Data &amp; privacy › <b>Agent sandbox</b> (Linux, off by default): every Agent command runs in an operating-system sandbox (bubblewrap). Only the project folder can be changed; your home folder, keys and other files are hidden. Internet inside the sandbox is optional</li>
+      </ul>
+
+      <h3>ARM64 builds</h3>
+      <ul class="ticks">
+        <li>Windows on ARM (Snapdragon PCs) and Linux arm64 (Raspberry Pi 4/5 with a 64-bit OS, ARM laptops and servers) get native builds. The Windows ARM64 build needs Windows 11 on ARM</li>
+        <li>Honest status: <b>built, not tested on real ARM devices yet</b>. On Windows 11 ARM the normal x64 installer also works (emulated)</li>
+        <li><code>install.sh</code> and <code>install.ps1</code> pick the ARM64 build automatically on ARM machines, and the in-app updater downloads the right one</li>
+      </ul>
+
+      <h3>Accessibility and fixes</h3>
+      <ul class="ticks">
+        <li>Every settings switch and menu has a proper label for screen readers. The Workspace tabs work with the keyboard (arrows, Enter, Delete to close). Dialogs keep the focus inside and give it back when they close</li>
+        <li>Higher contrast for small grey text, teal buttons and file-type badges, in light and dark themes (WCAG AA). Checked with axe-core on every main screen</li>
+        <li>MCP servers you started are now stopped when A.S.T.R.O AI closes or its engine stops</li>
+      </ul>
+    </article>
+
+    <article class="release reveal" id="v1-7-1">
+      <header><h2>1.7.1</h2><time datetime="2026-10-29">October 29, 2026</time></header>
       <p class="muted">The whole app in French and Arabic, update notes in your language, and builds ready for code signing.</p>
 
       <h3>French and Arabic everywhere</h3>

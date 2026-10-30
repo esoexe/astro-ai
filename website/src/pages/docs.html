@@ -13,6 +13,7 @@
     <a href="#install-windows">Install on Windows</a>
     <a href="#install-linux">Install on Linux</a>
     <a href="#install-macos">Install on macOS</a>
+    <a href="#install-android">Install on Android</a>
     <a href="#first-chat">Your first chat</a>
     <h4>Using A.S.T.R.O AI</h4>
     <a href="#one-brain">One Brain &amp; single models</a>
@@ -74,6 +75,15 @@ cd AstroAI-{{version}}-macos-source-CLEAN
       <li>Open the <code>.dmg</code> it creates and drag <strong>A.S.T.R.O AI Clean</strong> into Applications.</li>
     </ol>
     <p>Needs macOS 11 Big Sur or newer. To build for just one architecture, use <code>ARCHS="-arch arm64" ./build_mac.sh</code>. Because you built the app yourself, macOS opens it without the warning it shows for downloaded apps.</p>
+
+    <h2 id="install-android">Install on Android</h2>
+    <p>New in 1.8. Needs Android 8.0 or newer on a 64-bit ARM phone (almost every phone from the last few years). The app is not on Google Play yet, so you install the APK yourself:</p>
+    <ol>
+      <li>On your phone, open the <a href="{{root}}download.html">download page</a> and tap <strong>Android</strong>.</li>
+      <li>Open the downloaded file. The first time, Android asks you to allow your browser to install apps: allow it for this install, then you can turn it off again.</li>
+      <li>Open <strong>A.S.T.R.O AI</strong>. The engine starts inside the app; nothing runs on our servers except the AI providers you use.</li>
+    </ol>
+    <p>The phone version has everything except what needs a computer: a phone has no bash, Node or compilers, so Workspace commands that need them say "not found", and the Agent sandbox isn't available. Voice uses your phone's speech services. Updates: the app tells you when a new version is out and downloads the APK; Android then asks you to confirm. Every APK is signed with the same key, so a fake one can't replace your app; to check, see <a href="{{root}}download.html#verify">Verify your download</a>. More: <a href="https://github.com/esoexe/astro-ai/blob/main/docs/android.md">docs/android.md</a>.</p>
 
     <h2 id="first-chat">Your first chat</h2>
     <p>Open A.S.T.R.O AI and type a question in the box that says <strong>Ask A.S.T.R.O AI</strong>. That's it: there's no account and nothing to set up. The model menu above the chat starts on <strong>One Brain · all 26 minds together</strong>, and the status bar at the bottom left shows how many models are ready.</p>
@@ -220,6 +230,7 @@ cd AstroAI-{{version}}-macos-source-CLEAN
 
     <h2 id="voice">Voice</h2>
     <p>Click the microphone to <strong>dictate</strong> a message, or the highlighted <strong>Live</strong> wave button for a spoken back-and-forth conversation. The speaker button under any answer reads it aloud. Voice uses your operating system's speech engine, so the available voices and languages depend on your system. The first time, allow microphone access when asked.</p>
+    <p>For a more natural reading voice that works offline, open <strong>Settings › Voice</strong> and install <strong>Natural voice</strong> (Piper: about 90 MB with the English voice, plus about 63 MB for French or Arabic). The download is checked against a pinned SHA-256 hash. It isn't available on Windows on ARM or Android yet. Each voice's license is shown before you install it.</p>
 
     <h2 id="knowledge">Knowledge, notes &amp; tasks</h2>
     <ul>

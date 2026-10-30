@@ -88,6 +88,36 @@ function reply(messages) {
     if (rounds === 0) return 'Running it.\n```bash\n\n```\n```bash\n{"tool":"bash","command":"echo fenced > fenced.txt"}\n```';
     return 'Done.\n' + done('fenced');
   }
+  // Finish audit scenarios (honest the first time, whole job, no stubs): the model first misbehaves, then complies after the nudge.
+  if (/is the app complete\?/i.test(job)) {
+    if (!/ASSESS FOR REAL/.test(since)) return 'Yes, the app is 100% complete and production-ready.\n' + done('complete');
+    if (!(since.slice(since.indexOf('ASSESS FOR REAL')).match(/TOOL RESULTS:/g) || []).length) return 'Inspecting.\n' + tool({ tool: 'list_files' }) + '\n' + tool({ tool: 'bash', command: 'ls -la && cat README.md' });
+    return 'STATUS REPORT\nVerified working: README.md exists and is readable.\nNot verified: there is no test suite, so nothing could be run.\nOverall: 1 of 2 requirements verified; not complete.\n' + done('status report');
+  }
+  if (/build parts one and two/i.test(job)) {
+    const nudged = /DON'T STOP HALFWAY/.test(since);
+    const after = nudged ? (since.slice(since.indexOf("DON'T STOP HALFWAY")).match(/TOOL RESULTS:/g) || []).length : 0;
+    if (!nudged) {
+      if (rounds === 0) return tool({ tool: 'write_file', path: 'one.txt', content: 'one\n' });
+      if (rounds === 1) return tool({ tool: 'bash', command: 'cat one.txt' });
+      return 'Created one.txt and checked it. Would you like me to create two.txt next?\n' + done('part one');
+    }
+    if (after === 0) return tool({ tool: 'write_file', path: 'two.txt', content: 'two\n' });
+    if (after === 1) return tool({ tool: 'bash', command: 'cat one.txt two.txt' });
+    return 'Created one.txt and two.txt and checked both with cat.\n' + done('both parts');
+  }
+  if (/write the adder/i.test(job)) {
+    const nudged = /PLACEHOLDERS LEFT/.test(since);
+    const after = nudged ? (since.slice(since.indexOf('PLACEHOLDERS LEFT')).match(/TOOL RESULTS:/g) || []).length : 0;
+    if (!nudged) {
+      if (rounds === 0) return tool({ tool: 'write_file', path: 'add.js', content: 'function add(a, b) {\n  // TODO: implement\n}\nmodule.exports = add;\n' });
+      if (rounds === 1) return tool({ tool: 'bash', command: 'node -e "require(\'./add.js\')"' });
+      return 'Wrote add.js.\n' + done('adder');
+    }
+    if (after === 0) return tool({ tool: 'write_file', path: 'add.js', content: 'function add(a, b) {\n  return a + b;\n}\nmodule.exports = add;\n' });
+    if (after === 1) return tool({ tool: 'bash', command: 'node -e "console.log(require(\'./add.js\')(2, 3))"' });
+    return 'add.js now returns a + b; node printed 5.\n' + done('adder real');
+  }
   if (/plan only/i.test(job)) {
     if (rounds === 0) return tool({ tool: 'write_file', path: 'should_not_exist.txt', content: 'x' });
     return 'PLAN:\n1. Create the file.\n2. Test it.\n' + done('plan written');

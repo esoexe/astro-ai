@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="starting">جارٍ تشغيل A.S.T.R.O AI…</string>
+    <string name="engine_failed">توقف محرك A.S.T.R.O AI.</string>
+    <string name="restart">إعادة التشغيل</string>
+    <string name="mic_denied">يحتاج الإدخال الصوتي إلى إذن الميكروفون. يمكنك منحه من إعدادات أندرويد ← التطبيقات ← A.S.T.R.O AI.</string>
+    <string name="saved">تم الحفظ في التنزيلات</string>
+</resources>

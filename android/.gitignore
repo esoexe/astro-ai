@@ -1,0 +1,14 @@
+# Built by build_engine.sh (CI builds them again from pinned sources)
+app/src/main/jniLibs/
+app/src/main/assets/cacert.pem
+# Gradle / IDE
+.gradle/
+build/
+app/build/
+local.properties
+*.iml
+.idea/
+# Signing keys never go into the repository
+*.jks
+*.keystore
+keystore.properties

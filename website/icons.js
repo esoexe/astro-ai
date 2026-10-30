@@ -37,6 +37,7 @@ const P = {
   windows: '<path d="M3 5.6l7.4-1v7H3zM11.6 4.4L21 3v8.6h-9.4zM3 12.6h7.4v7L3 18.4zM11.6 12.6H21V21l-9.4-1.3z" fill="currentColor" stroke="none"/>',
   linux: '<path d="M12 3c-2.2 0-3.4 1.8-3.4 4.2 0 1.4.3 2.3-.6 3.6C6.6 12.7 5 14.8 5 17c0 .7.2 1.3.5 1.8M12 3c2.2 0 3.4 1.8 3.4 4.2 0 1.4-.3 2.3.6 3.6 1.4 1.9 3 4 3 6.2 0 .7-.2 1.3-.5 1.8"/><path d="M5.5 18.8c.8 1.4 3.2 2.2 6.5 2.2s5.7-.8 6.5-2.2"/><circle cx="10.4" cy="7.6" r=".7" fill="currentColor"/><circle cx="13.6" cy="7.6" r=".7" fill="currentColor"/><path d="M10.6 10h2.8l-1.4 1.2z"/>',
   macos: '<rect x="3" y="4" width="18" height="13" rx="2.5"/><path d="M8 21h8M12 17v4"/><path d="M9.5 9.5c.8.9 1.6 1.3 2.5 1.3s1.7-.4 2.5-1.3"/>',
+  phone: '<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
 };
 module.exports = (name, cls = '') => {

@@ -14,5 +14,13 @@ These bundled components keep their own licenses. Their full license texts ship 
 | CodeMirror 6 and Lezer (bundled in `web/vendor/ide.js`) | `web/vendor/ide.js`, built from `tools/ide-vendor/` | MIT | https://github.com/codemirror/dev/blob/main/LICENSE |
 | xterm.js and addon-fit (bundled in `web/vendor/ide.js`) | `web/vendor/ide.js`, `web/vendor/xterm.css` | MIT | https://github.com/xtermjs/xterm.js/blob/master/LICENSE |
 | Inter, Instrument Serif, JetBrains Mono fonts | `web/vendor/*.woff2`, `website/src/static/assets/fonts/`, `desktop/setup/fonts/` | SIL Open Font License 1.1 | `web/vendor/FONTS-LICENSE.txt` |
+| OpenSSL 3.5.9 (Android app only, linked into the engine) | built by `android/build_engine.sh` | Apache-2.0 | shipped in the APK as `assets/licenses/OpenSSL-LICENSE.txt` |
+| curl / libcurl 8.23.0 (Android app only) | built by `android/build_engine.sh` | curl license | shipped in the APK as `assets/licenses/curl-COPYING.txt` |
+| Mozilla CA certificate list (curl.se extract, Android app only) | APK `assets/cacert.pem`, unmodified | MPL-2.0 | https://www.mozilla.org/MPL/2.0/ ; source https://curl.se/docs/caextract.html |
+| LLVM libc++ (Android NDK, Android app only) | linked into the engine | Apache-2.0 WITH LLVM-exception | https://llvm.org/LICENSE.txt |
+
+**Downloaded on request, not bundled:** the optional *Natural voice* installs Piper (MIT, https://github.com/rhasspy/piper) and voice
+models from `rhasspy/piper-voices` with their own licenses, shown before you install: en_US ljspeech (public domain),
+fr_FR siwis (CC BY 4.0), ar_JO kareem (personal use only, as published by its author). Each download is checked against a pinned SHA-256.
 
 AI providers listed in `providers.json` are third-party services with their own terms. A.S.T.R.O AI is not affiliated with them.

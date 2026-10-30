@@ -1,4 +1,4 @@
-<!--meta {"title": "Privacy", "description": "How A.S.T.R.O AI handles your data: stored locally, no account, no analytics, no telemetry. Questions go only to the AI providers that answer them.", "nav": "privacy"} -->
+<!--meta {"title": "Privacy", "description": "How A.S.T.R.O AI handles your data: stored locally, no account, no analytics, no tracking; error reports only if you turn them on. Questions go only to the AI providers that answer them.", "nav": "privacy"} -->
 <section class="page-hero">
   <div class="wrap">
     <span class="eyebrow">Privacy</span>
@@ -26,9 +26,19 @@
     <h3>What we don't do</h3>
     <ul>
       <li>No account, sign-in or email address needed for the app (the optional <a href="#accounts">A.S.T.R.O API account</a> is separate)</li>
-      <li>No analytics, telemetry, crash reporting or advertising</li>
-      <li>No selling or sharing of data, because we don't collect any</li>
+      <li>No analytics, tracking or advertising, and no automatic reporting unless you turn it on (see below)</li>
+      <li>No selling or sharing of data</li>
     </ul>
+
+    <h3 id="reports">Error reports and feedback (only if you choose)</h3>
+    <p>Everything here is <strong>off by default</strong> and goes to one insert-only table at our database provider (Supabase). The public key can only add rows, never read them, and we don't store IP addresses.</p>
+    <ul>
+      <li><strong>Anonymous error reports</strong> (Settings &rsaquo; Data &amp; privacy, or the welcome screen). When on, app errors and engine crashes are sent: the error message, where in A.S.T.R.O AI's code it happened, the screen you were on, your app version, system type (for example <code>windows-x64</code>), interface language and browser version. Keys, tokens, e-mail addresses and the user name in file paths are removed first. Your chats, prompts, files and projects are never included. <em>Settings shows exactly what a report contains</em> before you turn it on. Turn it off at any time; administrators can block it entirely with <code>ASTRO_REPORTS=off</code>.</li>
+      <li><strong>Send feedback</strong> sends only what you type, plus your app version and system type, and an e-mail address if you add one so we can answer.</li>
+      <li><strong>"This answer didn't work"</strong> is saved on your computer; the question and answer are shared with us only if you tick "share" in that form.</li>
+      <li><strong>Beta tester and Pro waitlist forms</strong> on this website send the e-mail address and the answers you enter.</li>
+    </ul>
+    <p>We use these reports only to fix bugs and plan features. Reports are deleted after 12 months. To have your feedback or signup deleted earlier, send a deletion request with the same e-mail address through <em>Send feedback</em> in the app or the <a href="{{root}}beta.html">beta form</a>.</p>
 
     <h3 id="extensions">Folders, extensions and coding tools</h3>
     <ul>
@@ -41,11 +51,14 @@
     <h3>Local engine</h3>
     <p>A.S.T.R.O AI runs a small engine on your computer that only listens on <code>127.0.0.1</code>, so other devices on your network can't connect to it.</p>
 
+    <h3 id="android">Android app</h3>
+    <p>On Android the same engine runs inside the app, on your phone. Your chats, files and settings stay in the app's private storage and are excluded from Android backups. Each time the app starts it creates a new random key that only the app's own window receives, so other apps on your phone cannot use the engine even though it listens on <code>127.0.0.1</code>. The app asks for two permissions only: internet (to reach the AI models) and the microphone (asked the first time you use voice input, never used in the background). Voice uses your phone's own speech services; depending on your phone, speech recognition may be processed by Google or your phone maker. Files you save go to <b>Downloads/A.S.T.R.O AI</b>.</p>
+
     <h3>Microphone</h3>
     <p>Voice features use your operating system's speech services and only listen while voice is active. Depending on your system, speech recognition may be processed by your OS vendor's services.</p>
 
     <h2>This website</h2>
-    <p>This site is plain static pages. It uses no cookies, analytics, trackers or third-party scripts, and all fonts and images are served from this site. The only exception is the account page, which talks to our sign-in service (see below). The hosting provider may keep standard server logs (such as IP address and pages requested) for security and operations.</p>
+    <p>This site is plain static pages. It uses no cookies, analytics, trackers or third-party scripts, and all fonts and images are served from this site. The only exceptions are the account page, which talks to our sign-in service (see below), and the beta and Pro waitlist forms, which send what you enter to our database (see <a href="#reports">above</a>). The hosting provider may keep standard server logs (such as IP address and pages requested) for security and operations.</p>
 
     <h2 id="accounts">Accounts and the A.S.T.R.O API</h2>
     <p>Accounts are optional and only needed for the <a href="{{root}}api.html">A.S.T.R.O API</a>. They are run on Supabase (our database and sign-in provider). When you create one, we store:</p>

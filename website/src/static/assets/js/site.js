@@ -79,7 +79,7 @@
     if (t) el.textContent = t;
   });
   $$('[data-os-card]').forEach((c) => {
-    if (c.dataset.osCard === os) {
+    if (c.dataset.osCard === os || (c.dataset.osCard === 'android' && /Android/i.test(ua))) {
       c.classList.add('recommended');
       const b = $('.for-you', c); if (b) b.hidden = false;
     }
@@ -471,4 +471,26 @@
   });
 
   void ROOT;
+
+  /* ------------------------------------------------------------ beta / Pro waitlist forms
+     Insert-only table: the public key can add a row but never read rows back. No IP address is stored. */
+  const REPORTS = 'https://vgtucdfretcvojcfvbzk.supabase.co/rest/v1/astro_reports';
+  const PUBLIC_KEY = 'sb_publishable_E2ZGJpsa3Bqbunemq7qUPw_W3g5LSol';
+  $$('form[data-report]').forEach((form) => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const out = $('.form-out', form), btn = $('button[type=submit]', form);
+      const mail = form.elements.contact.value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) { out.textContent = 'Please enter a valid e-mail address.'; form.elements.contact.focus(); return; }
+      const picks = $$('input[name=device]:checked', form).map((x) => x.value);
+      const row = { kind: form.dataset.report, category: picks.join(',').slice(0, 40), message: (form.elements.message.value.trim() || '(no message)').slice(0, 4000), detail: picks.join(', '), contact: mail.slice(0, 200), platform: (navigator.userAgentData && navigator.userAgentData.platform || navigator.platform || '').slice(0, 80), lang: (navigator.language || '').slice(0, 40), source: 'website' };
+      btn.disabled = true; out.textContent = 'Sending…';
+      try {
+        const r = await fetch(REPORTS, { method: 'POST', headers: { apikey: PUBLIC_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(row) });
+        if (!r.ok) throw new Error(r.status === 400 ? 'too many signups right now, please try again later' : 'HTTP ' + r.status);
+        form.reset(); out.textContent = form.dataset.report === 'beta' ? 'Thank you! You are on the beta list. We will e-mail you when the next test build is ready.' : 'Thank you! You are on the waitlist.';
+      } catch (err) { out.textContent = 'Could not send it (' + err.message + '). Please try again in a minute.'; }
+      btn.disabled = false;
+    });
+  });
 })();

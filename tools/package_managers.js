@@ -24,6 +24,12 @@ const files = {
   dmg: `AstroAI-${V}-macos-universal-CLEAN.dmg`,
   tar: `astro-ai-clean-${V}-linux-x64-portable-CLEAN.tar.gz`,
 };
+// ARM64 builds (1.8.0+): optional, added to the manifests when their checksums exist
+const armFiles = {
+  zipA64: `AstroAI-${V}-windows-arm64-portable-CLEAN.zip`,
+  setupA64: `AstroAI-${V}-windows-arm64-Setup-CLEAN.exe`,
+  tarA64: `astro-ai-clean-${V}-linux-arm64-portable-CLEAN.tar.gz`,
+};
 function sha(name) {
   const p = path.join(DL, name);
   if (fs.existsSync(p)) return crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
@@ -32,7 +38,11 @@ function sha(name) {
   return null;
 }
 const hashes = Object.fromEntries(Object.entries(files).map(([k, f]) => [k, sha(f)]));
-const missing = Object.entries(hashes).filter(([, h]) => !h).map(([k]) => files[k]);
+for (const [k, f] of Object.entries(armFiles)) hashes[k] = sha(f);
+Object.assign(files, armFiles);
+const missing = Object.entries(hashes).filter(([k]) => !armFiles[k]).filter(([, h]) => !h).map(([k]) => files[k]);
+const armMissing = Object.keys(armFiles).filter((k) => !hashes[k]);
+if (armMissing.length) console.warn(`note: no ARM64 checksum for ${armMissing.map((k) => files[k]).join(', ')} (ARM64 entries skipped)`);
 if (missing.length) console.warn(`warning: no checksum for ${missing.join(', ')} (that manifest is skipped)`);
 const write = (rel, text) => { const p = path.join(ROOT, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, text); console.log('wrote', rel); };
 
@@ -44,12 +54,14 @@ if (hashes.zip) {
     homepage: HOME,
     license: LICENSE,
     notes: ['Run "astro" in a terminal, or open A.S.T.R.O AI from the Start menu.', 'Free model tiers have daily limits; add your own free keys in Settings -> Providers for more.'],
-    architecture: { '64bit': { url: `${REL}/${files.zip}`, hash: hashes.zip, extract_dir: `AstroAI-${V}-windows-x64-CLEAN` } },
+    architecture: { '64bit': { url: `${REL}/${files.zip}`, hash: hashes.zip, extract_dir: `AstroAI-${V}-windows-x64-CLEAN` },
+      ...(hashes.zipA64 ? { arm64: { url: `${REL}/${files.zipA64}`, hash: hashes.zipA64, extract_dir: `AstroAI-${V}-windows-arm64-CLEAN` } } : {}) },
     bin: 'astro.exe',
     shortcuts: [['AstroAI-Clean.exe', 'A.S.T.R.O AI']],
     checkver: { github: `https://github.com/${REPO}` },
     autoupdate: {
-      architecture: { '64bit': { url: `https://github.com/${REPO}/releases/download/v$version/AstroAI-$version-windows-x64-portable-CLEAN.zip`, extract_dir: 'AstroAI-$version-windows-x64-CLEAN' } },
+      architecture: { '64bit': { url: `https://github.com/${REPO}/releases/download/v$version/AstroAI-$version-windows-x64-portable-CLEAN.zip`, extract_dir: 'AstroAI-$version-windows-x64-CLEAN' },
+        ...(hashes.zipA64 ? { arm64: { url: `https://github.com/${REPO}/releases/download/v$version/AstroAI-$version-windows-arm64-portable-CLEAN.zip`, extract_dir: 'AstroAI-$version-windows-arm64-CLEAN' } } : {}) },
       hash: { url: '$baseurl/SHA256SUMS.txt' },
     },
   }, null, 4) + '\n');
@@ -88,9 +100,7 @@ if (hashes.tar) {
   write('packaging/homebrew/Formula/astro-ai.rb', `class AstroAi < Formula
   desc "${DESC.replace(/"/g, '\\"')}"
   homepage "${HOME}"
-  url "https://github.com/${REPO}/releases/download/v${V}/${files.tar}"
   version "${V}"
-  sha256 "${hashes.tar}"
   license any_of: ["MIT", "Apache-2.0", "GPL-3.0-only"]
 
   livecheck do
@@ -98,9 +108,21 @@ if (hashes.tar) {
     strategy :github_latest
   end
 
-  depends_on arch: :x86_64
   depends_on :linux
-
+${hashes.tarA64 ? `
+  on_arm do
+    url "https://github.com/${REPO}/releases/download/v${V}/${files.tarA64}"
+    sha256 "${hashes.tarA64}"
+  end
+  on_intel do
+    url "https://github.com/${REPO}/releases/download/v${V}/${files.tar}"
+    sha256 "${hashes.tar}"
+  end
+` : `
+  url "https://github.com/${REPO}/releases/download/v${V}/${files.tar}"
+  sha256 "${hashes.tar}"
+  depends_on arch: :x86_64
+`}
   def install
     libexec.install Dir["*"]
     bin.write_exec_script libexec/"astro"
@@ -118,6 +140,6 @@ if (hashes.setup) {
   const dir = `packaging/winget/manifests/e/esoexe/AstroAI/${V}`;
   const head = (type) => `# yaml-language-server: $schema=https://aka.ms/winget-manifest.${type}.1.9.0.schema.json\n`;
   write(`${dir}/esoexe.AstroAI.yaml`, `${head('version')}PackageIdentifier: esoexe.AstroAI\nPackageVersion: ${V}\nDefaultLocale: en-US\nManifestType: version\nManifestVersion: 1.9.0\n`);
-  write(`${dir}/esoexe.AstroAI.installer.yaml`, `${head('installer')}PackageIdentifier: esoexe.AstroAI\nPackageVersion: ${V}\nInstallerType: exe\nScope: user\nInstallModes:\n  - interactive\n  - silent\nInstallerSwitches:\n  Silent: /S\n  SilentWithProgress: /S\n  InstallLocation: /D=<INSTALLPATH>\nUpgradeBehavior: install\nCommands:\n  - astro\nInstallers:\n  - Architecture: x64\n    InstallerUrl: ${REL}/${files.setup}\n    InstallerSha256: ${hashes.setup.toUpperCase()}\n    ProductCode: AstroAIClean\n    AppsAndFeaturesEntries:\n      - DisplayName: A.S.T.R.O AI Clean\n        Publisher: A.S.T.R.O AI\n        DisplayVersion: ${V}\n        ProductCode: AstroAIClean\nManifestType: installer\nManifestVersion: 1.9.0\n`);
+  write(`${dir}/esoexe.AstroAI.installer.yaml`, `${head('installer')}PackageIdentifier: esoexe.AstroAI\nPackageVersion: ${V}\nInstallerType: exe\nScope: user\nInstallModes:\n  - interactive\n  - silent\nInstallerSwitches:\n  Silent: /S\n  SilentWithProgress: /S\n  InstallLocation: /D=<INSTALLPATH>\nUpgradeBehavior: install\nCommands:\n  - astro\nInstallers:\n  - Architecture: x64\n    InstallerUrl: ${REL}/${files.setup}\n    InstallerSha256: ${hashes.setup.toUpperCase()}\n    ProductCode: AstroAIClean\n    AppsAndFeaturesEntries:\n      - DisplayName: A.S.T.R.O AI Clean\n        Publisher: A.S.T.R.O AI\n        DisplayVersion: ${V}\n        ProductCode: AstroAIClean\n${hashes.setupA64 ? `  - Architecture: arm64\n    InstallerUrl: ${REL}/${files.setupA64}\n    InstallerSha256: ${hashes.setupA64.toUpperCase()}\n    ProductCode: AstroAIClean\n    AppsAndFeaturesEntries:\n      - DisplayName: A.S.T.R.O AI Clean\n        Publisher: A.S.T.R.O AI\n        DisplayVersion: ${V}\n        ProductCode: AstroAIClean\n` : ''}ManifestType: installer\nManifestVersion: 1.9.0\n`);
   write(`${dir}/esoexe.AstroAI.locale.en-US.yaml`, `${head('defaultLocale')}PackageIdentifier: esoexe.AstroAI\nPackageVersion: ${V}\nPackageLocale: en-US\nPublisher: The Astro AI team\nPublisherUrl: https://github.com/esoexe\nPublisherSupportUrl: https://github.com/${REPO}/issues\nPackageName: A.S.T.R.O AI\nPackageUrl: ${HOME}\nLicense: ${LICENSE}\nLicenseUrl: https://github.com/${REPO}#license\nShortDescription: ${DESC}\nDescription: |-\n  A.S.T.R.O AI is a free desktop app and terminal agent. Many free AI models work together as one brain to answer,\n  write code and run agent jobs. Free model tiers have daily limits; you can add your own free keys for more.\nMoniker: astro-ai\nTags:\n  - ai\n  - assistant\n  - coding\n  - agent\n  - llm\n  - free\nReleaseNotesUrl: ${HOME}changelog.html\nManifestType: defaultLocale\nManifestVersion: 1.9.0\n`);
 }

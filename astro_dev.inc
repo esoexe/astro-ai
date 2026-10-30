@@ -874,6 +874,7 @@ bool handle_dev_api(int fd, const HttpRequest& request) {
         if (action.rfind("mcp/", 0) == 0) { dev_mcp(fd, action.substr(4), body); return true; }
         if (action.rfind("library/", 0) == 0) { dev_library(fd, action.substr(8), body); return true; }
         if (action.rfind("tools/", 0) == 0) { dev_tools(fd, action.substr(6), body); return true; }
+        if (action.rfind("tts/", 0) == 0) { dev_tts(fd, action.substr(4), body); return true; }
         if (action.rfind("lsp/", 0) == 0) { dev_lsp(fd, action.substr(4), body); return true; }
         if (action.rfind("exthost/", 0) == 0) { dev_exthost(fd, action.substr(8), body); return true; }
         if (action == "scan") { dev_scan(fd, body); return true; }

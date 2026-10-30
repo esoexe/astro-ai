@@ -188,7 +188,7 @@ void ide_index(int fd, const fs::path& base) {
 struct Captured { int code = -1; std::string out, err; bool timed_out = false; };
 
 Captured run_capture(const std::vector<std::string>& args, const fs::path& cwd, const std::vector<std::string>& extra_env,
-                     int timeout_s = 20, std::size_t cap = 2'000'000) {
+                     int timeout_s = 20, std::size_t cap = 2'000'000, const std::string* input = nullptr) {
     Captured r;
 #ifdef _WIN32
     {
@@ -202,7 +202,7 @@ Captured run_capture(const std::vector<std::string>& args, const fs::path& cwd, 
             if (w.empty()) { r.code = 127; r.err = a[0] + ": command not found"; return r; }
             a[0] = w;
         }
-        const WinRunResult w = win_run(winp::join_args(a), cwd.string(), ide_env(cwd, extra_env), "", timeout_s,
+        const WinRunResult w = win_run(winp::join_args(a), cwd.string(), ide_env(cwd, extra_env), input ? *input : std::string(), timeout_s,
             [&](int i, const std::string& data) {
                 std::string& dst = i == 0 ? r.out : r.err;
                 if (dst.size() < cap) dst.append(data, 0, std::min(data.size(), cap - dst.size()));
@@ -225,11 +225,13 @@ Captured run_capture(const std::vector<std::string>& args, const fs::path& cwd, 
     for (const auto& e : env) envp.push_back(const_cast<char*>(e.c_str()));
     envp.push_back(nullptr);
     const std::string cwd_s = cwd.string();
+    int in_pipe[2] = {-1, -1};
+    if (input && pipe_cloexec(in_pipe) != 0) { close(out_pipe[0]); close(out_pipe[1]); close(err_pipe[0]); close(err_pipe[1]); r.err = "pipe failed"; return r; }
     const pid_t pid = fork();
     if (pid == 0) {
         setpgid(0, 0);
-        const int devnull = open("/dev/null", O_RDONLY);
-        if (devnull >= 0) dup2(devnull, 0);
+        if (input) dup2(in_pipe[0], 0);
+        else { const int devnull = open("/dev/null", O_RDONLY); if (devnull >= 0) dup2(devnull, 0); }
         dup2(out_pipe[1], 1); dup2(err_pipe[1], 2);
         for (int f = 3; f < 4096; ++f) close(f);
         if (chdir(cwd_s.c_str()) != 0) _exit(127);
@@ -242,6 +244,15 @@ Captured run_capture(const std::vector<std::string>& args, const fs::path& cwd, 
         _exit(127);
     }
     close(out_pipe[1]); close(err_pipe[1]);
+    if (input) {
+        close(in_pipe[0]);
+        if (pid < 0) close(in_pipe[1]);
+        else std::thread([fdw = in_pipe[1], data = *input] {   // a thread, so a large input can't block reading the output
+            std::size_t off = 0;
+            while (off < data.size()) { const ssize_t n = write(fdw, data.data() + off, data.size() - off); if (n <= 0) { if (n < 0 && errno == EINTR) continue; break; } off += static_cast<std::size_t>(n); }
+            close(fdw);
+        }).detach();
+    }
     if (pid < 0) { close(out_pipe[0]); close(err_pipe[0]); r.err = "fork failed"; return r; }
     pollfd fds[2] = {{out_pipe[0], POLLIN, 0}, {err_pipe[0], POLLIN, 0}};
     int open_pipes = 2;

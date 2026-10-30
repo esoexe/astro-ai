@@ -15,9 +15,9 @@ ALLOW=(
   workspace_server.cpp platform.h astro_ext.inc workspace_code.inc workspace_intel.inc workspace_ide.inc workspace_agent.inc
   astro_dev.inc astro_library.inc astro_tools.inc astro_quality.inc astro_engine.inc astro_update.inc cli ide sdk bench library .github docs
   providers.json Makefile Dockerfile .dockerignore .env.example README.md
-  LICENSE LICENSE-MIT LICENSE-APACHE LICENSE-GPL THIRD-PARTY-NOTICES.md
+  LICENSE LICENSE-MIT LICENSE-APACHE LICENSE-GPL THIRD-PARTY-NOTICES.md SECURITY.md
   start_workspace.sh start_local_ai.sh start_opencode.sh
-  opencode_layer web tools tests supabase desktop bucket packaging
+  opencode_layer web tools tests supabase desktop bucket packaging android
   website/src website/build.js website/icons.js website/serve.js website/site.json website/README.md
 )
 for f in "${ALLOW[@]}"; do cp -a --parents "$f" "$OUT/"; done
@@ -25,6 +25,12 @@ for f in "${ALLOW[@]}"; do cp -a --parents "$f" "$OUT/"; done
 # local-only leftovers that can live inside allowed folders
 find "$OUT" \( -name node_modules -o -name __pycache__ -o -name .cache \) -prune -exec rm -rf {} +
 rm -f "$OUT/website/netlify.toml"
+# Android: sources only. The engine binary and CA file are rebuilt by android/build_engine.sh; signing keys and
+# local SDK paths never leave this computer.
+rm -rf "$OUT/android/app/src/main/jniLibs" "$OUT/android/app/build" "$OUT/android/build" "$OUT/android/.gradle"
+rm -rf "$OUT/android/app/src/main/assets/licenses"
+rm -f "$OUT/android/app/src/main/assets/cacert.pem" "$OUT/android/local.properties" "$OUT/android/keystore.properties"
+find "$OUT/android" \( -name '*.jks' -o -name '*.keystore' -o -name '*.apk' -o -name '*.aab' \) -delete
 
 # the website's downloads: CLEAN edition only
 mkdir -p "$OUT/website/downloads"
@@ -53,7 +59,7 @@ node -e '
     "",
     "<p align=\"center\"><img src=\"website/src/static/assets/img/shots/chat-answer.webp\" width=\"860\" alt=\"A.S.T.R.O AI: a One Brain answer written by 19 models\"></p>",
     "",
-    "> **Downloads:** Windows, Linux and macOS builds are on the [download page](" + site + "/download.html). They are the *Clean* edition and ship with no API keys.",
+    "> **Downloads:** Windows, Linux and macOS builds are on the [download page](" + site + "/download.html). The Android app (arm64, Android 8.0+) is there too. All are the *Clean* edition and ship with no API keys.",
     "",
   ].join("\n");
   s = s.replace(/^# A.S.T.R.O AI\s*\n/, head + "\n## About\n\n");
@@ -73,6 +79,8 @@ astro_data/
 uploads/
 desktop-builds/
 *WITH-KEYS*
+.astro_android/
+.astro_dev/
 
 # ---- build output ----
 /workspace_server
@@ -81,13 +89,22 @@ desktop-builds/
 /ide/vscode/*.vsix
 website/dist/
 node_modules/
+android/app/src/main/jniLibs/
+android/app/src/main/assets/cacert.pem
+android/app/src/main/assets/licenses/
+android/**/build/
+android/.gradle/
+android/local.properties
+android/keystore.properties
+*.jks
+*.keystore
 .cache/
 *.o
 EOF
 
 # GitHub Actions workflows (website, CI, desktop builds) are copied from .github/ with the allowlist above.
 
-chmod +x "$OUT"/*.sh "$OUT"/tests/*.sh "$OUT"/desktop/package.sh "$OUT"/desktop/mac/build_mac.sh "$OUT"/desktop/setup/build_setup.sh "$OUT"/tools/*.sh 2>/dev/null || true
+chmod +x "$OUT"/*.sh "$OUT"/tests/*.sh "$OUT"/desktop/package.sh "$OUT"/desktop/mac/build_mac.sh "$OUT"/desktop/setup/build_setup.sh "$OUT"/tools/*.sh "$OUT"/android/*.sh 2>/dev/null || true
 
 echo "Exported to $OUT ($(du -sh "$OUT" | cut -f1), $(find "$OUT" -type f | wc -l) files). Scanning for secrets..."
 node tools/scan_secrets.js "$OUT"

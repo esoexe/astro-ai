@@ -178,7 +178,7 @@ void handle_check_code(int fd, const Json& body) {
     o["tool"] = Json(tool);
     // Error messages mention the temp folder; show them as plain "main.js:3".
     auto clean = [&](std::string t) {
-        for (const std::string d : {dir.string() + "/", dir.string() + "\\", dir.string()}) for (std::size_t p; (p = t.find(d)) != std::string::npos;) t.erase(p, d.size());
+        for (const std::string& d : {dir.string() + "/", dir.string() + "\\", dir.string()}) for (std::size_t p; (p = t.find(d)) != std::string::npos;) t.erase(p, d.size());
         return t;
     };
     Captured s = run_capture(syntax, dir, {}, 25, 200000);
@@ -264,6 +264,179 @@ void handle_feedback(int fd, const Json& body) {
     send_json(fd, 200, Json(std::move(o)));
 }
 
+// ---------- opt-in reports: errors, crashes, "Send feedback" (off by default) ----------
+// The engine never sends anything on its own. The app calls POST /api/report only when the user turned on
+// "Send anonymous error reports" (Settings -> Privacy) or pressed Send in the feedback form. Text is scrubbed of
+// keys, tokens, e-mail addresses and personal paths before it leaves the computer. Rows go to an insert-only table.
+// ASTRO_REPORTS=off disables sending entirely (for example in managed installs); ASTRO_REPORTS_URL overrides the target.
+std::string scrub_report(std::string t) {
+    static const std::regex keys(R"RX((sk|pk|rk|sb_secret|sb_publishable|ghp|gho|ghu|ghs|ghr|github_pat|xox[abprs]|AIza|hf|gsk|csk|nvapi|or-v1)[-_][-_A-Za-z0-9]{10,})RX");
+    static const std::regex jwt(R"RX(eyJ[-_A-Za-z0-9]{10,}\.[-_A-Za-z0-9]{10,}\.[-_A-Za-z0-9]{10,})RX");
+    static const std::regex bearer(R"RX((authorization|bearer|api[-_ ]?key|token|password|secret)(["'\s:=]+)(bearer\s+|basic\s+)?[^\s"',;]{6,})RX", std::regex::icase);
+    static const std::regex longtok(R"RX([A-Za-z0-9_\-]{40,})RX");
+    static const std::regex email(R"RX([A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,})RX");
+    static const std::regex home_nix(R"RX(/(home|Users)/[^/\s"']+)RX");
+    static const std::regex home_win(R"RX([A-Za-z]:\\(Users|Documents and Settings)\\[^\\\s"']+)RX", std::regex::icase);
+    t = std::regex_replace(t, jwt, "[redacted-token]");
+    t = std::regex_replace(t, keys, "[redacted-key]");
+    t = std::regex_replace(t, bearer, "$1$2[redacted]");
+    t = std::regex_replace(t, longtok, "[redacted]");
+    t = std::regex_replace(t, email, "[email]");
+    t = std::regex_replace(t, home_nix, "~");
+    t = std::regex_replace(t, home_win, "~");
+    return t;
+}
+std::string report_platform() {
+#if defined(_WIN32)
+    std::string os = "windows";
+#elif defined(__APPLE__)
+    std::string os = "macos";
+#elif defined(__ANDROID__)
+    std::string os = "android";
+#else
+    std::string os = "linux";
+#endif
+#if defined(__aarch64__) || defined(_M_ARM64)
+    return os + "-arm64";
+#else
+    return os + "-x64";
+#endif
+}
+bool reports_disabled() { const char* v = std::getenv("ASTRO_REPORTS"); return v && (std::string(v) == "off" || std::string(v) == "0"); }
+
+// Crash marker: written by a fatal-signal handler, picked up at the next start. Sent only if the user opted in.
+char g_crash_path[1024] = {0};
+void astro_crash_handler(int sig) {
+    if (g_crash_path[0]) {
+        if (std::FILE* f = std::fopen(g_crash_path, "ab")) {
+            std::fprintf(f, "{\"signal\":%d,\"version\":\"%s\",\"at\":%lld}\n", sig, ASTRO_APP_VERSION, static_cast<long long>(std::time(nullptr)));
+            std::fclose(f);
+        }
+    }
+    std::signal(sig, SIG_DFL);
+    std::raise(sig);
+}
+void install_crash_marker() {
+    const std::string p = data_path(".astro_crash.jsonl");
+    if (p.size() < sizeof(g_crash_path)) std::memcpy(g_crash_path, p.c_str(), p.size() + 1);
+    for (int s : {SIGSEGV, SIGABRT, SIGFPE, SIGILL}) std::signal(s, astro_crash_handler);
+#ifndef _WIN32
+    std::signal(SIGBUS, astro_crash_handler);
+#endif
+}
+const char* signal_name(int s) {
+    switch (s) { case SIGSEGV: return "segmentation fault"; case SIGABRT: return "abort"; case SIGFPE: return "arithmetic error"; case SIGILL: return "illegal instruction";
+#ifndef _WIN32
+    case SIGBUS: return "bus error";
+#endif
+    default: return "fatal signal"; }
+}
+
+double rep_num(const Json& j, std::string_view k) { const Json* v = j.get(k); const double* d = v ? std::get_if<double>(&v->value) : nullptr; return d ? *d : 0; }
+void handle_report(int fd, const Json& body) {
+    const std::string kind = get_string(body, "kind");
+    if (kind != "error" && kind != "crash" && kind != "feedback") { send_json(fd, 400, error_json("Unknown report type.")); return; }
+    if (reports_disabled()) { Json::Object o; o["ok"] = Json(false); o["error"] = Json("Reports are turned off on this computer (ASTRO_REPORTS=off)."); send_json(fd, 200, Json(std::move(o))); return; }
+    Json::Object row;
+    row["kind"] = Json(kind);
+    row["category"] = Json(truncate(scrub_report(get_string(body, "category")), 40));
+    const std::string message = truncate(scrub_report(get_string(body, "message")), 4000);
+    row["message"] = Json(message);
+    row["detail"] = Json(truncate(scrub_report(get_string(body, "detail")), 8000));
+    // A contact address is only kept when the user typed it into the feedback form themselves.
+    row["contact"] = Json(kind == "feedback" ? truncate(get_string(body, "contact"), 200) : std::string());
+    row["platform"] = Json(truncate(get_string(body, "platform", report_platform()), 80));
+    row["app_version"] = Json(std::string(ASTRO_APP_VERSION));
+    row["lang"] = Json(truncate(get_string(body, "lang"), 40));
+    const std::string src = get_string(body, "source", "app");
+    row["source"] = Json(src == "desktop" || src == "android" || src == "cli" ? src : std::string("app"));
+    if (trim(message).empty()) { send_json(fd, 400, error_json("The report is empty.")); return; }
+    if (json_bool(body, "dry_run", false)) { Json::Object o; o["ok"] = Json(true); o["dry_run"] = Json(true); o["sent"] = Json(row); send_json(fd, 200, Json(std::move(o))); return; }
+    const char* u = std::getenv("ASTRO_REPORTS_URL");
+    const std::string url = u && *u ? u : "https://vgtucdfretcvojcfvbzk.supabase.co/rest/v1/astro_reports";
+    const std::string post = dump_json(Json(row));
+    const FetchResult r = http_fetch(url, {"Content-Type: application/json", "Prefer: return=minimal",
+                                           "apikey: sb_publishable_E2ZGJpsa3Bqbunemq7qUPw_W3g5LSol"}, &post, 15, 100000, true);
+    const bool ok = r.error.empty() && r.status >= 200 && r.status < 300;
+    Json::Object o; o["ok"] = Json(ok);
+    if (!ok) o["error"] = Json(r.error.empty() ? (r.status == 400 && r.body.find("Too many") != std::string::npos ? std::string("Too many reports right now, please try again later.") : "HTTP " + std::to_string(r.status)) : r.error);
+    send_json(fd, 200, Json(std::move(o)));
+}
+// GET: crash markers from earlier runs (the app decides whether to send them); POST /api/report/clear removes them.
+void handle_report_pending(int fd) {
+    Json::Array items;
+    std::ifstream in(data_path(".astro_crash.jsonl"), std::ios::binary);
+    std::string line; int n = 0;
+    while (std::getline(in, line) && n < 5) {
+        Json j; try { j = JsonParser(line).parse(); } catch (...) { continue; }
+        Json::Object it;
+        const int sig = static_cast<int>(rep_num(j, "signal"));
+        it["message"] = Json(std::string("The A.S.T.R.O AI engine stopped unexpectedly (") + signal_name(sig) + ")");
+        it["version"] = Json(get_string(j, "version"));
+        it["at"] = Json(rep_num(j, "at"));
+        items.push_back(Json(std::move(it))); ++n;
+    }
+    Json::Object o; o["crashes"] = Json(std::move(items)); o["disabled"] = Json(reports_disabled());
+    send_json(fd, 200, Json(std::move(o)));
+}
+
+// ---------------------------------------------------------------- Pro license (scaffolding)
+// Pro is not on sale yet, and nothing in the app is locked behind it. This is only the plumbing so a license bought later
+// (Lemon Squeezy or Paddle webhook -> astro_licenses table) can be entered and checked. Only the key's SHA-256 hash is
+// stored server side; the key itself stays in <data>/.astro_license.json. Offline grace: a valid check counts for 30 days.
+std::string license_mask(const std::string& k) { return k.size() <= 8 ? std::string("****") : k.substr(0, 4) + "…" + k.substr(k.size() - 4); }
+Json license_remote_check(const std::string& key, std::string& err) {
+    const char* u = std::getenv("ASTRO_LICENSE_URL");
+    const std::string url = u && *u ? u : "https://vgtucdfretcvojcfvbzk.supabase.co/rest/v1/rpc/astro_license_check";
+    Json::Object b; b["p_key"] = Json(key);
+    const std::string post = dump_json(Json(std::move(b)));
+    const FetchResult r = http_fetch(url, {"Content-Type: application/json", "apikey: sb_publishable_E2ZGJpsa3Bqbunemq7qUPw_W3g5LSol"}, &post, 15, 100000, true);
+    if (!r.error.empty()) { err = r.error; return Json(); }
+    if (r.status < 200 || r.status >= 300) { err = "HTTP " + std::to_string(r.status); return Json(); }
+    try { return JsonParser(r.body).parse(); } catch (...) { err = "Bad reply from the license server."; return Json(); }
+}
+Json license_state(bool recheck) {
+    Json saved; { std::ifstream in(data_path(".astro_license.json"), std::ios::binary); std::stringstream ss; ss << in.rdbuf(); try { saved = JsonParser(ss.str()).parse(); } catch (...) {} }
+    Json::Object o; o["available"] = Json(false); o["note"] = Json(std::string("Pro is not on sale yet. Everything in the app is free."));
+    const std::string key = get_string(saved, "key");
+    if (key.empty()) { o["active"] = Json(false); return Json(std::move(o)); }
+    const double now = static_cast<double>(std::time(nullptr));
+    double checked = rep_num(saved, "checked_at");
+    bool valid = json_bool(saved, "valid", false);
+    std::string plan = get_string(saved, "plan"), reason = get_string(saved, "reason");
+    if (recheck && now - checked > 7 * 86400) {
+        std::string err; Json j = license_remote_check(key, err);
+        if (err.empty()) {
+            valid = json_bool(j, "valid", false); plan = get_string(j, "plan", plan); reason = get_string(j, "reason"); checked = now;
+            Json::Object w; w["key"] = Json(key); w["valid"] = Json(valid); w["plan"] = Json(plan); w["reason"] = Json(reason); w["checked_at"] = Json(checked);
+            std::ofstream(data_path(".astro_license.json"), std::ios::binary | std::ios::trunc) << dump_json(Json(std::move(w)));
+        }
+    }
+    o["active"] = Json(valid && now - checked < 30 * 86400);
+    o["plan"] = Json(plan); o["key"] = Json(license_mask(key)); o["checked_at"] = Json(checked);
+    if (!reason.empty()) o["reason"] = Json(reason);
+    return Json(std::move(o));
+}
+void handle_license(int fd, const HttpRequest& request) {
+    if (request.method == "GET") { send_json(fd, 200, license_state(true)); return; }
+    if (request.method != "POST") { send_json(fd, 405, error_json("Use GET or POST.")); return; }
+    if (request.path == "/api/license/remove") { std::error_code ec; fs::remove(data_path(".astro_license.json"), ec); send_json(fd, 200, license_state(false)); return; }
+    const auto body = parse_request_json(request, fd);
+    if (!body) return;
+    const std::string key = trim(get_string(*body, "key"));
+    if (key.size() < 16 || key.size() > 200) { send_json(fd, 400, error_json("That doesn't look like a license key.")); return; }
+    std::string err; Json j = license_remote_check(key, err);
+    if (!err.empty()) { send_json(fd, 502, error_json("Couldn't reach the license server: " + err)); return; }
+    const bool valid = json_bool(j, "valid", false);
+    if (!valid) {
+        const std::string why = get_string(j, "reason");
+        send_json(fd, 200, error_json(why == "unknown" || why == "malformed" ? "This license key wasn't found." : "This license is " + why + ".")); return;
+    }
+    Json::Object w; w["key"] = Json(key); w["valid"] = Json(true); w["plan"] = Json(get_string(j, "plan", "pro")); w["checked_at"] = Json(static_cast<double>(std::time(nullptr)));
+    std::ofstream(data_path(".astro_license.json"), std::ios::binary | std::ios::trunc) << dump_json(Json(std::move(w)));
+    send_json(fd, 200, license_state(false));
+}
+
 bool handle_quality_api(int fd, const HttpRequest& request) {
     const std::string& path = request.path;
     if (path == "/api/models/health" && request.method == "GET") {
@@ -271,6 +444,35 @@ bool handle_quality_api(int fd, const HttpRequest& request) {
         { std::lock_guard lk(g_mstat_mu); model_stats_load_locked(); j = model_stats_json_locked(); }
         if (auto* o = std::get_if<Json::Object>(&j.value)) (*o)["skipped"] = dead_json();
         send_json(fd, 200, j);
+        return true;
+    }
+    if (path == "/api/sandbox") {
+        if (request.headers.find("x-astro-client") == request.headers.end()) { send_json(fd, 403, error_json("Missing client header.")); return true; }
+        if (request.method == "POST") {
+            const auto body = parse_request_json(request, fd);
+            if (!body) return true;
+            SandboxCfg c = sandbox_cfg();
+            if (body->get("on")) c.on = json_bool(*body, "on", c.on);
+            if (body->get("net")) c.net = json_bool(*body, "net", c.net);
+            Json::Object w; w["on"] = Json(c.on); w["net"] = Json(c.net);
+            { std::lock_guard lk(g_sandbox_mu); write_file_private((fs::path(data_dir()) / ".astro_sandbox.json").string(), dump_json(Json(std::move(w)))); }
+        }
+        send_json(fd, 200, sandbox_status_json());
+        return true;
+    }
+    if (path == "/api/license" || path == "/api/license/remove") {
+        if (request.headers.find("x-astro-client") == request.headers.end()) { send_json(fd, 403, error_json("Missing client header.")); return true; }
+        try { handle_license(fd, request); } catch (const std::exception& e) { send_json(fd, 500, error_json(e.what())); }
+        return true;
+    }
+    if (path == "/api/report/pending" || path == "/api/report/clear" || path == "/api/report") {
+        if (request.headers.find("x-astro-client") == request.headers.end()) { send_json(fd, 403, error_json("Missing client header.")); return true; }
+        if (path == "/api/report/pending") { handle_report_pending(fd); return true; }
+        if (request.method != "POST") { send_json(fd, 405, error_json("Use POST.")); return true; }
+        if (path == "/api/report/clear") { std::error_code ec; fs::remove(data_path(".astro_crash.jsonl"), ec); Json::Object o; o["ok"] = Json(true); send_json(fd, 200, Json(std::move(o))); return true; }
+        const auto body = parse_request_json(request, fd);
+        if (!body) return true;
+        try { handle_report(fd, *body); } catch (const std::exception& e) { send_json(fd, 500, error_json(e.what())); }
         return true;
     }
     if (path != "/api/check/code" && path != "/api/feedback") return false;

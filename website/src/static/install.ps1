@@ -77,13 +77,21 @@ if (-not $Version) { $Version = $Fallback }
 if ($Version -like '__*') { Fail 'Could not find the latest version. Set one first: $env:ASTRO_VERSION = "1.7.0"' }
 $Version = $Version.TrimStart('v')
 
-$File = "AstroAI-$Version-windows-x64-portable-CLEAN.zip"
+# ARM64 PCs: PowerShell can be native (PROCESSOR_ARCHITECTURE=ARM64) or x64-emulated (PROCESSOR_ARCHITEW6432=ARM64)
+$Arch = 'x64'
+if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64' -or $env:PROCESSOR_ARCHITEW6432 -eq 'ARM64') { $Arch = 'arm64' }
 $Base = "https://github.com/$Repo/releases/download/v$Version"
+$File = "AstroAI-$Version-windows-$Arch-portable-CLEAN.zip"
+if ($Arch -eq 'arm64') {
+  # native ARM64 builds start at 1.8.0; older versions use the x64 build, which Windows 11 on ARM runs emulated
+  try { Invoke-WebRequest -Uri "$Base/$File" -Method Head -UseBasicParsing -MaximumRedirection 5 | Out-Null }
+  catch { $Arch = 'x64'; $File = "AstroAI-$Version-windows-x64-portable-CLEAN.zip" }
+}
 $Tmp = Join-Path ([IO.Path]::GetTempPath()) ("astro-" + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $Tmp | Out-Null
 
 Write-Host ''
-Write-Host '  A.S.T.R.O AI' -NoNewline; Write-Host " v$Version $($Sym.mid) terminal install $($Sym.mid) Windows x64" -ForegroundColor DarkGray
+Write-Host '  A.S.T.R.O AI' -NoNewline; Write-Host " v$Version $($Sym.mid) terminal install $($Sym.mid) Windows $Arch" -ForegroundColor DarkGray
 Write-Host ''
 try {
   Step "Downloading $File"

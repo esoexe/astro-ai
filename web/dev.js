@@ -477,7 +477,7 @@
       let ctx = ''; let budget = 30000;
       for (const f of mentioned) { const t = await A().agReadOrNull(s, f.path); if (t === null) continue; const c = clip(t, Math.min(9000, budget)); budget -= c.length; ctx += `\n--- ${f.path} ---\n${c}\n`; if (budget <= 0) break; }
       const head = custom ? `${custom.body.trim()}\n\n` : 'You are a focused subagent of A.S.T.R.O AI\'s coding agent. ';
-      const text = await oneShot(`${head}Do the sub-task below and reply with a concise, factual report the main agent can act on (findings, exact file paths and line numbers, recommended changes as code snippets). You cannot run tools; say what should be verified.\n\nSUB-TASK: ${prompt}\n\nPROJECT FILES (${files.length}):\n${files.slice(0, 200).map((f) => f.path).join('\n')}${ctx ? `\n\nFILE CONTENTS:${ctx}` : ''}`, signal, 3000);
+      const text = await oneShot(`${head}Do the sub-task below and reply with a concise, factual report the main agent can act on (findings, exact file paths and line numbers, recommended changes as code snippets). You cannot run tools; say what should be verified. Be calibrated: separate what the files show from what you assume, and never call something complete or working unless the files prove it.\n\nSUB-TASK: ${prompt}\n\nPROJECT FILES (${files.length}):\n${files.slice(0, 200).map((f) => f.path).join('\n')}${ctx ? `\n\nFILE CONTENTS:${ctx}` : ''}`, signal, 3000);
       item.meta = { agent: custom ? custom.name : 'subagent' };
       item.out = clip(text, 12000);
       return `${custom ? custom.name : 'Subagent'} report:\n${clip(text, 12000)}`;

@@ -23,6 +23,7 @@ run: $(TARGET)
 test: $(TARGET) astro
 	bash tests/smoke_cpp.sh
 	node tests/agent_parse_test.js
+	node tests/agent_audit_test.js
 	node tests/risky_test.js
 	node tests/exthost_test.js
 	node tests/code_detect_test.js

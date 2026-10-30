@@ -1,0 +1,88 @@
+plugins {
+    id 'com.android.application'
+}
+
+// One version for everything: read from the engine's platform.h (ASTRO_APP_VERSION).
+def repoRoot = rootProject.file('..')
+def astroVersion = (repoRoot.toPath().resolve('platform.h').toFile().text =~ /#define ASTRO_APP_VERSION "([0-9]+)\.([0-9]+)\.([0-9]+)"/)
+if (!astroVersion.find()) throw new GradleException('ASTRO_APP_VERSION not found in platform.h')
+def vMajor = astroVersion.group(1) as int
+def vMinor = astroVersion.group(2) as int
+def vPatch = astroVersion.group(3) as int
+
+// Release signing comes from the environment (CI secrets) or android/keystore.properties - never from the repo.
+def ksProps = new Properties()
+def ksFile = rootProject.file('keystore.properties')
+if (ksFile.exists()) ksFile.withInputStream { ksProps.load(it) }
+def ksPath = System.getenv('ASTRO_ANDROID_KEYSTORE') ?: ksProps.getProperty('storeFile')
+def hasReleaseKey = ksPath != null && new File(ksPath).exists()
+
+android {
+    namespace = 'io.github.esoexe.astroai'
+    compileSdk = 36
+
+    defaultConfig {
+        applicationId = 'io.github.esoexe.astroai'
+        minSdk = 26
+        targetSdk = 36
+        versionCode = vMajor * 10000 + vMinor * 100 + vPatch
+        versionName = "${vMajor}.${vMinor}.${vPatch}"
+        ndk { abiFilters 'arm64-v8a' }
+    }
+
+    signingConfigs {
+        if (hasReleaseKey) {
+            release {
+                storeFile = file(ksPath)
+                storePassword = System.getenv('ASTRO_ANDROID_KEYSTORE_PASSWORD') ?: ksProps.getProperty('storePassword')
+                keyAlias = System.getenv('ASTRO_ANDROID_KEY_ALIAS') ?: ksProps.getProperty('keyAlias', 'astro')
+                keyPassword = System.getenv('ASTRO_ANDROID_KEY_PASSWORD') ?: ksProps.getProperty('keyPassword') ?: storePassword
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled = false
+            if (hasReleaseKey) signingConfig = signingConfigs.release
+        }
+    }
+
+    packaging {
+        // The engine (libastro_engine.so) must be unpacked into nativeLibraryDir: that is the only place an
+        // Android app may start its own programs from.
+        jniLibs { useLegacyPackaging = true }
+    }
+
+    sourceSets {
+        main {
+            assets.srcDirs += [layout.buildDirectory.dir('generated/astroPayload').get().asFile]
+        }
+    }
+}
+
+// The engine's web app and provider list go into the APK as assets/payload/. The shell unpacks them on first
+// start (and after every update). CLEAN edition only: no keys, ever.
+def payloadDir = layout.buildDirectory.dir('generated/astroPayload/payload')
+tasks.register('astroPayload', Copy) {
+    from(new File(repoRoot, 'web')) { into 'web' }
+    from(new File(repoRoot, 'providers.json'))
+    into payloadDir
+    doLast {
+        def out = payloadDir.get().asFile
+        new File(out, 'edition.json').text = '{"edition":"clean","name":"Astro AI","display":"A.S.T.R.O AI","data_name":"astro-ai","platform":"android"}\n'
+        new File(out, 'version.txt').text = "${vMajor}.${vMinor}.${vPatch}\n"
+        ['.astro_keys.env', '.workspace.env', 'seed-keys.env', 'gateway.env'].each { n ->
+            if (new File(out, n).exists()) throw new GradleException("Refusing to package a key file: ${n}")
+        }
+    }
+}
+tasks.named('preBuild') { dependsOn 'astroPayload' }
+tasks.named('preBuild') {
+    doFirst {
+        if (!file('src/main/jniLibs/arm64-v8a/libastro_engine.so').exists())
+            throw new GradleException('Build the engine first: bash android/build_engine.sh')
+        if (!file('src/main/assets/cacert.pem').exists())
+            throw new GradleException('assets/cacert.pem is missing: bash android/build_engine.sh fetches it')
+    }
+}

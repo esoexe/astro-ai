@@ -67,6 +67,16 @@ call answer "{\"id\":\"$id\",\"answer\":\"Allow\"}" >/dev/null; wait_status "$id
 r=$(call start '{"project":"demo","prompt":"approve this","mode":"ask","interactive":false}'); id=$(echo "$r" | jget id); wait_status "$id" '^done$' 20
 has "$(call get "{\"id\":\"$id\"}")" 'nobody is watching' && ok "ask mode without a user blocks instead of hanging" || bad "non-interactive ask"
 
+# --- finish audit: honest the first time, whole job in one run, no stubs ---
+id=$(call start '{"project":"demo","prompt":"is the app complete?"}' | jget id); wait_status "$id" '^done$' 30
+g=$(call get "{\"id\":\"$id\"}")
+has "$g" 'Checking the real state of the project' && has "$g" 'STATUS REPORT' && ok "status question: unverified '100% complete' is sent back, agent inspects and reports honestly" || bad "assess: $(echo "$g" | head -c 600)"
+id=$(call start '{"project":"demo","prompt":"build parts one and two"}' | jget id); wait_status "$id" '^done$' 30
+g=$(call get "{\"id\":\"$id\"}")
+[ "$(cat "$D/demo/two.txt" 2>/dev/null)" = "two" ] && has "$g" 'keeps going with the rest of the job' && ok "lazy ending ('want me to continue?') is refused, agent finishes the whole job" || bad "lazy: $(echo "$g" | head -c 600)"
+id=$(call start '{"project":"demo","prompt":"write the adder"}' | jget id); wait_status "$id" '^done$' 30
+grep -q 'return a + b' "$D/demo/add.js" 2>/dev/null && ! grep -q TODO "$D/demo/add.js" && ok "stubs left in written code are sent back and implemented" || bad "stub: $(cat "$D/demo/add.js" 2>/dev/null)"
+
 # --- stop ---
 id=$(call start '{"project":"demo","prompt":"slow job"}' | jget id); sleep 1.5; call stop "{\"id\":\"$id\"}" >/dev/null
 wait_status "$id" '^stopped$' 5 && ok "stop ends a running command" || bad "stop"

@@ -10,14 +10,22 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
-VER="1.7.1"
+VER="1.8.0"
 export ASTRO_VER="$VER"   # build_setup.sh and the Windows version resources read this
 OUT="$ROOT/desktop-builds"
 WORK="$ROOT/.cache/pkg"
 TP="$ROOT/desktop/third_party"
 C="$TP/curl-win64"
 rm -rf "$WORK"; mkdir -p "$WORK/bin" "$OUT"
+# What to build. Default: Windows x64, Linux (this machine's architecture) and the macOS source kit, plus Windows ARM64
+# when the llvm-mingw toolchain is present (bash desktop/fetch_win_arm64.sh). CI's ARM runner uses TARGETS=linux.
+A64="$ROOT/.cache/arm"; A64_BIN="$A64/llvm-mingw-20261020-ucrt-ubuntu-22.04-x86_64/bin"; CA64="$A64/curl-8.23.0_6-win64a-mingw"
+TARGETS="${TARGETS:-windows linux mac$([ -x "$A64_BIN/aarch64-w64-mingw32-clang++" ] && echo " windows-arm64")}"
+want() { [[ " $TARGETS " == *" $1 "* ]]; }
+case "$(uname -m)" in aarch64|arm64) LARCH=arm64; DARCH=arm64; LPLAT="linux arm64";; *) LARCH=x64; DARCH=amd64; LPLAT="linux x86_64";; esac
+echo "==> Targets: $TARGETS (Linux: $LARCH)"
 
+if want linux; then
 echo "==> Linux binaries"
 gcc -std=c11 -O2 -c desktop/src/linux_compat.c -o "$WORK/linux_compat.o"
 COMPAT=("$WORK/linux_compat.o" -lm -static-libstdc++ -static-libgcc -Wl,--wrap=fmod -s)
@@ -29,7 +37,9 @@ g++ -std=c++17 -O2 -I"$TP/webview/include" desktop/src/astro_desktop.cpp -o "$WO
 wait
 # The terminal app (astro): a small client of the engine's agent API
 g++ -std=c++20 -O2 -pthread cli/astro.cpp -o "$WORK/bin/astro" $(pkg-config --cflags --libs libcurl) "${COMPAT[@]}"
+fi
 
+if want windows || want windows-arm64; then
 echo "==> Windows binaries"
 x86_64-w64-mingw32-gcc-posix -O2 -c desktop/src/win_compat.c -o "$WORK/win_compat.o"
 IFS=. read -r VMAJ VMIN VPAT <<<"$VER"
@@ -59,7 +69,26 @@ x86_64-w64-mingw32-g++-posix -std=c++20 -O2 -DCURL_STATICLIB -I"$C/include" cli/
     -static -static-libgcc -static-libstdc++ -L"$C/lib" -lcurl -lnghttp3 -lngtcp2_crypto_libressl -lngtcp2 -lnghttp2 -lssh2 -lssl -lcrypto \
     -lpsl -lbrotlidec -lbrotlicommon -lzstd -lz -lws2_32 -lcrypt32 -lbcrypt -lwldap32 -liphlpapi -lsecur32 -lnormaliz -ladvapi32 -luser32 \
     -lole32 -luuid -lshell32 -s
+fi
 wait
+
+if want windows-arm64; then
+    echo "==> Windows ARM64 binaries (llvm-mingw)"
+    [ -x "$A64_BIN/aarch64-w64-mingw32-clang++" ] || { echo "Missing llvm-mingw: run bash desktop/fetch_win_arm64.sh" >&2; exit 1; }
+    WA="$WORK/bin-arm64"; mkdir -p "$WA"
+    "$A64_BIN/aarch64-w64-mingw32-clang" -O2 -c desktop/src/win_compat.c -o "$WORK/win_compat_a64.o"
+    (cd desktop/src && "$A64_BIN/aarch64-w64-mingw32-windres" -I"$WORK" astro_desktop.rc -O coff -o "$WORK/astro_desktop_res_a64.o")
+    for r in server cli; do "$A64_BIN/aarch64-w64-mingw32-windres" -I"$WORK" "$WORK/$r.rc" -O coff -o "$WORK/${r}_res_a64.o"; done
+    CURL_LIBS=(-L"$CA64/lib" -lcurl -lnghttp3 -lngtcp2_crypto_libressl -lngtcp2 -lnghttp2 -lssh2 -lssl -lcrypto -lpsl -lbrotlidec -lbrotlicommon -lzstd -lz
+               -lws2_32 -lcrypt32 -lbcrypt -lwldap32 -liphlpapi -lsecur32 -lnormaliz -ladvapi32 -luser32)
+    "$A64_BIN/aarch64-w64-mingw32-clang++" -std=c++20 -O2 -DCURL_STATICLIB -I"$CA64/include" workspace_server.cpp "$WORK/win_compat_a64.o" "$WORK/server_res_a64.o" \
+        -o "$WA/astro-server.exe" -static "${CURL_LIBS[@]}" -s
+    "$A64_BIN/aarch64-w64-mingw32-clang++" -std=c++17 -O2 -Wno-unknown-pragmas -I"$TP/mingw-compat" -I"$TP/webview/include" -I"$TP/webview2/include" \
+        desktop/src/astro_desktop.cpp "$WORK/astro_desktop_res_a64.o" -o "$WA/AstroAI.exe" -mwindows -static \
+        -lole32 -lshell32 -lshlwapi -lversion -luser32 -ladvapi32 -lws2_32 -luuid -s
+    "$A64_BIN/aarch64-w64-mingw32-clang++" -std=c++20 -O2 -DCURL_STATICLIB -I"$CA64/include" cli/astro.cpp "$WORK/win_compat_a64.o" "$WORK/cli_res_a64.o" \
+        -o "$WA/astro.exe" -static "${CURL_LIBS[@]}" -lole32 -luuid -lshell32 -s
+fi
 
 # ------------------------------------------------------------------------------------------------
 # Edition payloads (web app + registry + edition.json [+ keys])
@@ -135,16 +164,27 @@ for ed in $EDITIONS; do
     PAY="$WORK/payload-$ed"; make_payload "$ed" "$PAY"
 
     # ---------------- Windows: portable zip + installer ----------------
+    # Custom A.S.T.R.O AI installer (desktop/setup): payload = the same files as the portable zip.
+    KEYS=0; [ "$ed" = "personal" ] && KEYS=1
+    if want windows; then
     WD="$WORK/AstroAI-$VER-windows-x64-$TAG"; mkdir -p "$WD"
     cp -r "$PAY/." "$WD/"
     cp "$WORK/bin/AstroAI.exe" "$WD/$EXE"; cp "$WORK/bin/astro-server.exe" "$WD/"; cp "$WORK/bin/astro.exe" "$WD/$CLI.exe"
     readme "$ed" "windows x64" "$WD/README.txt"
     (cd "$WORK" && zip -qr9 "$DEST/AstroAI-$VER-windows-x64-portable-$TAG.zip" "$(basename "$WD")")
-    # Custom A.S.T.R.O AI installer (desktop/setup): payload = the same files as the portable zip.
-    KEYS=0; [ "$ed" = "personal" ] && KEYS=1
     desktop/setup/build_setup.sh "$WD" "$DEST/AstroAI-$VER-windows-x64-Setup-$TAG.exe" "$APP" "$ID" "$EXE" "$KEYS" "$WORK/setup-$ed" "$DISP"
+    fi
+    if want windows-arm64; then
+    WA_D="$WORK/AstroAI-$VER-windows-arm64-$TAG"; mkdir -p "$WA_D"
+    cp -r "$PAY/." "$WA_D/"
+    cp "$WORK/bin-arm64/AstroAI.exe" "$WA_D/$EXE"; cp "$WORK/bin-arm64/astro-server.exe" "$WA_D/"; cp "$WORK/bin-arm64/astro.exe" "$WA_D/$CLI.exe"
+    readme "$ed" "windows arm64" "$WA_D/README.txt"
+    (cd "$WORK" && zip -qr9 "$DEST/AstroAI-$VER-windows-arm64-portable-$TAG.zip" "$(basename "$WA_D")")
+    PATH="$A64_BIN:$PATH" WIN_TRIPLE=aarch64-w64-mingw32 desktop/setup/build_setup.sh "$WA_D" "$DEST/AstroAI-$VER-windows-arm64-Setup-$TAG.exe" "$APP" "$ID" "$EXE" "$KEYS" "$WORK/setup-a64-$ed" "$DISP"
+    fi
 
     # ---------------- Linux: .deb ----------------
+    if want linux; then
     DEB="$WORK/deb-$ed"; L="$DEB/usr/lib/$PKG"
     mkdir -p "$L" "$DEB/usr/bin" "$DEB/usr/share/applications" "$DEB/DEBIAN" "$DEB/usr/share/doc/$PKG"
     cp -r "$PAY/." "$L/"; cp "$WORK/bin/astro-desktop" "$WORK/bin/astro-server" "$L/"; cp "$WORK/bin/astro" "$L/$CLI"
@@ -169,13 +209,13 @@ Keywords=AI;chat;assistant;code;agent;
 StartupWMClass=$PKG
 MimeType=x-scheme-handler/astroai;
 EOF
-    readme "$ed" "linux x86_64" "$DEB/usr/share/doc/$PKG/README.txt"
+    readme "$ed" "$LPLAT" "$DEB/usr/share/doc/$PKG/README.txt"
     cat > "$DEB/DEBIAN/control" <<EOF
 Package: $PKG
 Version: $VER
 Section: devel
 Priority: optional
-Architecture: amd64
+Architecture: $DARCH
 Maintainer: A.S.T.R.O AI <astro-ai@localhost>
 Depends: libwebkit2gtk-4.1-0, libgtk-3-0t64 | libgtk-3-0, libcurl4t64 | libcurl4, libssl3t64 | libssl3, libc6 (>= 2.35)
 Recommends: xdg-utils, git
@@ -184,10 +224,10 @@ Description: $DISP - AI chat, code Workspace and Agent (desktop)
  Desktop app for A.S.T.R.O AI: chat, a code Workspace with run/preview/terminal and an
  autonomous Agent, powered by one brain of free AI models. $NOTE
 EOF
-    dpkg-deb --root-owner-group -Zxz --build "$DEB" "$DEST/${PKG}_${VER}_amd64-$TAG.deb" >/dev/null
+    dpkg-deb --root-owner-group -Zxz --build "$DEB" "$DEST/${PKG}_${VER}_${DARCH}-$TAG.deb" >/dev/null
 
     # ---------------- Linux: portable tar.gz ----------------
-    LT="$WORK/$PKG-$VER-linux-x64-$TAG"; mkdir -p "$LT"
+    LT="$WORK/$PKG-$VER-linux-$LARCH-$TAG"; mkdir -p "$LT"
     cp -r "$L/." "$LT/"; cp desktop/assets/icon-256.png "$LT/icon.png"; cp "$DEB/usr/share/doc/$PKG/README.txt" "$LT/"
     cat > "$LT/install.sh" <<EOF
 #!/usr/bin/env bash
@@ -204,9 +244,11 @@ xdg-mime default $PKG.desktop x-scheme-handler/astroai 2>/dev/null || true
 echo "$DISP added to your applications menu. You can also run: \$D/astro-desktop"
 EOF
     chmod 755 "$LT/install.sh"
-    (cd "$WORK" && tar -czf "$DEST/$PKG-$VER-linux-x64-portable-$TAG.tar.gz" "$(basename "$LT")")
+    (cd "$WORK" && tar -czf "$DEST/$PKG-$VER-linux-$LARCH-portable-$TAG.tar.gz" "$(basename "$LT")")
+    fi
 
     # ---------------- macOS: source kit ----------------
+    if want mac; then
     MK="$WORK/AstroAI-$VER-macos-source-$TAG"; mkdir -p "$MK/src/server" "$MK/src/desktop" "$MK/src/webview" "$MK/assets" "$MK/payload"
     cp workspace_server.cpp platform.h ./*.inc "$MK/src/server/"
     mkdir -p "$MK/src/cli"; cp cli/*.cpp cli/*.h cli/*.inc "$MK/src/cli/"; echo "$CLI" > "$MK/payload/cli-name"
@@ -217,12 +259,13 @@ EOF
     cp desktop/mac/build_mac.sh "$MK/"; chmod 755 "$MK/build_mac.sh"
     readme "$ed" "macos (build on a Mac)" "$MK/README.txt"
     (cd "$WORK" && tar -czf "$DEST/AstroAI-$VER-macos-source-$TAG.tar.gz" "$(basename "$MK")")
+    fi
 done
 
 # ------------------------------------------------------------------------------------------------
 # VS Code extension (same for both editions; it contains no keys): shipped with the clean downloads.
 # ------------------------------------------------------------------------------------------------
-if [[ " $EDITIONS " == *" clean "* ]]; then
+if [[ " $EDITIONS " == *" clean "* ]] && want windows; then
     echo "==> VS Code extension"
     if (cd ide/vscode && npx -y @vscode/vsce@3 package --allow-missing-repository -o "$OUT/clean/astro-ai-vscode-$VER.vsix" >/dev/null 2>&1); then
         echo "   astro-ai-vscode-$VER.vsix"
@@ -240,16 +283,18 @@ SECRETS="$WORK/secrets.txt"; umask 077
   if [ -f "$WORK/payload-personal/gateway.env" ]; then sed -n 's/^LLM_API_KEY=//p' "$WORK/payload-personal/gateway.env"; fi; } \
   | tr -d "\"'" | awk 'length($0) >= 12' > "$SECRETS"
 # The installer payload is compressed: unpack the clean one so the scan can read it.
-rm -rf "$WORK/setup-clean/unz"; mkdir -p "$WORK/setup-clean/unz"; (cd "$WORK/setup-clean/unz" && unzip -q ../payload.zip)
+rm -rf "$WORK/setup-clean/unz"; mkdir -p "$WORK/setup-clean/unz"; [ ! -f "$WORK/setup-clean/payload.zip" ] || (cd "$WORK/setup-clean/unz" && unzip -q ../payload.zip)
 LEAKS=0
-for d in "$WORK/payload-clean" "$WORK/deb-clean" "$WORK/AstroAI-$VER-windows-x64-CLEAN" "$WORK/AstroAI-$VER-macos-source-CLEAN" "$WORK/setup-clean/unz"; do
+for d in "$WORK/payload-clean" "$WORK/deb-clean" "$WORK/AstroAI-$VER-windows-x64-CLEAN" "$WORK/AstroAI-$VER-windows-arm64-CLEAN" "$WORK/AstroAI-$VER-macos-source-CLEAN" "$WORK/setup-clean/unz"; do
     n=$(grep -rFl -f "$SECRETS" "$d" 2>/dev/null | wc -l || true); LEAKS=$((LEAKS + n))
 done
 # Positive control: the same scan must find the keys in the personal payload, or the check proves nothing.
 FOUND=$(grep -rFl -f "$SECRETS" "$WORK/payload-personal" 2>/dev/null | wc -l || true)
 rm -f "$SECRETS"
-if [ -f .astro_keys.env ] && [ "$FOUND" -eq 0 ]; then echo "!! Key scan found nothing in the personal payload; the check is broken. Aborting."; exit 1; fi
-echo "   personal edition: keys present in $FOUND file(s) (expected)"
+if [ -d "$WORK/payload-personal" ]; then
+    if [ -f .astro_keys.env ] && [ "$FOUND" -eq 0 ]; then echo "!! Key scan found nothing in the personal payload; the check is broken. Aborting."; exit 1; fi
+    echo "   personal edition: keys present in $FOUND file(s) (expected)"
+else echo "   personal edition not built (EDITIONS=$EDITIONS); clean scanned against $( [ -f .astro_keys.env ] && echo "the local keys" || echo "no local keys")"; fi
 if [ "$LEAKS" -ne 0 ]; then echo "!! The clean edition contains key material ($LEAKS file(s)). Aborting."; rm -rf "$OUT/clean"; exit 1; fi
 echo "   clean edition: 0 keys found"
 

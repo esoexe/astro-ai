@@ -17,6 +17,10 @@ uint32_t arc4random(void) {
     return v;
 }
 
+#if defined(__aarch64__)
+__asm__(".symver fmod_compat, fmod@GLIBC_2.17");   /* the first glibc for 64-bit ARM */
+#else
 __asm__(".symver fmod_compat, fmod@GLIBC_2.2.5");
+#endif
 double fmod_compat(double, double);
 double __wrap_fmod(double x, double y) { return fmod_compat(x, y); }

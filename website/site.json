@@ -2,28 +2,34 @@
   "name": "A.S.T.R.O AI",
   "url": "https://esoexe.github.io/astro-ai",
   "description": "A.S.T.R.O AI is a free desktop app for chat, code and agents, powered by a team of free AI models that answer as one. Windows, Linux and macOS.",
-  "version": "1.7.1",
-  "dateLabel": "October 29, 2026",
+  "version": "1.8.0",
+  "dateLabel": "October 30, 2026",
   "year": 2026,
   "repo": "https://github.com/esoexe/astro-ai",
   "highlights": [
-    "Every screen in French and Arabic: Workspace, Agent, Notes, Tasks, Reader, Model Lab, Brain and all settings",
-    "Update notes shown in your language",
-    "Windows files show the right version in Properties",
-    "Release builds ready for code signing (SignPath on Windows, notarization on macOS)"
+    "New Android app with the engine built in (Android 8.0+, 64-bit ARM)",
+    "The Agent gives the honest answer the first time and finishes the whole job in one run",
+    "Send feedback, and anonymous error reports (off unless you turn them on)",
+    "Offline natural voice, ARM64 builds for Windows and Linux, and better accessibility"
   ],
   "highlights_i18n": {
     "fr": [
-      "Tous les écrans en français et en arabe : espace de travail, agent, notes, tâches, lecteur, labo des modèles, cerveau et tous les réglages",
-      "Les notes de mise à jour s’affichent dans votre langue",
-      "Les fichiers Windows affichent la bonne version dans Propriétés",
-      "Versions prêtes pour la signature du code (SignPath sous Windows, notarisation sous macOS)"
+      "Nouvelle application Android avec le moteur intégré (Android 8.0+, ARM 64 bits)",
+      "L'agent donne la réponse honnête dès la première fois et termine tout le travail en une seule exécution",
+      "Envoyer un avis, et rapports d'erreurs anonymes (désactivés sauf si vous les activez)",
+      "Voix naturelle hors ligne, versions ARM64 pour Windows et Linux, et meilleure accessibilité"
     ],
     "ar": [
-      "كل الشاشات بالفرنسية والعربية: مساحة العمل والوكيل والملاحظات والمهام والقارئ ومختبر النماذج والعقل وكل الإعدادات",
-      "تظهر ملاحظات التحديث بلغتك",
-      "تعرض ملفات Windows الإصدار الصحيح في الخصائص",
-      "إصدارات جاهزة لتوقيع الكود (SignPath على Windows والتوثيق على macOS)"
+      "تطبيق أندرويد جديد بمحرك مدمج (أندرويد 8.0 فما فوق، ARM بنظام 64 بت)",
+      "يقدّم الوكيل الإجابة الصادقة من المرة الأولى وينجز العمل كله في تشغيل واحد",
+      "إرسال الملاحظات، وتقارير أخطاء مجهولة الهوية (معطّلة ما لم تفعّلها)",
+      "صوت طبيعي دون اتصال، وإصدارات ARM64 لويندوز ولينكس، وإمكانية وصول أفضل"
     ]
+  },
+  "support": {
+    "github_sponsors": "",
+    "kofi": "",
+    "liberapay": "",
+    "_note": "Set your GitHub Sponsors / Ko-fi / Liberapay username here once the account exists; the Support page and app show the buttons automatically."
   }
 }

@@ -10,6 +10,8 @@ astro_data/
 uploads/
 desktop-builds/
 *WITH-KEYS*
+.astro_android/
+.astro_dev/
 
 # ---- build output ----
 /workspace_server
@@ -18,5 +20,14 @@ desktop-builds/
 /ide/vscode/*.vsix
 website/dist/
 node_modules/
+android/app/src/main/jniLibs/
+android/app/src/main/assets/cacert.pem
+android/app/src/main/assets/licenses/
+android/**/build/
+android/.gradle/
+android/local.properties
+android/keystore.properties
+*.jks
+*.keystore
 .cache/
 *.o

@@ -1,0 +1,40 @@
+<!--meta {"title": "Become a beta tester", "description": "Help test A.S.T.R.O AI on your own devices: Windows, macOS, Linux, Android and ARM. Get new versions early and shape what gets built.", "nav": ""} -->
+<section class="page-hero">
+  <div class="wrap">
+    <span class="eyebrow">Beta testers</span>
+    <h1 class="h2">Test it on <em class="accent">your</em> device.</h1>
+    <p class="lead">We are a small team without a device lab. Testers on real hardware find the bugs we can't. You get new versions first, and your reports decide what gets fixed next.</p>
+  </div>
+</section>
+
+<div class="wrap" style="padding-bottom:80px">
+  <article class="prose">
+    <h2>What testers do</h2>
+    <ul>
+      <li>Install early builds (desktop, Android preview or terminal) and use them for real work.</li>
+      <li>Report what breaks or confuses you with <em>Send feedback</em> in the app. A few lines are enough.</li>
+      <li>Optional: turn on anonymous error reports so crashes reach us automatically.</li>
+    </ul>
+    <p>No commitment: stop whenever you like. We e-mail you only about test builds, at most a few times a month.</p>
+
+    <h2>Sign up</h2>
+    <form class="site-form" data-report="beta" novalidate>
+      <label for="beta-mail">E-mail <span class="req">(required)</span></label>
+      <input id="beta-mail" name="contact" type="email" required maxlength="200" autocomplete="email" placeholder="you@example.com">
+      <fieldset>
+        <legend>Devices you can test on</legend>
+        <label class="check"><input type="checkbox" name="device" value="windows-x64"> Windows (Intel/AMD)</label>
+        <label class="check"><input type="checkbox" name="device" value="windows-arm64"> Windows on ARM (Snapdragon)</label>
+        <label class="check"><input type="checkbox" name="device" value="macos"> macOS</label>
+        <label class="check"><input type="checkbox" name="device" value="linux-x64"> Linux (x64)</label>
+        <label class="check"><input type="checkbox" name="device" value="linux-arm64"> Linux ARM (Raspberry Pi and similar)</label>
+        <label class="check"><input type="checkbox" name="device" value="android"> Android phone or tablet</label>
+      </fieldset>
+      <label for="beta-msg">What would you use A.S.T.R.O AI for? <span class="opt">(optional)</span></label>
+      <textarea id="beta-msg" name="message" rows="4" maxlength="2000" placeholder="Coding, studying, writing, research…"></textarea>
+      <p class="form-note">We store your e-mail address and these answers only to send you test builds. Delete them any time by sending a request from the same address. <a href="{{root}}privacy.html#reports">Privacy</a></p>
+      <button class="btn btn-primary" type="submit">Join the beta</button>
+      <p class="form-out" role="status" aria-live="polite"></p>
+    </form>
+  </article>
+</div>

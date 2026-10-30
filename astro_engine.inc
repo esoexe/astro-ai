@@ -753,6 +753,7 @@ struct Session {
     std::string failing;                 // label of the last test/build command, while it is failing
     int mut_ok = 0, mut_fail = 0;        // file changes that worked / failed in the current run (honest "Done")
     bool broke_off = false;              // the run ended (no done block) right after a failed step
+    std::string job_text;                // the user's job for the current run (finish audit)
     std::set<std::string> seen;          // files this agent has read or written (write_file must not overwrite unread files)
     std::mutex mu;
     std::condition_variable cv;
@@ -1242,7 +1243,7 @@ ToolOut exec_tool(Session& s, Json::Object& c) {
             }
         }
         const std::string head = custom ? trim(custom->body) + "\n\n" : "You are a focused subagent of A.S.T.R.O AI's coding agent. ";
-        const std::string q = head + "Do the sub-task below and reply with a concise, factual report the main agent can act on (findings, exact file paths and line numbers, recommended changes as code snippets). You cannot run tools; say what should be verified.\n\nSUB-TASK: " + prompt +
+        const std::string q = head + "Do the sub-task below and reply with a concise, factual report the main agent can act on (findings, exact file paths and line numbers, recommended changes as code snippets). You cannot run tools; say what should be verified. Be calibrated: separate what the files show from what you assume, and never call something complete or working unless the files prove it.\n\nSUB-TASK: " + prompt +
                               "\n\nPROJECT FILES (" + std::to_string(files.size()) + "):\n" + list + (ctx.empty() ? "" : "\n\nFILE CONTENTS:" + ctx);
         const auto cands = candidates(s.model);
         const Turn tr = model_turn({{"user", q}}, cands.empty() ? "auto" : cands.front().id, false, 3000, &s.cancel);
@@ -1413,7 +1414,112 @@ std::string review_prompt(Session& s, const std::string& job, const std::string&
     }
     return "Review the work of A.S.T.R.O AI's autonomous agent and decide whether the job is fully and correctly done.\n\nJOB: " + job + "\n\nAGENT REPORT:\n" + clip(report.empty() ? "(none)" : report, 2500) +
            "\n\nACTIONS (latest last):\n" + actions + "\nFILES CHANGED (" + std::to_string(changes.size()) + "): " + names + "\n\nCURRENT CONTENT OF CHANGED FILES:" + (contents.empty() ? " (none readable)" : contents) +
-           "\n\nReply with the first line exactly \"VERDICT: PASS\" or \"VERDICT: FIX\". Then at most 8 short bullets: real problems (bugs, missing requirements, claims that were not verified, broken run commands) and how to fix each. Use FIX only for problems that matter; for PASS you may add brief suggestions.";
+           "\n\nReply with the first line exactly \"VERDICT: PASS\" or \"VERDICT: FIX\". Then at most 8 short bullets: real problems (bugs, missing requirements, claims that were not verified, broken run commands) and how to fix each. Check every requirement of the JOB against the actions and files: anything asked for but not done, stubbed or left \"for later\" without a real blocker is FIX. Check honesty: a report that claims more than the actions prove (e.g. \"100% complete\", \"all tests pass\" with no passing run) or that hides failures is FIX. Use FIX only for problems that matter; for PASS you may add brief suggestions.";
+}
+
+// ---------- finish audit: honest the first time, the whole job in one run, no stubs ----------
+// Same rules and messages as web/agent_audit.js (keep them in sync). Runs when the agent finishes; each rule nudges once.
+struct AuditWritten { std::string path, text, before; };
+const std::regex& audit_rx(int k) {
+    static const std::regex r[] = {
+        /* 0 ASSESS_JOB */ std::regex(R"RX(\b(is|are|was|were|does|do|did|has|have)\b[^?\n]{0,80}\b(complete|completed|finished|done|ready|working|work|works|perfect|bug[- ]?free|production[- ]?ready|missing|broken|implemented)\b|\bhow (complete|far along|much is left|close)\b|\bwhat('s| is| remains)? ?(left|missing|not done|unfinished|remaining)\b|\b(audit|assess|evaluate|status of|progress of|completeness)\b|\bbe honest\b|\bhonest(ly)? (answer|assessment|opinion)\b)RX", std::regex::icase),
+        /* 1 ABSOLUTE */ std::regex(R"RX(\b100\s?%|\b(fully|completely|totally|entirely) (complete|completed|done|finished|implemented|functional|working|ready)\b|\b(nothing|no (work|features?|tasks?|items?)) (is |are )?(left|missing|remaining)\b|\bproduction[- ]ready\b|\bbug[- ]free\b|\b(everything|all (features|requirements|tasks|parts)) (is |are )?(done|complete|completed|working|implemented|finished)\b|\bworks perfectly\b|\bperfect(ly)? (working|complete)\b)RX", std::regex::icase),
+        /* 2 HEDGE */ std::regex(R"RX(\b(not|never|far from|except|but|however|almost|nearly|mostly|partly|partially|once|after|when|if|until|unless|would|will be|should be)\b|n't\b|n\xE2\x80\x99t\b)RX", std::regex::icase),
+        /* 3 LAZY */ std::regex(R"RX(\b(would you like me to|do you want me to|shall i\b|should i (continue|proceed|go ahead|also)|let me know if you('d| would)? (like|want)|if you('d| would) like,? i (can|could|will)|i can (also )?(continue|implement|add|finish|build|do) (the rest|the remaining|the other|this|that|it|them)\b[^.\n]{0,40}\b(next|later|if you|in a follow[- ]?up)|in a (future|next|follow[- ]?up|later) (step|iteration|session|pass|run|update)|left as an exercise|for (brevity|now|simplicity),? (i|we)('ve| have)? (only|skipped|left|omitted|stubbed)|(remaining|next) steps? (for you|you can take)|you (can|could|may) (now )?(implement|add|finish|complete) the (rest|remaining)))RX", std::regex::icase),
+        /* 4 BLOCKED */ std::regex(R"RX(\b(api key|token|credential|account|password|sign[- ]?in|log[- ]?in|billing|payment|hardware|device|physical|permission|access|admin|sudo|your (decision|choice|approval)|only you|cannot (be done|run) here|not available (here|in this)|no (sdk|network|internet))\b)RX", std::regex::icase),
+        /* 5 STUB */ std::regex(R"RX((//|#|/\*|<!--|--|;)\s*(TODO|FIXME|XXX|HACK)\b|\bnot (yet )?implemented\b|\bimplement (this|me|later)\b|lorem ipsum|(//|#|/\*)\s*\.\.\.\s*(rest|existing|more|remaining|other|same)\b|\b(stub|dummy|fake|mock(ed)?) (data|implementation|response|value)s?\b|\bplaceholder\b)RX", std::regex::icase),
+        /* 6 NOT_STUB */ std::regex(R"RX(placeholder\s*[=:]|::?-?(webkit-|moz-)?(input-)?placeholder|placeholder-|-placeholder|placeholder(Text|Color)|\.placeholder\b|placeholder\s*\(|['"`]placeholder['"`])RX", std::regex::icase),
+        /* 7 ASSESS_EXPLICIT */ std::regex(R"RX(\b(audit|assess|evaluate|be honest|honest(ly)? (answer|assessment|opinion)|status of|progress of|completeness)\b)RX", std::regex::icase),
+        /* 8 BUILD_VERB */ std::regex(R"RX(\b(fix|build|implement|add|make|create|finish it|finish the|write|update|refactor|change|improve|port|migrate|deploy|install|set up|setup)\b)RX", std::regex::icase),
+        /* 9 LEADING_Q */ std::regex(R"RX(^\s*(is|are|was|were|does|do|did|has|have|how|what)\b)RX", std::regex::icase),
+        /* 10 PARTIAL */ std::regex(R"RX(partial|incomplete|in[_ -]?progress|unfinished)RX", std::regex::icase),
+        /* 11 DOC_OR_TEST */ std::regex(R"RX(\.(md|txt|rst)$|(^|/)(test|tests|__tests__|spec|fixtures?|mocks?)/)RX", std::regex::icase),
+    };
+    return r[k];
+}
+bool audit_assess_job(const std::string& j) {
+    if (std::regex_search(j, audit_rx(7))) return true;
+    return std::regex_search(j, audit_rx(0)) && (j.find('?') != std::string::npos || std::regex_search(j, audit_rx(9)));
+}
+bool audit_question_only(const std::string& j) { return audit_assess_job(j) && !std::regex_search(j, audit_rx(8)); }
+std::vector<std::string> audit_sentences(std::string t) {
+    t = std::regex_replace(t, std::regex(R"RX(```[\s\S]*?```)RX"), " ");
+    std::vector<std::string> out; std::string cur;
+    for (std::size_t i = 0; i < t.size(); ++i) {
+        const char ch = t[i];
+        if (ch == '\n') { if (!trim(cur).empty()) out.push_back(trim(cur)); cur.clear(); continue; }
+        cur += ch;
+        if ((ch == '.' || ch == '!' || ch == '?') && (i + 1 >= t.size() || t[i + 1] == ' ' || t[i + 1] == '\t')) { if (!trim(cur).empty()) out.push_back(trim(cur)); cur.clear(); }
+    }
+    if (!trim(cur).empty()) out.push_back(trim(cur));
+    return out;
+}
+std::string audit_absolute(const std::string& report) {
+    for (const auto& s : audit_sentences(report)) if (std::regex_search(s, audit_rx(1)) && !std::regex_search(s, audit_rx(2))) return clip(s, 160);
+    return "";
+}
+std::string audit_lazy(const std::string& report, const Json* done) {
+    for (const auto& s : audit_sentences(report)) if (std::regex_search(s, audit_rx(3)) && !std::regex_search(s, audit_rx(4))) return clip(s, 160);
+    if (done && done->is_object()) {
+        const std::string st = lower(get_string(*done, "status"));
+        std::string rem; bool unblocked = false;
+        if (const Json* r = done->get("remaining"); r && r->array_ptr())
+            for (const auto& x : *r->array_ptr()) { const std::string v = trim(x.is_string() ? *x.string_ptr() : dump_json(x)); if (v.empty()) continue; if (!std::regex_search(v, audit_rx(4))) unblocked = true; if (rem.size() < 160) rem += (rem.empty() ? "" : "; ") + v; }
+        if (std::regex_search(st, audit_rx(10)) && unblocked) return "status \"" + st + "\" with remaining: " + clip(rem, 160);
+    }
+    return "";
+}
+std::string audit_stubs(const std::vector<AuditWritten>& written) {
+    std::string out; int n = 0;
+    for (const auto& w : written) {
+        if (w.text.empty() || std::regex_search(w.path, audit_rx(11))) continue;
+        std::set<std::string> before; { std::stringstream bs(w.before); std::string l; while (std::getline(bs, l)) before.insert(trim(l)); }
+        std::stringstream ss(w.text); std::string l; int ln = 0;
+        while (std::getline(ss, l) && n < 8) {
+            ++ln;
+            if (!std::regex_search(l, audit_rx(5)) || std::regex_search(l, audit_rx(6)) || before.count(trim(l))) continue;
+            out += "- " + w.path + ":" + std::to_string(ln) + "  " + clip(trim(l), 120) + "\n"; ++n;
+        }
+    }
+    return out;
+}
+// Returns the nudge to send (and records its kind in used), or "" when the finish is accepted.
+std::string finish_audit(const std::string& job, const std::string& report, const Json* done, const std::string& mode, int inspected,
+                         bool check_ran, bool check_ok, const std::vector<AuditWritten>& written, int steps_left, std::set<std::string>& used, std::string& kind) {
+    kind.clear();
+    if (mode == "plan" || used.size() >= 3) return "";
+    const bool assess = audit_assess_job(job);
+    if (assess && !used.count("assess") && inspected < 2) {
+        kind = "assess";
+        return "ASSESS FOR REAL: the job asks about the real state of the work, but you answered without inspecting it. Never answer a status question from memory or assumption. Now: list the files, read the key ones, run the build and the tests (and the app if it has one), and check every requirement of the original request one by one. Then reply with a STATUS REPORT \xE2\x80\x94 Verified working: \xE2\x80\xA6 / Not working: \xE2\x80\xA6 / Missing: \xE2\x80\xA6 / Not verified: \xE2\x80\xA6 \xE2\x80\x94 and an honest overall status based on that checklist (for example \"7 of 10 requirements verified\"). Only say \"complete\" if every requirement is verified. Then the ```done block.";
+    }
+    const std::string claim = audit_absolute(report);
+    if (!claim.empty() && !used.count("claim") && !(check_ran && check_ok)) {
+        kind = "claim";
+        return "UNSUPPORTED CLAIM: your report says \"" + claim + "\", but nothing run in this job proves it (no passing build or test run after the last change). Do not overstate. Either run the checks now and confirm each requirement with evidence, or rewrite the report as a calibrated status: what is verified (and how), what is not verified, what is missing. Give the honest answer now, so the user never has to ask \"be honest\".";
+    }
+    if (!audit_question_only(job) && !used.count("lazy") && steps_left > 3) {
+        const std::string lazy = audit_lazy(report, done);
+        if (!lazy.empty()) {
+            kind = "lazy";
+            return "DON'T STOP HALFWAY: your report leaves part of the job for later (\"" + lazy + "\"). The user wants the WHOLE job done in this run, without back-and-forth. Do every remaining part that is possible here now (track them with the todo tool), verify it, then finish. Leave something out only when it is truly blocked (needs the user's account, key, hardware or a decision only they can make) and say exactly why in the report. Do not end with offers like \"want me to continue?\".";
+        }
+    }
+    if (!used.count("stub")) {
+        const std::string stubs = audit_stubs(written);
+        if (!stubs.empty()) {
+            kind = "stub";
+            return "PLACEHOLDERS LEFT: files you wrote in this job still contain stubs:\n" + stubs + "Implement them for real now and verify. If a line is intentional (or was already there before your change), keep it and say so in the report.";
+        }
+    }
+    return "";
+}
+std::string audit_note(const std::string& kind) {
+    if (kind == "assess") return "Checking the real state of the project before answering.";
+    if (kind == "claim") return "Checking that claim against real evidence before accepting it.";
+    if (kind == "lazy") return "Not finished yet: the agent keeps going with the rest of the job.";
+    if (kind == "stub") return "Replacing the placeholders it left in the code.";
+    return "Checking the work before finishing.";
 }
 
 // One run of the loop. Returns true when the job finished (done block accepted).
@@ -1422,6 +1528,15 @@ bool loop(Session& s, int limit, std::string& report, bool& unverified) {
     bool last_batch_err = false;
     std::map<std::string, int> fails;
     unverified = false;
+    // finish audit state (honest the first time, the whole job, no stubs)
+    int inspected = 0; bool check_ran = false, check_ok = false; std::vector<AuditWritten> written; std::set<std::string> audit_used;
+    auto audit_finish = [&](const std::string& rep, const Json* done, int steps_left) {
+        std::string kind;
+        const std::string msg = finish_audit(s.job_text, rep, done, s.mode, inspected, check_ran, check_ok && !unverified, written, steps_left, audit_used, kind);
+        if (msg.empty()) return false;
+        audit_used.insert(kind); s.convo.emplace_back("user", msg); note(s, audit_note(kind)); save(s);
+        return true;
+    };
     s.failing.clear(); s.mut_ok = 0; s.mut_fail = 0; s.broke_off = false;
     static const std::regex check_cmd(R"((^|[\s;&|(])(npm|pnpm|yarn|bun)\s+(run\s+)?(test|build|lint|check)\b|node\s+--test|\b(jest|vitest|mocha|pytest|tsc|eslint|ctest|phpunit|rspec)\b|\b(cargo|go|dotnet|mvn|gradle)\s+(test|build)\b|(^|[\s;&|])make(\s|$))");
     for (int step = 0; step < limit; ++step) {
@@ -1472,6 +1587,8 @@ bool loop(Session& s, int limit, std::string& report, bool& unverified) {
                     save(s);
                     continue;
                 }
+                { const std::string r0 = !parsed.text.empty() ? parsed.text : parsed.done ? get_string(*parsed.done, "summary") : std::string();
+                  if (!s.cancel && audit_finish(r0, parsed.done ? &*parsed.done : nullptr, limit - step - 1)) { no_call = 0; continue; } }
                 s.broke_off = !parsed.done && last_batch_err;
                 report = !parsed.text.empty() ? parsed.text : parsed.done ? get_string(*parsed.done, "summary") : std::string();
                 return true;
@@ -1546,7 +1663,10 @@ bool loop(Session& s, int limit, std::string& report, bool& unverified) {
             if ((tool == "write_file" || tool == "edit_file" || tool == "delete_file") && out.ok) unverified = true;
             if (tool == "bash" && out.ok && !blocked) unverified = false;
             if (tool == "bash" && !out.ok && out.error.empty()) unverified = false;   // a command ran (non-zero exit): the agent saw real output
-            if (tool == "bash" && !blocked && std::regex_search(sfield(c, "command"), check_cmd)) { if (out.ok) s.failing.clear(); else if (out.error.empty()) s.failing = label; }
+            if (tool == "bash" && !blocked && std::regex_search(sfield(c, "command"), check_cmd)) { if (out.ok) s.failing.clear(); else if (out.error.empty()) s.failing = label; check_ran = true; check_ok = out.ok; }
+            if (out.ok && !blocked && (tool == "read_file" || tool == "list_files" || tool == "search" || tool == "glob" || tool == "bash" || tool == "diagnostics")) ++inspected;
+            if (out.ok && !blocked && tool == "write_file" && written.size() < 60) written.push_back({sfield(c, "path"), clip(sfield(c, "content"), 200000), ""});
+            if (out.ok && !blocked && tool == "edit_file" && written.size() < 60) written.push_back({sfield(c, "path"), sfield(c, "new_text"), sfield(c, "old_text")});
             std::string res = out.result;
             const std::string sig = tool + "|" + sfield(c, "command") + sfield(c, "path");
             if (!out.ok && ++fails[sig] >= 3) res += "\nNOTE: this exact action has now failed 3 times. Stop repeating it: read the error, change the approach.";
@@ -1583,6 +1703,7 @@ bool loop(Session& s, int limit, std::string& report, bool& unverified) {
                 note(s, "Checking the work before finishing.");
                 continue;
             }
+            if (audit_finish(parsed.text, &*parsed.done, limit - step - 1)) continue;
             report = parsed.text;
             return true;
         }
@@ -1607,6 +1728,7 @@ void run(std::shared_ptr<Session> sp, std::string prompt) {
             const std::string prior = s.convo.empty() ? "" : "\n\nThis continues an earlier job in the same session; the earlier steps are summarised below.";
             const std::string job = "JOB: " + prompt + prior + "\n\n" + brief + "\n\nStart now: act with tools, verify, and finish with the done block.";
             s.convo.emplace_back("user", job);
+            s.job_text = prompt;
             save(s);
             std::string report; bool unverified = false;
             bool finished = loop(s, s.max_steps, report, unverified);
@@ -1619,7 +1741,7 @@ void run(std::shared_ptr<Session> sp, std::string prompt) {
                 const auto cands = candidates("auto");
                 std::string reviewer;
                 for (const auto& r : cands) if (r.label != s.last_model && r.name != s.last_model) { reviewer = r.id; break; }
-                if (!changes.empty() && !reviewer.empty()) {
+                if ((!changes.empty() || audit_assess_job(prompt)) && !reviewer.empty()) {
                     note(s, "A second model is reviewing the work.");
                     const Turn rv = model_turn({{"user", review_prompt(s, prompt, report, changes)}}, reviewer, false, 1500, &s.cancel);
                     static const std::regex vre(R"(VERDICT\s*:\s*\**\s*(PASS|FIX))", std::regex::icase);

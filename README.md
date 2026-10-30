@@ -6,22 +6,19 @@
 
 <p align="center"><img src="website/src/static/assets/img/shots/chat-answer.webp" width="860" alt="A.S.T.R.O AI: a One Brain answer written by 19 models"></p>
 
-> **Downloads:** Windows, Linux and macOS builds are on the [download page](https://esoexe.github.io/astro-ai/download.html). They are the *Clean* edition and ship with no API keys.
+> **Downloads:** Windows, Linux, macOS and Android builds are on the [download page](https://esoexe.github.io/astro-ai/download.html). They are the *Clean* edition and ship with no API keys.
 >
 > **Package managers:** `scoop bucket add astro-ai https://github.com/esoexe/astro-ai` then `scoop install astro-ai` (Windows) · `brew install --cask esoexe/tap/astro-ai` (macOS) · `brew install esoexe/tap/astro-ai` (Linux) · terminal only: `irm https://esoexe.github.io/astro-ai/install.ps1 | iex` or `curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh`
 
-### New in 1.7
+### New in 1.8
 
-- **A more reliable agent:** no more empty file writes, a handover when a model stalls, and an honest *Needs attention* result (exit code 4) instead of a false "Done". 24/24 on our [12-task benchmark](bench/results/latest.md) with free models.
-- **Automatic updates** with SHA-256 checks; `astro update` in the terminal.
-- **Fastest answer first** in One Brain mode while the whole team keeps working.
-- **Get more free models** (Settings → Providers, or `/free-keys`): guided free keys for Groq, OpenRouter, Mistral and Cohere.
-- **Model health:** removed or renamed models are skipped for 24 hours instead of failing again and again.
-- **Safer:** the agent asks before risky commands (`ASTRO_ALLOW_RISKY=1` turns this off), and plugins show what they can do before installing.
-- **Problem reports** you read and send yourself (Settings → General, or `astro bug`); nothing is sent automatically.
-- **French and Arabic** interface, with right-to-left layout.
+- **Android app** with the engine built in (Android 8.0+, 64-bit ARM). Only the app can use its engine: every launch gets a fresh random token. See [docs/android.md](docs/android.md). New, and not yet tested on many real phones.
+- **An Agent that's honest the first time:** a "100% complete" report must be backed by checks the job actually ran, status questions make it inspect the real files first, and it finishes the whole job in one run (no stubs, no "shall I continue?").
+- **Feedback and opt-in error reports** (off by default; keys, paths and e-mail removed, never chats), a welcome screen and a Simple menu.
+- **Local only** mode (Ollama), an honest time estimate while One Brain works, an **offline natural voice** (Piper: English, French, Arabic) and an optional **Agent sandbox** on Linux.
+- **ARM64 builds** for Windows 11 on ARM and Linux arm64 (built, not yet tested on real ARM devices), and an **accessibility** pass (labels, keyboard tabs, dialog focus, WCAG AA contrast).
 
-Full notes: [changelog](https://esoexe.github.io/astro-ai/changelog.html#v1-7-0).
+Full notes: [changelog](https://esoexe.github.io/astro-ai/changelog.html#v1-8-0).
 
 ## About
 
@@ -125,6 +122,13 @@ Both editions can be installed side by side. Their names, folders, data, ports a
 **Notes:**
 - On Windows, running code and terminal commands in the Workspace or Agent needs Git for Windows, which provides bash.
 - Voice dictation depends on the webview. WebKitGTK on Linux has no speech recognition.
+
+## Android app
+
+The same engine, cross-compiled with the Android NDK, runs inside a small WebView app (`android/`, plain Java, no
+libraries). Build: `bash android/build_engine.sh` (needs `ANDROID_NDK_ROOT`), then `gradle -p android assembleDebug`.
+Test on a PC: `bash android/test_engine_qemu.sh` and `node tests/android_shim_test.js`. Details, security model and
+signing: [docs/android.md](docs/android.md).
 
 ## Workspace IDE
 

@@ -1,0 +1,65 @@
+<!--meta {"title": "Honest limits", "description": "What A.S.T.R.O AI can and can't do: free model limits, speed, accuracy, privacy and what is not finished yet.", "nav": ""} -->
+<section class="page-hero">
+  <div class="wrap">
+    <span class="eyebrow">Honest limits</span>
+    <h1 class="h2">What it can't do <em class="accent">(yet).</em></h1>
+    <p class="lead">A.S.T.R.O AI is free because it runs on free tiers of AI platforms. That comes with real limits. Here they are, without marketing.</p>
+  </div>
+</section>
+
+<div class="wrap" style="padding-bottom:80px">
+  <article class="prose">
+    <p class="post-meta">Version {{version}} · last updated {{date}}</p>
+
+    <h2>Free is not unlimited</h2>
+    <ul>
+      <li><strong>Every free platform has daily or per-minute limits.</strong> When one is used up, its models rest and A.S.T.R.O AI uses the others. On a busy day, fewer minds join an answer, and in the worst case you'll see "limit reached" until the daily reset.</li>
+      <li><strong>Without any key</strong> you get {{limits:count}}. Adding free keys (about a minute each, in Settings &rsaquo; Providers) adds more minds and fewer pauses.</li>
+      <li><strong>Free tiers change without notice.</strong> Models get removed, limits get tighter, and a platform can close its free tier. We update the list in each release, but some models may disappear between releases.</li>
+      <li><strong>Local models are the fallback.</strong> If you install <a href="https://ollama.com/download" rel="noopener">Ollama</a>, A.S.T.R.O AI uses it automatically when every cloud model is busy, or for everything with <em>Local only</em> (Settings &rsaquo; Brain). It's free and private, but uses your computer's memory and is slower on most laptops.</li>
+    </ul>
+
+    <h2>Speed</h2>
+    <ul>
+      <li><strong>One Brain is slow on purpose.</strong> Every model works on your question and finishes before the merged answer is written, so a typical answer takes <strong>15 to 30 seconds</strong> (our benchmark median is about 21 s). You see a quick first draft while you wait, a count of minds done and a time estimate. "Answer now" stops waiting for the slow minds.</li>
+      <li>Picking a single model in the model menu is much faster, but you lose the cross-checking.</li>
+    </ul>
+
+    <h2>Accuracy</h2>
+    <ul>
+      <li><strong>Answers can be wrong.</strong> Merging many models catches many mistakes, not all. Check anything important: medical, legal, financial, safety.</li>
+      <li><strong>The Agent can make bad changes.</strong> It saves a checkpoint before every job (one click to undo), checks its own claims before it says "done", and a second model reviews its work. It is still software written by AI: review the changes before you ship them.</li>
+      <li>A.S.T.R.O AI is not AGI and does not learn from your chats.</li>
+    </ul>
+
+    <h2>Privacy</h2>
+    <ul>
+      <li>Your chats and files stay on your computer, but <strong>your questions go to the AI platforms that answer them</strong>, and some free tiers may log prompts or use them for training. The tables below show what each platform says. Don't send secrets or other people's personal data. Use <em>Local only</em> for private work.</li>
+      <li>Details: <a href="{{root}}privacy.html">Privacy</a>.</li>
+    </ul>
+
+    <h2>Safety of the Agent</h2>
+    <ul>
+      <li>In <strong>Auto</strong> mode the Agent runs commands on your computer with your permissions. Risky commands (deleting outside the project, formatting disks, piping downloads into a shell) are blocked or need your approval, and <em>Isolated</em> runs work in a copy of the project. It is <strong>not a full operating-system sandbox</strong>. For untrusted code, use Ask mode, an isolated run, or a virtual machine or container.</li>
+    </ul>
+
+    <h2>Not finished yet</h2>
+    <ul>
+      <li><strong>Unsigned installers.</strong> Windows SmartScreen and macOS Gatekeeper warn on first launch. We have applied for free open-source code signing; until it's approved, check the SHA-256 checksums on the <a href="{{root}}download.html">download page</a>.</li>
+      <li><strong>Android</strong> is new in 1.8.0: install the APK from the download page (not on Google Play yet). It was tested on a computer, not yet on many real phones. A stock phone has no bash, Node or compilers, so Workspace commands that need them say "not found", and the Agent sandbox is not available. 64-bit ARM phones only (Android 8.0+). There is no iOS app.</li>
+      <li><strong>ARM64 desktop builds</strong> (Windows on ARM, Linux arm64) are built automatically but have not been tested on real ARM devices yet. Windows ARM64 needs Windows 11 on ARM.</li>
+      <li><strong>Voice</strong> uses your system's speech voices unless you install the offline <em>Natural voice</em> (Settings › Voice; English, French and Arabic, desktop only, no Windows ARM build). Speech recognition always uses your system or browser, so quality depends on your device.</li>
+      <li><strong>Small team, few real-device testers.</strong> Bugs on hardware we don't have are likely. <a href="{{root}}beta.html">Become a beta tester</a> to help.</li>
+    </ul>
+
+    <h2 id="keyless">Platforms that need no key</h2>
+    {{limits:keyless}}
+
+    <h2 id="free-keys">Free platforms that need a free key</h2>
+    <p>Each takes about a minute to sign up. Limits are what the platform publishes; they can change.</p>
+    {{limits:key}}
+
+    <h2 id="local">Models on your own computer</h2>
+    {{limits:local}}
+  </article>
+</div>

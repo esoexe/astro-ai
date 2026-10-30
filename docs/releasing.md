@@ -15,6 +15,9 @@ make && make test
 | `tests/library_e2e.sh` | Library install and uninstall against a local catalog |
 | `tests/library_v2_e2e.sh` | Community catalog installs (skills, plugins, MCP servers, AI tools) and the fingerprint and hook rules |
 | `tests/quality_test.sh` | Background code check, model health, feedback |
+| `android/test_engine_qemu.sh` | The Android engine under qemu: start-up, app-token protection, shell commands, clean stop |
+| `tests/android_shim_test.js` | `web/android.js` with a mock Android bridge: voice, downloads, links, back, frame nonce |
+| `tests/ui_18_test.js` | 1.8 screens: welcome, feedback, Local only, sandbox, voice, Arabic, phone layout |
 
 UI tests (Playwright, optional): `tests/ui/gap_ui.js` and `tests/ui/chat_ui.js`.
 
@@ -24,7 +27,7 @@ UI tests (Playwright, optional): `tests/ui/gap_ui.js` and `tests/ui/chat_ui.js`.
 |---|---|---|
 | `ci.yml` | Every push and pull request | Fails on tracked private files, runs the secret scan, then `make`, `make test` and the website build |
 | `pages.yml` | Changes to `website/**` or `library/**` | Builds and deploys the site and library |
-| `desktop.yml` | A `v*` tag, or run by hand | Builds the **Clean** edition for Windows (installer and zip), Linux (`.deb`, `tar.gz`) and macOS (universal `.dmg`), each with the `astro` terminal app inside, plus the VS Code extension (`.vsix`). Tags also create a GitHub release with `SHA256SUMS.txt` |
+| `desktop.yml` | A `v*` tag, or run by hand | Builds the **Clean** edition for Windows (installer and zip), Linux (`.deb`, `tar.gz`) and macOS (universal `.dmg`), each with the `astro` terminal app inside, plus the VS Code extension (`.vsix`), the ARM64 builds (Windows on ARM, Linux arm64) and the **Android app** (signed `.apk`, see [android.md](android.md)). Tags also create a GitHub release with `SHA256SUMS.txt` |
 
 ## Code signing (optional)
 
@@ -39,9 +42,23 @@ automatically once the repository has the right secrets and variables. **Step-by
 
 1. Bump the version in every place it appears:
    * `desktop/package.sh` (`VER`) and `kVersion` in `desktop/src/astro_desktop.cpp`
-   * `cli/astro.cpp` (`VERSION`; must equal `ASTRO_APP_VERSION`) and `desktop/installer/astro.nsi`
+   * `platform.h` (`ASTRO_APP_VERSION`; the Android app reads its version from here too)
+   * `cli/astro.cpp` (`VERSION`; must equal `ASTRO_APP_VERSION`)
+   * `desktop/mac/build_mac.sh` (two `CFBundle…Version` strings), `web/lsp.js` (`clientInfo`), `sdk/js/package.json`, `ide/vscode/package.json`
+   * `web/sw.js`: bump `CACHE` so browsers fetch the new web app
+   * (`desktop/installer/astro.nsi` is no longer used; the installer comes from `desktop/setup/build_setup.sh`)
    * (the Windows version resources now follow `VER` automatically)
    * `website/site.json` (`version`, `dateLabel`, `highlights` and their French/Arabic `highlights_i18n`) and the changelog page
 2. Run `make test`.
 3. Build: `bash desktop/package.sh` locally, or push a tag for CI (Clean edition only).
 4. Run `bash tools/update_github.sh "Release x.y.z"`. It exports, scans for secrets and pushes.
+
+### Android
+
+* CI signs the APK with the `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD` and `ANDROID_KEY_ALIAS` secrets and
+  refuses a certificate that doesn't match `android/signing-cert.sha256`. A tag without these secrets fails the Android job.
+* The keystore lives only on the maintainer's machine (`.astro_android/`, never exported) plus an offline backup.
+  **Never replace it after the first public APK**: phones only accept updates signed with the same key.
+* After CI finishes, copy `AstroAI-<version>-android-arm64-CLEAN.apk` from the release into `website/downloads` with the other
+  CI files (DMG, Linux arm64), rebuild the site, and `latest.json` gets the `android-apk` entry for the in-app updater.
+

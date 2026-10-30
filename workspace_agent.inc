@@ -47,6 +47,103 @@ bool valid_agent_id(const std::string& id) {
 
 fs::path agent_dir(const std::string& project) { return fs::path(data_dir()) / ".astro_agent" / project; }
 
+// ---------------------------------------------------------------- agent sandbox
+// When on, every agent command runs inside an operating-system sandbox:
+//   Linux: bubblewrap (bwrap). The whole system is read-only, the project folder is writable, $HOME is replaced by a
+//          private sandbox home (so ~/.ssh, cloud credentials, browser profiles and A.S.T.R.O AI's own keys are hidden),
+//          /tmp is private, and other processes are invisible. Network on or off.
+//   macOS: sandbox-exec with a profile: writes only inside the project, the sandbox home and temp folders; reads of
+//          ~/.ssh, ~/.aws, ~/.gnupg, ~/.config and the A.S.T.R.O AI data folder are denied. Network on or off.
+//   Windows: no OS sandbox is available to us yet; the setting reports that and the agent refuses to run commands
+//          while it is on (rather than pretending).
+// Strict: if the sandbox is on but can't start, the command is NOT run unsandboxed.
+struct SandboxCfg { bool on = false; bool net = true; };
+std::mutex g_sandbox_mu;
+SandboxCfg sandbox_cfg() {
+    SandboxCfg c;
+    std::lock_guard lk(g_sandbox_mu);
+    if (const auto text = read_small(fs::path(data_dir()) / ".astro_sandbox.json", 4'000)) {
+        try { Json j = JsonParser(*text).parse(); c.on = json_bool(j, "on", false); c.net = json_bool(j, "net", true); } catch (...) {}
+    }
+    if (const char* e = std::getenv("ASTRO_SANDBOX"); e && *e) { std::string v(e); for (char& ch : v) ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch))); if (v == "on" || v == "1" || v == "true") c.on = true; else if (v == "off" || v == "0" || v == "false") c.on = false; }
+    return c;
+}
+// "bwrap" path, "sandbox-exec" path, or "" with a reason.
+std::string sandbox_tool(std::string* why = nullptr) {
+#ifdef _WIN32
+    if (why) *why = "Windows has no sandbox A.S.T.R.O AI can use yet. Use Ask mode, an isolated run, or Windows Sandbox / a virtual machine for untrusted code.";
+    return "";
+#elif defined(__APPLE__)
+    if (fs::exists("/usr/bin/sandbox-exec")) return "/usr/bin/sandbox-exec";
+    if (why) *why = "sandbox-exec is missing on this Mac.";
+    return "";
+#else
+    static std::mutex mu; static int state = -1; static std::string path, reason;
+    std::lock_guard lk(mu);
+    if (state < 0) {
+        state = 0;
+        const char* env_path = std::getenv("PATH");
+        std::stringstream ss(std::string(env_path ? env_path : "") + ":/usr/bin:/bin:/usr/local/bin");
+        std::string dir; std::error_code ec;
+        while (std::getline(ss, dir, ':')) if (!dir.empty() && fs::exists(fs::path(dir) / "bwrap", ec)) { path = (fs::path(dir) / "bwrap").string(); break; }
+        if (path.empty()) reason = "bubblewrap is not installed. Install it (Debian/Ubuntu: sudo apt install bubblewrap, Fedora: sudo dnf install bubblewrap, Arch: sudo pacman -S bubblewrap), then try again.";
+        else {
+            const Captured t = run_capture({path, "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--unshare-all", "--die-with-parent", "/bin/true"}, fs::path("/"), {}, 10, 4'000);
+            if (t.code == 0) state = 1;
+            else reason = "bubblewrap is installed but can't create a sandbox here (user namespaces may be disabled): " + trim(t.err.substr(0, 200));
+        }
+    }
+    if (state == 1) return path;
+    if (why) *why = reason;
+    return "";
+#endif
+}
+[[maybe_unused]] std::string sb_quote(const std::string& p) { std::string o = "\""; for (char ch : p) { if (ch == '"' || ch == '\\') o += '\\'; o += ch; } return o + "\""; }
+// Builds the argv that runs `command` (bash) inside the sandbox; empty with error when it can't.
+std::vector<std::string> sandbox_argv(const fs::path& base, const fs::path& cwd, const std::string& command, bool net, std::vector<std::string>& env, std::string& error) {
+    std::string why; const std::string tool = sandbox_tool(&why);
+    if (tool.empty()) { error = "Sandbox mode is on, so the command was not run. " + why + " (Or turn the sandbox off in Settings > Agent.)"; return {}; }
+    std::error_code ec;
+    const fs::path real_base = fs::weakly_canonical(base, ec), real_cwd = fs::weakly_canonical(cwd, ec);
+    const fs::path sbhome = fs::path(data_dir()) / ".astro_sandbox_home";
+    fs::create_directories(sbhome, ec);
+    const char* h = std::getenv("HOME");
+    const std::string home = h && *h ? h : "/root";
+    const std::string script = "exec 2>&1\n" + command;
+#ifdef __APPLE__
+    const std::string data = fs::weakly_canonical(fs::path(data_dir()), ec).string();
+    std::string prof = "(version 1)(allow default)(deny file-write* (subpath \"/\"))"
+        "(allow file-write* (subpath " + sb_quote(real_base.string()) + ") (subpath " + sb_quote(sbhome.string()) + ") (subpath \"/private/tmp\") (subpath \"/private/var/folders\") (subpath \"/dev\"))"
+        "(deny file-read* (subpath " + sb_quote(home + "/.ssh") + ") (subpath " + sb_quote(home + "/.aws") + ") (subpath " + sb_quote(home + "/.gnupg") + ") (subpath " + sb_quote(home + "/.config") + ") (subpath " + sb_quote(home + "/Library/Keychains") + ") (subpath " + sb_quote(data) + "))"
+        "(allow file-read* (subpath " + sb_quote(real_base.string()) + ") (subpath " + sb_quote(sbhome.string()) + "))";
+    if (!net) prof += "(deny network*)(allow network* (local unix))";
+    env.push_back("HOME=" + sbhome.string());
+    (void)real_cwd;
+    return {tool, "-p", prof, "/bin/bash", "-c", script};
+#else
+    (void)env;
+    std::vector<std::string> a = {tool, "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--tmpfs", "/tmp",
+        "--bind", sbhome.string(), home, "--bind", real_base.string(), real_base.string(),
+        "--unshare-all", "--die-with-parent", "--new-session", "--setenv", "HOME", home, "--setenv", "ASTRO_SANDBOX_ACTIVE", "1", "--chdir", real_cwd.string()};
+    if (net) { a.insert(a.begin() + static_cast<long>(a.size()) - 2, "--share-net"); }
+    // also hide the A.S.T.R.O AI data folder when it lives outside $HOME (the project folder stays visible)
+    const fs::path data = fs::weakly_canonical(fs::path(data_dir()), ec);
+    const std::string ds = data.string();
+    if (!ds.empty() && ds != "/" && ds.rfind(home + "/", 0) != 0 && real_base.string().rfind(ds + "/", 0) != 0) { a.insert(a.end() - 2, {"--tmpfs", ds}); }
+    a.insert(a.end(), {"/bin/bash", "-c", script});
+    return a;
+#endif
+}
+Json sandbox_status_json() {
+    const SandboxCfg c = sandbox_cfg();
+    std::string why; const std::string tool = sandbox_tool(&why);
+    Json::Object o; o["on"] = Json(c.on); o["net"] = Json(c.net); o["available"] = Json(!tool.empty());
+    o["kind"] = Json(tool.empty() ? std::string() : tool.find("bwrap") != std::string::npos ? std::string("bubblewrap") : std::string("sandbox-exec"));
+    if (!why.empty()) o["reason"] = Json(why);
+    if (const char* e = std::getenv("ASTRO_SANDBOX"); e && *e) o["forced"] = Json(true);
+    return Json(std::move(o));
+}
+
 // POST /api/ide/exec {project, command, timeout?, cwd?} -> {code, out, ms, timed_out, truncated}
 void agent_exec(int fd, const fs::path& base, const Json& body) {
     const std::string command = get_string(body, "command");
@@ -63,13 +160,27 @@ void agent_exec(int fd, const fs::path& base, const Json& body) {
     }
     const auto t0 = std::chrono::steady_clock::now();
     // exec 2>&1 merges stderr into stdout, so the output keeps its real order.
-    const Captured r = run_capture({"/bin/bash", "-c", "exec 2>&1\n" + command}, cwd, {"CI=1", "NO_COLOR=1", "FORCE_COLOR=0", "npm_config_yes=true", "PIP_NO_INPUT=1", "DEBIAN_FRONTEND=noninteractive"}, timeout, 6'000'000);
+    std::vector<std::string> env = {"CI=1", "NO_COLOR=1", "FORCE_COLOR=0", "npm_config_yes=true", "PIP_NO_INPUT=1", "DEBIAN_FRONTEND=noninteractive"};
+    const SandboxCfg sb = sandbox_cfg();
+    const bool sandboxed = sb.on || json_bool(body, "sandbox", false);
+    std::vector<std::string> argv = {"/bin/bash", "-c", "exec 2>&1\n" + command};
+    if (sandboxed) {
+        std::string err;
+        argv = sandbox_argv(base, cwd, command, sb.net && json_bool(body, "net", true), env, err);
+        if (argv.empty()) {
+            Json::Object o; o["code"] = Json(126.0); o["out"] = Json(err); o["ms"] = Json(0.0); o["timed_out"] = Json(false); o["truncated"] = Json(false);
+            o["timeout"] = Json(static_cast<double>(timeout)); o["sandboxed"] = Json(false); o["sandbox_error"] = Json(true);
+            send_json(fd, 200, Json(std::move(o))); return;
+        }
+    }
+    const Captured r = run_capture(argv, cwd, env, timeout, 6'000'000);
     const long long ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count();
     bool clipped = false;
     const std::string out = utf8_clean(clip_middle(strip_ansi(r.out + r.err), 8'000, 32'000, clipped));
     Json::Object o;
     o["code"] = Json(static_cast<double>(r.code)); o["out"] = Json(out); o["ms"] = Json(static_cast<double>(ms));
     o["timed_out"] = Json(r.timed_out); o["truncated"] = Json(clipped); o["timeout"] = Json(static_cast<double>(timeout));
+    o["sandboxed"] = Json(sandboxed);
     send_json(fd, 200, Json(std::move(o)));
 }
 

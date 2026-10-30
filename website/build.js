@@ -76,6 +76,9 @@ const dlKey = (pattern) => Object.keys(downloads).find((f) => f.includes(pattern
   const kinds = {
     'windows-setup': /windows-x64-Setup-CLEAN\.exe$/, 'windows-portable': /windows-x64-portable-CLEAN\.zip$/,
     'linux-deb': /_amd64-CLEAN\.deb$/, 'linux-portable': /linux-x64-portable-CLEAN\.tar\.gz$/,
+    'windows-arm64-setup': /windows-arm64-Setup-CLEAN\.exe$/, 'windows-arm64-portable': /windows-arm64-portable-CLEAN\.zip$/,
+    'linux-arm64-deb': /_arm64-CLEAN\.deb$/, 'linux-arm64-portable': /linux-arm64-portable-CLEAN\.tar\.gz$/,
+    'android-apk': /android-arm64-CLEAN\.apk$/,
     'macos-dmg': /macos-universal-CLEAN\.dmg$/, 'vscode': /^astro-ai-vscode-[\d.]+\.vsix$/,
   };
   const assets = {};
@@ -95,6 +98,27 @@ const dlKey = (pattern) => Object.keys(downloads).find((f) => f.includes(pattern
 
 // ------------------------------------------------------------------ A.S.T.R.O AI Library (validated + checksummed)
 const LIB = require(path.join(ROOT, '..', 'library', 'build_library.js')).build(path.join(OUT, 'library'));
+
+// ------------------------------------------------------------------ limits page data (from ../providers.json, so it never drifts)
+const PROVIDERS = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, '..', 'providers.json'), 'utf8')).providers || []; } catch (_e) { return []; } })();
+function limitsHtml(which) {
+  const free = PROVIDERS.filter((p) => !p.paid && !/^astro/.test(p.id) && p.id !== 'opencode-paid');
+  const keyless = free.filter((p) => p.keyless && !p.local);
+  if (which === 'count') return String(keyless.reduce((n, p) => n + (p.models || []).length, 0)) + ' models from ' + keyless.length + ' platforms';
+  const list = which === 'keyless' ? keyless : which === 'local' ? free.filter((p) => p.local) : free.filter((p) => !p.keyless && !p.local && (p.models || []).length);
+  const rows = list.map((p) => `<tr><td><b>${esc(p.name)}</b></td>${which === 'local' ? '' : `<td>${(p.models || []).length}</td>`}<td>${esc(p.limits || 'Set by the provider')}</td><td>${esc(p.privacy || 'See the provider\'s terms')}</td></tr>`).join('');
+  return `<div class="table-wrap"><table class="ep-table"><thead><tr><th>Platform</th>${which === 'local' ? '' : '<th>Models</th>'}<th>Limits</th><th>Privacy</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+// Support links (site.json "support"): only shown when the team has set them up. Nothing is invented.
+function supportHtml() {
+  const s = SITE.support || {};
+  const links = [];
+  if (s.github_sponsors) links.push(`<a class="btn btn-primary" href="https://github.com/sponsors/${esc(s.github_sponsors)}" rel="noopener">Sponsor on GitHub</a>`);
+  if (s.kofi) links.push(`<a class="btn btn-ghost" href="https://ko-fi.com/${esc(s.kofi)}" rel="noopener">Buy us a coffee on Ko-fi</a>`);
+  if (s.liberapay) links.push(`<a class="btn btn-ghost" href="https://liberapay.com/${esc(s.liberapay)}" rel="noopener">Donate on Liberapay</a>`);
+  if (!links.length) return '<p class="support-pending">Donation links are not open yet: the team is still setting up a sponsor account. Until then, the best support is free (see below).</p>';
+  return `<div class="support-links">${links.join('')}</div>`;
+}
 
 // ------------------------------------------------------------------ layout
 const NAV = [
@@ -169,7 +193,8 @@ ${body}
     </div>
     <div><h4>Product</h4><a href="${r}features.html">Features</a><a href="${r}features.html#extensions">Extensions</a><a href="${r}download.html">Download</a><a href="${r}changelog.html">Changelog</a></div>
     <div><h4>Resources</h4><a href="${r}docs.html">Docs</a><a href="${r}api.html">A.S.T.R.O API</a><a href="${r}profile">Account</a><a href="${r}blog/index.html">Blog</a><a href="${r}press.html">Press kit</a>${SITE.repo ? `<a href="${SITE.repo}" rel="noopener">Source on GitHub</a><a href="${SITE.repo}/discussions" rel="noopener">Community discussions</a>` : ''}</div>
-    <div><h4>Legal</h4><a href="${r}privacy.html">Privacy</a><a href="${r}assets/fonts/FONTS-LICENSE.txt">Font licenses</a></div>
+    <div><h4>Community</h4><a href="${r}beta.html">Become a beta tester</a><a href="${r}support.html">Support the project</a><a href="${r}pro.html">Pro (waitlist)</a></div>
+    <div><h4>Legal</h4><a href="${r}privacy.html">Privacy</a><a href="${r}limits.html">Honest limits</a>${SITE.repo ? `<a href="${SITE.repo}/blob/main/SECURITY.md" rel="noopener">Security</a>` : ''}<a href="${r}assets/fonts/FONTS-LICENSE.txt">Font licenses</a></div>
   </div>
   <div class="wrap footer-word" aria-hidden="true">A.S.T.R.O <em>AI</em></div>
   <div class="wrap footer-base"><span>© ${SITE.year} A.S.T.R.O AI</span><span class="mono">Made for curious people · runs on free AI models, which can make mistakes</span></div>
@@ -224,6 +249,10 @@ for (const f of pages) {
     .replace(/\{\{icon:([a-z]+)\}\}/g, (_, n) => icon(n))
     .replace(/\{\{version\}\}/g, SITE.version)
     .replace(/\{\{date\}\}/g, SITE.dateLabel)
+    .replace(/\{\{limits:(keyless|key|local|count)\}\}/g, (_, which) => limitsHtml(which))
+    .replace(/\{\{support:(links)\}\}/g, () => supportHtml())
+    // {{dlif:pattern}}...{{/dlif}}: kept only when a download matches (e.g. ARM64 builds that come from CI)
+    .replace(/\{\{dlif:([^}]+)\}\}([\s\S]*?)\{\{\/dlif\}\}/g, (_, pat, body) => (dlKey(pat) ? body : ''))
     .replace(/\{\{dl:([^:}]+):(file|size|sha|href)\}\}/g, (_, pat, what) => {
       const k = dlKey(pat);
       if (!k) { console.warn('  ! no download matching', pat); return what === 'href' ? `${rel}download.html` : '—'; }

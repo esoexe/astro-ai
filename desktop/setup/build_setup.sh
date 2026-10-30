@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
-# Build the custom A.S.T.R.O AI installer (Windows x64) for one edition.
+# Build the custom A.S.T.R.O AI installer (Windows x64, or ARM64 with WIN_TRIPLE=aarch64-w64-mingw32 + llvm-mingw) for one edition.
 # Usage: build_setup.sh <stage-dir> <out.exe> "<App Name>" <AppId> <Exe.exe> <keys:0|1> <work-dir> ["<Display Name>"]
 #   <stage-dir> is the folder that gets installed (the same files as the portable zip).
 set -euo pipefail
 STAGE="$1"; OUT="$2"; APP="$3"; ID="$4"; EXE="$5"; KEYS="$6"; WORK="$7"; DISPLAY_NAME="${8:-$3}"
 HERE="$(cd "$(dirname "$0")" && pwd)"; ROOT="$(cd "$HERE/../.." && pwd)"
 TP="$ROOT/desktop/third_party"
-CXX=x86_64-w64-mingw32-g++-posix; CC=x86_64-w64-mingw32-gcc-posix; RC=x86_64-w64-mingw32-windres
+WIN_TRIPLE="${WIN_TRIPLE:-x86_64-w64-mingw32}"
+if [ "$WIN_TRIPLE" = x86_64-w64-mingw32 ]; then CXX=x86_64-w64-mingw32-g++-posix; CC=x86_64-w64-mingw32-gcc-posix; STATIC_RT="-static-libgcc -static-libstdc++"
+else CXX="$WIN_TRIPLE-clang++"; CC="$WIN_TRIPLE-clang"; STATIC_RT=""; fi   # llvm-mingw: libc++ and compiler-rt link statically with -static
+RC="$WIN_TRIPLE-windres"; STRIP="$WIN_TRIPLE-strip"
 mkdir -p "$WORK"
 VER="${ASTRO_VER:-$(sed -n 's/^static const char\* VERSION = "\(.*\)";/\1/p' "$ROOT/cli/astro.cpp")}"
 IFS=. read -r VMAJ VMIN VPAT <<<"$VER"
@@ -33,12 +36,12 @@ LIBS="-lgdiplus -ldwmapi -lole32 -loleaut32 -luuid -lshell32 -lshlwapi -ladvapi3
 # 1) the uninstaller: same program, no payload
 (cd "$HERE" && $RC -I"$WORK" -I"$HERE" astro_setup.rc -O coff -o "$WORK/uninst_res.o")
 $CXX -std=c++20 -O2 -municode -mwindows -I"$WORK" -I"$HERE" -I"$TP/miniz" -c "$HERE/astro_setup.cpp" -o "$WORK/astro_setup.o"
-$CXX -o "$WORK/Uninstall.exe" "$WORK/astro_setup.o" "$WORK/miniz.o" "$WORK/uninst_res.o" -mwindows -municode -static -static-libgcc -static-libstdc++ $LIBS
-x86_64-w64-mingw32-strip "$WORK/Uninstall.exe"
+$CXX -o "$WORK/Uninstall.exe" "$WORK/astro_setup.o" "$WORK/miniz.o" "$WORK/uninst_res.o" -mwindows -municode -static $STATIC_RT $LIBS
+$STRIP "$WORK/Uninstall.exe"
 # 2) the installer: payload (app files + the uninstaller) + WebView2 bootstrapper
 rm -f "$WORK/payload.zip"
 (cd "$STAGE" && zip -qr9 -X "$WORK/payload.zip" .)
 (cd "$WORK" && zip -q9 -X "$WORK/payload.zip" Uninstall.exe)
 (cd "$HERE" && $RC -DWITH_PAYLOAD -I"$WORK" -I"$HERE" astro_setup.rc -O coff -o "$WORK/setup_res.o")
-$CXX -o "$OUT" "$WORK/astro_setup.o" "$WORK/miniz.o" "$WORK/setup_res.o" -mwindows -municode -static -static-libgcc -static-libstdc++ $LIBS
-x86_64-w64-mingw32-strip "$OUT"
+$CXX -o "$OUT" "$WORK/astro_setup.o" "$WORK/miniz.o" "$WORK/setup_res.o" -mwindows -municode -static $STATIC_RT $LIBS
+$STRIP "$OUT"

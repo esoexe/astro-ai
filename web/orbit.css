@@ -41,11 +41,11 @@
   --active-text: #0b5e57;
   --text: #141716;
   --text-2: #464d4a;
-  --text-3: #7c8481;
+  --text-3: #666e6b;   /* 4.5:1+ on white, page and panel backgrounds (WCAG AA) */
   --border: #e6e8e7;
   --border-strong: #d4d8d6;
-  --accent: #0d9488;
-  --accent-soft: rgba(13, 148, 136, .10);
+  --accent: #0f766e;   /* teal-700: 4.5:1+ as text on light backgrounds, 5.5:1 under white text (WCAG AA) */
+  --accent-soft: rgba(15, 118, 110, .10);
   --on-accent: #ffffff;
   --user-bubble: #eff1f0;
   --code-bg: #f6f7f6;
@@ -74,7 +74,7 @@
   --active-text: #99f6e4;
   --text: #eceeed;
   --text-2: #b3b9b7;
-  --text-3: #7b8380;
+  --text-3: #878f8c;   /* 4.5:1+ on the dark panels (WCAG AA) */
   --border: rgba(255, 255, 255, .07);
   --border-strong: rgba(255, 255, 255, .12);
   --accent: #2dd4bf;
@@ -575,3 +575,12 @@ html.logo-still .astro-live .al-streak { opacity: 0; }
 [dir="rtl"] .model-switch { padding: 0 12px 0 10px; }
 [dir="rtl"] .model-switch::before { margin-right: 0; margin-left: 2px; }
 [dir="rtl"] .cmdk span { text-align: right; }
+
+/* Light theme: file-type badges dark enough to read (WCAG AA, 4.5:1) */
+[data-theme="light"] .fb-y { color: #8a6a00; }
+[data-theme="light"] .fb-b { color: #1d5fbf; }
+[data-theme="light"] .fb-o { color: #a84d0c; }
+[data-theme="light"] .fb-p { color: #7a3fc4; }
+[data-theme="light"] .fb-c { color: #0b6e80; }
+[data-theme="light"] .fb-r { color: #b42323; }
+[data-theme="light"] .ag-team-chip.on, [data-theme="light"] .ws-agteam.on { color: var(--active-text); }
