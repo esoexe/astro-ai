@@ -1,9 +1,9 @@
 class AstroAi < Formula
   desc "Free desktop app and terminal agent for chat, code and agents, powered by a team of free AI models that answer as one."
   homepage "https://esoexe.github.io/astro-ai/"
-  url "https://github.com/esoexe/astro-ai/releases/download/v1.7.0/astro-ai-clean-1.7.0-linux-x64-portable-CLEAN.tar.gz"
-  version "1.7.0"
-  sha256 "8a978f1de2c1f6c43ead2ed01f091f6055c8377e9c51bb32f7ac1308832adbe8"
+  url "https://github.com/esoexe/astro-ai/releases/download/v1.7.1/astro-ai-clean-1.7.1-linux-x64-portable-CLEAN.tar.gz"
+  version "1.7.1"
+  sha256 "b9fbfb43079542de84231976266c0c4919486a54a7429208b3c1b18efa516e86"
   license any_of: ["MIT", "Apache-2.0", "GPL-3.0-only"]
 
   livecheck do
