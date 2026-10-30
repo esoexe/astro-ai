@@ -1,0 +1,44 @@
+# TEMPORARY: recovers the maintainer's Android signing key, encrypted to a one-off RSA key. Deleted right after use.
+name: Signing key recovery (temporary)
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Encrypt the signing secrets to the maintainer's one-off key
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          PW: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          AL: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          mkdir out
+          cat > pub.pem <<'PEM'
+          -----BEGIN PUBLIC KEY-----
+          MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAxgtDiQZKADzkzLcSTG8E
+          9L40XqB6tP3d0/mi8pbfL36NYEdCgVj3Qa46u3BiSOesasFsy2rRyINOGtJlz0Rr
+          OglOKGDr2Js/Y8k6yM7UpA6VHGEiEYYxcNa9dNdQp6Dp8kF9wsfYHv4c8yzcJ8ww
+          peUskE8VM1I3DWESbYCVXWtGy6KHpZ3LEF+eqh6iYoYe0NzM7WGO0W/zbaUcx5Hn
+          5d/i4l/hDjsKISZIz2pCqR3TgNBoqr9Rv2ERKm+3RKJiV9jSUTn98qsa5oAzXiB3
+          MSB04yWAvHCWuF0lSxJ4OmfY9aA2xQpLqWk//ulrWCqujDxGaISJD2KtJ4Na4Sso
+          GkoinLEdlgA18A+gvNeJw9pHTGIN2Ew4rs35aNTk3yAJSB/KqurkMMdeDQkZR/l8
+          NtQvbW5YlqVu+hmKIlGn+UHQye7+OHLnlShxfQE20BE6h9GfA0rUxGxFRudNWOPh
+          jdDvT5brBmjkSfRLczc23OdTnjPhdgYb24/7iM/g5jrevFZoIhjZHYnwFFYYU9ok
+          LV4xz/PpBd8Vh1pmPWoWY0UqpxcE+RbZiP3rjV9DdfPMaXVldG/SWkKJ9LFLZ/UN
+          GkwcQ3qtvzJdu8AYdzw7Bb5OpNyS2kFCXYPhIibGUs2jwSN62Zb16+uFGftSIoxW
+          ENtXaixPnoP52BidQM/1j2MCAwEAAQ==
+          -----END PUBLIC KEY-----
+          PEM
+          sed -i 's/^ *//' pub.pem
+          printf '%s\n%s\n%s\n' "$KS" "$PW" "$AL" > s.txt
+          openssl rand -out k.bin 32
+          openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -in s.txt -out out/s.enc -pass file:k.bin
+          openssl pkeyutl -encrypt -pubin -inkey pub.pem -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -in k.bin -out out/k.enc
+          shred -u s.txt k.bin
+          ls -la out
+      - uses: actions/upload-artifact@v7
+        with:
+          name: recovery
+          path: out/
+          retention-days: 1
