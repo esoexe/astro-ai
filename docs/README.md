@@ -7,5 +7,6 @@
 | [library.md](library.md) | The A.S.T.R.O AI Library: MCP servers, skills and plugins, how installs stay safe, how to add an item, `astroai://` links |
 | [security.md](security.md) | The two desktop editions, where keys live, rotating keys, what is never published, opt-in feedback |
 | [releasing.md](releasing.md) | Tests, CI, building the desktop apps on GitHub Actions, code signing, publishing |
+| [signing.md](signing.md) | Code signing step by step: SignPath Foundation (free for open source), your own certificate, Apple notarization |
 
 User-facing guides live on the website: <https://esoexe.github.io/astro-ai/docs.html>.

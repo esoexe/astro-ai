@@ -9,8 +9,29 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
-    <article class="release latest reveal" id="v1-7-0">
-      <header><h2>1.7.0</h2><span class="badge">Latest</span><time datetime="2026-10-29">October 29, 2026</time></header>
+    <article class="release latest reveal" id="v1-7-1">
+      <header><h2>1.7.1</h2><span class="badge">Latest</span><time datetime="2026-10-29">October 29, 2026</time></header>
+      <p class="muted">The whole app in French and Arabic, update notes in your language, and builds ready for code signing.</p>
+
+      <h3>French and Arabic everywhere</h3>
+      <ul class="ticks">
+        <li>About 500 more texts translated: Workspace, Agent, Notes, Tasks, Reader, Model Lab, Knowledge, Calculator, the Brain panel (including every platform's limits and privacy notes), all Settings tabs, keyboard shortcuts, the model menu and the command palette</li>
+        <li>Fixed: parts of a page drawn in several quick steps (such as the Agent page) sometimes stayed in English after switching language</li>
+        <li>Texts with numbers ("Run on 3 models", "26 of 26 free models ready") are translated with the numbers kept in place</li>
+        <li>The update banner shows the release notes and date in your language. Changing the language in Settings updates an open banner right away</li>
+        <li>A new automated test opens every screen, settings tab and menu and fails if any visible text (other than names) is missing a translation</li>
+      </ul>
+
+      <h3>Windows and packaging</h3>
+      <ul class="ticks">
+        <li>The app, engine, terminal app and installer now show the right version in Explorer &rsaquo; Properties (they showed older numbers before)</li>
+        <li>winget: the package has been submitted to the Windows Package Manager and is in review. Once it's accepted, you can install with <code>winget install esoexe.AstroAI</code></li>
+        <li>The release build can sign Windows files with SignPath (free for open source) and sign and notarize the macOS disk image, once the project's signing accounts are set up</li>
+      </ul>
+    </article>
+
+    <article class="release reveal" id="v1-7-0">
+      <header><h2>1.7.0</h2><time datetime="2026-10-29">October 29, 2026</time></header>
       <p class="muted">A more reliable agent, automatic updates, faster first answers, easy free keys, safer plugins and commands, and French and Arabic.</p>
 
       <h3>A more reliable agent</h3>

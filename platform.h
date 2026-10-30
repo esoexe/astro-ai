@@ -11,7 +11,7 @@
 
 // The app version reported by the engine (/api/status, update checks). Bumped with every release.
 #ifndef ASTRO_APP_VERSION
-#define ASTRO_APP_VERSION "1.7.0"
+#define ASTRO_APP_VERSION "1.7.1"
 #endif
 
 #if defined(_WIN32)

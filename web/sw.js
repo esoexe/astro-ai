@@ -1,6 +1,6 @@
 // A.S.T.R.O AI service worker: caches the app shell so notes, tasks and past chats open offline.
 // API calls are never cached (they need the server and carry your session token).
-const CACHE = 'astro-shell-v30';
+const CACHE = 'astro-shell-v31';
 const SHELL = ['/', '/index.html', '/styles.css', '/orbit.css', '/desktop.css', '/agent.css', '/themes.js', '/i18n.js', '/dev.js', '/logo.js', '/lsp.js', '/exthost.js', '/agents.js', '/app.js', '/desktop.js', '/icon.svg', '/favicon-32.png', '/icon-192.png', '/icon-512.png', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {

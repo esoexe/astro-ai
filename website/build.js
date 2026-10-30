@@ -84,7 +84,11 @@ const dlKey = (pattern) => Object.keys(downloads).find((f) => f.includes(pattern
     if (!f) continue;
     assets[k] = { name: f, url: `${SITE.url}/downloads/${f}`, sha256: downloads[f].sha, bytes: fs.statSync(path.join(dlDir, f)).size };
   }
-  const latest = { version: SITE.version, date: SITE.dateLabel, notes: `${SITE.url}/changelog.html`, highlights: SITE.highlights || [], assets };
+  const d = new Date(SITE.dateLabel);   // ISO date so the app can show it in the UI language
+  const released = isNaN(d) ? undefined : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const hlI18n = SITE.highlights_i18n || {};
+  for (const [l, list] of Object.entries(hlI18n)) if (list.length !== (SITE.highlights || []).length) console.warn(`highlights_i18n.${l} has ${list.length} items, highlights has ${(SITE.highlights || []).length}`);
+  const latest = { version: SITE.version, date: SITE.dateLabel, released, notes: `${SITE.url}/changelog.html`, highlights: SITE.highlights || [], highlights_i18n: hlI18n, assets };
   if (Object.keys(assets).length) fs.writeFileSync(path.join(OUT, 'latest.json'), JSON.stringify(latest, null, 2) + '\n');
   else console.warn('latest.json skipped: no downloads for ' + SITE.version);
 }

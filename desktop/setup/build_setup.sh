@@ -8,6 +8,8 @@ HERE="$(cd "$(dirname "$0")" && pwd)"; ROOT="$(cd "$HERE/../.." && pwd)"
 TP="$ROOT/desktop/third_party"
 CXX=x86_64-w64-mingw32-g++-posix; CC=x86_64-w64-mingw32-gcc-posix; RC=x86_64-w64-mingw32-windres
 mkdir -p "$WORK"
+VER="${ASTRO_VER:-$(sed -n 's/^static const char\* VERSION = "\(.*\)";/\1/p' "$ROOT/cli/astro.cpp")}"
+IFS=. read -r VMAJ VMIN VPAT <<<"$VER"
 cat > "$WORK/edition.h" <<H
 #pragma once
 #define APP_NAME_W    L"$APP"
@@ -16,7 +18,9 @@ cat > "$WORK/edition.h" <<H
 #define APP_DISPLAY_A "$DISPLAY_NAME"
 #define APP_ID_W      L"$ID"
 #define EXE_NAME_W    L"$EXE"
-#define APP_VERSION_W L"1.7.0"
+#define APP_VERSION_W L"$VER"
+#define APP_VERSION_A "$VER"
+#define APP_VERSION_NUM $VMAJ,$VMIN,${VPAT:-0},0
 #define EDITION_KEYS  $KEYS
 #define SETUP_PAYLOAD "$WORK/payload.zip"
 #define SETUP_WV2     "$TP/webview2-bootstrapper/MicrosoftEdgeWebview2Setup.exe"

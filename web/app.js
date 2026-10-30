@@ -1906,7 +1906,7 @@
       $('#set-lang').addEventListener('change', (e) => setLanguage(e.target.value));
       $('#set-enter').addEventListener('change', (e) => { state.enterSends = e.target.checked; ls.set(KEYS.enter, state.enterSends ? '1' : '0'); });
       $('#set-report')?.addEventListener('click', () => openReport());
-      $('#set-uilang')?.addEventListener('change', (e) => { window.AstroI18n?.set(e.target.value); openSettings('general'); });
+      $('#set-uilang')?.addEventListener('change', (e) => { window.AstroI18n?.set(e.target.value); openSettings('general'); if (upd.last?.available && document.getElementById('update-banner')) showUpdateBanner(upd.last); });
       $('#set-upd')?.addEventListener('click', async (e) => {
         const b = e.currentTarget; b.disabled = true; b.textContent = 'Checking…';
         const st = await checkUpdates(true);
@@ -7677,11 +7677,17 @@
     document.getElementById('update-banner')?.remove();
     const bar = document.createElement('div');
     bar.id = 'update-banner'; bar.className = 'update-banner'; bar.setAttribute('role', 'status');
-    const hl = (st.highlights || []).slice(0, 3).map((h) => `<li>${esc(h)}</li>`).join('');
+    // Notes in the UI language when the feed has them (latest.json "highlights_i18n"), else English.
+    const uiLang = window.AstroI18n?.get?.() || 'en';
+    const local = uiLang !== 'en' ? (st.highlights_i18n || {})[uiLang] : null;
+    const notes = Array.isArray(local) && local.length ? local : (st.highlights || []);
+    const hl = notes.slice(0, 3).map((h) => `<li${notes === local ? ' data-no-i18n' : ''}>${esc(h)}</li>`).join('');
+    let when = st.date || '';
+    if (st.released && uiLang !== 'en') { try { when = new Intl.DateTimeFormat(uiLang === 'ar' ? 'ar-DZ' : 'fr-FR', { dateStyle: 'long' }).format(new Date(st.released + 'T12:00:00')); } catch (_e) { /* keep the English date */ } }
     const mgr = st.manager === 'scoop' ? 'scoop update astro-ai' : st.manager === 'homebrew' ? 'brew upgrade astro-ai' : '';
     const can = !mgr && updCanInstall(st);
     const terminal = !mgr && !window.__ASTRO_DESKTOP__;
-    bar.innerHTML = `<div class="ub-text"><b>A.S.T.R.O AI ${esc(st.latest)} is available</b> <span class="ub-dim">You have ${esc(st.current)}${st.date ? ' · released ' + esc(st.date) : ''}</span>
+    bar.innerHTML = `<div class="ub-text"><b>A.S.T.R.O AI ${esc(st.latest)} is available</b> <span class="ub-dim">You have ${esc(st.current)}${when ? ' · released ' + esc(when) : ''}</span>
       ${hl ? `<ul class="ub-hl">${hl}</ul>` : ''}
       ${terminal ? '<span class="ub-dim">Terminal install: run <code>astro update</code></span>' : ''}${mgr ? `<span class="ub-dim">Installed with ${st.manager === 'scoop' ? 'Scoop' : 'Homebrew'}: run <code>${mgr}</code></span>` : ''}<span class="ub-note" aria-live="polite"></span></div>
       <div class="ub-actions">

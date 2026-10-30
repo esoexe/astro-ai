@@ -17,8 +17,8 @@ IDR_FONT_MONO    RCDATA  "fonts/JetBrainsMono-Regular.ttf"
 IDR_LOGO         RCDATA  SETUP_LOGO
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1,2,0,0
-PRODUCTVERSION 1,2,0,0
+FILEVERSION APP_VERSION_NUM
+PRODUCTVERSION APP_VERSION_NUM
 FILEOS VOS_NT_WINDOWS32
 FILETYPE VFT_APP
 BEGIN
@@ -28,9 +28,9 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "A.S.T.R.O AI"
       VALUE "FileDescription", APP_DISPLAY_A " Setup"
-      VALUE "FileVersion", "1.2.0"
-      VALUE "ProductName", APP_DISPLAY_A
-      VALUE "ProductVersion", "1.2.0"
+      VALUE "FileVersion", APP_VERSION_A
+      VALUE "ProductName", "A.S.T.R.O AI"
+      VALUE "ProductVersion", APP_VERSION_A
       VALUE "LegalCopyright", "A.S.T.R.O AI"
       VALUE "OriginalFilename", "Setup.exe"
     END

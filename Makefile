@@ -31,6 +31,7 @@ test: $(TARGET) astro
 	bash tests/library_v2_e2e.sh
 	bash tests/quality_test.sh
 	bash tests/engine_e2e.sh
+	bash tests/i18n_e2e.sh
 	node bench/run.js --self-test
 
 clean:

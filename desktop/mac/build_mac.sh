@@ -52,8 +52,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleExecutable</key><string>astro-desktop</string>
   <key>CFBundleIconFile</key><string>astro.icns</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>1.7.0</string>
-  <key>CFBundleVersion</key><string>1.7.0</string>
+  <key>CFBundleShortVersionString</key><string>1.7.1</string>
+  <key>CFBundleVersion</key><string>1.7.1</string>
   <key>LSMinimumSystemVersion</key><string>11.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.developer-tools</string>
   <key>NSHighResolutionCapable</key><true/>
@@ -82,6 +82,7 @@ fi
 echo "==> Disk image"
 rm -f "$NAME.dmg"
 hdiutil create -volname "$NAME" -srcfolder "$APP" -ov -format UDZO "$NAME.dmg" >/dev/null && echo "   $NAME.dmg"
+if [ -n "${SIGN_IDENTITY:-}" ]; then codesign --force --timestamp --sign "$SIGN_IDENTITY" "$NAME.dmg" && echo "   disk image signed"; fi
 echo "Done: $(pwd)/$APP   (drag it to Applications, or open the .dmg)"
 echo "Terminal app: after moving the app to Applications, run once:"
 echo "   sudo ln -sf \"/Applications/$APP/Contents/Resources/$CLI\" /usr/local/bin/$CLI"

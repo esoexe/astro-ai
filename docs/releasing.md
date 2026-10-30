@@ -28,24 +28,20 @@ UI tests (Playwright, optional): `tests/ui/gap_ui.js` and `tests/ui/chat_ui.js`.
 
 ## Code signing (optional)
 
-Without signing, Windows SmartScreen and macOS Gatekeeper warn on first launch. Add the following repository secrets (Settings > Secrets and variables > Actions) to sign automatically.
+Without signing, Windows SmartScreen and macOS Gatekeeper warn on first launch. The Desktop workflow signs
+automatically once the repository has the right secrets and variables. **Step-by-step guide: [signing.md](signing.md).**
 
-**Windows (Authenticode)**
-
-* `WINDOWS_CERT_PFX_BASE64` is a base64 `.pfx`; `WINDOWS_CERT_PASSWORD` is its password.
-* Open-source projects can get free signing from the **SignPath Foundation** (signpath.org). It signs through its own GitHub action instead of a `.pfx`; replace the "Sign Windows installer" step with theirs once approved.
-
-**macOS (Developer ID)**, which needs an Apple Developer account:
-
-* `MACOS_CERT_P12_BASE64`, `MACOS_CERT_PASSWORD`, and `MACOS_SIGN_IDENTITY` (for example `Developer ID Application: Name (TEAMID)`).
-* For notarization: `APPLE_ID`, `APPLE_TEAM_ID`, and `APPLE_APP_PASSWORD` (an app-specific password).
+* Windows, free for open source: **SignPath Foundation**. Needs secret `SIGNPATH_API_TOKEN` and variable `SIGNPATH_ORGANIZATION_ID`; each release waits for your approval on signpath.io.
+* Windows with your own certificate: `WINDOWS_CERT_PFX_BASE64` and `WINDOWS_CERT_PASSWORD`.
+* macOS: `MACOS_CERT_P12_BASE64`, `MACOS_CERT_PASSWORD`, `MACOS_SIGN_IDENTITY`; for notarization also `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_APP_PASSWORD`.
 
 ## Release checklist
 
 1. Bump the version in every place it appears:
    * `desktop/package.sh` (`VER`) and `kVersion` in `desktop/src/astro_desktop.cpp`
-   * `desktop/src/astro_desktop.rc`, `desktop/setup/build_setup.sh` and `desktop/installer/astro.nsi`
-   * `website/site.json` and the changelog page
+   * `cli/astro.cpp` (`VERSION`; must equal `ASTRO_APP_VERSION`) and `desktop/installer/astro.nsi`
+   * (the Windows version resources now follow `VER` automatically)
+   * `website/site.json` (`version`, `dateLabel`, `highlights` and their French/Arabic `highlights_i18n`) and the changelog page
 2. Run `make test`.
 3. Build: `bash desktop/package.sh` locally, or push a tag for CI (Clean edition only).
 4. Run `bash tools/update_github.sh "Release x.y.z"`. It exports, scans for secrets and pushes.

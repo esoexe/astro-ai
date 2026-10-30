@@ -2,16 +2,28 @@
   "name": "A.S.T.R.O AI",
   "url": "https://esoexe.github.io/astro-ai",
   "description": "A.S.T.R.O AI is a free desktop app for chat, code and agents, powered by a team of free AI models that answer as one. Windows, Linux and macOS.",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "dateLabel": "October 29, 2026",
   "year": 2026,
   "repo": "https://github.com/esoexe/astro-ai",
   "highlights": [
-    "A more reliable agent: no more empty file writes, honest \"Needs attention\" results",
-    "Automatic updates with checksum checks (astro update in the terminal)",
-    "Fastest answer first while the whole team works",
-    "Get more free models in a minute with guided keys",
-    "Asks before risky commands; shows what a plugin can do before installing",
-    "French and Arabic interface"
-  ]
+    "Every screen in French and Arabic: Workspace, Agent, Notes, Tasks, Reader, Model Lab, Brain and all settings",
+    "Update notes shown in your language",
+    "Windows files show the right version in Properties",
+    "Release builds ready for code signing (SignPath on Windows, notarization on macOS)"
+  ],
+  "highlights_i18n": {
+    "fr": [
+      "Tous les écrans en français et en arabe : espace de travail, agent, notes, tâches, lecteur, labo des modèles, cerveau et tous les réglages",
+      "Les notes de mise à jour s’affichent dans votre langue",
+      "Les fichiers Windows affichent la bonne version dans Propriétés",
+      "Versions prêtes pour la signature du code (SignPath sous Windows, notarisation sous macOS)"
+    ],
+    "ar": [
+      "كل الشاشات بالفرنسية والعربية: مساحة العمل والوكيل والملاحظات والمهام والقارئ ومختبر النماذج والعقل وكل الإعدادات",
+      "تظهر ملاحظات التحديث بلغتك",
+      "تعرض ملفات Windows الإصدار الصحيح في الخصائص",
+      "إصدارات جاهزة لتوقيع الكود (SignPath على Windows والتوثيق على macOS)"
+    ]
+  }
 }

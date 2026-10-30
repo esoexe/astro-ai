@@ -10,7 +10,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
-VER="1.7.0"
+VER="1.7.1"
+export ASTRO_VER="$VER"   # build_setup.sh and the Windows version resources read this
 OUT="$ROOT/desktop-builds"
 WORK="$ROOT/.cache/pkg"
 TP="$ROOT/desktop/third_party"
@@ -31,15 +32,30 @@ g++ -std=c++20 -O2 -pthread cli/astro.cpp -o "$WORK/bin/astro" $(pkg-config --cf
 
 echo "==> Windows binaries"
 x86_64-w64-mingw32-gcc-posix -O2 -c desktop/src/win_compat.c -o "$WORK/win_compat.o"
-(cd desktop/src && x86_64-w64-mingw32-windres astro_desktop.rc -O coff -o "$WORK/astro_desktop_res.o")
-x86_64-w64-mingw32-g++-posix -std=c++20 -O2 -DCURL_STATICLIB -I"$C/include" workspace_server.cpp "$WORK/win_compat.o" \
+IFS=. read -r VMAJ VMIN VPAT <<<"$VER"
+printf '#define ASTRO_VER_NUM %s,%s,%s,0\n#define ASTRO_VER_STR "%s"\n' "$VMAJ" "$VMIN" "${VPAT:-0}" "$VER" > "$WORK/astro_version.h"
+(cd desktop/src && x86_64-w64-mingw32-windres -I"$WORK" astro_desktop.rc -O coff -o "$WORK/astro_desktop_res.o")
+# Version info for the engine and the terminal app too (Explorer > Properties; code signing checks it)
+verres() {   # verres <name> <description> <original file name>
+    { echo '#include <winver.h>'; echo '#include "astro_version.h"'; echo "1 ICON \"$ROOT_DIR/desktop/assets/astro.ico\""
+      echo 'VS_VERSION_INFO VERSIONINFO'; echo 'FILEVERSION ASTRO_VER_NUM'; echo 'PRODUCTVERSION ASTRO_VER_NUM'; echo 'FILEOS VOS_NT_WINDOWS32'; echo 'FILETYPE VFT_APP'
+      echo 'BEGIN BLOCK "StringFileInfo" BEGIN BLOCK "040904b0" BEGIN'
+      echo '  VALUE "CompanyName", "A.S.T.R.O AI"'; echo "  VALUE \"FileDescription\", \"$2\""; echo '  VALUE "FileVersion", ASTRO_VER_STR'
+      echo '  VALUE "ProductName", "A.S.T.R.O AI"'; echo '  VALUE "ProductVersion", ASTRO_VER_STR'; echo "  VALUE \"OriginalFilename\", \"$3\""
+      echo 'END END BLOCK "VarFileInfo" BEGIN VALUE "Translation", 0x409, 1200 END END'; } > "$WORK/$1.rc"
+    x86_64-w64-mingw32-windres -I"$WORK" "$WORK/$1.rc" -O coff -o "$WORK/$1_res.o"
+}
+ROOT_DIR="$(pwd)"
+verres server "A.S.T.R.O AI engine" "astro-server.exe"
+verres cli "A.S.T.R.O AI terminal app" "astro.exe"
+x86_64-w64-mingw32-g++-posix -std=c++20 -O2 -DCURL_STATICLIB -I"$C/include" workspace_server.cpp "$WORK/win_compat.o" "$WORK/server_res.o" \
     -o "$WORK/bin/astro-server.exe" -static -static-libgcc -static-libstdc++ -L"$C/lib" -lcurl -lnghttp3 -lngtcp2_crypto_libressl \
     -lngtcp2 -lnghttp2 -lssh2 -lssl -lcrypto -lpsl -lbrotlidec -lbrotlicommon -lzstd -lz -lws2_32 -lcrypt32 -lbcrypt -lwldap32 \
     -liphlpapi -lsecur32 -lnormaliz -ladvapi32 -luser32 -s  # sequential: two parallel mingw compiles need ~1.5 GB RAM
 x86_64-w64-mingw32-g++-posix -std=c++17 -O2 -Wno-unknown-pragmas -I"$TP/mingw-compat" -I"$TP/webview/include" -I"$TP/webview2/include" \
     desktop/src/astro_desktop.cpp "$WORK/astro_desktop_res.o" -o "$WORK/bin/AstroAI.exe" -mwindows -static -static-libgcc -static-libstdc++ \
     -lole32 -lshell32 -lshlwapi -lversion -luser32 -ladvapi32 -lws2_32 -luuid -s
-x86_64-w64-mingw32-g++-posix -std=c++20 -O2 -DCURL_STATICLIB -I"$C/include" cli/astro.cpp "$WORK/win_compat.o" -o "$WORK/bin/astro.exe" \
+x86_64-w64-mingw32-g++-posix -std=c++20 -O2 -DCURL_STATICLIB -I"$C/include" cli/astro.cpp "$WORK/win_compat.o" "$WORK/cli_res.o" -o "$WORK/bin/astro.exe" \
     -static -static-libgcc -static-libstdc++ -L"$C/lib" -lcurl -lnghttp3 -lngtcp2_crypto_libressl -lngtcp2 -lnghttp2 -lssh2 -lssl -lcrypto \
     -lpsl -lbrotlidec -lbrotlicommon -lzstd -lz -lws2_32 -lcrypt32 -lbcrypt -lwldap32 -liphlpapi -lsecur32 -lnormaliz -ladvapi32 -luser32 \
     -lole32 -luuid -lshell32 -s

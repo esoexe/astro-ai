@@ -1,6 +1,6 @@
 // ---------- Updates (1.7) ----------
 // The website publishes latest.json next to the CLEAN downloads:
-//   {"version":"1.7.0","date":"...","notes":"<changelog url>","highlights":[...],
+//   {"version":"1.7.0","date":"...","released":"YYYY-MM-DD","notes":"<changelog url>","highlights":[...],"highlights_i18n":{"fr":[...],"ar":[...]},
 //    "assets":{"windows-setup":{"name":..., "url":..., "sha256":..., "bytes":N}, ...}}
 // GET  /api/update/check[?force=1]  -> current vs latest (cached for 6 hours; nothing is sent about the user)
 // POST /api/update/download {"asset":"windows-setup"} -> fetches that file from the official site only,
@@ -105,6 +105,8 @@ Json update_status_json(bool force) {
         o["date"] = Json(get_string(g_update_feed, "date"));
         o["notes"] = Json(get_string(g_update_feed, "notes"));
         if (const Json* h = g_update_feed.get("highlights"); h && h->is_array()) o["highlights"] = *h;
+        if (const Json* h = g_update_feed.get("highlights_i18n"); h && h->is_object()) o["highlights_i18n"] = *h;   /* {"fr":[...],"ar":[...]} */
+        if (const std::string r = get_string(g_update_feed, "released"); !r.empty()) o["released"] = Json(r);
         if (const Json* a = g_update_feed.get("assets"); a && a->is_object()) o["assets"] = *a;
     } else o["available"] = Json(false);
     o["checked_at"] = Json(static_cast<double>(g_update_at));

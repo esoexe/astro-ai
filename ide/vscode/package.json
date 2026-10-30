@@ -2,7 +2,7 @@
   "name": "astro-ai",
   "displayName": "A.S.T.R.O AI Agent",
   "description": "Run the A.S.T.R.O AI coding agent on your folder from VS Code: background and parallel agents in isolated copies, review, merge and undo. Uses the free models of your local A.S.T.R.O AI app.",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "publisher": "astro-ai",
   "license": "(MIT OR Apache-2.0 OR GPL-3.0)",
   "icon": "icon.png",

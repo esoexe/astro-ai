@@ -5,7 +5,7 @@
 //   bucket/astro-ai.json                                    Scoop (this repo is the bucket)
 //   packaging/homebrew/Casks/astro-ai.rb                    Homebrew cask: the macOS app (+ astro command)
 //   packaging/homebrew/Formula/astro-ai.rb                  Homebrew formula: Linux x64 (astro command + engine)
-//   packaging/winget/manifests/e/esoexe/AstroAI/<v>/...     winget (submit to microsoft/winget-pkgs yourself)
+//   packaging/winget/manifests/e/esoexe/AstroAI/<v>/...     winget (submit with tools/winget_submit.sh <v>)
 'use strict';
 const fs = require('fs'); const path = require('path'); const crypto = require('crypto');
 const ROOT = path.join(__dirname, '..');
@@ -118,6 +118,6 @@ if (hashes.setup) {
   const dir = `packaging/winget/manifests/e/esoexe/AstroAI/${V}`;
   const head = (type) => `# yaml-language-server: $schema=https://aka.ms/winget-manifest.${type}.1.9.0.schema.json\n`;
   write(`${dir}/esoexe.AstroAI.yaml`, `${head('version')}PackageIdentifier: esoexe.AstroAI\nPackageVersion: ${V}\nDefaultLocale: en-US\nManifestType: version\nManifestVersion: 1.9.0\n`);
-  write(`${dir}/esoexe.AstroAI.installer.yaml`, `${head('installer')}PackageIdentifier: esoexe.AstroAI\nPackageVersion: ${V}\nInstallerType: exe\nScope: user\nInstallModes:\n  - interactive\n  - silent\nInstallerSwitches:\n  Silent: /S\n  SilentWithProgress: /S\n  InstallLocation: /D=<INSTALLPATH>\nUpgradeBehavior: install\nCommands:\n  - astro\nInstallers:\n  - Architecture: x64\n    InstallerUrl: ${REL}/${files.setup}\n    InstallerSha256: ${hashes.setup.toUpperCase()}\nManifestType: installer\nManifestVersion: 1.9.0\n`);
+  write(`${dir}/esoexe.AstroAI.installer.yaml`, `${head('installer')}PackageIdentifier: esoexe.AstroAI\nPackageVersion: ${V}\nInstallerType: exe\nScope: user\nInstallModes:\n  - interactive\n  - silent\nInstallerSwitches:\n  Silent: /S\n  SilentWithProgress: /S\n  InstallLocation: /D=<INSTALLPATH>\nUpgradeBehavior: install\nCommands:\n  - astro\nInstallers:\n  - Architecture: x64\n    InstallerUrl: ${REL}/${files.setup}\n    InstallerSha256: ${hashes.setup.toUpperCase()}\n    ProductCode: AstroAIClean\n    AppsAndFeaturesEntries:\n      - DisplayName: A.S.T.R.O AI Clean\n        Publisher: A.S.T.R.O AI\n        DisplayVersion: ${V}\n        ProductCode: AstroAIClean\nManifestType: installer\nManifestVersion: 1.9.0\n`);
   write(`${dir}/esoexe.AstroAI.locale.en-US.yaml`, `${head('defaultLocale')}PackageIdentifier: esoexe.AstroAI\nPackageVersion: ${V}\nPackageLocale: en-US\nPublisher: The Astro AI team\nPublisherUrl: https://github.com/esoexe\nPublisherSupportUrl: https://github.com/${REPO}/issues\nPackageName: A.S.T.R.O AI\nPackageUrl: ${HOME}\nLicense: ${LICENSE}\nLicenseUrl: https://github.com/${REPO}#license\nShortDescription: ${DESC}\nDescription: |-\n  A.S.T.R.O AI is a free desktop app and terminal agent. Many free AI models work together as one brain to answer,\n  write code and run agent jobs. Free model tiers have daily limits; you can add your own free keys for more.\nMoniker: astro-ai\nTags:\n  - ai\n  - assistant\n  - coding\n  - agent\n  - llm\n  - free\nReleaseNotesUrl: ${HOME}changelog.html\nManifestType: defaultLocale\nManifestVersion: 1.9.0\n`);
 }
