@@ -55,7 +55,10 @@ if (!NO_DL) {
   fs.mkdirSync(dlDir, { recursive: true });
   if (!fs.existsSync(DL_SRC)) throw new Error('Missing ' + DL_SRC + ' (run desktop/package.sh first, or put the CLEAN files in website/downloads)');
   for (const f of fs.readdirSync(DL_SRC)) {
-    if (!(/CLEAN/.test(f) || /^astro-ai-vscode-[\d.]+\.vsix$/.test(f)) || /WITH-KEYS/i.test(f)) continue;           // belt and braces
+    // CLEAN installers, the VS Code extension and the native Android app (it never contains keys);
+    // the 1.8.0 WebView APK (android-arm64-CLEAN.apk) is superseded by the native app and no longer offered
+    if (!(/CLEAN/.test(f) || /^astro-ai-vscode-[\d.]+\.vsix$/.test(f) || /^AstroAI-[\d.]+-android-arm64\.apk$/.test(f)) || /WITH-KEYS/i.test(f)) continue;   // belt and braces
+    if (/android-arm64-CLEAN\.apk$/.test(f)) continue;
     fs.copyFileSync(path.join(DL_SRC, f), path.join(dlDir, f));
   }
 }
@@ -92,6 +95,18 @@ const dlKey = (pattern) => Object.keys(downloads).find((f) => f.includes(pattern
   const hlI18n = SITE.highlights_i18n || {};
   for (const [l, list] of Object.entries(hlI18n)) if (list.length !== (SITE.highlights || []).length) console.warn(`highlights_i18n.${l} has ${list.length} items, highlights has ${(SITE.highlights || []).length}`);
   const latest = { version: SITE.version, date: SITE.dateLabel, released, notes: `${SITE.url}/changelog.html`, highlights: SITE.highlights || [], highlights_i18n: hlI18n, assets };
+  // Android has its own version (android/app-version.txt): the native app reads only this section, desktop apps ignore it.
+  const A = SITE.android;
+  if (A && A.version) {
+    const f = Object.keys(downloads).find((n) => n === `AstroAI-${A.version}-android-arm64.apk`);
+    if (f) {
+      const ad = new Date(A.dateLabel);
+      const ar = isNaN(ad) ? undefined : `${ad.getFullYear()}-${String(ad.getMonth() + 1).padStart(2, '0')}-${String(ad.getDate()).padStart(2, '0')}`;
+      for (const [l, list] of Object.entries(A.highlights_i18n || {})) if (list.length !== (A.highlights || []).length) console.warn(`android.highlights_i18n.${l} has ${list.length} items`);
+      latest.android = { version: A.version, name: f, url: `${SITE.url}/downloads/${f}`, sha256: downloads[f].sha, bytes: fs.statSync(path.join(dlDir, f)).size,
+        released: ar, min_android: A.min_android || '8.0', highlights: A.highlights || [], highlights_i18n: A.highlights_i18n || {} };
+    } else console.warn(`latest.json: no Android download for ${A.version} (AstroAI-${A.version}-android-arm64.apk)`);
+  }
   if (Object.keys(assets).length) fs.writeFileSync(path.join(OUT, 'latest.json'), JSON.stringify(latest, null, 2) + '\n');
   else console.warn('latest.json skipped: no downloads for ' + SITE.version);
 }
@@ -247,6 +262,7 @@ for (const f of pages) {
   src = src
     .replace(/\{\{root\}\}/g, rel)
     .replace(/\{\{icon:([a-z]+)\}\}/g, (_, n) => icon(n))
+    .replace(/\{\{android_version\}\}/g, (SITE.android && SITE.android.version) || SITE.version)
     .replace(/\{\{version\}\}/g, SITE.version)
     .replace(/\{\{date\}\}/g, SITE.dateLabel)
     .replace(/\{\{limits:(keyless|key|local|count)\}\}/g, (_, which) => limitsHtml(which))

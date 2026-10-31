@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="astro_bg">#0A0A0C</color>
-    <color name="astro_fg">#F3F4F3</color>
     <color name="astro_accent">#F3A679</color>
     <style name="AstroTheme" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/astro_bg</item>

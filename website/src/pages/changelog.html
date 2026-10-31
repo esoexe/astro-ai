@@ -9,6 +9,37 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
+    <article class="release reveal" id="android-v1-8-1">
+      <header><h2>Android 1.8.1</h2><span class="badge">Android only</span><time datetime="2026-10-30">October 30, 2026</time></header>
+      <p class="muted">The Android app is rebuilt as a real native app. Desktop apps stay on 1.8.0; nothing changes for them.</p>
+
+      <h3>Native app</h3>
+      <ul>
+        <li>Written in Kotlin with Jetpack Compose. No web page inside an app any more: screens, gestures, the keyboard, Back and dark mode behave like any Android app.</li>
+        <li>Everything is there: chat with One Brain, compare models, live voice, notes, tasks, reminders, memory, reader, knowledge files, calculator, model lab, the Workspace (files, editor, terminal, search, checkpoints, Git, ZIP) and the Agent with approvals, changes, merge and undo.</li>
+        <li>Reminders are real Android notifications and survive a restart. Long answers and agent runs keep going while you use other apps.</li>
+        <li>Share text, links, photos or PDFs to A.S.T.R.O AI from any app.</li>
+        <li>English, French and Arabic (right-to-left), following the phone's language or your choice.</li>
+      </ul>
+
+      <h3>Fixes</h3>
+      <ul>
+        <li>Chats and settings are now kept when the app restarts. In 1.8.0 they could be lost on every restart. Provider keys and projects saved in 1.8.0 carry over.</li>
+      </ul>
+
+      <h3>New</h3>
+      <ul>
+        <li><b>Connect to my computer:</b> use A.S.T.R.O AI running on your PC (same Wi-Fi or a private network) instead of the engine in the phone, with optional sync of chats, notes and tasks. Needs the self-hosted server (<code>./workspace_server</code>) for now; the desktop app only listens on the computer itself.</li>
+        <li>In-app updates from this site, checked against the SHA-256 published here and the app's signing key.</li>
+      </ul>
+
+      <h3>Good to know</h3>
+      <ul>
+        <li>The 1.8.0 app can't tell you about this update. Install the new APK over it from the <a href="{{root}}download.html#android">download page</a>.</li>
+        <li>Tested on a computer, not yet on many real phones: the engine under arm64 emulation, and every screen (light, dark and Arabic) opened in an Android test environment against a real engine. Please <a href="{{root}}beta.html">tell us how it runs</a>.</li>
+      </ul>
+    </article>
+
     <article class="release latest reveal" id="v1-8-0">
       <header><h2>1.8.0</h2><span class="badge">Latest</span><time datetime="2026-10-30">October 30, 2026</time></header>
       <p class="muted">An Android app with the engine inside, an Agent that gives the honest answer the first time, opt-in error reports and feedback, an offline natural voice, ARM64 builds, and an accessibility pass.</p>

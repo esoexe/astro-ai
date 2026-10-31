@@ -26,6 +26,31 @@
       "صوت طبيعي دون اتصال، وإصدارات ARM64 لويندوز ولينكس، وإمكانية وصول أفضل"
     ]
   },
+  "android": {
+    "version": "1.8.1",
+    "dateLabel": "October 30, 2026",
+    "min_android": "8.0",
+    "highlights": [
+      "A real native Android app (Kotlin and Jetpack Compose), no longer a web page inside an app",
+      "Chat, live voice, notes, tasks, reminders, the Workspace and the Agent, all built for touch",
+      "Your chats and settings are now kept between restarts (fixes data loss in 1.8.0)",
+      "Use the engine inside the phone, or connect to A.S.T.R.O AI on your own computer"
+    ],
+    "highlights_i18n": {
+      "fr": [
+        "Une vraie application Android native (Kotlin et Jetpack Compose), et non plus une page web dans une application",
+        "Discussion, voix en direct, notes, tâches, rappels, l'Espace de travail et l'Agent, conçus pour le tactile",
+        "Vos discussions et réglages sont désormais conservés entre les redémarrages (corrige une perte de données de la 1.8.0)",
+        "Utilisez le moteur intégré au téléphone, ou connectez-vous à A.S.T.R.O AI sur votre propre ordinateur"
+      ],
+      "ar": [
+        "تطبيق أندرويد أصلي حقيقي (Kotlin وJetpack Compose)، وليس صفحة ويب داخل تطبيق",
+        "المحادثة والصوت المباشر والملاحظات والمهام والتذكيرات ومساحة العمل والوكيل، مصممة كلها للّمس",
+        "تُحفظ محادثاتك وإعداداتك الآن بين مرات إعادة التشغيل (إصلاح لفقدان البيانات في 1.8.0)",
+        "استخدم المحرك المدمج في الهاتف، أو اتصل بـ A.S.T.R.O AI على حاسوبك"
+      ]
+    }
+  },
   "support": {
     "github_sponsors": "",
     "kofi": "",

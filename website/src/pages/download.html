@@ -74,15 +74,15 @@
         <p class="small muted">.dmg {{dl:macos-universal:size}} · build kit {{dl:macos-source:size}}. Not notarized yet: the first time, right-click the app and choose <b>Open</b>, or allow it in System Settings › Privacy &amp; Security.</p>
       </article>
     </div>
-{{dlif:android-arm64-CLEAN.apk}}
+{{dlif:-android-arm64.apk}}
     <article class="card platform reveal" id="android" data-os-card="android" style="margin-top:22px">
       <div class="os">{{icon:phone}}<h3>Android</h3><span class="badge for-you" hidden>For you</span></div>
-      <p>Android 8.0 or newer on a 64-bit ARM phone or tablet (almost every phone from the last few years). The whole engine runs inside the app, on the phone: chats, files and settings stay there.</p>
+      <p>A native app (Kotlin and Jetpack Compose) for Android 8.0 or newer on a 64-bit ARM phone or tablet (almost every phone from the last few years). Version {{android_version}}. The engine runs inside the app, so chats, notes and settings stay on the phone; or connect it to A.S.T.R.O AI on your own computer.</p>
       <div class="files">
-        <a class="dl primary" href="{{dl:android-arm64-CLEAN.apk:href}}" download><span class="t"><b>Android app (APK)</b><span>{{dl:android-arm64-CLEAN.apk:file}}</span></span><span class="go">{{icon:download}}</span></a>
-        <div class="sha"><code title="SHA-256">{{dl:android-arm64-CLEAN.apk:sha}}</code><button class="copy" type="button" data-copy="{{dl:android-arm64-CLEAN.apk:sha}}">Copy</button></div>
+        <a class="dl primary" href="{{dl:-android-arm64.apk:href}}" download><span class="t"><b>Android app (APK)</b><span>{{dl:-android-arm64.apk:file}}</span></span><span class="go">{{icon:download}}</span></a>
+        <div class="sha"><code title="SHA-256">{{dl:-android-arm64.apk:sha}}</code><button class="copy" type="button" data-copy="{{dl:-android-arm64.apk:sha}}">Copy</button></div>
       </div>
-      <p class="small muted">APK {{dl:android-arm64-CLEAN.apk:size}}. Not on Google Play yet: open the file on your phone and allow installing from your browser when Android asks. Updates install over the old version with your data kept. Signing certificate SHA-256: <code style="word-break:break-all">51:53:44:2D:71:CE:AB:E7:DC:78:5B:E5:59:BB:BA:84:2A:E0:50:7B:19:44:56:5D:23:9B:7B:89:42:F7:16:84</code>. New in 1.8.0, built and tested on a computer (engine under emulation, app UI in a browser), not yet on many real phones: please <a href="{{root}}beta.html">tell us how it runs</a>.</p>
+      <p class="small muted">APK {{dl:-android-arm64.apk:size}}. Not on Google Play yet: open the file on your phone and allow installing from your browser when Android asks. Updates install over the old version with your data kept. Signing certificate SHA-256: <code style="word-break:break-all">51:53:44:2D:71:CE:AB:E7:DC:78:5B:E5:59:BB:BA:84:2A:E0:50:7B:19:44:56:5D:23:9B:7B:89:42:F7:16:84</code>. Built and tested on a computer (engine under emulation), not yet on many real phones: please <a href="{{root}}beta.html">tell us how it runs</a>. Updating from the 1.8.0 app: install this APK over it; 1.8.0 can't tell you about the update itself.</p>
     </article>
 {{/dlif}}
   </div>
@@ -175,7 +175,7 @@
 <pre><code>shasum -a 256 {{dl:macos-universal:file}}</code></pre>
 <h3>Android</h3>
 <p>Phones check the signature for you: an update signed with a different key is refused. On a computer with the Android SDK you can also compare the certificate with the fingerprint in the Android card above:</p>
-<pre><code>apksigner verify --print-certs {{dl:android-arm64-CLEAN.apk:file}}</code></pre>
+<pre><code>apksigner verify --print-certs {{dl:-android-arm64.apk:file}}</code></pre>
     </div>
   </div>
 </section>

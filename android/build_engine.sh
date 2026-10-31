@@ -103,6 +103,7 @@ rm -rf "$LIC_DIR" && mkdir -p "$LIC_DIR"
 tar -xzOf "$WORK/openssl-$OPENSSL_VER.tar.gz" "openssl-$OPENSSL_VER/LICENSE.txt" > "$LIC_DIR/OpenSSL-LICENSE.txt"
 tar -xJOf "$WORK/curl-$CURL_VER.tar.xz" "curl-$CURL_VER/COPYING" > "$LIC_DIR/curl-COPYING.txt"
 cp "$ROOT/LICENSE" "$LIC_DIR/A.S.T.R.O-AI-LICENSE.txt" 2>/dev/null || true
+cp "$ROOT/desktop/setup/fonts/FONTS-LICENSE.txt" "$LIC_DIR/FONTS-LICENSE.txt"
 cat > "$LIC_DIR/NOTICE.txt" <<NOTICE
 A.S.T.R.O AI for Android - third-party components inside this app
 
@@ -112,8 +113,10 @@ A.S.T.R.O AI for Android - third-party components inside this app
   https://www.mozilla.org/MPL/2.0/ . Source: https://curl.se/docs/caextract.html
 * zlib (Android system library) - zlib license.
 * LLVM libc++ (Android NDK) - Apache License 2.0 with LLVM Exceptions.
-* Web app libraries (three.js, CodeMirror, Lezer, xterm.js) - MIT; fonts (Inter, Instrument Serif,
-  JetBrains Mono) - SIL Open Font License 1.1. See THIRD-PARTY-NOTICES.md in the source repository.
+* Kotlin standard library and kotlinx.coroutines (JetBrains), AndroidX and Jetpack Compose including
+  Material 3 (Google) - Apache License 2.0 (same text as OpenSSL-LICENSE.txt). https://developer.android.com/jetpack
+* Fonts Inter, Instrument Serif and JetBrains Mono - SIL Open Font License 1.1 (FONTS-LICENSE.txt).
+See THIRD-PARTY-NOTICES.md in the source repository for the full list.
 
 A.S.T.R.O AI itself: MIT OR Apache-2.0 OR GPL-3.0-only (A.S.T.R.O-AI-LICENSE.txt).
 Source code: https://github.com/esoexe/astro-ai

@@ -1,4 +1,4 @@
-# Builds the CLEAN desktop edition for Windows, Linux and macOS, and the Android app.
+# Builds the CLEAN desktop edition for Windows, Linux and macOS. The Android app has its own workflow (android.yml).
 # Runs by hand (Actions > Desktop > Run workflow) or when a tag like v1.2.0 is pushed; tags also get a GitHub release.
 #
 # The WITH-KEYS edition is never built here (desktop/package.sh refuses it on CI).
@@ -126,74 +126,6 @@ jobs:
           path: desktop-builds/clean/
           if-no-files-found: error
 
-  android:
-    # Android app (arm64, Android 8.0+): the same C++ engine built with the NDK, inside a small WebView shell
-    # (android/). Release APKs are signed with the project key from the ANDROID_KEYSTORE_BASE64 /
-    # ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS secrets; the certificate must match android/signing-cert.sha256.
-    runs-on: ubuntu-24.04
-    timeout-minutes: 60
-    env:
-      HAS_ANDROID_KEY: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
-      NDK_SHA1: 5107f898313790e449e87eee2183d9a20602dee9
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v6
-        with:
-          distribution: temurin
-          java-version: 17
-      - uses: gradle/actions/setup-gradle@v6
-        with:
-          gradle-version: 9.6.0
-      - name: Android NDK r30 (checksum pinned)
-        run: |
-          curl -fsSL --retry 3 -o "$RUNNER_TEMP/ndk.zip" https://dl.google.com/android/repository/android-ndk-r30-linux.zip
-          echo "$NDK_SHA1  $RUNNER_TEMP/ndk.zip" | sha1sum -c -
-          unzip -q "$RUNNER_TEMP/ndk.zip" -d "$RUNNER_TEMP" && rm "$RUNNER_TEMP/ndk.zip"
-          echo "ANDROID_NDK_ROOT=$RUNNER_TEMP/android-ndk-r30" >> "$GITHUB_ENV"
-      - name: Build the engine (OpenSSL, curl and the engine from pinned sources)
-        run: ASTRO_ANDROID_STATIC_TEST=1 JOBS=4 bash android/build_engine.sh
-      - name: Test the engine (arm64, under qemu)
-        run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq qemu-user-static
-          bash android/test_engine_qemu.sh
-      - name: Signing key
-        if: env.HAS_ANDROID_KEY == 'true'
-        env:
-          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-        run: |
-          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/astro-release.jks"
-          echo "ASTRO_ANDROID_KEYSTORE=$RUNNER_TEMP/astro-release.jks" >> "$GITHUB_ENV"
-      - name: Build the APK
-        env:
-          ASTRO_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ASTRO_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-        run: |
-          if [ "$HAS_ANDROID_KEY" != true ] && [[ "$GITHUB_REF" == refs/tags/v* ]]; then echo "A release needs the signing secrets." >&2; exit 1; fi
-          gradle -p android --no-daemon assembleRelease assembleDebug
-      - name: Check the signature and collect
-        run: |
-          VER=$(sed -n 's/^#define ASTRO_APP_VERSION "\(.*\)"/\1/p' platform.h)
-          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
-          mkdir -p out
-          if [ "$HAS_ANDROID_KEY" = true ]; then
-            APK=android/app/build/outputs/apk/release/app-release.apk
-            "$BT/apksigner" verify --print-certs "$APK" | tee "$RUNNER_TEMP/certs.txt"
-            want=$(tr -d ':\n ' < android/signing-cert.sha256 | tr 'A-F' 'a-f')
-            grep -qi "certificate SHA-256 digest: $want" "$RUNNER_TEMP/certs.txt" || { echo "Signing certificate does not match android/signing-cert.sha256" >&2; exit 1; }
-            cp "$APK" "out/AstroAI-$VER-android-arm64-CLEAN.apk"
-          else
-            # No key (forks, manual runs): a debug build for testing only, never released.
-            cp android/app/build/outputs/apk/debug/app-debug.apk "out/AstroAI-$VER-android-arm64-DEBUG-test-only.apk"
-          fi
-          node tools/scan_secrets.js out
-          unzip -l out/*.apk | grep -Ei 'keys\.env|workspace\.env|gateway\.env|astro_auth' && { echo "Key file inside the APK" >&2; exit 1; } || true
-          cd out && sha256sum * > SHA256SUMS-android.txt && cat SHA256SUMS-android.txt
-      - uses: actions/upload-artifact@v7
-        with:
-          name: astro-ai-clean-android
-          path: out/
-          if-no-files-found: error
-
   macos:
     needs: windows-linux
     runs-on: macos-15
@@ -246,7 +178,7 @@ jobs:
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [windows-linux, linux-arm64, android, macos]
+    needs: [windows-linux, linux-arm64, macos]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/download-artifact@v8

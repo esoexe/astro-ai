@@ -57,7 +57,10 @@ automatically once the repository has the right secrets and variables. **Step-by
 
 * CI signs the APK with the `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD` and `ANDROID_KEY_ALIAS` secrets and
   refuses a certificate that doesn't match `android/signing-cert.sha256`. A tag without these secrets fails the Android job.
-* The keystore lives only on the maintainer's machine (`.astro_android/`, never exported) plus an offline backup.
+* The keystore lives on the maintainer's machine (`android-signing/`, never exported), in an offline backup, and in the
+  repository secrets. Secrets can't be read back through the API, but a one-off `workflow_dispatch` job can encrypt them to a
+  public key you generate locally and upload the result as an artifact; decrypt it, check the certificate against
+  `android/signing-cert.sha256`, then delete the workflow, its run and the artifact.
   **Never replace it after the first public APK**: phones only accept updates signed with the same key.
 * After CI finishes, copy `AstroAI-<version>-android-arm64-CLEAN.apk` from the release into `website/downloads` with the other
   CI files (DMG, Linux arm64), rebuild the site, and `latest.json` gets the `android-apk` entry for the in-app updater.

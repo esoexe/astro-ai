@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Only what Android itself shows (launcher, notifications channels). The app's own text is translated from
+     assets/i18n.json (one dictionary shared with the web app). -->
 <resources>
-    <string name="app_name">A.S.T.R.O AI</string>
-    <string name="starting">Starting A.S.T.R.O AI…</string>
-    <string name="engine_failed">The A.S.T.R.O AI engine stopped.</string>
-    <string name="restart">Restart</string>
-    <string name="mic_denied">Voice input needs the microphone permission. You can allow it in Android Settings → Apps → A.S.T.R.O AI.</string>
-    <string name="saved">Saved to Downloads</string>
+    <string name="app_name" translatable="false">A.S.T.R.O AI</string>
+    <string name="channel_reminders">Reminders</string>
+    <string name="channel_work">Work in progress</string>
 </resources>

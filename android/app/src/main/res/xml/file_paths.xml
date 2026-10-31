@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Downloaded updates (checked against their SHA-256 before Android is asked to install them). -->
+    <cache-path name="updates" path="updates/" />
+    <!-- Files you export or share (chats as Markdown, created files, project zips). -->
+    <cache-path name="share" path="share/" />
+</paths>

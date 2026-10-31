@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed icon (Android 13+): the A.S.T.R.O AI spark, inset so it stays inside the 66 dp safe zone of the 108 dp layer. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_stat_astro"
+    android:inset="27%" />

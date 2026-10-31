@@ -1,14 +1,24 @@
 plugins {
     id 'com.android.application'
+    id 'org.jetbrains.kotlin.plugin.compose'
 }
 
-// One version for everything: read from the engine's platform.h (ASTRO_APP_VERSION).
+// Versions. The engine inside the app is ASTRO_APP_VERSION from platform.h (same source as the desktop app).
+// The Android app can ship its own updates (android/app-version.txt), which must never be older than the engine.
 def repoRoot = rootProject.file('..')
-def astroVersion = (repoRoot.toPath().resolve('platform.h').toFile().text =~ /#define ASTRO_APP_VERSION "([0-9]+)\.([0-9]+)\.([0-9]+)"/)
-if (!astroVersion.find()) throw new GradleException('ASTRO_APP_VERSION not found in platform.h')
-def vMajor = astroVersion.group(1) as int
-def vMinor = astroVersion.group(2) as int
-def vPatch = astroVersion.group(3) as int
+def parseVer = { String s ->
+    def m = (s =~ /([0-9]+)\.([0-9]+)\.([0-9]+)/)
+    if (!m.find()) throw new GradleException("Not a version: ${s}")
+    [m.group(1) as int, m.group(2) as int, m.group(3) as int]
+}
+def engineMatch = (repoRoot.toPath().resolve('platform.h').toFile().text =~ /#define ASTRO_APP_VERSION "([0-9]+\.[0-9]+\.[0-9]+)"/)
+if (!engineMatch.find()) throw new GradleException('ASTRO_APP_VERSION not found in platform.h')
+def engineVersion = engineMatch.group(1)
+def appVerFile = rootProject.file('app-version.txt')
+def appVersion = appVerFile.exists() ? appVerFile.text.trim() : engineVersion
+def ev = parseVer(engineVersion), av = parseVer(appVersion)
+def code = { v -> v[0] * 10000 + v[1] * 100 + v[2] }
+if (code(av) < code(ev)) { appVersion = engineVersion; av = ev }   // a desktop release overtook the Android-only version
 
 // Release signing comes from the environment (CI secrets) or android/keystore.properties - never from the repo.
 def ksProps = new Properties()
@@ -19,15 +29,21 @@ def hasReleaseKey = ksPath != null && new File(ksPath).exists()
 
 android {
     namespace = 'io.github.esoexe.astroai'
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = 'io.github.esoexe.astroai'
         minSdk = 26
         targetSdk = 36
-        versionCode = vMajor * 10000 + vMinor * 100 + vPatch
-        versionName = "${vMajor}.${vMinor}.${vPatch}"
+        versionCode = code(av)
+        versionName = appVersion
+        buildConfigField 'String', 'ENGINE_VERSION', "\"${engineVersion}\""
         ndk { abiFilters 'arm64-v8a' }
+    }
+
+    buildFeatures {
+        compose = true
+        buildConfig = true
     }
 
     signingConfigs {
@@ -43,15 +59,27 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled = false
+            minifyEnabled = true
+            shrinkResources = true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             if (hasReleaseKey) signingConfig = signingConfigs.release
         }
+        debug {
+            applicationIdSuffix = '.debug'
+            versionNameSuffix = '-debug'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     packaging {
         // The engine (libastro_engine.so) must be unpacked into nativeLibraryDir: that is the only place an
         // Android app may start its own programs from.
         jniLibs { useLegacyPackaging = true }
+        resources { excludes += ['META-INF/*.version', 'META-INF/**/LICENSE*', 'DebugProbesKt.bin', 'kotlin-tooling-metadata.json'] }
     }
 
     sourceSets {
@@ -59,19 +87,48 @@ android {
             assets.srcDirs += [layout.buildDirectory.dir('generated/astroPayload').get().asFile]
         }
     }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+        // Robolectric smoke tests start the real app and render every screen on the JVM.
+        unitTests.includeAndroidResources = true
+        unitTests.all { maxHeapSize = '640m'; jvmArgs '-XX:+UseSerialGC', '-XX:MaxMetaspaceSize=256m' }
+    }
+    // Lint runs as its own step (bash dev-env/android_gradle.sh lintRelease): together with R8 it does not fit
+    // in the 2 GB build machine.
+    lint { checkReleaseBuilds = false; abortOnError = true }
 }
 
-// The engine's web app and provider list go into the APK as assets/payload/. The shell unpacks them on first
-// start (and after every update). CLEAN edition only: no keys, ever.
+dependencies {
+    def composeBom = platform('androidx.compose:compose-bom:2026.08.00')
+    implementation composeBom
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.foundation:foundation'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.activity:activity-compose:1.13.0'
+    implementation 'androidx.core:core-ktx:1.18.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.10.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20250517'
+    testImplementation 'org.robolectric:robolectric:4.17'
+    testImplementation composeBom
+    testImplementation 'androidx.compose.ui:ui-test-junit4'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
+}
+
+// What the engine needs at run time goes into the APK as assets/payload/ (unpacked on first start and after
+// every update). No web app: the interface is native. CLEAN edition only: no keys, ever.
 def payloadDir = layout.buildDirectory.dir('generated/astroPayload/payload')
 tasks.register('astroPayload', Copy) {
-    from(new File(repoRoot, 'web')) { into 'web' }
     from(new File(repoRoot, 'providers.json'))
+    from(new File(repoRoot, 'web/model_rank.json')) { into 'web' }
     into payloadDir
     doLast {
         def out = payloadDir.get().asFile
-        new File(out, 'edition.json').text = '{"edition":"clean","name":"Astro AI","display":"A.S.T.R.O AI","data_name":"astro-ai","platform":"android"}\n'
-        new File(out, 'version.txt').text = "${vMajor}.${vMinor}.${vPatch}\n"
+        new File(out, 'edition.json').text = '{"edition":"clean","name":"Astro AI","display":"A.S.T.R.O AI","data_name":"astro-ai","platform":"android","native":true}\n'
+        new File(out, 'version.txt').text = "${engineVersion}\n"
         ['.astro_keys.env', '.workspace.env', 'seed-keys.env', 'gateway.env'].each { n ->
             if (new File(out, n).exists()) throw new GradleException("Refusing to package a key file: ${n}")
         }

@@ -1,0 +1,2103 @@
+{
+ "// note": "Native-only UI strings: English -> [French, Arabic]. Shared strings live in web/i18n.js.",
+ "Voice input needs the microphone permission.": [
+  "La saisie vocale a besoin de l'autorisation du micro.",
+  "يحتاج الإدخال الصوتي إلى إذن الميكروفون."
+ ],
+ "Microphone allowed. Tap the mic again.": [
+  "Micro autorisé. Touchez à nouveau le micro.",
+  "تم السماح بالميكروفون. اضغط على الميكروفون مرة أخرى."
+ ],
+ "Reminders can't ring without notifications. You can allow them in Android settings.": [
+  "Les rappels ne peuvent pas sonner sans notifications. Vous pouvez les autoriser dans les paramètres Android.",
+  "لا يمكن للتذكيرات أن ترنّ بدون إشعارات. يمكنك السماح بها من إعدادات أندرويد."
+ ],
+ "Allow exact alarms so reminders ring on time": [
+  "Autorisez les alarmes exactes pour que les rappels sonnent à l'heure",
+  "اسمح بالمنبهات الدقيقة لترنّ التذكيرات في وقتها"
+ ],
+ "File attached to the chat": [
+  "Fichier joint à la discussion",
+  "تم إرفاق الملف بالمحادثة"
+ ],
+ "Summarise this page: #": [
+  "Résume cette page : #",
+  "لخّص هذه الصفحة: #"
+ ],
+ "Reminder": [
+  "Rappel",
+  "تذكير"
+ ],
+ "Copied": [
+  "Copié",
+  "تم النسخ"
+ ],
+ "No app can open this link": [
+  "Aucune application ne peut ouvrir ce lien",
+  "لا يوجد تطبيق يمكنه فتح هذا الرابط"
+ ],
+ "Answer ready": [
+  "Réponse prête",
+  "الإجابة جاهزة"
+ ],
+ "A.S.T.R.O AI is working…": [
+  "A.S.T.R.O AI travaille…",
+  "A.S.T.R.O AI يعمل…"
+ ],
+ "Your answer keeps going while you use other apps.": [
+  "Votre réponse continue pendant que vous utilisez d'autres applications.",
+  "تستمر إجابتك بينما تستخدم تطبيقات أخرى."
+ ],
+ "Created note “#”": [
+  "Note « # » créée",
+  "تم إنشاء الملاحظة «#»"
+ ],
+ "Added to note “#”": [
+  "Ajouté à la note « # »",
+  "أضيف إلى الملاحظة «#»"
+ ],
+ "No note called “#”": [
+  "Aucune note nommée « # »",
+  "لا توجد ملاحظة باسم «#»"
+ ],
+ "Delete note “#”?": [
+  "Supprimer la note « # » ?",
+  "حذف الملاحظة «#»؟"
+ ],
+ "Deleted note “#”": [
+  "Note « # » supprimée",
+  "تم حذف الملاحظة «#»"
+ ],
+ "The task needs a title": [
+  "La tâche a besoin d'un titre",
+  "تحتاج المهمة إلى عنوان"
+ ],
+ "Added task “#”": [
+  "Tâche « # » ajoutée",
+  "تمت إضافة المهمة «#»"
+ ],
+ "# priority": [
+  "priorité #",
+  "أولوية #"
+ ],
+ "due #": [
+  "échéance #",
+  "موعدها #"
+ ],
+ "No task matching “#”": [
+  "Aucune tâche correspondant à « # »",
+  "لا توجد مهمة تطابق «#»"
+ ],
+ "Completed “#”": [
+  "« # » terminée",
+  "تم إنجاز «#»"
+ ],
+ "Delete task “#”?": [
+  "Supprimer la tâche « # » ?",
+  "حذف المهمة «#»؟"
+ ],
+ "Deleted task “#”": [
+  "Tâche « # » supprimée",
+  "تم حذف المهمة «#»"
+ ],
+ "Nothing to remember": [
+  "Rien à retenir",
+  "لا شيء لتذكّره"
+ ],
+ "Saved to memory": [
+  "Enregistré en mémoire",
+  "تم الحفظ في الذاكرة"
+ ],
+ "Nothing matching in memory": [
+  "Rien de correspondant en mémoire",
+  "لا شيء مطابق في الذاكرة"
+ ],
+ "Forgot # memory item(s)": [
+  "# élément(s) oublié(s)",
+  "تم نسيان # عنصر"
+ ],
+ "The reminder time is unclear": [
+  "L'heure du rappel n'est pas claire",
+  "وقت التذكير غير واضح"
+ ],
+ "Reminder: “#”": [
+  "Rappel : « # »",
+  "تذكير: «#»"
+ ],
+ "# · a notification on this phone": [
+  "# · une notification sur ce téléphone",
+  "# · إشعار على هذا الهاتف"
+ ],
+ "Unknown theme": [
+  "Thème inconnu",
+  "سمة غير معروفة"
+ ],
+ "Theme set to #": [
+  "Thème réglé sur #",
+  "تم ضبط السمة على #"
+ ],
+ "Unknown mode": [
+  "Mode inconnu",
+  "وضع غير معروف"
+ ],
+ "Switched to # mode": [
+  "Passage au mode #",
+  "تم التبديل إلى وضع #"
+ ],
+ "Unknown language": [
+  "Langue inconnue",
+  "لغة غير معروفة"
+ ],
+ "Response language: #": [
+  "Langue des réponses : #",
+  "لغة الإجابات: #"
+ ],
+ "Unknown view “#”": [
+  "Vue inconnue « # »",
+  "عرض غير معروف «#»"
+ ],
+ "Open #": [
+  "Ouvrir #",
+  "فتح #"
+ ],
+ "Opened #": [
+  "# ouvert",
+  "تم فتح #"
+ ],
+ "Start a new chat?": [
+  "Commencer une nouvelle discussion ?",
+  "بدء محادثة جديدة؟"
+ ],
+ "Started a new chat": [
+  "Nouvelle discussion commencée",
+  "بدأت محادثة جديدة"
+ ],
+ "Exported this chat as Markdown": [
+  "Discussion exportée en Markdown",
+  "تم تصدير هذه المحادثة بصيغة Markdown"
+ ],
+ "Only https links can be opened": [
+  "Seuls les liens https peuvent être ouverts",
+  "يمكن فتح روابط https فقط"
+ ],
+ "Link ready": [
+  "Lien prêt",
+  "الرابط جاهز"
+ ],
+ "Spoke aloud": [
+  "Lu à voix haute",
+  "تمت القراءة بصوت عالٍ"
+ ],
+ "Exact calculator": [
+  "Calculatrice exacte",
+  "آلة حاسبة دقيقة"
+ ],
+ "Empty search": [
+  "Recherche vide",
+  "بحث فارغ"
+ ],
+ "Searched your workspace for “#”": [
+  "Recherche de « # » dans votre espace",
+  "تم البحث عن «#» في مساحتك"
+ ],
+ "# result(s)": [
+  "# résultat(s)",
+  "# نتيجة"
+ ],
+ "Read note “#”": [
+  "Note « # » lue",
+  "تمت قراءة الملاحظة «#»"
+ ],
+ "Checked # tasks": [
+  "# tâches vérifiées",
+  "تم فحص # مهام"
+ ],
+ "# task(s)": [
+  "# tâche(s)",
+  "# مهمة"
+ ],
+ "Checked your notes": [
+  "Vos notes ont été vérifiées",
+  "تم فحص ملاحظاتك"
+ ],
+ "# note(s)": [
+  "# note(s)",
+  "# ملاحظة"
+ ],
+ "Searched the web for “#”": [
+  "Recherche web de « # »",
+  "تم البحث في الويب عن «#»"
+ ],
+ "# result(s) · #": [
+  "# résultat(s) · #",
+  "# نتيجة · #"
+ ],
+ "Give a full http(s) address": [
+  "Donnez une adresse http(s) complète",
+  "أدخل عنوان http(s) كاملًا"
+ ],
+ "Read “#”": [
+  "« # » lu",
+  "تمت قراءة «#»"
+ ],
+ "Created file “#”": [
+  "Fichier « # » créé",
+  "تم إنشاء الملف «#»"
+ ],
+ "# characters · share or save it": [
+  "# caractères · partagez-le ou enregistrez-le",
+  "# حرف · شاركه أو احفظه"
+ ],
+ "Opened in Reader": [
+  "Ouvert dans le Lecteur",
+  "تم الفتح في القارئ"
+ ],
+ "Unknown action “#”": [
+  "Action inconnue « # »",
+  "إجراء غير معروف «#»"
+ ],
+ "Couldn't #": [
+  "Impossible de #",
+  "تعذّر #"
+ ],
+ "Couldn't finish: #": [
+  "Impossible de terminer : #",
+  "تعذّر الإكمال: #"
+ ],
+ "Stop or wait for the current answer first": [
+  "Arrêtez ou attendez d'abord la réponse en cours",
+  "أوقف الإجابة الحالية أو انتظرها أولًا"
+ ],
+ "Chat deleted": [
+  "Discussion supprimée",
+  "تم حذف المحادثة"
+ ],
+ "Nothing to answer yet": [
+  "Rien à répondre pour l'instant",
+  "لا شيء للرد عليه بعد"
+ ],
+ "Stopped before the answer started.": [
+  "Arrêté avant le début de la réponse.",
+  "توقف قبل أن تبدأ الإجابة."
+ ],
+ "No answer: #": [
+  "Pas de réponse : #",
+  "لا توجد إجابة: #"
+ ],
+ "Looking at your image…": [
+  "Analyse de votre image…",
+  "جارٍ النظر في صورتك…"
+ ],
+ "Image described by #": [
+  "Image décrite par #",
+  "وصف الصورة بواسطة #"
+ ],
+ "Couldn't read the image: #": [
+  "Impossible de lire l'image : #",
+  "تعذّرت قراءة الصورة: #"
+ ],
+ "Reading #…": [
+  "Lecture de #…",
+  "جارٍ قراءة #…"
+ ],
+ "Reading # links…": [
+  "Lecture de # liens…",
+  "جارٍ قراءة # روابط…"
+ ],
+ "Searching the web…": [
+  "Recherche sur le web…",
+  "جارٍ البحث في الويب…"
+ ],
+ "Reading # of # results (#)…": [
+  "Lecture de # résultats sur # (#)…",
+  "جارٍ قراءة # من # نتائج (#)…"
+ ],
+ "Searched the web (#) · # sources": [
+  "Recherche web (#) · # sources",
+  "بحث في الويب (#) · # مصادر"
+ ],
+ "Web search failed: #": [
+  "Échec de la recherche web : #",
+  "فشل البحث في الويب: #"
+ ],
+ "Web search found nothing, answering from the models only": [
+  "La recherche web n'a rien trouvé, réponse des modèles seuls",
+  "لم يجد البحث في الويب شيئًا، الإجابة من النماذج فقط"
+ ],
+ "The model returned an empty answer.": [
+  "Le modèle a renvoyé une réponse vide.",
+  "أعاد النموذج إجابة فارغة."
+ ],
+ "Interrupted: #": [
+  "Interrompu : #",
+  "انقطع: #"
+ ],
+ "The connection ended before the answer finished.": [
+  "La connexion s'est terminée avant la fin de la réponse.",
+  "انتهى الاتصال قبل اكتمال الإجابة."
+ ],
+ "Something went wrong while contacting the model.": [
+  "Un problème est survenu en contactant le modèle.",
+  "حدث خطأ أثناء الاتصال بالنموذج."
+ ],
+ "Background check found a problem in the code": [
+  "La vérification en arrière-plan a trouvé un problème dans le code",
+  "وجد الفحص في الخلفية مشكلة في الشيفرة"
+ ],
+ "all # minds": [
+  "les # esprits",
+  "كل العقول الـ #"
+ ],
+ "# minds": [
+  "# esprits",
+  "# عقول"
+ ],
+ "too slow, skipped": [
+  "trop lent, ignoré",
+  "بطيء جدًا، تم تخطيه"
+ ],
+ "No mind of the brain could answer, so A.S.T.R.O AI switched to the fastest available route": [
+  "Aucun esprit du cerveau n'a pu répondre, A.S.T.R.O AI est passé à la voie la plus rapide disponible",
+  "لم يتمكن أي عقل من الإجابة، فانتقل A.S.T.R.O AI إلى أسرع طريق متاح"
+ ],
+ "The final merge failed, so this is the strongest merged or single answer": [
+  "La fusion finale a échoué : voici la meilleure réponse fusionnée ou individuelle",
+  "فشل الدمج النهائي، وهذه أقوى إجابة مدمجة أو منفردة"
+ ],
+ "Back": [
+  "Retour",
+  "رجوع"
+ ],
+ "just now": [
+  "à l'instant",
+  "الآن"
+ ],
+ "# min ago": [
+  "il y a # min",
+  "منذ # د"
+ ],
+ "# h ago": [
+  "il y a # h",
+  "منذ # س"
+ ],
+ "# d ago": [
+  "il y a # j",
+  "منذ # ي"
+ ],
+ "Open in Workspace": [
+  "Ouvrir dans l'Espace",
+  "فتح في مساحة العمل"
+ ],
+ "Copy code": [
+  "Copier le code",
+  "نسخ الشيفرة"
+ ],
+ "Connecting to your computer…": [
+  "Connexion à votre ordinateur…",
+  "جارٍ الاتصال بحاسوبك…"
+ ],
+ "Starting the engine on this phone…": [
+  "Démarrage du moteur sur ce téléphone…",
+  "جارٍ تشغيل المحرك على هذا الهاتف…"
+ ],
+ "The engine could not start": [
+  "Le moteur n'a pas pu démarrer",
+  "تعذّر تشغيل المحرك"
+ ],
+ "Something went wrong while starting.": [
+  "Un problème est survenu au démarrage.",
+  "حدث خطأ أثناء التشغيل."
+ ],
+ "Connect to my computer": [
+  "Se connecter à mon ordinateur",
+  "الاتصال بحاسوبي"
+ ],
+ "Hide details": [
+  "Masquer les détails",
+  "إخفاء التفاصيل"
+ ],
+ "Show details": [
+  "Afficher les détails",
+  "عرض التفاصيل"
+ ],
+ "Send report": [
+  "Envoyer le rapport",
+  "إرسال التقرير"
+ ],
+ "Report sent. Thank you.": [
+  "Rapport envoyé. Merci.",
+  "تم إرسال التقرير. شكرًا لك."
+ ],
+ "Version # is available": [
+  "La version # est disponible",
+  "الإصدار # متاح"
+ ],
+ "Connected to your computer": [
+  "Connecté à votre ordinateur",
+  "متصل بحاسوبك"
+ ],
+ "Running on this phone": [
+  "Fonctionne sur ce téléphone",
+  "يعمل على هذا الهاتف"
+ ],
+ "Live voice": [
+  "Voix en direct",
+  "صوت مباشر"
+ ],
+ "Recent chats": [
+  "Discussions récentes",
+  "المحادثات الأخيرة"
+ ],
+ "No chats yet": [
+  "Pas encore de discussion",
+  "لا توجد محادثات بعد"
+ ],
+ "Feedback": [
+  "Avis",
+  "ملاحظات"
+ ],
+ "# running · up to # at once": [
+  "# en cours · jusqu'à # à la fois",
+  "# قيد التشغيل · حتى # في الوقت نفسه"
+ ],
+ "Works on # by itself until the job is done": [
+  "Travaille seul sur # jusqu'à ce que ce soit fini",
+  "يعمل على # وحده حتى ينتهي العمل"
+ ],
+ "a project": [
+  "un projet",
+  "مشروع"
+ ],
+ "What should the agent do?": [
+  "Que doit faire l'agent ?",
+  "ماذا يجب أن يفعل الوكيل؟"
+ ],
+ "e.g. Build a to-do web page with local storage and tests": [
+  "ex. Créer une page de tâches avec stockage local et tests",
+  "مثال: أنشئ صفحة مهام مع تخزين محلي واختبارات"
+ ],
+ "Team + fast executor": [
+  "Équipe + exécutant rapide",
+  "الفريق + منفّذ سريع"
+ ],
+ "Team + fast executor (recommended)": [
+  "Équipe + exécutant rapide (recommandé)",
+  "الفريق + منفّذ سريع (موصى به)"
+ ],
+ "Plan: reads the project and writes a plan, changes nothing.": [
+  "Plan : lit le projet et écrit un plan, sans rien modifier.",
+  "خطة: يقرأ المشروع ويكتب خطة، دون تغيير أي شيء."
+ ],
+ "Ask first: asks before every change or command.": [
+  "Demander d'abord : demande avant chaque modification ou commande.",
+  "اسأل أولًا: يسأل قبل كل تغيير أو أمر."
+ ],
+ "Auto: does everything by itself, with a log and an undo checkpoint.": [
+  "Auto : fait tout seul, avec un journal et un point de restauration.",
+  "تلقائي: يفعل كل شيء وحده، مع سجل ونقطة استرجاع للتراجع."
+ ],
+ "Work on a copy": [
+  "Travailler sur une copie",
+  "العمل على نسخة"
+ ],
+ "Changes stay separate until you merge them": [
+  "Les modifications restent séparées jusqu'à leur fusion",
+  "تبقى التغييرات منفصلة حتى تدمجها"
+ ],
+ "Team review at the end": [
+  "Revue par l'équipe à la fin",
+  "مراجعة الفريق في النهاية"
+ ],
+ "Other models check the result before it says done": [
+  "D'autres modèles vérifient le résultat avant qu'il annonce la fin",
+  "تتحقق نماذج أخرى من النتيجة قبل أن يعلن الانتهاء"
+ ],
+ "Start the agent": [
+  "Lancer l'agent",
+  "تشغيل الوكيل"
+ ],
+ "Sessions": [
+  "Sessions",
+  "الجلسات"
+ ],
+ "No agent sessions yet": [
+  "Pas encore de session d'agent",
+  "لا توجد جلسات للوكيل بعد"
+ ],
+ "Give it a job above. It plans, writes files, runs them and checks its work.": [
+  "Donnez-lui une tâche ci-dessus. Il planifie, écrit des fichiers, les exécute et vérifie son travail.",
+  "أعطه مهمة في الأعلى. يخطط ويكتب الملفات ويشغّلها ويتحقق من عمله."
+ ],
+ "Agent session": [
+  "Session d'agent",
+  "جلسة الوكيل"
+ ],
+ "# · # steps · # files · #": [
+  "# · # étapes · # fichiers · #",
+  "# · # خطوات · # ملفات · #"
+ ],
+ "copy": [
+  "copie",
+  "نسخة"
+ ],
+ "Show changes": [
+  "Afficher les modifications",
+  "عرض التغييرات"
+ ],
+ "No changes": [
+  "Aucune modification",
+  "لا توجد تغييرات"
+ ],
+ "Merge into #": [
+  "Fusionner dans #",
+  "دمج في #"
+ ],
+ "Merged": [
+  "Fusionné",
+  "تم الدمج"
+ ],
+ "Discard the copy": [
+  "Abandonner la copie",
+  "تجاهل النسخة"
+ ],
+ "Undo everything": [
+  "Tout annuler",
+  "التراجع عن كل شيء"
+ ],
+ "Open the files": [
+  "Ouvrir les fichiers",
+  "فتح الملفات"
+ ],
+ "Working · step #": [
+  "En cours · étape #",
+  "قيد العمل · الخطوة #"
+ ],
+ "Add an instruction (queued)": [
+  "Ajouter une consigne (en file d'attente)",
+  "إضافة تعليمات (في قائمة الانتظار)"
+ ],
+ "Ask for more changes": [
+  "Demander d'autres modifications",
+  "طلب تغييرات أخرى"
+ ],
+ "Undo this session?": [
+  "Annuler cette session ?",
+  "التراجع عن هذه الجلسة؟"
+ ],
+ "The project goes back to the checkpoint made before the agent started.": [
+  "Le projet revient au point de restauration créé avant le démarrage de l'agent.",
+  "يعود المشروع إلى نقطة الاسترجاع التي أُنشئت قبل بدء الوكيل."
+ ],
+ "Undone": [
+  "Annulé",
+  "تم التراجع"
+ ],
+ "You answered: #": [
+  "Vous avez répondu : #",
+  "أجبت: #"
+ ],
+ "Your answer": [
+  "Votre réponse",
+  "إجابتك"
+ ],
+ "Allow all": [
+  "Tout autoriser",
+  "السماح بالكل"
+ ],
+ "Done · # steps · #": [
+  "Terminé · # étapes · #",
+  "تم · # خطوات · #"
+ ],
+ "Model": [
+  "Modèle",
+  "النموذج"
+ ],
+ "Unpin": [
+  "Désépingler",
+  "إلغاء التثبيت"
+ ],
+ "Pin": [
+  "Épingler",
+  "تثبيت"
+ ],
+ "Export as Markdown": [
+  "Exporter en Markdown",
+  "تصدير بصيغة Markdown"
+ ],
+ "All chats": [
+  "Toutes les discussions",
+  "كل المحادثات"
+ ],
+ "Rename chat": [
+  "Renommer la discussion",
+  "إعادة تسمية المحادثة"
+ ],
+ "Title": [
+  "Titre",
+  "العنوان"
+ ],
+ "Delete this chat?": [
+  "Supprimer cette discussion ?",
+  "حذف هذه المحادثة؟"
+ ],
+ "You can undo right after.": [
+  "Vous pourrez annuler juste après.",
+  "يمكنك التراجع مباشرة بعد ذلك."
+ ],
+ "Explain a hard idea simply": [
+  "Expliquer simplement une idée difficile",
+  "اشرح فكرة صعبة ببساطة"
+ ],
+ "Write and run code": [
+  "Écrire et exécuter du code",
+  "اكتب شيفرة وشغّلها"
+ ],
+ "Plan my week": [
+  "Planifier ma semaine",
+  "خطّط لأسبوعي"
+ ],
+ "Remember something": [
+  "Retenir quelque chose",
+  "تذكّر شيئًا"
+ ],
+ "Summarise a web page": [
+  "Résumer une page web",
+  "لخّص صفحة ويب"
+ ],
+ "Practise a language": [
+  "Pratiquer une langue",
+  "تدرّب على لغة"
+ ],
+ "Ask anything. All models think together as one brain.": [
+  "Demandez n'importe quoi. Tous les modèles réfléchissent ensemble comme un seul cerveau.",
+  "اسأل عن أي شيء. كل النماذج تفكر معًا كعقل واحد."
+ ],
+ "Talk live with A.S.T.R.O AI": [
+  "Parler en direct avec A.S.T.R.O AI",
+  "تحدث مباشرة مع A.S.T.R.O AI"
+ ],
+ "Edit and resend": [
+  "Modifier et renvoyer",
+  "تعديل وإعادة الإرسال"
+ ],
+ "Edit message": [
+  "Modifier le message",
+  "تعديل الرسالة"
+ ],
+ "First answer (from #) while the brain merges": [
+  "Première réponse (de #) pendant que le cerveau fusionne",
+  "أول إجابة (من #) بينما يدمج العقل"
+ ],
+ "Something went wrong": [
+  "Un problème est survenu",
+  "حدث خطأ ما"
+ ],
+ "Planning the team…": [
+  "Planification de l'équipe…",
+  "جارٍ تخطيط الفريق…"
+ ],
+ "Every model is answering (waiting for all)…": [
+  "Chaque modèle répond (attente de tous)…",
+  "كل نموذج يجيب (بانتظار الجميع)…"
+ ],
+ "Models are thinking together…": [
+  "Les modèles réfléchissent ensemble…",
+  "النماذج تفكر معًا…"
+ ],
+ "Merging answers (round #)…": [
+  "Fusion des réponses (tour #)…",
+  "جارٍ دمج الإجابات (الجولة #)…"
+ ],
+ "Merging answers…": [
+  "Fusion des réponses…",
+  "جارٍ دمج الإجابات…"
+ ],
+ "Reviewing the merged answer…": [
+  "Revue de la réponse fusionnée…",
+  "جارٍ مراجعة الإجابة المدمجة…"
+ ],
+ "Writing the final answer…": [
+  "Rédaction de la réponse finale…",
+  "جارٍ كتابة الإجابة النهائية…"
+ ],
+ "# of # minds ready · #": [
+  "# esprits sur # prêts · #",
+  "# من # عقول جاهزة · #"
+ ],
+ "Merge now": [
+  "Fusionner maintenant",
+  "ادمج الآن"
+ ],
+ "Previous version": [
+  "Version précédente",
+  "الإصدار السابق"
+ ],
+ "Next version": [
+  "Version suivante",
+  "الإصدار التالي"
+ ],
+ "Regenerate": [
+  "Régénérer",
+  "إعادة التوليد"
+ ],
+ "With One Brain": [
+  "Avec One Brain",
+  "باستخدام العقل الواحد"
+ ],
+ "With the fastest model": [
+  "Avec le modèle le plus rapide",
+  "باستخدام أسرع نموذج"
+ ],
+ "Good answer": [
+  "Bonne réponse",
+  "إجابة جيدة"
+ ],
+ "Bad answer": [
+  "Mauvaise réponse",
+  "إجابة سيئة"
+ ],
+ "What was wrong?": [
+  "Qu'est-ce qui n'allait pas ?",
+  "ما المشكلة؟"
+ ],
+ "Optional note": [
+  "Remarque facultative",
+  "ملاحظة اختيارية"
+ ],
+ "Share this answer to improve A.S.T.R.O AI": [
+  "Partager cette réponse pour améliorer A.S.T.R.O AI",
+  "شارك هذه الإجابة لتحسين A.S.T.R.O AI"
+ ],
+ "Sends the question and answer, without your name.": [
+  "Envoie la question et la réponse, sans votre nom.",
+  "يرسل السؤال والإجابة، بدون اسمك."
+ ],
+ "Thanks, noted.": [
+  "Merci, c'est noté.",
+  "شكرًا، تم التسجيل."
+ ],
+ "Saved as # in #": [
+  "Enregistré sous # dans #",
+  "تم الحفظ باسم # في #"
+ ],
+ "Preparing the photo…": [
+  "Préparation de la photo…",
+  "جارٍ تجهيز الصورة…"
+ ],
+ "Could not open the photo": [
+  "Impossible d'ouvrir la photo",
+  "تعذّر فتح الصورة"
+ ],
+ "Could not read the file": [
+  "Impossible de lire le fichier",
+  "تعذّرت قراءة الملف"
+ ],
+ "Listening…": [
+  "À l'écoute…",
+  "جارٍ الاستماع…"
+ ],
+ "Attach": [
+  "Joindre",
+  "إرفاق"
+ ],
+ "Photo": [
+  "Photo",
+  "صورة"
+ ],
+ "Document (PDF, Word, text)": [
+  "Document (PDF, Word, texte)",
+  "مستند (PDF، Word، نص)"
+ ],
+ "Stop dictation": [
+  "Arrêter la dictée",
+  "إيقاف الإملاء"
+ ],
+ "# is too big (max 20 MB)": [
+  "# est trop volumineux (20 Mo max.)",
+  "# كبير جدًا (الحد الأقصى 20 ميغابايت)"
+ ],
+ "No text found in #": [
+  "Aucun texte trouvé dans #",
+  "لم يُعثر على نص في #"
+ ],
+ "Compare models": [
+  "Comparer les modèles",
+  "مقارنة النماذج"
+ ],
+ "Choose who answers": [
+  "Choisir qui répond",
+  "اختر من يجيب"
+ ],
+ "Pick up to 4 models; each answers the same question side by side.": [
+  "Choisissez jusqu'à 4 modèles ; chacun répond à la même question, côte à côte.",
+  "اختر حتى 4 نماذج؛ يجيب كل منها عن السؤال نفسه جنبًا إلى جنب."
+ ],
+ "Question": [
+  "Question",
+  "السؤال"
+ ],
+ "The fastest available model, with failover": [
+  "Le modèle disponible le plus rapide, avec relais",
+  "أسرع نموذج متاح، مع بديل تلقائي عند الفشل"
+ ],
+ "Models (#)": [
+  "Modèles (#)",
+  "النماذج (#)"
+ ],
+ "unavailable": [
+  "indisponible",
+  "غير متاح"
+ ],
+ "on device": [
+  "sur l'appareil",
+  "على الجهاز"
+ ],
+ "images": [
+  "images",
+  "صور"
+ ],
+ "Compare # models": [
+  "Comparer # modèles",
+  "مقارنة # نماذج"
+ ],
+ "No answer this time": [
+  "Pas de réponse cette fois",
+  "لا توجد إجابة هذه المرة"
+ ],
+ "Thinking together…": [
+  "Réflexion commune…",
+  "يفكرون معًا…"
+ ],
+ "Speaking · tap to interrupt": [
+  "Parle · touchez pour interrompre",
+  "يتحدث · اضغط للمقاطعة"
+ ],
+ "Paused · tap to talk": [
+  "En pause · touchez pour parler",
+  "متوقف مؤقتًا · اضغط للتحدث"
+ ],
+ "Pause": [
+  "Pause",
+  "إيقاف مؤقت"
+ ],
+ "Show the chat": [
+  "Afficher la discussion",
+  "عرض المحادثة"
+ ],
+ "Chats": [
+  "Discussions",
+  "المحادثات"
+ ],
+ "# saved on this device": [
+  "# enregistrées sur cet appareil",
+  "# محفوظة على هذا الجهاز"
+ ],
+ "Nothing found": [
+  "Rien trouvé",
+  "لم يُعثر على شيء"
+ ],
+ "Your conversations are saved here, on this phone.": [
+  "Vos conversations sont enregistrées ici, sur ce téléphone.",
+  "تُحفظ محادثاتك هنا، على هذا الهاتف."
+ ],
+ "# messages · #": [
+  "# messages · #",
+  "# رسائل · #"
+ ],
+ "# notes": [
+  "# notes",
+  "# ملاحظات"
+ ],
+ "Untitled": [
+  "Sans titre",
+  "بدون عنوان"
+ ],
+ "No notes yet": [
+  "Pas encore de note",
+  "لا توجد ملاحظات بعد"
+ ],
+ "Write one here, or ask in chat: “make a note about…”": [
+  "Écrivez-en une ici, ou demandez dans la discussion : « fais une note sur… »",
+  "اكتب واحدة هنا، أو اطلب في المحادثة: «دوّن ملاحظة عن…»"
+ ],
+ "Note": [
+  "Note",
+  "ملاحظة"
+ ],
+ "Ask about this note": [
+  "Poser une question sur cette note",
+  "اسأل عن هذه الملاحظة"
+ ],
+ "About my note “#”:": [
+  "À propos de ma note « # » :",
+  "بخصوص ملاحظتي «#»:"
+ ],
+ "Share": [
+  "Partager",
+  "مشاركة"
+ ],
+ "Empty": [
+  "Vide",
+  "فارغ"
+ ],
+ "Write… (Markdown works)": [
+  "Écrivez… (le Markdown fonctionne)",
+  "اكتب… (يدعم Markdown)"
+ ],
+ "Delete this note?": [
+  "Supprimer cette note ?",
+  "حذف هذه الملاحظة؟"
+ ],
+ "Note deleted": [
+  "Note supprimée",
+  "تم حذف الملاحظة"
+ ],
+ "# open · # done": [
+  "# ouvertes · # terminées",
+  "# مفتوحة · # منجزة"
+ ],
+ "Clear done": [
+  "Effacer les terminées",
+  "مسح المنجزة"
+ ],
+ "Cleared # done tasks": [
+  "# tâches terminées effacées",
+  "تم مسح # مهام منجزة"
+ ],
+ "Nothing here": [
+  "Rien ici",
+  "لا شيء هنا"
+ ],
+ "Add tasks above, or ask in chat: “add a task to…”": [
+  "Ajoutez des tâches ci-dessus, ou demandez dans la discussion : « ajoute une tâche pour… »",
+  "أضف مهام في الأعلى، أو اطلب في المحادثة: «أضف مهمة لـ…»"
+ ],
+ "today": [
+  "aujourd'hui",
+  "اليوم"
+ ],
+ "high": [
+  "haute",
+  "عالية"
+ ],
+ "low": [
+  "basse",
+  "منخفضة"
+ ],
+ "Remind me": [
+  "Me le rappeler",
+  "ذكّرني"
+ ],
+ "Remove due date": [
+  "Retirer l'échéance",
+  "إزالة الموعد"
+ ],
+ "Task deleted": [
+  "Tâche supprimée",
+  "تم حذف المهمة"
+ ],
+ "Reminders": [
+  "Rappels",
+  "التذكيرات"
+ ],
+ "No reminders. Ask in chat: “remind me at 6 to…”": [
+  "Aucun rappel. Demandez dans la discussion : « rappelle-moi à 18 h de… »",
+  "لا توجد تذكيرات. اطلب في المحادثة: «ذكّرني الساعة 6 بـ…»"
+ ],
+ "Cancel reminder": [
+  "Annuler le rappel",
+  "إلغاء التذكير"
+ ],
+ "Reminder cancelled": [
+  "Rappel annulé",
+  "تم إلغاء التذكير"
+ ],
+ "What A.S.T.R.O AI remembers about you": [
+  "Ce dont A.S.T.R.O AI se souvient à votre sujet",
+  "ما يتذكره A.S.T.R.O AI عنك"
+ ],
+ "Nothing yet. Say “remember that I…” in chat.": [
+  "Rien pour l'instant. Dites « souviens-toi que je… » dans la discussion.",
+  "لا شيء بعد. قل «تذكّر أنني…» في المحادثة."
+ ],
+ "Forget": [
+  "Oublier",
+  "انسَ"
+ ],
+ "Remember": [
+  "Retenir",
+  "تذكّر"
+ ],
+ "A fact about you": [
+  "Un fait sur vous",
+  "معلومة عنك"
+ ],
+ "New reminder": [
+  "Nouveau rappel",
+  "تذكير جديد"
+ ],
+ "Remind me to…": [
+  "Me rappeler de…",
+  "ذكّرني بأن…"
+ ],
+ "Reminder set": [
+  "Rappel programmé",
+  "تم ضبط التذكير"
+ ],
+ "Pick a time in the future": [
+  "Choisissez une heure dans le futur",
+  "اختر وقتًا في المستقبل"
+ ],
+ "You": [
+  "Vous",
+  "أنت"
+ ],
+ "Your name (used in greetings and answers)": [
+  "Votre nom (utilisé dans les salutations et les réponses)",
+  "اسمك (يُستخدم في التحيات والإجابات)"
+ ],
+ "Language": [
+  "Langue",
+  "اللغة"
+ ],
+ "Interface": [
+  "Interface",
+  "الواجهة"
+ ],
+ "Phone setting": [
+  "Réglage du téléphone",
+  "إعداد الهاتف"
+ ],
+ "Answers": [
+  "Réponses",
+  "الإجابات"
+ ],
+ "Same as my message": [
+  "Comme mon message",
+  "مثل رسالتي"
+ ],
+ "Animations": [
+  "Animations",
+  "الحركات"
+ ],
+ "The live logo, brain panel and transitions": [
+  "Le logo animé, le panneau du cerveau et les transitions",
+  "الشعار الحي ولوحة العقل والانتقالات"
+ ],
+ "Default style": [
+  "Style par défaut",
+  "النمط الافتراضي"
+ ],
+ "Actions in answers": [
+  "Actions dans les réponses",
+  "إجراءات داخل الإجابات"
+ ],
+ "Notes, tasks, reminders, memory and settings can be changed from chat, with undo": [
+  "Les notes, tâches, rappels, la mémoire et les réglages peuvent être modifiés depuis la discussion, avec annulation",
+  "يمكن تغيير الملاحظات والمهام والتذكيرات والذاكرة والإعدادات من المحادثة، مع إمكانية التراجع"
+ ],
+ "Search the web": [
+  "Rechercher sur le web",
+  "البحث في الويب"
+ ],
+ "Look things up before answering (also the Web chip in the composer)": [
+  "Chercher avant de répondre (aussi la puce Web dans la zone de saisie)",
+  "البحث قبل الإجابة (وأيضًا زر الويب في مربع الكتابة)"
+ ],
+ "Check code after the answer": [
+  "Vérifier le code après la réponse",
+  "فحص الشيفرة بعد الإجابة"
+ ],
+ "Runs code from answers in a sandbox and warns if it fails; never slows the answer": [
+  "Exécute le code des réponses dans un bac à sable et avertit en cas d'échec ; ne ralentit jamais la réponse",
+  "يشغّل الشيفرة من الإجابات في بيئة معزولة وينبّه إذا فشلت؛ ولا يبطئ الإجابة أبدًا"
+ ],
+ "Read answers aloud": [
+  "Lire les réponses à voix haute",
+  "قراءة الإجابات بصوت عالٍ"
+ ],
+ "Enter key sends": [
+  "La touche Entrée envoie",
+  "مفتاح الإدخال يرسل"
+ ],
+ "Otherwise Enter adds a new line": [
+  "Sinon, Entrée ajoute une nouvelle ligne",
+  "وإلا فإن مفتاح الإدخال يضيف سطرًا جديدًا"
+ ],
+ "One Brain: every free model thinks about your question, then their answers are merged and reviewed into one. It is slower than one model, but more careful.": [
+  "One Brain : chaque modèle gratuit réfléchit à votre question, puis leurs réponses sont fusionnées et revues en une seule. C'est plus lent qu'un seul modèle, mais plus soigné.",
+  "العقل الواحد: كل نموذج مجاني يفكر في سؤالك، ثم تُدمج إجاباتهم وتُراجع في إجابة واحدة. إنه أبطأ من نموذج واحد، لكنه أكثر دقة."
+ ],
+ "Minds": [
+  "Esprits",
+  "العقول"
+ ],
+ "How many models think together": [
+  "Combien de modèles réfléchissent ensemble",
+  "كم نموذجًا يفكر معًا"
+ ],
+ "Wait for every model": [
+  "Attendre chaque modèle",
+  "انتظار كل نموذج"
+ ],
+ "In All mode, slow models finish too before the merge (up to 20 minutes)": [
+  "En mode Tous, les modèles lents terminent aussi avant la fusion (jusqu'à 20 minutes)",
+  "في وضع الكل، تنتهي النماذج البطيئة أيضًا قبل الدمج (حتى 20 دقيقة)"
+ ],
+ "Show the first answer while waiting": [
+  "Afficher la première réponse pendant l'attente",
+  "عرض أول إجابة أثناء الانتظار"
+ ],
+ "You can read the fastest draft while the brain merges": [
+  "Vous pouvez lire le brouillon le plus rapide pendant que le cerveau fusionne",
+  "يمكنك قراءة أسرع مسودة بينما يدمج العقل"
+ ],
+ "Extra wait for slower minds: # s": [
+  "Attente supplémentaire pour les esprits lents : # s",
+  "انتظار إضافي للعقول البطيئة: # ث"
+ ],
+ "Some free providers use prompts to improve their models. Turn off to skip them.": [
+  "Certains fournisseurs gratuits utilisent les requêtes pour améliorer leurs modèles. Désactivez pour les ignorer.",
+  "بعض المزوّدين المجانيين يستخدمون الطلبات لتحسين نماذجهم. أوقف هذا الخيار لتخطيهم."
+ ],
+ "Only models on this device or computer": [
+  "Seulement les modèles sur cet appareil ou cet ordinateur",
+  "النماذج الموجودة على هذا الجهاز أو الحاسوب فقط"
+ ],
+ "Never send prompts to online providers": [
+  "Ne jamais envoyer de requêtes aux fournisseurs en ligne",
+  "عدم إرسال الطلبات إلى المزوّدين عبر الإنترنت أبدًا"
+ ],
+ "Speaking": [
+  "Voix",
+  "التحدث"
+ ],
+ "Speed: #": [
+  "Vitesse : #",
+  "السرعة: #"
+ ],
+ "Pitch: #": [
+  "Hauteur : #",
+  "طبقة الصوت: #"
+ ],
+ "Test the voice": [
+  "Tester la voix",
+  "تجربة الصوت"
+ ],
+ "Hello, I am Astro A.I. All models think together as one brain.": [
+  "Bonjour, je suis Astro A.I. Tous les modèles réfléchissent ensemble comme un seul cerveau.",
+  "مرحبًا، أنا Astro A.I. كل النماذج تفكر معًا كعقل واحد."
+ ],
+ "Voices come from the phone's text-to-speech engine. Install more in Android settings.": [
+  "Les voix viennent du moteur de synthèse vocale du téléphone. Installez-en d'autres dans les paramètres Android.",
+  "تأتي الأصوات من محرك تحويل النص إلى كلام في الهاتف. ثبّت المزيد من إعدادات أندرويد."
+ ],
+ "Automatic (matches the answer's language)": [
+  "Automatique (selon la langue de la réponse)",
+  "تلقائي (حسب لغة الإجابة)"
+ ],
+ "This is how I sound.": [
+  "Voici ma voix.",
+  "هكذا يبدو صوتي."
+ ],
+ "Listening": [
+  "Écoute",
+  "الاستماع"
+ ],
+ "Speech recognition is available.": [
+  "La reconnaissance vocale est disponible.",
+  "التعرف على الكلام متاح."
+ ],
+ "No speech recognition service on this phone. Install Google or another voice input app.": [
+  "Aucun service de reconnaissance vocale sur ce téléphone. Installez Google ou une autre application de saisie vocale.",
+  "لا توجد خدمة للتعرف على الكلام على هذا الهاتف. ثبّت Google أو تطبيق إدخال صوتي آخر."
+ ],
+ "Keys stay in the engine (on this phone, or on your computer in computer mode) and are never shown again. Free tiers have daily limits; they are not unlimited.": [
+  "Les clés restent dans le moteur (sur ce téléphone, ou sur votre ordinateur en mode ordinateur) et ne sont plus jamais affichées. Les offres gratuites ont des limites quotidiennes ; elles ne sont pas illimitées.",
+  "تبقى المفاتيح داخل المحرك (على هذا الهاتف، أو على حاسوبك في وضع الحاسوب) ولا تُعرض مرة أخرى. للفئات المجانية حدود يومية؛ وهي ليست غير محدودة."
+ ],
+ "# of # providers connected · # models": [
+  "# fournisseurs connectés sur # · # modèles",
+  "# من # مزوّدين متصلون · # نماذج"
+ ],
+ "Each key is free and takes about a minute. More keys = more minds in One Brain and fewer pauses.": [
+  "Chaque clé est gratuite et prend environ une minute. Plus de clés = plus d'esprits dans One Brain et moins de pauses.",
+  "كل مفتاح مجاني ويستغرق نحو دقيقة. مفاتيح أكثر = عقول أكثر في العقل الواحد وتوقفات أقل."
+ ],
+ "All providers": [
+  "Tous les fournisseurs",
+  "كل المزوّدين"
+ ],
+ "no key needed": [
+  "aucune clé nécessaire",
+  "لا حاجة إلى مفتاح"
+ ],
+ "Paid provider: off in Team mode unless you turn it on.": [
+  "Fournisseur payant : désactivé en mode Équipe sauf si vous l'activez.",
+  "مزوّد مدفوع: متوقف في وضع الفريق ما لم تفعّله."
+ ],
+ "This provider may use prompts for training.": [
+  "Ce fournisseur peut utiliser les requêtes pour l'entraînement.",
+  "قد يستخدم هذا المزوّد الطلبات للتدريب."
+ ],
+ "Replace the key": [
+  "Remplacer la clé",
+  "استبدال المفتاح"
+ ],
+ "Paste the key": [
+  "Collez la clé",
+  "الصق المفتاح"
+ ],
+ "Saved. The engine restarts to load it…": [
+  "Enregistré. Le moteur redémarre pour la charger…",
+  "تم الحفظ. يعاد تشغيل المحرك لتحميله…"
+ ],
+ "Get a key": [
+  "Obtenir une clé",
+  "احصل على مفتاح"
+ ],
+ "Testing…": [
+  "Test…",
+  "جارٍ الاختبار…"
+ ],
+ "Works (#)": [
+  "Fonctionne (#)",
+  "يعمل (#)"
+ ],
+ "Failed": [
+  "Échec",
+  "فشل"
+ ],
+ "Remove key": [
+  "Supprimer la clé",
+  "إزالة المفتاح"
+ ],
+ "Built-in engine on this phone": [
+  "Moteur intégré sur ce téléphone",
+  "المحرك المدمج على هذا الهاتف"
+ ],
+ "Engine # · # models": [
+  "Moteur # · # modèles",
+  "المحرك # · # نماذج"
+ ],
+ "Use this phone instead": [
+  "Utiliser plutôt ce téléphone",
+  "استخدم هذا الهاتف بدلًا من ذلك"
+ ],
+ "Restart": [
+  "Redémarrer",
+  "إعادة التشغيل"
+ ],
+ "Built-in: everything runs inside the app; models answer through their providers on the internet. Computer: the phone uses A.S.T.R.O AI running on your PC (same Wi-Fi or a private network), with its models, keys and projects.": [
+  "Intégré : tout tourne dans l'application ; les modèles répondent via leurs fournisseurs sur Internet. Ordinateur : le téléphone utilise A.S.T.R.O AI installé sur votre PC (même Wi-Fi ou réseau privé), avec ses modèles, clés et projets.",
+  "مدمج: كل شيء يعمل داخل التطبيق؛ وتجيب النماذج عبر مزوّديها على الإنترنت. الحاسوب: يستخدم الهاتف A.S.T.R.O AI العامل على حاسوبك (نفس شبكة Wi-Fi أو شبكة خاصة)، مع نماذجه ومفاتيحه ومشاريعه."
+ ],
+ "Engine log": [
+  "Journal du moteur",
+  "سجل المحرك"
+ ],
+ "Show the log": [
+  "Afficher le journal",
+  "عرض السجل"
+ ],
+ "Hide the log": [
+  "Masquer le journal",
+  "إخفاء السجل"
+ ],
+ "On this phone": [
+  "Sur ce téléphone",
+  "على هذا الهاتف"
+ ],
+ "# chats · # notes · # tasks · # memories": [
+  "# discussions · # notes · # tâches · # souvenirs",
+  "# محادثات · # ملاحظات · # مهام · # ذكريات"
+ ],
+ "Saved in the app's private storage. Not in the cloud unless you turn on sync below.": [
+  "Enregistré dans le stockage privé de l'application. Pas dans le cloud, sauf si vous activez la synchronisation ci-dessous.",
+  "محفوظ في التخزين الخاص بالتطبيق. ليس في السحابة ما لم تفعّل المزامنة أدناه."
+ ],
+ "Export all": [
+  "Tout exporter",
+  "تصدير الكل"
+ ],
+ "Delete everything": [
+  "Tout supprimer",
+  "حذف كل شيء"
+ ],
+ "Sync with your computer": [
+  "Synchroniser avec votre ordinateur",
+  "المزامنة مع حاسوبك"
+ ],
+ "Keep chats, notes and tasks in sync": [
+  "Garder discussions, notes et tâches synchronisées",
+  "إبقاء المحادثات والملاحظات والمهام متزامنة"
+ ],
+ "Saves them on your computer's A.S.T.R.O AI so both stay the same": [
+  "Les enregistre dans A.S.T.R.O AI sur votre ordinateur pour que les deux restent identiques",
+  "يحفظها في A.S.T.R.O AI على حاسوبك ليبقى الاثنان متطابقين"
+ ],
+ "Save now": [
+  "Enregistrer maintenant",
+  "احفظ الآن"
+ ],
+ "Already up to date": [
+  "Déjà à jour",
+  "محدّث بالفعل"
+ ],
+ "Load from computer": [
+  "Charger depuis l'ordinateur",
+  "التحميل من الحاسوب"
+ ],
+ "Nothing saved on the computer yet": [
+  "Rien d'enregistré sur l'ordinateur pour l'instant",
+  "لا شيء محفوظ على الحاسوب بعد"
+ ],
+ "Loaded": [
+  "Chargé",
+  "تم التحميل"
+ ],
+ "Reports": [
+  "Rapports",
+  "التقارير"
+ ],
+ "Send crash reports automatically": [
+  "Envoyer automatiquement les rapports de plantage",
+  "إرسال تقارير الأعطال تلقائيًا"
+ ],
+ "Off by default. Only the error and app version, with personal paths and keys removed.": [
+  "Désactivé par défaut. Seulement l'erreur et la version de l'application, sans chemins personnels ni clés.",
+  "متوقف افتراضيًا. الخطأ وإصدار التطبيق فقط، مع إزالة المسارات الشخصية والمفاتيح."
+ ],
+ "Send feedback or report a problem": [
+  "Envoyer un avis ou signaler un problème",
+  "أرسل ملاحظة أو أبلغ عن مشكلة"
+ ],
+ "Delete everything?": [
+  "Tout supprimer ?",
+  "حذف كل شيء؟"
+ ],
+ "All chats, notes, tasks, memory and reminders on this phone are deleted. This cannot be undone.": [
+  "Toutes les discussions, notes, tâches, la mémoire et les rappels de ce téléphone seront supprimés. C'est irréversible.",
+  "ستُحذف كل المحادثات والملاحظات والمهام والذاكرة والتذكيرات على هذا الهاتف. لا يمكن التراجع عن ذلك."
+ ],
+ "Everything was deleted": [
+  "Tout a été supprimé",
+  "تم حذف كل شيء"
+ ],
+ "All Systems Thinking, Reasoning as One": [
+  "All Systems Thinking, Reasoning as One",
+  "All Systems Thinking, Reasoning as One"
+ ],
+ "Android # · engine #": [
+  "Android # · moteur #",
+  "أندرويد # · المحرك #"
+ ],
+ "Updates come from the official site. Android checks that each update is signed by the same key as this app.": [
+  "Les mises à jour viennent du site officiel. Android vérifie que chaque mise à jour est signée avec la même clé que cette application.",
+  "تأتي التحديثات من الموقع الرسمي. يتحقق أندرويد من أن كل تحديث موقّع بالمفتاح نفسه الذي وُقّع به هذا التطبيق."
+ ],
+ "Check for updates automatically": [
+  "Vérifier automatiquement les mises à jour",
+  "التحقق من التحديثات تلقائيًا"
+ ],
+ "Checking…": [
+  "Vérification…",
+  "جارٍ التحقق…"
+ ],
+ "Install #": [
+  "Installer #",
+  "تثبيت #"
+ ],
+ "A.S.T.R.O AI is free and open source. Free model tiers have limits; donations and the optional Pro plan help keep it running.": [
+  "A.S.T.R.O AI est gratuit et open source. Les offres gratuites des modèles ont des limites ; les dons et l'offre Pro facultative aident à le faire fonctionner.",
+  "A.S.T.R.O AI مجاني ومفتوح المصدر. للفئات المجانية من النماذج حدود؛ والتبرعات وخطة Pro الاختيارية تساعد على استمراره."
+ ],
+ "Support": [
+  "Soutenir",
+  "الدعم"
+ ],
+ "Pro": [
+  "Pro",
+  "Pro"
+ ],
+ "Beta": [
+  "Bêta",
+  "تجريبي"
+ ],
+ "Pro license key": [
+  "Clé de licence Pro",
+  "مفتاح ترخيص Pro"
+ ],
+ "Activate": [
+  "Activer",
+  "تفعيل"
+ ],
+ "Links": [
+  "Liens",
+  "روابط"
+ ],
+ "Website": [
+  "Site web",
+  "الموقع"
+ ],
+ "Documentation": [
+  "Documentation",
+  "التوثيق"
+ ],
+ "Source code": [
+  "Code source",
+  "الشيفرة المصدرية"
+ ],
+ "Report a security issue": [
+  "Signaler un problème de sécurité",
+  "الإبلاغ عن مشكلة أمنية"
+ ],
+ "Licenses": [
+  "Licences",
+  "التراخيص"
+ ],
+ "A.S.T.R.O AI: MIT OR Apache-2.0 OR GPL-3.0. Includes OpenSSL (Apache-2.0), curl (curl license), Inter, Instrument Serif and JetBrains Mono (SIL OFL 1.1), AndroidX and Jetpack Compose (Apache-2.0). Full texts are in the app's licenses folder and on the website.": [
+  "A.S.T.R.O AI : MIT OR Apache-2.0 OR GPL-3.0. Inclut OpenSSL (Apache-2.0), curl (licence curl), Inter, Instrument Serif et JetBrains Mono (SIL OFL 1.1), AndroidX et Jetpack Compose (Apache-2.0). Les textes complets sont dans le dossier licences de l'application et sur le site.",
+  "A.S.T.R.O AI: MIT OR Apache-2.0 OR GPL-3.0. يتضمن OpenSSL (Apache-2.0) وcurl (ترخيص curl) وInter وInstrument Serif وJetBrains Mono (SIL OFL 1.1) وAndroidX وJetpack Compose (Apache-2.0). النصوص الكاملة في مجلد التراخيص داخل التطبيق وعلى الموقع."
+ ],
+ "Every free AI model thinks about your question together, and you get one careful answer. Chat, talk live, write code, run it, and let the agent build things.": [
+  "Chaque modèle d'IA gratuit réfléchit ensemble à votre question, et vous obtenez une réponse soignée. Discutez, parlez en direct, écrivez du code, exécutez-le et laissez l'agent construire.",
+  "كل نماذج الذكاء الاصطناعي المجانية تفكر معًا في سؤالك، فتحصل على إجابة واحدة دقيقة. تحدث كتابةً أو مباشرة بالصوت، واكتب الشيفرة وشغّلها، ودع الوكيل يبني الأشياء."
+ ],
+ "All models answer, then merge and review": [
+  "Tous les modèles répondent, puis fusionnent et révisent",
+  "كل النماذج تجيب، ثم تُدمج الإجابات وتُراجع"
+ ],
+ "Talk hands-free, it answers out loud": [
+  "Parlez mains libres, il répond à voix haute",
+  "تحدث دون استخدام يديك، ويجيب بصوت عالٍ"
+ ],
+ "Workspace and agent": [
+  "Espace de travail et agent",
+  "مساحة العمل والوكيل"
+ ],
+ "Files, code that runs, and an agent with undo": [
+  "Fichiers, code qui s'exécute et un agent avec annulation",
+  "ملفات، وشيفرة تعمل، ووكيل مع إمكانية التراجع"
+ ],
+ "Your organiser": [
+  "Votre organiseur",
+  "منظّمك"
+ ],
+ "Notes, tasks, reminders and memory, on this phone": [
+  "Notes, tâches, rappels et mémoire, sur ce téléphone",
+  "ملاحظات ومهام وتذكيرات وذاكرة، على هذا الهاتف"
+ ],
+ "Free model tiers have daily limits; they are not unlimited.": [
+  "Les offres gratuites des modèles ont des limites quotidiennes ; elles ne sont pas illimitées.",
+  "للفئات المجانية من النماذج حدود يومية؛ وهي ليست غير محدودة."
+ ],
+ "About you": [
+  "À propos de vous",
+  "عنك"
+ ],
+ "What should A.S.T.R.O AI call you? (optional)": [
+  "Comment A.S.T.R.O AI doit-il vous appeler ? (facultatif)",
+  "بماذا يناديك A.S.T.R.O AI؟ (اختياري)"
+ ],
+ "Off by default. Helps fix bugs; personal paths and keys are removed.": [
+  "Désactivé par défaut. Aide à corriger les bugs ; les chemins personnels et les clés sont retirés.",
+  "متوقف افتراضيًا. يساعد على إصلاح الأخطاء؛ وتُزال المسارات الشخصية والمفاتيح."
+ ],
+ "Where should it run?": [
+  "Où doit-il fonctionner ?",
+  "أين يجب أن يعمل؟"
+ ],
+ "Recommended. The engine runs inside the app; models answer through their providers online. Works anywhere with internet.": [
+  "Recommandé. Le moteur tourne dans l'application ; les modèles répondent via leurs fournisseurs en ligne. Fonctionne partout avec Internet.",
+  "موصى به. يعمل المحرك داخل التطبيق؛ وتجيب النماذج عبر مزوّديها على الإنترنت. يعمل في أي مكان مع اتصال بالإنترنت."
+ ],
+ "On my computer": [
+  "Sur mon ordinateur",
+  "على حاسوبي"
+ ],
+ "Use A.S.T.R.O AI running on your PC (same Wi-Fi or a private network): its models, keys and projects.": [
+  "Utiliser A.S.T.R.O AI installé sur votre PC (même Wi-Fi ou réseau privé) : ses modèles, clés et projets.",
+  "استخدم A.S.T.R.O AI العامل على حاسوبك (نفس شبكة Wi-Fi أو شبكة خاصة): نماذجه ومفاتيحه ومشاريعه."
+ ],
+ "Engine ready · # models": [
+  "Moteur prêt · # modèles",
+  "المحرك جاهز · # نماذج"
+ ],
+ "Starting the engine…": [
+  "Démarrage du moteur…",
+  "جارٍ تشغيل المحرك…"
+ ],
+ "Continue": [
+  "Continuer",
+  "متابعة"
+ ],
+ "Start": [
+  "Commencer",
+  "ابدأ"
+ ],
+ "Could not reach it": [
+  "Impossible de le joindre",
+  "تعذّر الوصول إليه"
+ ],
+ "Could not sign in": [
+  "Impossible de se connecter",
+  "تعذّر تسجيل الدخول"
+ ],
+ "Connect to your computer": [
+  "Se connecter à votre ordinateur",
+  "الاتصال بحاسوبك"
+ ],
+ "1. On your computer, run the A.S.T.R.O AI server so the phone can reach it: build it from the source and start ./workspace_server (it listens on port 4173 and asks you to create a password). The desktop app and the astro command only listen on the computer itself.": [
+  "1. Sur votre ordinateur, lancez le serveur A.S.T.R.O AI pour que le téléphone puisse l'atteindre : compilez-le depuis les sources et démarrez ./workspace_server (il écoute sur le port 4173 et vous demande de créer un mot de passe). L'application de bureau et la commande astro n'écoutent que sur l'ordinateur lui-même.",
+  "1. على حاسوبك، شغّل خادم A.S.T.R.O AI ليتمكن الهاتف من الوصول إليه: ابنِه من الشيفرة المصدرية وشغّل ./workspace_server (يستمع على المنفذ 4173 ويطلب منك إنشاء كلمة مرور). تطبيق سطح المكتب وأمر astro يستمعان على الحاسوب نفسه فقط."
+ ],
+ "2. Type the address it shows, for example 192.168.1.20:4173. Use the same Wi-Fi, or a private network like Tailscale.": [
+  "2. Saisissez l'adresse qu'il affiche, par exemple 192.168.1.20:4173. Utilisez le même Wi-Fi, ou un réseau privé comme Tailscale.",
+  "2. اكتب العنوان الذي يظهره، مثل 192.168.1.20:4173. استخدم نفس شبكة Wi-Fi، أو شبكة خاصة مثل Tailscale."
+ ],
+ "Computer address": [
+  "Adresse de l'ordinateur",
+  "عنوان الحاسوب"
+ ],
+ "Found A.S.T.R.O AI at #": [
+  "A.S.T.R.O AI trouvé à #",
+  "تم العثور على A.S.T.R.O AI في #"
+ ],
+ "This computer has no password. Only connect on a network you trust.": [
+  "Cet ordinateur n'a pas de mot de passe. Connectez-vous seulement sur un réseau de confiance.",
+  "هذا الحاسوب بدون كلمة مرور. لا تتصل إلا على شبكة تثق بها."
+ ],
+ "Create the computer's password (8+ characters)": [
+  "Créez le mot de passe de l'ordinateur (8 caractères ou plus)",
+  "أنشئ كلمة مرور الحاسوب (8 أحرف أو أكثر)"
+ ],
+ "The computer's password": [
+  "Le mot de passe de l'ordinateur",
+  "كلمة مرور الحاسوب"
+ ],
+ "Connect": [
+  "Se connecter",
+  "اتصال"
+ ],
+ "Plain http is only allowed to this phone and private network addresses (192.168.x, 10.x, 172.16–31.x, 100.64–127.x). The password is sent only to your computer; the phone keeps a session token, never the password.": [
+  "Le http simple n'est autorisé que vers ce téléphone et les adresses de réseau privé (192.168.x, 10.x, 172.16–31.x, 100.64–127.x). Le mot de passe n'est envoyé qu'à votre ordinateur ; le téléphone garde un jeton de session, jamais le mot de passe.",
+  "يُسمح بـ http العادي فقط إلى هذا الهاتف وعناوين الشبكات الخاصة (192.168.x و10.x و172.16–31.x و100.64–127.x). تُرسل كلمة المرور إلى حاسوبك فقط؛ ويحتفظ الهاتف برمز جلسة، وليس بكلمة المرور أبدًا."
+ ],
+ "Tell the team what to fix or build": [
+  "Dites à l'équipe quoi corriger ou construire",
+  "أخبر الفريق بما يجب إصلاحه أو بناؤه"
+ ],
+ "Thank you! Your message was sent.": [
+  "Merci ! Votre message a été envoyé.",
+  "شكرًا لك! تم إرسال رسالتك."
+ ],
+ "Send another": [
+  "Envoyer un autre",
+  "إرسال رسالة أخرى"
+ ],
+ "Email for a reply (optional)": [
+  "E-mail pour une réponse (facultatif)",
+  "بريد إلكتروني للرد (اختياري)"
+ ],
+ "Sent with the app version and Android version only. No chats are included.": [
+  "Envoyé avec la version de l'application et d'Android seulement. Aucune discussion n'est incluse.",
+  "يُرسل مع إصدار التطبيق وإصدار أندرويد فقط. لا تُضمّن أي محادثات."
+ ],
+ "Could not send": [
+  "Envoi impossible",
+  "تعذّر الإرسال"
+ ],
+ "Elsewhere": [
+  "Ailleurs",
+  "في أماكن أخرى"
+ ],
+ "Public discussion and bug reports: GitHub issues.": [
+  "Discussions publiques et rapports de bugs : GitHub issues.",
+  "النقاش العام وتقارير الأخطاء: GitHub issues."
+ ],
+ "Join the beta to try features early.": [
+  "Rejoignez la bêta pour essayer les nouveautés en avance.",
+  "انضم إلى النسخة التجريبية لتجربة الميزات مبكرًا."
+ ],
+ "Could not open it": [
+  "Impossible de l'ouvrir",
+  "تعذّر فتحه"
+ ],
+ "Read any page or file, then summarise, ask or save": [
+  "Lisez n'importe quelle page ou fichier, puis résumez, posez une question ou enregistrez",
+  "اقرأ أي صفحة أو ملف، ثم لخّص أو اسأل أو احفظ"
+ ],
+ "Paste a link, or search the web": [
+  "Collez un lien, ou cherchez sur le web",
+  "الصق رابطًا، أو ابحث في الويب"
+ ],
+ "Go": [
+  "Aller",
+  "انتقال"
+ ],
+ "Reading…": [
+  "Lecture…",
+  "جارٍ القراءة…"
+ ],
+ "Summarise": [
+  "Résumer",
+  "تلخيص"
+ ],
+ "Explain simply": [
+  "Expliquer simplement",
+  "اشرح ببساطة"
+ ],
+ "Saved to Notes": [
+  "Enregistré dans les Notes",
+  "تم الحفظ في الملاحظات"
+ ],
+ "Open in browser": [
+  "Ouvrir dans le navigateur",
+  "فتح في المتصفح"
+ ],
+ "Ask a question about it": [
+  "Poser une question à ce sujet",
+  "اطرح سؤالًا عنه"
+ ],
+ "# words": [
+  "# mots",
+  "# كلمة"
+ ],
+ "Read anything": [
+  "Lire n'importe quoi",
+  "اقرأ أي شيء"
+ ],
+ "Paste a link to a page or open a PDF, Word or text file. Words without a link search the web.": [
+  "Collez le lien d'une page ou ouvrez un fichier PDF, Word ou texte. Des mots sans lien lancent une recherche web.",
+  "الصق رابط صفحة أو افتح ملف PDF أو Word أو نص. الكلمات بدون رابط تبحث في الويب."
+ ],
+ "Files the answers can quote from": [
+  "Fichiers que les réponses peuvent citer",
+  "ملفات يمكن للإجابات الاقتباس منها"
+ ],
+ "Add files": [
+  "Ajouter des fichiers",
+  "إضافة ملفات"
+ ],
+ "Add PDFs, Word files, notes or code. A.S.T.R.O AI finds the relevant parts and cites them in its answers. Files stay attached to the current chat and are read on this phone.": [
+  "Ajoutez des PDF, fichiers Word, notes ou du code. A.S.T.R.O AI trouve les passages utiles et les cite dans ses réponses. Les fichiers restent joints à la discussion en cours et sont lus sur ce téléphone.",
+  "أضف ملفات PDF أو Word أو ملاحظات أو شيفرة. يجد A.S.T.R.O AI الأجزاء المهمة ويستشهد بها في إجاباته. تبقى الملفات مرفقة بالمحادثة الحالية وتُقرأ على هذا الهاتف."
+ ],
+ "Ask about them": [
+  "Poser une question à leur sujet",
+  "اسأل عنها"
+ ],
+ "No knowledge files yet": [
+  "Pas encore de fichier de connaissances",
+  "لا توجد ملفات معرفة بعد"
+ ],
+ "# characters": [
+  "# caractères",
+  "# حرف"
+ ],
+ "Exact maths, also usable from chat": [
+  "Calcul exact, utilisable aussi depuis la discussion",
+  "رياضيات دقيقة، يمكن استخدامها من المحادثة أيضًا"
+ ],
+ "History": [
+  "Historique",
+  "السجل"
+ ],
+ "# free models · test them side by side": [
+  "# modèles gratuits · testez-les côte à côte",
+  "# نماذج مجانية · اختبرها جنبًا إلى جنب"
+ ],
+ "Prompt": [
+  "Requête",
+  "الطلب"
+ ],
+ "e.g. Explain recursion in 3 sentences.": [
+  "ex. Explique la récursivité en 3 phrases.",
+  "مثال: اشرح التعاود في 3 جمل."
+ ],
+ "Results": [
+  "Résultats",
+  "النتائج"
+ ],
+ "Models": [
+  "Modèles",
+  "النماذج"
+ ],
+ "Fastest 4": [
+  "Les 4 plus rapides",
+  "أسرع 4"
+ ],
+ "Finished in #": [
+  "Terminé en #",
+  "انتهى في #"
+ ],
+ "Exit code # · #": [
+  "Code de sortie # · #",
+  "رمز الخروج # · #"
+ ],
+ "Stopped": [
+  "Arrêté",
+  "توقف"
+ ],
+ "No project": [
+  "Aucun projet",
+  "لا يوجد مشروع"
+ ],
+ "Projects": [
+  "Projets",
+  "المشاريع"
+ ],
+ "New project": [
+  "Nouveau projet",
+  "مشروع جديد"
+ ],
+ "Agent on this project": [
+  "Agent sur ce projet",
+  "الوكيل على هذا المشروع"
+ ],
+ "Could not open the workspace": [
+  "Impossible d'ouvrir l'espace de travail",
+  "تعذّر فتح مساحة العمل"
+ ],
+ "Name (letters, numbers, - and _)": [
+  "Nom (lettres, chiffres, - et _)",
+  "الاسم (أحرف وأرقام و- و_)"
+ ],
+ "Create": [
+  "Créer",
+  "إنشاء"
+ ],
+ "This project is empty": [
+  "Ce projet est vide",
+  "هذا المشروع فارغ"
+ ],
+ "Create a file, or send code from chat with “Open in Workspace”.": [
+  "Créez un fichier, ou envoyez du code depuis la discussion avec « Ouvrir dans l'Espace ».",
+  "أنشئ ملفًا، أو أرسل شيفرة من المحادثة عبر «فتح في مساحة العمل»."
+ ],
+ "Preview in browser": [
+  "Aperçu dans le navigateur",
+  "معاينة في المتصفح"
+ ],
+ "Path, e.g. main.py or src/app.js": [
+  "Chemin, ex. main.py ou src/app.js",
+  "المسار، مثل main.py أو src/app.js"
+ ],
+ "Folder path": [
+  "Chemin du dossier",
+  "مسار المجلد"
+ ],
+ "New path": [
+  "Nouveau chemin",
+  "مسار جديد"
+ ],
+ "Delete #?": [
+  "Supprimer # ?",
+  "حذف #؟"
+ ],
+ "A checkpoint is made first, so you can restore it from Tools.": [
+  "Un point de restauration est créé d'abord, vous pourrez donc le récupérer depuis Outils.",
+  "تُنشأ نقطة استرجاع أولًا، لذا يمكنك استعادته من الأدوات."
+ ],
+ "No file open": [
+  "Aucun fichier ouvert",
+  "لا يوجد ملف مفتوح"
+ ],
+ "Pick a file in Files.": [
+  "Choisissez un fichier dans Fichiers.",
+  "اختر ملفًا من الملفات."
+ ],
+ "Ln #": [
+  "Ligne #",
+  "سطر #"
+ ],
+ "Ask AI about this file": [
+  "Demander à l'IA à propos de ce fichier",
+  "اسأل الذكاء الاصطناعي عن هذا الملف"
+ ],
+ "This file is binary": [
+  "Ce fichier est binaire",
+  "هذا الملف ثنائي"
+ ],
+ "It can't be edited here.": [
+  "Il ne peut pas être modifié ici.",
+  "لا يمكن تعديله هنا."
+ ],
+ "Ask AI about #": [
+  "Demander à l'IA à propos de #",
+  "اسأل الذكاء الاصطناعي عن #"
+ ],
+ "e.g. Find the bug, or add comments": [
+  "ex. Trouve le bug, ou ajoute des commentaires",
+  "مثال: جد الخطأ، أو أضف تعليقات"
+ ],
+ "Run a file, or type a command below (one at a time; colour codes are removed).": [
+  "Exécutez un fichier, ou tapez une commande ci-dessous (une à la fois ; les codes couleur sont retirés).",
+  "شغّل ملفًا، أو اكتب أمرًا أدناه (واحدًا في كل مرة؛ تُزال رموز الألوان)."
+ ],
+ "Can run here: #": [
+  "Peut s'exécuter ici : #",
+  "يمكن تشغيله هنا: #"
+ ],
+ "Search in project": [
+  "Rechercher dans le projet",
+  "البحث في المشروع"
+ ],
+ "Text to find": [
+  "Texte à trouver",
+  "النص المطلوب"
+ ],
+ "Checkpoints": [
+  "Points de restauration",
+  "نقاط الاسترجاع"
+ ],
+ "Snapshots of the whole project. The agent makes one before it changes anything.": [
+  "Instantanés de tout le projet. L'agent en crée un avant de modifier quoi que ce soit.",
+  "لقطات للمشروع كله. ينشئ الوكيل واحدة قبل أن يغيّر أي شيء."
+ ],
+ "Make a checkpoint now": [
+  "Créer un point de restauration maintenant",
+  "إنشاء نقطة استرجاع الآن"
+ ],
+ "Manual checkpoint": [
+  "Point de restauration manuel",
+  "نقطة استرجاع يدوية"
+ ],
+ "Checkpoint saved": [
+  "Point de restauration enregistré",
+  "تم حفظ نقطة الاسترجاع"
+ ],
+ "# files · #": [
+  "# fichiers · #",
+  "# ملفات · #"
+ ],
+ "Restore": [
+  "Restaurer",
+  "استعادة"
+ ],
+ "Git": [
+  "Git",
+  "Git"
+ ],
+ "Start a Git repository": [
+  "Créer un dépôt Git",
+  "إنشاء مستودع Git"
+ ],
+ "# changed files": [
+  "# fichiers modifiés",
+  "# ملفات معدّلة"
+ ],
+ "Commit message": [
+  "Message de commit",
+  "رسالة الإيداع"
+ ],
+ "Commit": [
+  "Commit",
+  "إيداع"
+ ],
+ "Committed #": [
+  "Commit # créé",
+  "تم الإيداع #"
+ ],
+ "Share as ZIP": [
+  "Partager en ZIP",
+  "مشاركة كملف ZIP"
+ ],
+ "Restore this checkpoint?": [
+  "Restaurer ce point de restauration ?",
+  "استعادة نقطة الاسترجاع هذه؟"
+ ],
+ "Files go back to “#”. A checkpoint of the current state is made first.": [
+  "Les fichiers reviennent à « # ». Un point de restauration de l'état actuel est créé d'abord.",
+  "تعود الملفات إلى «#». تُنشأ أولًا نقطة استرجاع للحالة الحالية."
+ ],
+ "Before restoring": [
+  "Avant restauration",
+  "قبل الاستعادة"
+ ],
+ "Restored": [
+  "Restauré",
+  "تمت الاستعادة"
+ ],
+ "You have the latest version (#)": [
+  "Vous avez la dernière version (#)",
+  "لديك أحدث إصدار (#)"
+ ],
+ "Could not check for updates: #": [
+  "Impossible de vérifier les mises à jour : #",
+  "تعذّر التحقق من التحديثات: #"
+ ],
+ "Allow A.S.T.R.O AI to install updates, then tap Update again": [
+  "Autorisez A.S.T.R.O AI à installer des mises à jour, puis touchez à nouveau Mettre à jour",
+  "اسمح لـ A.S.T.R.O AI بتثبيت التحديثات، ثم اضغط تحديث مرة أخرى"
+ ],
+ "Downloading #…": [
+  "Téléchargement de #…",
+  "جارٍ تنزيل #…"
+ ],
+ "Checked (SHA-256 matches). Android will ask you to install it.": [
+  "Vérifié (le SHA-256 correspond). Android va vous demander de l'installer.",
+  "تم التحقق (SHA-256 مطابق). سيطلب منك أندرويد تثبيته."
+ ],
+ "The update failed": [
+  "La mise à jour a échoué",
+  "فشل التحديث"
+ ],
+ "Text-to-speech is not available on this phone": [
+  "La synthèse vocale n'est pas disponible sur ce téléphone",
+  "تحويل النص إلى كلام غير متاح على هذا الهاتف"
+ ],
+ "(code shown on screen)": [
+  "(code affiché à l'écran)",
+  "(الشيفرة معروضة على الشاشة)"
+ ],
+ "Speech recognition is not available on this phone": [
+  "La reconnaissance vocale n'est pas disponible sur ce téléphone",
+  "التعرف على الكلام غير متاح على هذا الهاتف"
+ ],
+ "Speech recognition needs the internet on this phone": [
+  "La reconnaissance vocale a besoin d'Internet sur ce téléphone",
+  "يحتاج التعرف على الكلام إلى الإنترنت على هذا الهاتف"
+ ],
+ "The microphone is busy": [
+  "Le micro est occupé",
+  "الميكروفون مشغول"
+ ],
+ "Voice input stopped (#)": [
+  "Saisie vocale arrêtée (#)",
+  "توقف الإدخال الصوتي (#)"
+ ],
+ "Shorter": [
+  "Plus court",
+  "أقصر"
+ ],
+ "Longer": [
+  "Plus long",
+  "أطول"
+ ],
+ "Simpler": [
+  "Plus simple",
+  "أبسط"
+ ],
+ "More casual": [
+  "Plus décontracté",
+  "بأسلوب أبسط وودّي"
+ ],
+ "More professional": [
+  "Plus professionnel",
+  "بأسلوب أكثر احترافية"
+ ],
+ "Lab": [
+  "Labo",
+  "المختبر"
+ ],
+ "Ask first": [
+  "Demander d'abord",
+  "اسأل أولًا"
+ ],
+ "Coding": [
+  "Code",
+  "برمجة"
+ ],
+ "Writing": [
+  "Rédaction",
+  "كتابة"
+ ],
+ "Research": [
+  "Recherche",
+  "بحث"
+ ],
+ "Tutor": [
+  "Tuteur",
+  "معلّم"
+ ],
+ "Planning": [
+  "Planification",
+  "تخطيط"
+ ],
+ "Explain how vaccines train the immune system, simply.": [
+  "Explique simplement comment les vaccins entraînent le système immunitaire.",
+  "اشرح ببساطة كيف تدرّب اللقاحات جهاز المناعة."
+ ],
+ "Write a Python function that checks if a word is a palindrome, with tests.": [
+  "Écris une fonction Python qui vérifie si un mot est un palindrome, avec des tests.",
+  "اكتب دالة بلغة Python تتحقق مما إذا كانت الكلمة متناظرة (palindrome)، مع اختبارات."
+ ],
+ "Help me plan a balanced week: work, study, sport and rest.": [
+  "Aide-moi à planifier une semaine équilibrée : travail, études, sport et repos.",
+  "ساعدني على تخطيط أسبوع متوازن: عمل ودراسة ورياضة وراحة."
+ ],
+ "Remind me tomorrow at 9 to call the bank.": [
+  "Rappelle-moi demain à 9 h d'appeler la banque.",
+  "ذكّرني غدًا الساعة 9 بالاتصال بالبنك."
+ ],
+ "Summarise https://en.wikipedia.org/wiki/Sahara in 5 bullet points.": [
+  "Résume https://fr.wikipedia.org/wiki/Sahara en 5 points.",
+  "لخّص https://ar.wikipedia.org/wiki/الصحراء_الكبرى في 5 نقاط."
+ ],
+ "Let's practise French conversation. Correct my mistakes gently.": [
+  "Pratiquons une conversation en anglais. Corrige mes erreurs avec douceur.",
+  "لنتدرّب على محادثة باللغة الإنجليزية. صحّح أخطائي بلطف."
+ ],
+ "Due": [
+  "À échéance",
+  "مستحقة"
+ ],
+ "High priority": [
+  "Priorité haute",
+  "أولوية عالية"
+ ],
+ "Normal priority": [
+  "Priorité normale",
+  "أولوية عادية"
+ ],
+ "Low priority": [
+  "Priorité basse",
+  "أولوية منخفضة"
+ ],
+ "Providers": [
+  "Fournisseurs",
+  "المزوّدون"
+ ],
+ "Connection": [
+  "Connexion",
+  "الاتصال"
+ ],
+ "Data": [
+  "Données",
+  "البيانات"
+ ],
+ "Very fast answers": [
+  "Réponses très rapides",
+  "إجابات سريعة جدًا"
+ ],
+ "Many free models in one key": [
+  "Beaucoup de modèles gratuits avec une seule clé",
+  "نماذج مجانية كثيرة بمفتاح واحد"
+ ],
+ "Strong code models (Codestral)": [
+  "Modèles de code performants (Codestral)",
+  "نماذج قوية للبرمجة (Codestral)"
+ ],
+ "Good in Arabic and French": [
+  "Bon en arabe et en français",
+  "جيد في العربية والفرنسية"
+ ],
+ "Bug": [
+  "Bug",
+  "خلل"
+ ],
+ "Bad answers": [
+  "Mauvaises réponses",
+  "إجابات سيئة"
+ ],
+ "Code": [
+  "Code",
+  "الشيفرة"
+ ],
+ "Tools": [
+  "Outils",
+  "الأدوات"
+ ]
+}

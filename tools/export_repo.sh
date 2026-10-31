@@ -27,7 +27,7 @@ find "$OUT" \( -name node_modules -o -name __pycache__ -o -name .cache \) -prune
 rm -f "$OUT/website/netlify.toml"
 # Android: sources only. The engine binary and CA file are rebuilt by android/build_engine.sh; signing keys and
 # local SDK paths never leave this computer.
-rm -rf "$OUT/android/app/src/main/jniLibs" "$OUT/android/app/build" "$OUT/android/build" "$OUT/android/.gradle"
+rm -rf "$OUT/android/app/src/main/jniLibs" "$OUT/android/app/build" "$OUT/android/build" "$OUT/android/.gradle" "$OUT/android/.kotlin"
 rm -rf "$OUT/android/app/src/main/assets/licenses"
 rm -f "$OUT/android/app/src/main/assets/cacert.pem" "$OUT/android/local.properties" "$OUT/android/keystore.properties"
 find "$OUT/android" \( -name '*.jks' -o -name '*.keystore' -o -name '*.apk' -o -name '*.aab' \) -delete
@@ -36,6 +36,12 @@ find "$OUT/android" \( -name '*.jks' -o -name '*.keystore' -o -name '*.apk' -o -
 mkdir -p "$OUT/website/downloads"
 DL="website/downloads"; ls "$DL"/*CLEAN* >/dev/null 2>&1 || DL="desktop-builds/clean"
 for f in "$DL"/*CLEAN* "$DL"/astro-ai-vscode-*.vsix; do
+  case "$f" in *WITH-KEYS*|*with-keys*) echo "refusing $f" >&2; exit 1;; esac
+  cp "$f" "$OUT/website/downloads/"
+done
+# the native Android app (released by .github/workflows/android.yml, no edition suffix: it never contains keys)
+for f in website/downloads/AstroAI-*-android-arm64.apk; do
+  [ -f "$f" ] || continue
   case "$f" in *WITH-KEYS*|*with-keys*) echo "refusing $f" >&2; exit 1;; esac
   cp "$f" "$OUT/website/downloads/"
 done
@@ -80,6 +86,7 @@ uploads/
 desktop-builds/
 *WITH-KEYS*
 .astro_android/
+android-signing/
 .astro_dev/
 
 # ---- build output ----
@@ -94,6 +101,7 @@ android/app/src/main/assets/cacert.pem
 android/app/src/main/assets/licenses/
 android/**/build/
 android/.gradle/
+android/.kotlin/
 android/local.properties
 android/keystore.properties
 *.jks

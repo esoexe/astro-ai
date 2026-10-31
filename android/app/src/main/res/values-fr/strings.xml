@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="starting">Démarrage d’A.S.T.R.O AI…</string>
-    <string name="engine_failed">Le moteur d’A.S.T.R.O AI s’est arrêté.</string>
-    <string name="restart">Redémarrer</string>
-    <string name="mic_denied">La saisie vocale a besoin de l’autorisation du micro. Vous pouvez l’accorder dans Paramètres Android → Applications → A.S.T.R.O AI.</string>
-    <string name="saved">Enregistré dans Téléchargements</string>
+    <string name="channel_reminders">Rappels</string>
+    <string name="channel_work">Travail en cours</string>
 </resources>

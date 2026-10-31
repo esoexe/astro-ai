@@ -18,6 +18,9 @@ These bundled components keep their own licenses. Their full license texts ship 
 | curl / libcurl 8.23.0 (Android app only) | built by `android/build_engine.sh` | curl license | shipped in the APK as `assets/licenses/curl-COPYING.txt` |
 | Mozilla CA certificate list (curl.se extract, Android app only) | APK `assets/cacert.pem`, unmodified | MPL-2.0 | https://www.mozilla.org/MPL/2.0/ ; source https://curl.se/docs/caextract.html |
 | LLVM libc++ (Android NDK, Android app only) | linked into the engine | Apache-2.0 WITH LLVM-exception | https://llvm.org/LICENSE.txt |
+| Kotlin standard library, kotlinx.coroutines (Android app only) | Maven dependencies of `android/app` | Apache-2.0 | https://github.com/JetBrains/kotlin |
+| AndroidX (core, activity, lifecycle) and Jetpack Compose with Material 3 (Android app only) | Maven dependencies of `android/app` | Apache-2.0 | https://developer.android.com/jetpack/androidx ; APK `assets/licenses/NOTICE.txt` |
+| Inter, Instrument Serif, JetBrains Mono (Android app) | `android/app/src/main/res/font/` (TTF copies of `desktop/setup/fonts/`) | SIL Open Font License 1.1 | APK `assets/licenses/FONTS-LICENSE.txt` |
 
 **Downloaded on request, not bundled:** the optional *Natural voice* installs Piper (MIT, https://github.com/rhasspy/piper) and voice
 models from `rhasspy/piper-voices` with their own licenses, shown before you install: en_US ljspeech (public domain),

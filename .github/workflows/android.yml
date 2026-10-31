@@ -1,0 +1,123 @@
+# Builds the native Android app (Kotlin + Jetpack Compose, arm64, Android 8.0+) with the C++ engine inside.
+# Runs on pull requests that touch the app, by hand (Actions > Android > Run workflow), and when a tag like
+# android-v1.8.1 is pushed; tags also get a GitHub release (not marked "Latest": desktop releases keep that).
+#
+# The app has its own version (android/app-version.txt), so Android-only updates don't touch the desktop builds.
+# Release APKs are signed with the project key from the ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD /
+# ANDROID_KEY_ALIAS secrets; the certificate must match android/signing-cert.sha256 or the job fails.
+name: Android
+
+on:
+  push:
+    tags: ['android-v*']
+  pull_request:
+    paths: ['android/**', 'tools/android_*.js', 'web/i18n.js', 'workspace_server.cpp', '*.inc', 'platform.h', '.github/workflows/android.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    env:
+      HAS_ANDROID_KEY: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+      NDK_SHA1: 5107f898313790e449e87eee2183d9a20602dee9
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Version
+        run: |
+          VER=$(tr -d ' \r\n' < android/app-version.txt)
+          echo "VER=$VER" >> "$GITHUB_ENV"
+          if [[ "$GITHUB_REF" == refs/tags/android-v* ]] && [ "${GITHUB_REF_NAME#android-v}" != "$VER" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match android/app-version.txt ($VER)" >&2; exit 1
+          fi
+      - name: Translations and icons are complete and generated
+        run: |
+          node tools/android_i18n.js --check
+          node tools/android_icons.js --check
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: 9.6.0
+      - name: Android SDK platform 37 and build tools
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" "build-tools;36.0.0" > /dev/null
+      - name: Android NDK r30 (checksum pinned)
+        run: |
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/ndk.zip" https://dl.google.com/android/repository/android-ndk-r30-linux.zip
+          echo "$NDK_SHA1  $RUNNER_TEMP/ndk.zip" | sha1sum -c -
+          unzip -q "$RUNNER_TEMP/ndk.zip" -d "$RUNNER_TEMP" && rm "$RUNNER_TEMP/ndk.zip"
+          echo "ANDROID_NDK_ROOT=$RUNNER_TEMP/android-ndk-r30" >> "$GITHUB_ENV"
+      - name: Build the engine (OpenSSL, curl and the engine from pinned sources)
+        run: ASTRO_ANDROID_STATIC_TEST=1 JOBS=4 bash android/build_engine.sh
+      - name: Test the engine (arm64, under qemu)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq qemu-user-static
+          bash android/test_engine_qemu.sh
+      - name: Signing key
+        if: env.HAS_ANDROID_KEY == 'true' && github.event_name != 'pull_request'
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/astro-release.jks"
+          echo "ASTRO_ANDROID_KEYSTORE=$RUNNER_TEMP/astro-release.jks" >> "$GITHUB_ENV"
+      - name: Unit tests, lint and the APKs
+        env:
+          ASTRO_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ASTRO_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          if [ -z "${ASTRO_ANDROID_KEYSTORE:-}" ] && [[ "$GITHUB_REF" == refs/tags/android-v* ]]; then echo "A release needs the signing secrets." >&2; exit 1; fi
+          gradle -p android --no-daemon testDebugUnitTest lintRelease assembleRelease assembleDebug
+      - name: Check the signature and collect
+        run: |
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          mkdir -p out
+          if [ -n "${ASTRO_ANDROID_KEYSTORE:-}" ]; then
+            APK=android/app/build/outputs/apk/release/app-release.apk
+            "$BT/apksigner" verify --print-certs "$APK" | tee "$RUNNER_TEMP/certs.txt"
+            want=$(tr -d ':\n ' < android/signing-cert.sha256 | tr 'A-F' 'a-f')
+            grep -qi "certificate SHA-256 digest: $want" "$RUNNER_TEMP/certs.txt" || { echo "Signing certificate does not match android/signing-cert.sha256" >&2; exit 1; }
+            cp "$APK" "out/AstroAI-$VER-android-arm64.apk"
+          else
+            # No key (pull requests, forks, manual runs without secrets): a debug build for testing only, never released.
+            cp android/app/build/outputs/apk/debug/app-debug.apk "out/AstroAI-$VER-android-arm64-DEBUG-test-only.apk"
+          fi
+          node tools/scan_secrets.js out
+          unzip -l out/*.apk | grep -Ei 'keys\.env|workspace\.env|gateway\.env|astro_auth|seed-keys' && { echo "Key file inside the APK" >&2; exit 1; } || true
+          cd out && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - uses: actions/upload-artifact@v7
+        with:
+          name: astro-ai-android
+          path: out/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: android-reports
+          path: android/app/build/reports/
+          if-no-files-found: ignore
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/android-v')
+    needs: [build]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: astro-ai-android
+          path: files
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd files && ls -la
+          gh release create "$GITHUB_REF_NAME" * --repo "$GITHUB_REPOSITORY" --latest=false \
+            --title "A.S.T.R.O AI for Android ${GITHUB_REF_NAME#android-v}" \
+            --notes "Native Android app (Kotlin + Jetpack Compose) with the engine inside. Android 8.0+, 64-bit ARM. Not on Google Play: install the APK; later updates are offered inside the app. Signing certificate SHA-256: 51:53:44:2D:71:CE:AB:E7:DC:78:5B:E5:59:BB:BA:84:2A:E0:50:7B:19:44:56:5D:23:9B:7B:89:42:F7:16:84. Changelog: https://esoexe.github.io/astro-ai/changelog.html"

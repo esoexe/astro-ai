@@ -45,8 +45,8 @@ const tokensIn = (f, label) => {
 tokensIn('.astro_auth.json'); tokensIn('.astro_sessions'); tokensIn('desktop-builds/.gofile-links.txt'); tokensIn('.cache/gh/token', 'github token'); tokensIn('.config/astro-ai/gh_token', 'github token');
 if (fs.existsSync(path.join(ROOT, 'uploads'))) for (const f of fs.readdirSync(path.join(ROOT, 'uploads'))) tokensIn(path.join('uploads', f), 'uploads/<file>');
 // Android release signing key: its password, and a slice of the keystore itself (catches a copied .jks file)
-envFile('.astro_android/keystore.properties');
-{ const ks = path.join(ROOT, '.astro_android/astro-release.jks');
+envFile('.astro_android/keystore.properties'); envFile('android-signing/keystore.properties');
+for (const ksRel of ['.astro_android/astro-release.jks', 'android-signing/astro-release.jks']) { const ks = path.join(ROOT, ksRel);
   if (fs.existsSync(ks)) { const b = fs.readFileSync(ks); if (b.length > 600) secrets.push({ name: 'android keystore (bytes)', value: b.subarray(200, 264).toString('latin1') }); } }
 const uniq = new Map(secrets.map((s) => [s.value, s])); const known = [...uniq.values()];
 
@@ -67,6 +67,8 @@ const PUBLIC_HOST_OK = new Set(['website/src/static/assets/js/account.js', 'webs
   'providers.json', 'tools/providers_extra.json',
   // opt-in feedback: an insert-only table (RLS; the public key cannot read rows back)
   'astro_quality.inc',
+  // the Android app's fallback for reports the user sends (or opted into) while the engine is not running: same insert-only table
+  'android/app/src/main/java/io/github/esoexe/astroai/CrashReports.kt',
   // the website's feedback / beta / waitlist forms: the same insert-only astro_reports table (column grants, no SELECT)
   'website/src/static/assets/js/site.js']);
 
