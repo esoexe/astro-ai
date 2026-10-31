@@ -74,6 +74,10 @@ jobs:
           ASTRO_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           if [ -z "${ASTRO_ANDROID_KEYSTORE:-}" ] && [[ "$GITHUB_REF" == refs/tags/android-v* ]]; then echo "A release needs the signing secrets." >&2; exit 1; fi
+          # android/gradle.properties is sized for a 2 GB machine; the runner has room for lint and R8 (user-level
+          # gradle.properties wins over the project's)
+          GUH="${GRADLE_USER_HOME:-$HOME/.gradle}"; mkdir -p "$GUH"
+          printf '%s\n' 'org.gradle.jvmargs=-Xmx6g -XX:MaxMetaspaceSize=1536m -XX:ReservedCodeCacheSize=256m -XX:+UseParallelGC -Dfile.encoding=UTF-8' 'org.gradle.workers.max=4' >> "$GUH/gradle.properties"
           gradle -p android --no-daemon testDebugUnitTest lintRelease assembleRelease assembleDebug
       - name: Check the signature and collect
         run: |
