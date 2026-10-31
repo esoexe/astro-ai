@@ -14,6 +14,7 @@
     <a href="#install-linux">Install on Linux</a>
     <a href="#install-macos">Install on macOS</a>
     <a href="#install-android">Install on Android</a>
+    <a href="#phone">Use your computer from your phone</a>
     <a href="#first-chat">Your first chat</a>
     <h4>Using A.S.T.R.O AI</h4>
     <a href="#one-brain">One Brain &amp; single models</a>
@@ -84,6 +85,15 @@ cd AstroAI-{{version}}-macos-source-CLEAN
       <li>Open <strong>A.S.T.R.O AI</strong>. The engine starts inside the app; nothing runs on our servers except the AI providers you use.</li>
     </ol>
     <p>The phone version has everything except what needs a computer: a phone has no bash, Node or compilers, so Workspace commands that need them say "not found", and the Agent sandbox isn't available. Voice uses your phone's speech services. Updates: the app tells you when a new version is out and downloads the APK; Android then asks you to confirm. Every APK is signed with the same key, so a fake one can't replace your app; to check, see <a href="{{root}}download.html#verify">Verify your download</a>. More: <a href="https://github.com/esoexe/astro-ai/blob/main/docs/android.md">docs/android.md</a>.</p>
+
+    <h2 id="phone">Use your computer from your phone</h2>
+    <p>New in 1.8.1. The Android app (1.8.2 or later) can use A.S.T.R.O AI on your computer instead of the engine in the phone: your computer's models, keys, chats and projects. Both must be on the same Wi-Fi, or on a private network such as Tailscale.</p>
+    <ol>
+      <li>On the computer, open <strong>Settings › Phone</strong>, turn on <strong>Let my phone connect</strong> and click <strong>Pair a phone</strong>. (Terminal: <code>astro phone pair</code>.)</li>
+      <li>Scan the QR code with your phone's camera and tap <strong>Open in A.S.T.R.O AI</strong>. The app shows which computer it is about to connect to; tap <strong>Connect</strong>.</li>
+      <li>No camera handy? In the app, open <strong>Settings › Connection › Connect to my computer</strong> and type the address and the 8-digit code shown on the computer.</li>
+    </ol>
+    <p>Phone access is off by default, answers only devices on private networks, and only phones that paired. A code works once and expires after 10 minutes. Each phone gets its own key: remove a phone in Settings › Phone, or tap <strong>Forget this computer</strong> in the app. A paired phone can do what the app can do on that computer, including running code and agent tasks in your projects, so pair only your own phones. Traffic stays in your network but is not encrypted, so use it on networks you trust, not public Wi-Fi. It works while A.S.T.R.O AI is open on the computer.</p>
 
     <h2 id="first-chat">Your first chat</h2>
     <p>Open A.S.T.R.O AI and type a question in the box that says <strong>Ask A.S.T.R.O AI</strong>. That's it: there's no account and nothing to set up. The model menu above the chat starts on <strong>One Brain · all 26 minds together</strong>, and the status bar at the bottom left shows how many models are ready.</p>
@@ -315,6 +325,8 @@ scoop install astro-ai</code></pre>
     <p>Check that WebKitGTK 4.1 is installed (<code>sudo apt install libwebkit2gtk-4.1-0</code>), and run <code>astro-ai-clean</code> from a terminal to see any error. If you see a blank window in a virtual machine, try <code>WEBKIT_DISABLE_DMABUF_RENDERER=1 astro-ai-clean</code>.</p>
     <h3>"Port in use" or the app can't reach its engine</h3>
     <p>A.S.T.R.O AI runs a small local engine on <code>127.0.0.1</code>, starting at port <code>47612</code>. It only listens on your own computer. If a firewall asks, allow local connections. If another program uses that port, close it and restart A.S.T.R.O AI.</p>
+    <h3>My phone can't reach the computer</h3>
+    <p>Phone access uses port <code>4174</code> (Settings › Phone shows the exact addresses). Check that both devices are on the same Wi-Fi (guest networks often keep devices apart) or both on Tailscale, that the computer's firewall allows A.S.T.R.O AI on private networks, and that A.S.T.R.O AI is open on the computer. Addresses outside private networks are refused on purpose.</p>
     <h3>Answers are slow or a model fails</h3>
     <p>One Brain is slow by design (see <a href="#one-brain">above</a>). If a single model fails, it has probably hit a free-tier limit. Try another model, wait for the limit to reset, or add more free keys.</p>
     <h3>Code won't run in the Workspace</h3>

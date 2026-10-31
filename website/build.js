@@ -158,7 +158,7 @@ function layout(meta, body, rel, file) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(meta.description || SITE.description)}">
-<link rel="canonical" href="${esc(url)}">
+${meta.noindex ? '<meta name="robots" content="noindex">\n' : ''}<link rel="canonical" href="${esc(url)}">
 <meta name="theme-color" content="#0a0a0c">
 <meta name="color-scheme" content="dark">
 <meta property="og:type" content="${meta.ogType || 'website'}">

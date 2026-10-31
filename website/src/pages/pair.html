@@ -1,0 +1,34 @@
+<!--meta {"title": "Connect your phone", "description": "Pair the A.S.T.R.O AI Android app with A.S.T.R.O AI on your computer.", "nav": "", "noindex": true, "scripts": ["pair.js"]} -->
+<section class="page-hero">
+  <div class="wrap">
+    <span class="eyebrow">Phone</span>
+    <h1 class="h2">Connect your <em class="accent">phone.</em></h1>
+    <p class="lead">Use the models, keys, chats and projects of A.S.T.R.O AI on your computer from the Android app.</p>
+  </div>
+</section>
+
+<div class="wrap" style="padding-bottom:80px">
+  <article class="prose">
+    <div id="pair-ok" hidden>
+      <h2>Pair with <span id="pair-computer">your computer</span></h2>
+      <p><a class="btn btn-primary btn-lg" id="pair-open" href="#">Open in A.S.T.R.O AI</a></p>
+      <p>If the button does nothing, open the app, tap <b>Connect to my computer</b> and enter:</p>
+      <ul>
+        <li>Address: <code id="pair-url"></code></li>
+        <li>Code: <code id="pair-code" style="font-size:1.3em;letter-spacing:2px"></code></li>
+      </ul>
+      <p class="small muted">The code works once and expires 10 minutes after it was made. It and the address stay on this phone: they are in the part of the link after <code>#</code>, which browsers never send to a server.</p>
+    </div>
+    <div id="pair-none">
+      <h2>Make a pairing code on your computer</h2>
+      <ol>
+        <li>On your computer, open A.S.T.R.O AI (desktop app 1.8.1 or later) and go to <b>Settings → Phone</b>.</li>
+        <li>Turn on <b>Let my phone connect</b> and click <b>Pair a phone</b>.</li>
+        <li>Scan the QR code with your phone's camera, or type the address and code in the app under <b>Connect to my computer</b>.</li>
+      </ol>
+    </div>
+    <h2>Don't have the app?</h2>
+    <p>A.S.T.R.O AI for Android 1.8.2 or later, for Android 8.0+ on 64-bit ARM phones: <a href="{{root}}download.html#android">download the APK</a>. Not on Google Play.</p>
+    <p class="small muted">Your phone and computer must be on the same Wi-Fi or on a private network such as Tailscale. Phone access is off until you turn it on, and you can remove a paired phone in Settings → Phone at any time.</p>
+  </article>
+</div>

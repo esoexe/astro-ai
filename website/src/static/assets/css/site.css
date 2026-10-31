@@ -42,8 +42,8 @@ body.site::after { content: ""; position: fixed; inset: 0; pointer-events: none;
 img, svg, video, canvas { display: block; max-width: 100%; }
 img { height: auto; }
 a { color: inherit; text-decoration: none; }
-p a, li a, td a, .prose a { color: var(--peach); text-decoration: underline; text-decoration-color: rgba(243,166,121,.35); text-underline-offset: 3px; transition: text-decoration-color .2s; }
-p a:hover, li a:hover, td a:hover, .prose a:hover { text-decoration-color: var(--peach); }
+p a:not(.btn), li a:not(.btn), td a:not(.btn), .prose a:not(.btn) { color: var(--peach); text-decoration: underline; text-decoration-color: rgba(243,166,121,.35); text-underline-offset: 3px; transition: text-decoration-color .2s; }
+p a:not(.btn):hover, li a:not(.btn):hover, td a:not(.btn):hover, .prose a:not(.btn):hover { text-decoration-color: var(--peach); }
 ::selection { background: rgba(243,166,121,.3); color: #fff; }
 :focus-visible { outline: 2px solid var(--peach); outline-offset: 3px; border-radius: 6px; }
 .skip { position: absolute; left: -999px; top: 8px; z-index: 200; background: var(--peach); color: var(--peach-ink); padding: 8px 14px; border-radius: 10px; }

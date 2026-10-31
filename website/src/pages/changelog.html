@@ -9,6 +9,32 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
+    <article class="release latest reveal" id="v1-8-1">
+      <header><h2>1.8.1 · Android 1.8.2</h2><span class="badge">Latest</span><time datetime="2026-10-30">October 30, 2026</time></header>
+      <p class="muted">Use A.S.T.R.O AI on your computer from your phone: pair once with a QR code.</p>
+
+      <h3>Phone access (desktop and terminal)</h3>
+      <ul>
+        <li><b>Settings → Phone:</b> turn on <i>Let my phone connect</i>, click <i>Pair a phone</i>, and scan the QR code with your phone. The phone then uses this computer's models, keys, chats and projects.</li>
+        <li>Off by default. Only devices on a private network (same Wi-Fi, or Tailscale) can connect, and only after pairing. A code works once and expires after 10 minutes. Each phone gets its own key; remove any phone at any time.</li>
+        <li>From a terminal: <code>astro phone pair</code> draws the QR code right in the terminal; <code>/phone</code> works in the full-screen app too.</li>
+      </ul>
+
+      <h3>Android 1.8.2</h3>
+      <ul>
+        <li>Pair with the desktop app: scan its QR code, or type the address and the 8-digit code. The app always shows which computer it is about to connect to and waits for you to tap Connect.</li>
+        <li><i>Reconnect</i> and <i>Forget this computer</i>. Switching to the phone's own engine keeps the pairing, so you can switch back without a new code.</li>
+        <li>A clear message when the computer has removed the phone, instead of a sign-in screen.</li>
+      </ul>
+
+      <h3>Good to know</h3>
+      <ul>
+        <li>Traffic stays inside your network but is not encrypted, so use it on networks you trust (home Wi-Fi, Tailscale), not on public Wi-Fi. A paired phone can do what the app can do on that computer, including running code in your projects, so pair only your own phones.</li>
+        <li>The first time, Windows or macOS may ask whether A.S.T.R.O AI may accept connections: allow it on private networks.</li>
+        <li>Tested end to end in test environments (pairing, reconnect, forget, wrong codes, removed phones), not yet on many real phones and networks. Please <a href="{{root}}beta.html">tell us how it works for you</a>.</li>
+      </ul>
+    </article>
+
     <article class="release reveal" id="android-v1-8-1">
       <header><h2>Android 1.8.1</h2><span class="badge">Android only</span><time datetime="2026-10-30">October 30, 2026</time></header>
       <p class="muted">The Android app is rebuilt as a real native app. Desktop apps stay on 1.8.0; nothing changes for them.</p>
@@ -40,8 +66,8 @@
       </ul>
     </article>
 
-    <article class="release latest reveal" id="v1-8-0">
-      <header><h2>1.8.0</h2><span class="badge">Latest</span><time datetime="2026-10-30">October 30, 2026</time></header>
+    <article class="release reveal" id="v1-8-0">
+      <header><h2>1.8.0</h2><time datetime="2026-10-30">October 30, 2026</time></header>
       <p class="muted">An Android app with the engine inside, an Agent that gives the honest answer the first time, opt-in error reports and feedback, an offline natural voice, ARM64 builds, and an accessibility pass.</p>
 
       <h3>Android app (new)</h3>

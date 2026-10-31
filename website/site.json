@@ -2,52 +2,52 @@
   "name": "A.S.T.R.O AI",
   "url": "https://esoexe.github.io/astro-ai",
   "description": "A.S.T.R.O AI is a free desktop app for chat, code and agents, powered by a team of free AI models that answer as one. Windows, Linux and macOS.",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "dateLabel": "October 30, 2026",
   "year": 2026,
   "repo": "https://github.com/esoexe/astro-ai",
   "highlights": [
-    "New Android app with the engine built in (Android 8.0+, 64-bit ARM)",
-    "The Agent gives the honest answer the first time and finishes the whole job in one run",
-    "Send feedback, and anonymous error reports (off unless you turn them on)",
-    "Offline natural voice, ARM64 builds for Windows and Linux, and better accessibility"
+    "Use your computer from your phone: pair the Android app with a QR code in Settings → Phone",
+    "Off by default, private networks and paired phones only, one key per phone that you can remove",
+    "astro phone pair draws the pairing QR code right in your terminal",
+    "Also in 1.8: the native Android app, an honest Agent, feedback and opt-in error reports"
   ],
   "highlights_i18n": {
     "fr": [
-      "Nouvelle application Android avec le moteur intégré (Android 8.0+, ARM 64 bits)",
-      "L'agent donne la réponse honnête dès la première fois et termine tout le travail en une seule exécution",
-      "Envoyer un avis, et rapports d'erreurs anonymes (désactivés sauf si vous les activez)",
-      "Voix naturelle hors ligne, versions ARM64 pour Windows et Linux, et meilleure accessibilité"
+      "Utilisez votre ordinateur depuis votre téléphone : associez l'application Android avec un code QR dans Paramètres → Téléphone",
+      "Désactivé par défaut, réseaux privés et téléphones associés uniquement, une clé par téléphone que vous pouvez retirer",
+      "astro phone pair affiche le code QR d'association directement dans votre terminal",
+      "Aussi dans la 1.8 : l'application Android native, un Agent honnête, les avis et les rapports d'erreurs facultatifs"
     ],
     "ar": [
-      "تطبيق أندرويد جديد بمحرك مدمج (أندرويد 8.0 فما فوق، ARM بنظام 64 بت)",
-      "يقدّم الوكيل الإجابة الصادقة من المرة الأولى وينجز العمل كله في تشغيل واحد",
-      "إرسال الملاحظات، وتقارير أخطاء مجهولة الهوية (معطّلة ما لم تفعّلها)",
-      "صوت طبيعي دون اتصال، وإصدارات ARM64 لويندوز ولينكس، وإمكانية وصول أفضل"
+      "استخدم حاسوبك من هاتفك: أقرن تطبيق أندرويد برمز QR من الإعدادات ← الهاتف",
+      "معطّل افتراضيًا، للشبكات الخاصة والهواتف المقترنة فقط، مفتاح لكل هاتف يمكنك إزالته",
+      "يعرض astro phone pair رمز QR للإقران مباشرة في الطرفية",
+      "وفي 1.8 أيضًا: تطبيق أندرويد الأصلي، ووكيل صادق، والملاحظات وتقارير الأخطاء الاختيارية"
     ]
   },
   "android": {
-    "version": "1.8.1",
+    "version": "1.8.2",
     "dateLabel": "October 30, 2026",
     "min_android": "8.0",
     "highlights": [
-      "A real native Android app (Kotlin and Jetpack Compose), no longer a web page inside an app",
-      "Chat, live voice, notes, tasks, reminders, the Workspace and the Agent, all built for touch",
-      "Your chats and settings are now kept between restarts (fixes data loss in 1.8.0)",
-      "Use the engine inside the phone, or connect to A.S.T.R.O AI on your own computer"
+      "Pair with the desktop app (1.8.1 or later): scan its QR code, or type the address and an 8-digit code",
+      "The app always shows which computer it will connect to and waits for you",
+      "Reconnect or forget a paired computer; switching to the phone's own engine keeps the pairing",
+      "A native app: chat, live voice, notes, tasks, reminders, the Workspace and the Agent"
     ],
     "highlights_i18n": {
       "fr": [
-        "Une vraie application Android native (Kotlin et Jetpack Compose), et non plus une page web dans une application",
-        "Discussion, voix en direct, notes, tâches, rappels, l'Espace de travail et l'Agent, conçus pour le tactile",
-        "Vos discussions et réglages sont désormais conservés entre les redémarrages (corrige une perte de données de la 1.8.0)",
-        "Utilisez le moteur intégré au téléphone, ou connectez-vous à A.S.T.R.O AI sur votre propre ordinateur"
+        "Associez l'application de bureau (1.8.1 ou plus) : scannez son code QR, ou saisissez l'adresse et un code à 8 chiffres",
+        "L'application indique toujours à quel ordinateur elle va se connecter et attend votre accord",
+        "Reconnectez ou oubliez un ordinateur associé ; passer au moteur du téléphone conserve l'association",
+        "Une application native : discussion, voix en direct, notes, tâches, rappels, l'Espace de travail et l'Agent"
       ],
       "ar": [
-        "تطبيق أندرويد أصلي حقيقي (Kotlin وJetpack Compose)، وليس صفحة ويب داخل تطبيق",
-        "المحادثة والصوت المباشر والملاحظات والمهام والتذكيرات ومساحة العمل والوكيل، مصممة كلها للّمس",
-        "تُحفظ محادثاتك وإعداداتك الآن بين مرات إعادة التشغيل (إصلاح لفقدان البيانات في 1.8.0)",
-        "استخدم المحرك المدمج في الهاتف، أو اتصل بـ A.S.T.R.O AI على حاسوبك"
+        "أقرن التطبيق بتطبيق سطح المكتب (1.8.1 أو أحدث): امسح رمز QR الخاص به، أو اكتب العنوان ورمزًا من 8 أرقام",
+        "يعرض التطبيق دائمًا الحاسوب الذي سيتصل به وينتظر موافقتك",
+        "أعد الاتصال بحاسوب مقترن أو انسه؛ والتبديل إلى محرك الهاتف يُبقي الإقران",
+        "تطبيق أصلي: المحادثة والصوت المباشر والملاحظات والمهام والتذكيرات ومساحة العمل والوكيل"
       ]
     }
   },

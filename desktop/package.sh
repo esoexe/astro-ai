@@ -20,7 +20,7 @@ rm -rf "$WORK"; mkdir -p "$WORK/bin" "$OUT"
 # What to build. Default: Windows x64, Linux (this machine's architecture) and the macOS source kit, plus Windows ARM64
 # when the llvm-mingw toolchain is present (bash desktop/fetch_win_arm64.sh). CI's ARM runner uses TARGETS=linux.
 A64="$ROOT/.cache/arm"; A64_BIN="$A64/llvm-mingw-20261020-ucrt-ubuntu-22.04-x86_64/bin"; CA64="$A64/curl-8.23.0_6-win64a-mingw"
-TARGETS="${TARGETS:-windows linux mac$([ -x "$A64_BIN/aarch64-w64-mingw32-clang++" ] && echo " windows-arm64")}"
+TARGETS="${TARGETS:-windows linux mac$([ -x "$A64_BIN/aarch64-w64-mingw32-clang++" ] && echo " windows-arm64" || true)}"
 want() { [[ " $TARGETS " == *" $1 "* ]]; }
 case "$(uname -m)" in aarch64|arm64) LARCH=arm64; DARCH=arm64; LPLAT="linux arm64";; *) LARCH=x64; DARCH=amd64; LPLAT="linux x86_64";; esac
 echo "==> Targets: $TARGETS (Linux: $LARCH)"
