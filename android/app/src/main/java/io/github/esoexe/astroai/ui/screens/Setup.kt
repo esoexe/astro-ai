@@ -42,9 +42,11 @@ import io.github.esoexe.astroai.CrashReports
 import io.github.esoexe.astroai.core.I18n
 import io.github.esoexe.astroai.core.T
 import io.github.esoexe.astroai.core.bool
+import io.github.esoexe.astroai.core.str
 import io.github.esoexe.astroai.core.tr
 import io.github.esoexe.astroai.engine.Backend
 import io.github.esoexe.astroai.ui.AppIcons
+import io.github.esoexe.astroai.ui.Card
 import io.github.esoexe.astroai.ui.Chip
 import io.github.esoexe.astroai.ui.Field
 import io.github.esoexe.astroai.ui.Ic
@@ -161,61 +163,108 @@ private fun EngineOption(icon: ImageVector, title: String, sub: String, selected
 fun ConnectScreen(fromError: Boolean, onBack: (() -> Unit)? = null) {
     val b = app.backend
     val p = app.prefs
+    val ui = app.ui
     val scope = rememberCoroutineScope()
     var url by remember { mutableStateOf(p.pcUrl) }
     var password by remember { mutableStateOf("") }
+    var code by remember { mutableStateOf("") }
     var state by remember { mutableStateOf<org.json.JSONObject?>(null) }
     var busy by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf(if (fromError) b.problem else "") }
+    var error by remember { mutableStateOf(if (fromError) tr(b.problem) else "") }
     // Coming back from an error with a known address: ask for what the computer needs.
-    if (fromError && state == null && b.phase == Backend.Phase.NeedsLogin) state = org.json.JSONObject().put("enabled", true).put("setup", false)
-    if (fromError && state == null && b.phase == Backend.Phase.NeedsSetup) state = org.json.JSONObject().put("enabled", true).put("setup", true)
+    if (fromError && state == null && b.phase == Backend.Phase.NeedsLogin) state = org.json.JSONObject().put("enabled", true).put("setup", false).put("pairing", b.pairing).put("_url", p.pcUrl)
+    if (fromError && state == null && b.phase == Backend.Phase.NeedsSetup) state = org.json.JSONObject().put("enabled", true).put("setup", true).put("_url", p.pcUrl)
 
+    fun run(block: suspend () -> Unit) {
+        busy = true; error = ""
+        scope.launch {
+            try { block(); if (!fromError) ui.go("chat") } catch (e: Exception) { error = tr(e.message ?: "Could not connect") }
+            busy = false
+        }
+    }
     fun check() {
         busy = true; error = ""
         scope.launch {
-            try { state = b.probe(url) } catch (e: Exception) { error = e.message ?: tr("Could not reach it"); state = null }
+            try { state = b.probe(url).also { url = it.str("_url") } } catch (e: Exception) { error = tr(e.message ?: "Could not reach it"); state = null }
             busy = false
         }
     }
-    fun connect() {
-        val st = state ?: return
-        busy = true; error = ""
-        scope.launch {
-            try {
-                if (!st.bool("enabled")) b.useOpenPc(url) else b.signIn(url, password, create = st.bool("setup"))
-                password = ""
-                if (!fromError) app.ui.go("chat")
-            } catch (e: Exception) { error = e.message ?: tr("Could not sign in") }
-            busy = false
-        }
-    }
+    val link = ui.pendingPair
     Column(Modifier.fillMaxSize().navigationBarsPadding().imePadding()) {
         TopBar(T("Connect to your computer"), onBack = onBack ?: if (fromError) ({ b.useBuiltIn() }) else null)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(20.dp)) {
-            Text(T("1. On your computer, run the A.S.T.R.O AI server so the phone can reach it: build it from the source and start ./workspace_server (it listens on port 4173 and asks you to create a password). The desktop app and the astro command only listen on the computer itself."), style = MaterialTheme.typography.bodyMedium, color = c.text)
-            Spacer(Modifier.height(6.dp))
-            Text(T("2. Type the address it shows, for example 192.168.1.20:4173. Use the same Wi-Fi, or a private network like Tailscale."), style = MaterialTheme.typography.bodyMedium, color = c.text)
-            Spacer(Modifier.height(16.dp))
-            Field(url, { url = it; state = null }, T("Computer address"), keyboard = KeyboardType.Uri, onDone = { check() }, placeholder = "192.168.1.20:4173")
-            Spacer(Modifier.height(10.dp))
-            val st = state
-            if (st == null) Primary(if (busy) T("Checking…") else T("Check"), { check() }, enabled = url.isNotBlank() && !busy, icon = AppIcons.search)
-            else {
-                Row(verticalAlignment = Alignment.CenterVertically) { Ic(AppIcons.check, null, tint = c.ok, size = 18.dp); Spacer(Modifier.width(8.dp)); Text(T("Found A.S.T.R.O AI at #", b.normalizeUrl(url)), color = c.text) }
-                Spacer(Modifier.height(10.dp))
-                when {
-                    !st.bool("enabled") -> Text(T("This computer has no password. Only connect on a network you trust."), style = MaterialTheme.typography.bodySmall, color = c.warn)
-                    st.bool("setup") -> Field(password, { password = it }, T("Create the computer's password (8+ characters)"), password = true, onDone = { connect() })
-                    else -> Field(password, { password = it }, T("The computer's password"), password = true, onDone = { connect() })
+            if (link != null) {
+                // From a QR code / link: never connect without asking (any app or page can open such a link).
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(T("Connect to #?", link.name.ifEmpty { tr("your computer") }), style = MaterialTheme.typography.titleMedium, color = c.text)
+                        Spacer(Modifier.height(4.dp))
+                        Text(link.urls.first(), style = MaterialTheme.typography.bodySmall, color = c.muted)
+                        Spacer(Modifier.height(8.dp))
+                        Text(T("Only continue if you just made this code on your own computer. This phone will then use that computer's models, keys, chats and projects."), style = MaterialTheme.typography.bodyMedium, color = c.text)
+                        Spacer(Modifier.height(12.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Primary(if (busy) T("Connecting…") else T("Connect"), { run { b.pair(link.urls, link.code); p.welcomeDone = true; ui.pendingPair = null } }, enabled = !busy, icon = AppIcons.server)
+                            Secondary(T("Cancel"), { ui.pendingPair = null; error = "" }, enabled = !busy)
+                        }
+                    }
                 }
+            } else {
+                if (p.pcPaired && p.pcToken.isNotEmpty() && !b.isPc) {
+                    Card(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text(T("Paired with #", p.pcName.ifEmpty { p.pcUrl }), style = MaterialTheme.typography.titleMedium, color = c.text)
+                            Text(p.pcUrl, style = MaterialTheme.typography.bodySmall, color = c.muted)
+                            Spacer(Modifier.height(10.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Primary(T("Reconnect"), { b.reconnectPc(); if (!fromError) ui.go("chat") }, icon = AppIcons.server)
+                                Secondary(T("Forget this computer"), { b.forgetPc() }, danger = true)
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(18.dp))
+                }
+                Text(T("1. On your computer, open A.S.T.R.O AI (version 1.8.1 or later) and go to Settings > Phone."), style = MaterialTheme.typography.bodyMedium, color = c.text)
+                Spacer(Modifier.height(6.dp))
+                Text(T("2. Turn on Let my phone connect and click Pair a phone."), style = MaterialTheme.typography.bodyMedium, color = c.text)
+                Spacer(Modifier.height(6.dp))
+                Text(T("3. Scan the QR code with this phone's camera, or type the address and the 8-digit code below. Both devices must be on the same Wi-Fi, or on a private network like Tailscale."), style = MaterialTheme.typography.bodyMedium, color = c.text)
+                Spacer(Modifier.height(16.dp))
+                Field(url, { url = it; state = null }, T("Computer address"), keyboard = KeyboardType.Uri, onDone = { check() }, placeholder = "192.168.1.20:4174")
                 Spacer(Modifier.height(10.dp))
-                Primary(if (busy) T("Connecting…") else T("Connect"), { connect() }, enabled = !busy && (!st.bool("enabled") || password.length >= (if (st.bool("setup")) 8 else 1)), icon = AppIcons.server)
+                val st = state
+                if (st == null) Primary(if (busy) T("Checking…") else T("Check"), { check() }, enabled = url.isNotBlank() && !busy, icon = AppIcons.search)
+                else {
+                    Row(verticalAlignment = Alignment.CenterVertically) { Ic(AppIcons.check, null, tint = c.ok, size = 18.dp); Spacer(Modifier.width(8.dp)); Text(T("Found A.S.T.R.O AI at #", st.str("_url").ifEmpty { b.normalizeUrl(url) }), color = c.text) }
+                    Spacer(Modifier.height(10.dp))
+                    when {
+                        st.bool("pairing") -> Field(code, { v -> code = v.filter { it.isDigit() }.take(8) }, T("Pairing code (8 digits)"), keyboard = KeyboardType.NumberPassword, onDone = { if (code.length == 8) run { b.pair(listOf(st.str("_url")), code); code = "" } })
+                        !st.bool("enabled") -> Text(T("This computer has no password. Only connect on a network you trust."), style = MaterialTheme.typography.bodySmall, color = c.warn)
+                        st.bool("setup") -> Field(password, { password = it }, T("Create the computer's password (8+ characters)"), password = true, onDone = { })
+                        else -> Field(password, { password = it }, T("The computer's password"), password = true, onDone = { })
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    val ready = when {
+                        st.bool("pairing") -> code.length == 8
+                        !st.bool("enabled") -> true
+                        else -> password.length >= (if (st.bool("setup")) 8 else 1)
+                    }
+                    Primary(if (busy) T("Connecting…") else T("Connect"), {
+                        run {
+                            val u = st.str("_url").ifEmpty { url }
+                            when {
+                                st.bool("pairing") -> { b.pair(listOf(u), code); code = "" }
+                                !st.bool("enabled") -> b.useOpenPc(u)
+                                else -> { b.signIn(u, password, create = st.bool("setup")); password = "" }
+                            }
+                        }
+                    }, enabled = !busy && ready, icon = AppIcons.server)
+                }
             }
             if (busy) Row(Modifier.padding(top = 12.dp)) { ThinkingDots() }
             if (error.isNotEmpty()) Text(error, Modifier.padding(top = 12.dp), color = c.danger, style = MaterialTheme.typography.bodyMedium)
             Spacer(Modifier.height(20.dp))
-            Text(T("Plain http is only allowed to this phone and private network addresses (192.168.x, 10.x, 172.16–31.x, 100.64–127.x). The password is sent only to your computer; the phone keeps a session token, never the password."),
+            Text(T("Plain http is only allowed to this phone and private network addresses (192.168.x, 10.x, 172.16–31.x, 100.64–127.x). Pairing gives this phone its own key, which you can remove on the computer at any time. With the self-hosted server (./workspace_server), sign in with its password instead."),
                 style = MaterialTheme.typography.bodySmall, color = c.faint)
             if (fromError) { Spacer(Modifier.height(16.dp)); Secondary(T("Use this phone instead"), { b.useBuiltIn() }, icon = AppIcons.spark) }
         }

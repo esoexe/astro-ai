@@ -32,6 +32,12 @@
 #include <set>
 #include <functional>
 #include <zlib.h>
+#if !defined(_WIN32)
+#include <ifaddrs.h>
+#include <net/if.h>
+#include <poll.h>
+#endif
+#include "qrcodegen.inc"   // QR codes for phone pairing (MIT, vendored)
 
 namespace {
 constexpr std::size_t MAX_BODY_BYTES = 12'000'000;
@@ -2297,6 +2303,7 @@ void load_runtime_credentials() {
 }
 
 #include "astro_ext.inc"
+#include "astro_phone.inc"
 #include "workspace_code.inc"
 #include "workspace_ide.inc"
 #include "astro_quality.inc"
@@ -2304,12 +2311,14 @@ void load_runtime_credentials() {
 #include "astro_update.inc"
 
 void handle_api(int fd, const HttpRequest& request) {
+    if (phone_remote_gate(fd, request)) return;   // requests from a phone: pairing and device tokens
     if (request.path.rfind("/api/auth/", 0) == 0) { handle_auth(fd, request); return; }
     if (!auth_ok(request)) {
         Json::Object obj; obj["error"] = Json(std::string("Sign in to A.S.T.R.O AI first.")); obj["auth"] = Json(true);
         send_json(fd, 401, Json(std::move(obj)));
         return;
     }
+    if (handle_phone_api(fd, request)) return;
     if (handle_workspace_api(fd, request)) return;
     if (handle_ide_api(fd, request)) return;
     if (handle_dev_api(fd, request)) return;
@@ -2454,6 +2463,8 @@ void handle_client(int fd) {
         return;
     }
     if (request.path.rfind("/api/", 0) == 0) handle_api(fd, request);
+    else if (t_remote && !((request.method == "GET" || request.method == "HEAD") && request.path.rfind("/preview/", 0) == 0))
+        send_response(fd, 404, "text/plain; charset=utf-8", "This address is for the A.S.T.R.O AI Android app.");
     else if (serve_app_proxy(fd, request)) {}
     else if ((request.method == "GET" || request.method == "HEAD") && serve_preview(fd, request)) {}
     else if (request.method == "GET" || request.method == "HEAD") serve_static(fd, request);
@@ -2589,6 +2600,7 @@ int main() {
     }
     if (listen(server, 64) != 0) { std::cerr << "listen: " << std::strerror(errno) << '\n'; sock_close(server); return 1; }
     std::cout << "A.S.T.R.O AI C++ backend listening on " << bind_host << ":" << port << std::endl;
+    phone_boot();   // "Let my phone connect", if it was left on
     while (true) {
         sockaddr_in client_address{};
         socklen_t address_length = sizeof(client_address);

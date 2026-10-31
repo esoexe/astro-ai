@@ -110,6 +110,11 @@ class Prefs(ctx: Context) {
     private val _pcToken = Str("conn_pc_token", "")
     /** Session token from the computer's sign-in (never the password). */
     var pcToken: String get() = _pcToken.get(); set(v) = _pcToken.set(v)
+    /** pcToken is a device key from pairing (Settings > Phone on the computer), not a password session. */
+    private val _pcPaired = Bool("conn_pc_paired", false)
+    var pcPaired: Boolean get() = _pcPaired.get(); set(v) = _pcPaired.set(v)
+    private val _pcName = Str("conn_pc_name", "")
+    var pcName: String get() = _pcName.get(); set(v) = _pcName.set(v.take(60))
 
     // ----- sync, privacy, app -----
     private val _syncOn = Bool("sync_on", false)

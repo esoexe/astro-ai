@@ -2099,5 +2099,85 @@
  "Tools": [
   "Outils",
   "الأدوات"
+ ],
+ "Connect to #?": [
+  "Se connecter à # ?",
+  "الاتصال بـ #؟"
+ ],
+ "your computer": [
+  "votre ordinateur",
+  "حاسوبك"
+ ],
+ "Only continue if you just made this code on your own computer. This phone will then use that computer's models, keys, chats and projects.": [
+  "Ne continuez que si vous venez de créer ce code sur votre propre ordinateur. Ce téléphone utilisera alors les modèles, clés, discussions et projets de cet ordinateur.",
+  "لا تتابع إلا إذا أنشأت هذا الرمز للتو على حاسوبك الخاص. سيستخدم هذا الهاتف بعدها نماذج ذلك الحاسوب ومفاتيحه ومحادثاته ومشاريعه."
+ ],
+ "Paired with #": [
+  "Associé à #",
+  "مقترن بـ #"
+ ],
+ "Reconnect": [
+  "Se reconnecter",
+  "إعادة الاتصال"
+ ],
+ "Forget this computer": [
+  "Oublier cet ordinateur",
+  "نسيان هذا الحاسوب"
+ ],
+ "1. On your computer, open A.S.T.R.O AI (version 1.8.1 or later) and go to Settings > Phone.": [
+  "1. Sur votre ordinateur, ouvrez A.S.T.R.O AI (version 1.8.1 ou plus récente) et allez dans Paramètres > Téléphone.",
+  "1. على حاسوبك، افتح A.S.T.R.O AI (الإصدار 1.8.1 أو أحدث) وانتقل إلى الإعدادات > الهاتف."
+ ],
+ "2. Turn on Let my phone connect and click Pair a phone.": [
+  "2. Activez « Autoriser mon téléphone à se connecter » puis cliquez sur « Associer un téléphone ».",
+  "2. فعّل «السماح لهاتفي بالاتصال» ثم انقر «إقران هاتف»."
+ ],
+ "3. Scan the QR code with this phone's camera, or type the address and the 8-digit code below. Both devices must be on the same Wi-Fi, or on a private network like Tailscale.": [
+  "3. Scannez le code QR avec l'appareil photo de ce téléphone, ou saisissez ci-dessous l'adresse et le code à 8 chiffres. Les deux appareils doivent être sur le même Wi-Fi, ou sur un réseau privé comme Tailscale.",
+  "3. امسح رمز QR بكاميرا هذا الهاتف، أو اكتب العنوان والرمز المكوّن من 8 أرقام أدناه. يجب أن يكون الجهازان على شبكة Wi-Fi نفسها، أو على شبكة خاصة مثل Tailscale."
+ ],
+ "Pairing code (8 digits)": [
+  "Code d'association (8 chiffres)",
+  "رمز الإقران (8 أرقام)"
+ ],
+ "Plain http is only allowed to this phone and private network addresses (192.168.x, 10.x, 172.16–31.x, 100.64–127.x). Pairing gives this phone its own key, which you can remove on the computer at any time. With the self-hosted server (./workspace_server), sign in with its password instead.": [
+  "Le http simple n'est autorisé que vers ce téléphone et les adresses de réseau privé (192.168.x, 10.x, 172.16–31.x, 100.64–127.x). L'association donne à ce téléphone sa propre clé, que vous pouvez supprimer sur l'ordinateur à tout moment. Avec le serveur auto-hébergé (./workspace_server), connectez-vous plutôt avec son mot de passe.",
+  "لا يُسمح بـ http العادي إلا إلى هذا الهاتف وعناوين الشبكات الخاصة (192.168.x و10.x و172.16–31.x و100.64–127.x). يمنح الإقران هذا الهاتف مفتاحه الخاص، ويمكنك حذفه من الحاسوب في أي وقت. مع الخادم المستضاف ذاتيًا (./workspace_server)، سجّل الدخول بكلمة مروره بدلًا من ذلك."
+ ],
+ "This phone was removed on the computer, or the computer forgot it. Pair it again: on the computer, open Settings > Phone and click Pair a phone.": [
+  "Ce téléphone a été retiré sur l'ordinateur, ou l'ordinateur l'a oublié. Associez-le à nouveau : sur l'ordinateur, ouvrez Paramètres > Téléphone et cliquez sur « Associer un téléphone ».",
+  "أُزيل هذا الهاتف من الحاسوب، أو نسيه الحاسوب. أقرنه من جديد: على الحاسوب، افتح الإعدادات > الهاتف وانقر «إقران هاتف»."
+ ],
+ "This address does not offer pairing. Update A.S.T.R.O AI on the computer to 1.8.1 or later and use Settings > Phone, or sign in with the server's password.": [
+  "Cette adresse ne propose pas l'association. Mettez A.S.T.R.O AI à jour en 1.8.1 ou plus sur l'ordinateur et utilisez Paramètres > Téléphone, ou connectez-vous avec le mot de passe du serveur.",
+  "هذا العنوان لا يوفّر الإقران. حدّث A.S.T.R.O AI على الحاسوب إلى 1.8.1 أو أحدث واستخدم الإعدادات > الهاتف، أو سجّل الدخول بكلمة مرور الخادم."
+ ],
+ "The computer did not return a key": [
+  "L'ordinateur n'a pas renvoyé de clé",
+  "لم يُرجع الحاسوب مفتاحًا"
+ ],
+ "Could not reach the computer": [
+  "Impossible de joindre l'ordinateur",
+  "تعذّر الوصول إلى الحاسوب"
+ ],
+ "Wrong code. Check the 8 digits shown on the computer.": [
+  "Code incorrect. Vérifiez les 8 chiffres affichés sur l'ordinateur.",
+  "رمز خاطئ. تحقّق من الأرقام الثمانية الظاهرة على الحاسوب."
+ ],
+ "No pairing code is active. On the computer, open Settings > Phone and make a new code.": [
+  "Aucun code d'association actif. Sur l'ordinateur, ouvrez Paramètres > Téléphone et créez un nouveau code.",
+  "لا يوجد رمز إقران نشط. على الحاسوب، افتح الإعدادات > الهاتف وأنشئ رمزًا جديدًا."
+ ],
+ "Too many wrong codes. Wait 10 minutes, then make a new code on the computer.": [
+  "Trop de codes incorrects. Attendez 10 minutes, puis créez un nouveau code sur l'ordinateur.",
+  "رموز خاطئة كثيرة. انتظر 10 دقائق، ثم أنشئ رمزًا جديدًا على الحاسوب."
+ ],
+ "10 phones are already paired. Remove one on the computer first.": [
+  "10 téléphones sont déjà associés. Retirez-en un sur l'ordinateur d'abord.",
+  "هناك 10 هواتف مقترنة بالفعل. أزل واحدًا من الحاسوب أولًا."
+ ],
+ "This phone is not paired with this computer, or it was removed. Pair it again.": [
+  "Ce téléphone n'est pas associé à cet ordinateur, ou il a été retiré. Associez-le à nouveau.",
+  "هذا الهاتف غير مقترن بهذا الحاسوب، أو أُزيل. أقرنه من جديد."
  ]
 }

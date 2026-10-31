@@ -1826,6 +1826,7 @@
   function settingsTab(tab) {
     if (tab === 'providers') return providersTabHtml();
     if (tab === 'account') return accountTabHtml();
+    if (tab === 'phone') return '<div id="phone-tab"><p class="hint">Loading…</p></div>';
     if (tab === 'voice') {
       const voices = 'speechSynthesis' in window ? speechSynthesis.getVoices() : [];
       const opts = voices.slice().sort((a, b) => a.lang.localeCompare(b.lang) || a.name.localeCompare(b.name)).map((v) => `<option value="${esc(v.name)}"${state.voice.name === v.name ? ' selected' : ''}>${esc(v.name)} · ${esc(v.lang)}</option>`).join('');
@@ -1902,7 +1903,7 @@
       <ul class="hint" style="line-height:1.8"><li>Chats, notes and tasks stay in this browser.</li><li>Compare mode asks two models at once; drafts let you keep several answers.</li><li>Free models are rate-limited and can change. Answers can be wrong, so double-check important information.</li></ul>`;
   }
   function openSettings(tab = 'general') {
-    const tabs = [['general', 'General'], ['appearance', 'Appearance'], ['brain', 'Brain'], ['providers', 'Providers & keys'], ['account', 'Account & sync'], ['voice', 'Voice'], ['memory', 'Memory'], ['data', 'Data & privacy'], ['shortcuts', 'Shortcuts'], ['about', 'About']];
+    const tabs = [['general', 'General'], ['appearance', 'Appearance'], ['brain', 'Brain'], ['providers', 'Providers & keys'], ['account', 'Account & sync'], ['phone', 'Phone'], ['voice', 'Voice'], ['memory', 'Memory'], ['data', 'Data & privacy'], ['shortcuts', 'Shortcuts'], ['about', 'About']];
     showModal(`<h2 id="modal-title">Settings</h2><p class="sub">${esc(models().length ? `${readyCount()} of ${models().length} free models ready` : 'A.S.T.R.O AI')}</p>
       <div class="tabs" role="tablist">${tabs.map(([id, label]) => `<button type="button" class="tab${id === tab ? ' active' : ''}" data-tab="${id}" role="tab">${label}</button>`).join('')}</div>
       <div id="settings-body">${settingsTab(tab)}</div>`);
@@ -1912,6 +1913,7 @@
   function bindSettings(tab) {
     if (tab === 'providers') { bindProvidersTab(); return; }
     if (tab === 'account') { bindAccountTab(); return; }
+    if (tab === 'phone') { bindPhoneTab(); return; }
     if (tab === 'voice') {
       const saveVoice = () => ls.set(KEYS.voice, JSON.stringify(state.voice));
       $('#set-voice').addEventListener('change', (e) => { state.voice.name = e.target.value; saveVoice(); });
@@ -3732,6 +3734,58 @@
   }
 
   // ---------- Account & sync (Settings) ----------
+  // ---------- Settings > Phone: "Let my phone connect" (engine: astro_phone.inc) ----------
+  function bindPhoneTab() {
+    const root = $('#phone-tab');
+    if (!root) return;
+    let st = null, timer = 0, lastCode = '', devCount = -1;
+    const lang = document.documentElement.lang || undefined;
+    const when = (ms) => (ms ? new Date(ms).toLocaleString(lang, { dateStyle: 'medium', timeStyle: 'short' }) : '—');
+    const stop = () => { clearInterval(timer); timer = 0; };
+    const paint = () => {
+      if (!root.isConnected) { stop(); return; }
+      if (!st || st.available === false) { root.innerHTML = '<p class="hint">Phone access is not available in this copy.</p>'; return; }
+      const p = st.pairing;
+      const left = p ? Math.max(0, p.expires_in - Math.floor((Date.now() - st.t0) / 1000)) : 0;
+      const urls = (st.urls || []).map((u) => `<code>${esc(u)}</code>`).join(' ');
+      const status = !st.enabled ? '' : st.error ? `<p class="hint" style="color:var(--danger)">${esc(st.error)}</p>`
+        : st.listening ? `<p class="hint"><span>${esc('Listening on port ' + st.port)}</span> · ${urls || '<span>No network address found. Connect this computer to Wi-Fi or a network.</span>'}</p>` : '<p class="hint">Starting…</p>';
+      const pairing = !st.enabled || !st.listening ? '' : p && left > 0
+        ? `<div class="box phone-pair" style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+             <div style="width:180px;height:180px;flex:none;background:#fff;border-radius:10px;padding:6px">${p.qr && p.qr.svg ? `<img alt="QR code" src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(p.qr.svg)}" style="width:100%;height:100%;display:block;image-rendering:pixelated">` : ''}</div>
+             <div style="flex:1;min-width:220px">
+               <p style="margin:0 0 10px">Scan this QR code with your phone's camera. Or, in the A.S.T.R.O AI app, tap Connect to my computer and enter:</p>
+               <div class="set-row" style="padding:4px 0"><div class="lbl"><b>Address</b></div><div>${(st.urls || []).slice(0, 1).map((u) => `<code>${esc(u)}</code>`).join('')}</div></div>
+               <div class="set-row" style="padding:4px 0"><div class="lbl"><b>Code</b></div><div><code style="font-size:22px;letter-spacing:3px">${esc(p.code.slice(0, 4) + ' ' + p.code.slice(4))}</code></div></div>
+               <p class="hint"><span>${esc('Expires in ' + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0'))}</span></p>
+               <button type="button" class="btn" id="phone-cancel">Cancel</button>
+             </div></div>`
+        : `<div class="btn-row"><button type="button" class="btn primary" id="phone-pair">${icon('i-plus')}Pair a phone</button></div>`;
+      const devs = st.devices || [];
+      const list = devs.length ? `<ul class="provider-list">${devs.map((d) => `<li class="provider-row on"><span class="dot"></span><div><b>${esc(d.name)}</b><small><span>Paired</span> ${esc(when(d.created))} · <span>Last used</span> ${esc(when(d.last_seen))}</small></div><button type="button" class="btn danger" data-phone-remove="${esc(d.id)}">Remove</button></li>`).join('')}</ul>`
+        : '<p class="hint">No phones paired yet.</p>';
+      root.innerHTML = `<div class="set-row"><div class="lbl"><b>Let my phone connect</b><small>Use this computer's models, keys, chats and projects from the A.S.T.R.O AI Android app, on the same Wi-Fi or a private network such as Tailscale. Works while A.S.T.R.O AI is open on this computer. Off by default.</small></div><label class="switch"><input type="checkbox" id="phone-on"${st.enabled ? ' checked' : ''}><span></span></label></div>
+        ${status}${pairing}
+        <h3 style="margin:18px 0 8px;font-weight:500;font-size:15px">Paired phones</h3>${list}
+        <p class="hint">Only devices on a private network can connect, and only after pairing once with a code from this screen. Each phone gets its own key, which you can remove here at any time. A paired phone can do what this app can do here, including running code and agent tasks in your projects, so pair only your own phones. Connections stay inside your network without encryption, so use this on networks you trust (home Wi-Fi, Tailscale), not on public Wi-Fi. The first time, your firewall may ask whether A.S.T.R.O AI may accept connections: allow it on private networks.</p>`;
+      $('#phone-on', root).addEventListener('change', (e) => act('/api/phone/enable', { enabled: e.target.checked }));
+      $('#phone-pair', root)?.addEventListener('click', () => act('/api/phone/pairing', {}));
+      $('#phone-cancel', root)?.addEventListener('click', () => act('/api/phone/pairing/cancel', {}));
+      $$('[data-phone-remove]', root).forEach((b) => b.addEventListener('click', () => act('/api/phone/devices/remove', { id: b.dataset.phoneRemove })));
+    };
+    const take = (j) => {
+      const devs = (j.devices || []).length;
+      if (lastCode && !j.pairing && devCount >= 0 && devs > devCount) toast(`Phone paired: ${(j.devices[devs - 1] || {}).name || 'Phone'}`);
+      lastCode = j.pairing ? j.pairing.code : ''; devCount = devs;
+      st = { ...j, t0: Date.now() }; paint();
+      stop();
+      if (j.pairing) timer = setInterval(() => { if (!root.isConnected) { stop(); return; } paint(); }, 1000);
+      if (j.pairing || (j.enabled && !j.listening && !j.error)) setTimeout(() => { if (root.isConnected) refresh(); }, 3000);
+    };
+    const refresh = () => apiJson('/api/phone', null, 'GET').then(take).catch((e) => { root.innerHTML = `<p class="hint">${esc(e.message)}</p>`; });
+    const act = (url, body) => apiJson(url, body).then(take).catch((e) => { toast(e.message, 'error'); refresh(); });
+    refresh();
+  }
   function accountTabHtml() {
     return `<div class="set-row"><div class="lbl"><b>Sync across devices</b><small>Chats, notes, tasks, memory and reminders are saved on your A.S.T.R.O AI server${state.status.sync_mirror ? ' and mirrored to your Supabase project' : ''}. Open A.S.T.R.O AI anywhere and sign in to continue.</small></div><label class="switch"><input type="checkbox" id="set-sync"${astro.sync.on ? ' checked' : ''}><span></span></label></div>
       <div class="set-row"><div class="lbl"><b>Sync now</b><small id="sync-state">${astro.sync.updated ? `Last saved ${new Date(astro.sync.updated).toLocaleString()}` : 'Not synced yet'}</small></div><div class="btn-row" style="margin:0"><button type="button" class="btn" id="sync-push">Upload this device</button><button type="button" class="btn ghost" id="sync-pull">Download</button></div></div>

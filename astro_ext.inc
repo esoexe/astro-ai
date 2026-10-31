@@ -157,6 +157,10 @@ void send_session(int fd, const HttpRequest& r, const std::string& token) {
 }
 // Requests the agent engine makes to the server itself (astro_engine.inc) are already authorised.
 thread_local bool t_internal_call = false;
+// Requests that arrived through the phone listener (astro_phone.inc): they need a paired device token, whatever
+// the rest of the sign-in settings say.
+thread_local bool t_remote = false;
+bool phone_token_ok(const HttpRequest& r);
 // App-token mode (the Android app): the shell that starts the engine generates a random secret per launch and
 // hands it only to its own WebView (as the session cookie). Every other program on the device - including other
 // apps, which can all reach 127.0.0.1 - is refused, even though there is no password.
@@ -171,6 +175,7 @@ bool app_token_ok(const HttpRequest& r) {
 }
 bool auth_ok(const HttpRequest& r) {
     if (t_internal_call) return true;
+    if (t_remote) return phone_token_ok(r);
     if (!app_token().empty()) return app_token_ok(r);
     if (auth_disabled()) return true;
     std::lock_guard<std::mutex> lock(g_auth_mutex);

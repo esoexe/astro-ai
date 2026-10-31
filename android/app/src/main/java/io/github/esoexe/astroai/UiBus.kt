@@ -29,6 +29,8 @@ class UiBus(private val app: AstroApp) {
     var liveOpen by mutableStateOf(false)
     var readerUrl by mutableStateOf("")
     var drawerOpen by mutableStateOf(false)
+    /** A pairing link (QR code from Settings > Phone on a computer) waiting for the user to confirm it. */
+    var pendingPair by mutableStateOf<PairLink?>(null)
     /** Text shared to the app from another app, put into the composer. */
     var incomingText by mutableStateOf<String?>(null)
 
@@ -88,5 +90,25 @@ class UiBus(private val app: AstroApp) {
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             app.startActivity(Intent.createChooser(send, f.name).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         } catch (e: Exception) { toast(tr("Could not save the file: #", e.message ?: ""), "error") }
+    }
+}
+
+/** astroai://pair?c=12345678&n=computer&u=http://192.168.1.20:4174 (from the computer's QR code, via the site's pair page). */
+data class PairLink(val urls: List<String>, val code: String, val name: String) {
+    companion object {
+        private val URL_RE = Regex("^http://(\\d{1,3}(?:\\.\\d{1,3}){3}):(\\d{2,5})$")
+        fun parse(uri: android.net.Uri): PairLink? {
+            if (uri.scheme != "astroai" || uri.host != "pair") return null
+            val code = uri.getQueryParameter("c")?.trim().orEmpty()
+            if (!Regex("^\\d{8}$").matches(code)) return null
+            // literal private IPv4 addresses only (no DNS lookup happens for a literal address)
+            val urls = uri.getQueryParameters("u").filter { u ->
+                val m = URL_RE.matchEntire(u) ?: return@filter false
+                try { io.github.esoexe.astroai.net.Api.isPrivate(java.net.InetAddress.getByName(m.groupValues[1])) && m.groupValues[2].toInt() in 1..65535 } catch (_: Exception) { false }
+            }.take(3)
+            if (urls.isEmpty()) return null
+            val name = uri.getQueryParameter("n").orEmpty().filter { it >= ' ' }.take(60)
+            return PairLink(urls, code, name)
+        }
     }
 }

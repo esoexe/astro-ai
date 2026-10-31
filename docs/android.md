@@ -55,17 +55,45 @@ APK
 
 ### Connect to my computer
 
-Instead of the built-in engine, the app can use A.S.T.R.O AI on your computer (its models, keys and projects):
+Instead of the built-in engine, the app can use A.S.T.R.O AI on your computer: its models, keys, chats and projects.
+Both devices must be on the same Wi-Fi, or on a private network such as Tailscale.
 
-1. On the computer, run the server so other devices can reach it: build from source and start `./workspace_server`.
-   It listens on port 4173 on your network and asks you to create a password the first time. (The 1.8.0 desktop app
-   and the `astro` command listen on `127.0.0.1` only, so the phone can't reach them.)
-2. In the app: Settings → Connection → Connect to my computer, type the address (for example `192.168.1.20:4173`).
-   Use the same Wi-Fi, or a private network such as Tailscale.
+**With the desktop app (1.8.1 or later) — pairing.** Needs A.S.T.R.O AI for Android 1.8.2 or later.
 
-The password goes only to your computer; the phone keeps a session token, never the password. The app's network
-layer (`net/Api.kt`) refuses plain `http://` to anything that does not resolve to this phone or a private address
-(10.x, 172.16–31.x, 192.168.x, 100.64–127.x, link-local, IPv6 ULA). Everything on the internet goes over HTTPS.
+1. On the computer: Settings → Phone → turn on **Let my phone connect**, then click **Pair a phone**.
+   (In a terminal: `astro phone pair`, or `/phone pair` in the full-screen app.)
+2. Scan the QR code with the phone's camera. It opens a page on this site that hands the address and code to the app;
+   the app shows **Connect to <computer>?** and connects only when you tap Connect.
+   Or, in the app: Settings → Connection → Connect to my computer, type the address shown on the computer (for example
+   `192.168.1.20:4174`) and the 8-digit code.
+
+How it is kept safe:
+- Off by default. The desktop app and `astro` still serve the computer itself on `127.0.0.1` only; phone access is a
+  separate listener (port 4174) that answers **private-network addresses only** (10.x, 172.16–31.x, 192.168.x,
+  100.64–127.x, link-local) and only phones that paired. It never inherits the desktop's "no password on this computer"
+  mode.
+- A code works once, expires after 10 minutes, and stops working after 5 wrong tries.
+- Each phone gets its own random key (stored on the computer only as a SHA-256 hash). Remove a phone in Settings →
+  Phone or with `astro phone remove <id>`; **Forget this computer** in the app removes it too. A paired phone can do
+  what the app can do on that computer, including running code and agent tasks in your projects, so pair only your own
+  phones. What it can't touch is the computer's own settings: it can't pair other phones, change phone access or sign-in,
+  or download updates to the computer.
+- The QR code's address and code are in the part of the link after `#`, which browsers never send to a server.
+  Any page could open an `astroai://pair` link, so the app always asks first and accepts only private-network
+  `http://` addresses.
+- Traffic stays inside your network but is not encrypted, so use it on networks you trust (home Wi-Fi, Tailscale), not
+  on public Wi-Fi. The first time, Windows or macOS may ask whether A.S.T.R.O AI may accept connections: allow it on
+  private networks.
+- It works while A.S.T.R.O AI (or `astro server start`) is running on the computer.
+
+**With the self-hosted server.** Build from source and start `./workspace_server`: it listens on port 4173 on your
+network and asks you to create a password the first time. In the app, type its address (for example
+`192.168.1.20:4173`) and sign in. The password goes only to your computer; the phone keeps a session token, never the
+password.
+
+The app's network layer (`net/Api.kt`) refuses plain `http://` to anything that does not resolve to this phone or a
+private address (10.x, 172.16–31.x, 192.168.x, 100.64–127.x, link-local, IPv6 ULA). Everything on the internet goes
+over HTTPS.
 
 Optional sync (Settings → Data) keeps chats, notes and tasks the same on the phone and the computer (`/api/sync`).
 
@@ -152,9 +180,9 @@ password is ever committed (the export script removes `*.jks` and `keystore.prop
 
 ## Status
 
-New in 1.8.1, and honest about it:
+New in 1.8.1 (pairing with the desktop app in 1.8.2), and honest about it:
 - Built and tested on a computer: unit tests, lint, the engine under qemu, and the app's engine API against a real
-  engine. **Not yet tried on many real phones.** Please report how it runs:
+  engine; pairing end to end against a real engine (link checks, pair, reconnect, forget). **Not yet tried on many real phones.** Please report how it runs:
   <https://esoexe.github.io/astro-ai/beta.html>.
 - No iOS app.
 

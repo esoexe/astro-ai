@@ -988,6 +988,7 @@ static const Cmd CMDS[] = {
     {"panel", "", "Show or hide the side panel (Ctrl+B)"},
     {"mouse", "", "Turn mouse-wheel scrolling on or off"},
     {"theme", "[name]", "Colour theme (the same themes as the app), with live preview"},
+    {"phone", "[pair|on|off|remove <id>]", "Let the Android app use this computer: QR code + one-time code"},
     {"logo", "on|off|hd|text|info", "Logo motion, and the HD picture or the text version"},
     {"status", "", "Engine, project and session details"},
     {"quit", "", "Exit (also Ctrl+D)"},
@@ -1587,6 +1588,83 @@ struct App {
         for (size_t i = 1; i < blocks.size(); ++i) if (!blocks[i]->plain.empty()) f << blocks[i]->plain << "\n\n";
         note("Saved " + to_utf8(p), GREEN);
     }
+    // /phone: Settings > Phone of the desktop app, in the terminal. The QR is drawn black on white so it scans on any theme.
+    void phone_cmd(const std::string& arg) {
+        std::string sub = lower(trim(arg)), id;
+        if (const auto sp = sub.find(' '); sp != std::string::npos) { id = trim(arg.substr(arg.find(' ') + 1)); sub = sub.substr(0, sp); }
+        if (sub == "pair") {
+            note("Making a pairing code\xE2\x80\xA6");
+            async([] {
+                Value j = phone_state();
+                if (!j["available"].truthy()) throw std::runtime_error("Phone access is not available in this engine.");
+                if (!j["enabled"].truthy()) api("/api/phone/enable", Object{{"enabled", true}}, 20);
+                for (int i = 0; i < 20 && !j["listening"].truthy(); ++i) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+                    j = phone_state();
+                    if (!j["error"].str().empty()) break;
+                }
+                if (!j["listening"].truthy()) throw std::runtime_error(j["error"].str().empty() ? "Phone access did not start." : j["error"].str());
+                Object o; o["state"] = j; o["pairing"] = api("/api/phone/pairing", {}, 20)["pairing"];
+                return Value(o);
+            }, [this](const Value& r, const std::string& err) { if (!err.empty()) error_block(err); else phone_pair_block(r["state"], r["pairing"]); });
+            return;
+        }
+        if (sub == "cancel") { async([] { return api("/api/phone/pairing/cancel", {}, 10); }, [this](const Value&, const std::string& err) { if (!err.empty()) error_block(err); else note("Pairing code cancelled."); }); return; }
+        if (sub == "remove" || sub == "rm") {
+            if (id.empty()) { note("/phone remove <id>   (/phone lists the paired phones and their ids)", AMBER); return; }
+            async([id] { return api("/api/phone/devices/remove", Object{{"id", id}}, 20); }, [this](const Value&, const std::string& err) { if (!err.empty()) error_block(err); else note("\xE2\x9C\x94 Removed. That phone can't connect any more.", GREEN); });
+            return;
+        }
+        if (sub == "on" || sub == "off") {
+            const bool on = sub == "on";
+            async([on] { api("/api/phone/enable", Object{{"enabled", on}}, 20); std::this_thread::sleep_for(std::chrono::milliseconds(600)); return phone_state(); },
+                  [this](const Value& j, const std::string& err) { if (!err.empty()) error_block(err); else note(phone_status_text(j)); });
+            return;
+        }
+        if (!sub.empty() && sub != "status" && sub != "devices" && sub != "list") { note("/phone [pair | on | off | remove <id> | cancel]", AMBER); return; }
+        async([] { return phone_state(); }, [this](const Value& j, const std::string& err) { if (!err.empty()) error_block(err); else note(phone_status_text(j)); });
+    }
+    void phone_pair_block(const Value& st, const Value& p) {
+        const auto* rows = p["qr"]["rows"].arr();
+        const int n = rows ? static_cast<int>(rows->size()) : 0, quiet = 2, size = n + 2 * quiet;
+        const std::string code = phone_code_text(p["code"].str());
+        const auto* urls = st["urls"].arr();
+        const std::string addr = urls && !urls->empty() ? (*urls)[0].str() : std::string("(this computer's address)");
+        std::vector<Para> ps;
+        if (n > 0 && size + 6 <= W) {
+            auto on = [&](int x, int y) {
+                x -= quiet; y -= quiet;
+                if (x < 0 || y < 0 || x >= n || y >= n) return false;
+                const std::string& row = (*rows)[static_cast<size_t>(y)].str();
+                return static_cast<size_t>(x) < row.size() && row[static_cast<size_t>(x)] == '1';
+            };
+            for (int y = 0; y < size; y += 2) {
+                std::string l;
+                for (int x = 0; x < size; ++x) { const bool t = on(x, y), b = y + 1 < size && on(x, y + 1); l += t && b ? "\xE2\x96\x88" : t ? "\xE2\x96\x80" : b ? "\xE2\x96\x84" : " "; }
+                ps.push_back({Line{sg(l, rgb(0x000000), 0, rgb(0xffffff))}, Line{sg("  ")}, Line{sg("  ")}});
+            }
+        } else ps.push_back({Line{sg("(Widen the window to see the QR code, or type the address and code below.)", AMBER)}, Line{sg("  ")}, Line{sg("  ")}});
+        ps.push_back({Line{sg("")}, Line{sg("  ")}, Line{sg("  ")}});
+        ps.push_back({Line{sg("Scan it with your phone's camera (A.S.T.R.O AI for Android 1.8.2 or later), or in the app tap Connect to my computer and type:", 0, BOLD)}, Line{sg("  ")}, Line{sg("  ")}});
+        ps.push_back({Line{sg("Address  ", MUTED), sg(addr, PEACH)}, Line{sg("  ")}, Line{sg("  ")}});
+        if (urls) for (size_t i = 1; i < urls->size(); ++i) ps.push_back({Line{sg("         " + (*urls)[i].str(), MUTED)}, Line{sg("  ")}, Line{sg("  ")}});
+        ps.push_back({Line{sg("Code     ", MUTED), sg(code, 0, BOLD)}, Line{sg("  ")}, Line{sg("  ")}});
+        ps.push_back({Line{sg("The code works once and expires in 10 minutes (/phone cancel ends it now). Same Wi-Fi, or a private network like Tailscale.", MUTED)}, Line{sg("  ")}, Line{sg("  ")}});
+        add(ps, "Pair a phone: address " + addr + ", code " + code);
+        // Tell the user when the phone has paired (or the code ran out).
+        const size_t before = st["devices"].arr() ? st["devices"].arr()->size() : 0;
+        std::thread([this, before] {
+            for (int i = 0; i < 400; ++i) {
+                std::this_thread::sleep_for(std::chrono::seconds(2));
+                Value s;
+                try { s = phone_state(); } catch (...) { continue; }
+                const auto* d = s["devices"].arr();
+                if (d && d->size() > before) { const std::string name = d->back()["name"].str(); post([this, name] { note("\xE2\x9C\x94 Paired " + name + ". /phone lists paired phones; /phone remove <id> removes one.", GREEN); say_toast("Phone paired: " + name, GREEN); }); return; }
+                if (s["pairing"].is_null()) { post([this] { note("The pairing code expired, was cancelled or was used up. /phone pair makes a new one."); }); return; }
+            }
+        }).detach();
+    }
+
     void status_block() {
         std::string t = "Engine   " + g_url + (nmodels ? "  \xC2\xB7  " + std::to_string(nmodels) + " models" : "") +
                         "\nProject  " + project + "  (" + to_utf8(root) + ")" +
@@ -1653,6 +1731,7 @@ struct App {
             say_toast(g_mouse ? "Mouse wheel scrolls the conversation (hold Shift to select text)" : "Mouse off: select text freely; scroll with PgUp/PgDn", PEACH); return;
         }
         if (cmd == "status") { status_block(); return; }
+        if (cmd == "phone") { phone_cmd(arg); return; }
         if (cmd == "theme") {
             if (arg.empty()) { open_themes(); return; }
             if (!find_theme(arg)) { note("Unknown theme \"" + arg + "\". Type /theme to pick one.", AMBER); return; }

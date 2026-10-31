@@ -124,6 +124,10 @@ class MainActivity : ComponentActivity() {
     private fun handleIntent(intent: Intent?) {
         intent ?: return
         intent.getStringExtra("route")?.let { app.ui.go(it) }
+        if (intent.action == Intent.ACTION_VIEW) {
+            intent.data?.let { PairLink.parse(it) }?.let { app.ui.pendingPair = it; app.ui.go("connect") }
+            return
+        }
         if (intent.action != Intent.ACTION_SEND) return
         val type = intent.type ?: ""
         val text = intent.getStringExtra(Intent.EXTRA_TEXT)

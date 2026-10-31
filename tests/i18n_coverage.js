@@ -64,7 +64,7 @@ const NAMES = new Set(['A.S.T.R.O AI', 'MCP', 'Markdown', 'JS', 'JavaScript', 'T
     await p.click('#' + id).catch(() => {}); await p.waitForTimeout(900); await collect(id);
     await p.evaluate(() => document.getElementById('modal-close')?.click()); await p.keyboard.press('Escape'); await p.waitForTimeout(300);
   }
-  for (const tab of ['general', 'appearance', 'brain', 'providers', 'account', 'voice', 'memory', 'data', 'shortcuts', 'about']) {
+  for (const tab of ['general', 'appearance', 'brain', 'providers', 'account', 'voice', 'memory', 'data', 'phone', 'shortcuts', 'about']) {
     await p.evaluate((t) => window.AstroAgent.openSettings(t), tab); await p.waitForTimeout(700); await collect('settings:' + tab);
   }
   await p.evaluate(() => document.getElementById('modal-close')?.click()); await p.waitForTimeout(300);

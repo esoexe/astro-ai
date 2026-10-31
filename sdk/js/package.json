@@ -1,6 +1,6 @@
 {
   "name": "astro-ai-sdk",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "description": "Client for the A.S.T.R.O AI agent engine: start agents, stream their events, run parallel agents in isolated copies, diff, merge and undo.",
   "type": "module",
   "main": "index.mjs",

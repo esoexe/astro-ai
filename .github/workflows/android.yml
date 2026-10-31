@@ -61,6 +61,29 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq qemu-user-static
           bash android/test_engine_qemu.sh
+      - name: A real engine for the screen tests (Linux build, sign-in off, this machine only)
+        run: |
+          sudo apt-get install -y -qq g++ make pkg-config libcurl4-openssl-dev libssl-dev zlib1g-dev
+          make -j4 workspace_server
+          mkdir -p "$RUNNER_TEMP/smoke-data"
+          PORT=4391 ASTRO_BIND=127.0.0.1 ASTRO_AUTH=off ASTRO_DATA_DIR="$RUNNER_TEMP/smoke-data" ASTRO_SYNC_MIRROR=off \
+            ASTRO_UPDATE_URL=http://127.0.0.1:9/none nohup ./workspace_server > "$RUNNER_TEMP/smoke-engine.log" 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:4391/api/auth/state > /dev/null && break; sleep 1; done
+          curl -sf http://127.0.0.1:4391/api/auth/state || { cat "$RUNNER_TEMP/smoke-engine.log"; exit 1; }
+          echo "ASTRO_SMOKE_URL=http://127.0.0.1:4391" >> "$GITHUB_ENV"
+          echo "ASTRO_SMOKE_SHOTS=1" >> "$GITHUB_ENV"
+          # Phone pairing end to end (PairingTest): the engine's phone listener on this runner's private address.
+          curl -sf -X POST http://127.0.0.1:4391/api/phone/enable -H 'x-astro-client: ci' -H 'content-type: application/json' \
+            -d '{"enabled":true,"port":4396}' > /dev/null || true
+          sleep 2
+          PAIR_URL=$(curl -sf http://127.0.0.1:4391/api/phone -H 'x-astro-client: ci' | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{const j=JSON.parse(s);process.stdout.write(j.listening&&j.urls&&j.urls[0]||"")}catch{}})' || true)
+          if [ -n "$PAIR_URL" ]; then
+            echo "ASTRO_PAIR_ADMIN=http://127.0.0.1:4391" >> "$GITHUB_ENV"
+            echo "ASTRO_PAIR_URL=$PAIR_URL" >> "$GITHUB_ENV"
+            echo "Pairing test against $PAIR_URL"
+          else
+            echo "No private address for the phone listener: PairingTest's end-to-end case will be skipped"
+          fi
       - name: Signing key
         if: env.HAS_ANDROID_KEY == 'true' && github.event_name != 'pull_request'
         env:
@@ -101,6 +124,12 @@ jobs:
           name: astro-ai-android
           path: out/
           if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: android-screens
+          path: android/app/build/smoke/
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v7
         if: always()
         with:

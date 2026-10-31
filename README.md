@@ -12,6 +12,7 @@
 
 ### New in 1.8
 
+- **Use your computer from your phone (1.8.1):** Settings → Phone pairs the Android app with a QR code. Off by default, private networks and paired phones only, one key per phone that you can remove. See [docs/android.md](docs/android.md#connect-to-my-computer).
 - **Android app** with the engine built in (Android 8.0+, 64-bit ARM). Only the app can use its engine: every launch gets a fresh random token. See [docs/android.md](docs/android.md). New, and not yet tested on many real phones.
 - **An Agent that's honest the first time:** a "100% complete" report must be backed by checks the job actually ran, status questions make it inspect the real files first, and it finishes the whole job in one run (no stubs, no "shall I continue?").
 - **Feedback and opt-in error reports** (off by default; keys, paths and e-mail removed, never chats), a welcome screen and a Simple menu.
@@ -125,10 +126,12 @@ Both editions can be installed side by side. Their names, folders, data, ports a
 
 ## Android app
 
-The same engine, cross-compiled with the Android NDK, runs inside a small WebView app (`android/`, plain Java, no
-libraries). Build: `bash android/build_engine.sh` (needs `ANDROID_NDK_ROOT`), then `gradle -p android assembleDebug`.
-Test on a PC: `bash android/test_engine_qemu.sh` and `node tests/android_shim_test.js`. Details, security model and
-signing: [docs/android.md](docs/android.md).
+A native app (`android/`, Kotlin and Jetpack Compose). The same engine, cross-compiled with the Android NDK, runs
+inside it, or the app pairs with the desktop app on your computer (Settings → Phone, or `astro phone pair`).
+Build: `bash android/build_engine.sh` (needs `ANDROID_NDK_ROOT`), then `gradle -p android assembleDebug`.
+Test on a PC: `bash android/test_engine_qemu.sh` and `gradle -p android :app:testDebugUnitTest` (screens and pairing
+run against a real engine when `ASTRO_SMOKE_URL`, `ASTRO_PAIR_ADMIN` and `ASTRO_PAIR_URL` are set). Details, security
+model and signing: [docs/android.md](docs/android.md).
 
 ## Workspace IDE
 

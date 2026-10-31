@@ -13,7 +13,7 @@ rm -rf "$OUT"; mkdir -p "$OUT"
 
 ALLOW=(
   workspace_server.cpp platform.h astro_ext.inc workspace_code.inc workspace_intel.inc workspace_ide.inc workspace_agent.inc
-  astro_dev.inc astro_library.inc astro_tools.inc astro_quality.inc astro_engine.inc astro_update.inc cli ide sdk bench library .github docs
+  astro_dev.inc astro_library.inc astro_tools.inc astro_quality.inc astro_engine.inc astro_update.inc astro_phone.inc qrcodegen.inc cli ide sdk bench library .github docs
   providers.json Makefile Dockerfile .dockerignore .env.example README.md
   LICENSE LICENSE-MIT LICENSE-APACHE LICENSE-GPL THIRD-PARTY-NOTICES.md SECURITY.md
   start_workspace.sh start_local_ai.sh start_opencode.sh

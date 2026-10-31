@@ -98,6 +98,8 @@ fun AppRoot() {
     val backend = app.backend
     Box(Modifier.fillMaxSize().background(c.bg)) {
         when {
+            // A pairing link (QR code) is confirmed first, even on first run or while the engine starts.
+            ui.pendingPair != null && backend.phase != Backend.Phase.Ready -> ConnectScreen(fromError = false, onBack = { ui.pendingPair = null })
             !app.prefs.welcomeDone -> WelcomeScreen()
             backend.phase == Backend.Phase.Ready -> MainShell()
             backend.phase == Backend.Phase.Starting -> Starting()

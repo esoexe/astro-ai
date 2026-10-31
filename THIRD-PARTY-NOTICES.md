@@ -6,6 +6,7 @@ These bundled components keep their own licenses. Their full license texts ship 
 | Component | Where | License | License text |
 |---|---|---|---|
 | miniz 3.0.2 | `desktop/third_party/miniz/` | MIT | `desktop/third_party/miniz/LICENSE` |
+| QR Code generator library (Project Nayuki), commit bcfe1b0 | `qrcodegen.inc` (draws the phone pairing QR code) | MIT | header of `qrcodegen.inc` |
 | webview (Serge Zaitsev and contributors) | `desktop/third_party/webview/` | MIT | `desktop/third_party/webview/LICENSE` |
 | Microsoft WebView2 SDK headers | `desktop/third_party/webview2/` | BSD-style (Microsoft) | `desktop/third_party/webview2/LICENSE.txt` |
 | Microsoft Edge WebView2 Runtime bootstrapper | `desktop/third_party/webview2-bootstrapper/` | Microsoft redistributable | Distributed unmodified, as Microsoft permits, so the installer can add the WebView2 Runtime when it's missing |

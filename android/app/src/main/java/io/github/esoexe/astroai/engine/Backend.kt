@@ -35,6 +35,9 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
         private set
     var log by mutableStateOf("")
         private set
+    /** The computer answers through its phone listener: it wants a pairing code, not a password. */
+    var pairing by mutableStateOf(false)
+        private set
     /** Latest /api/status: models, providers, version. */
     var status by mutableStateOf(JSONObject())
         private set
@@ -76,6 +79,8 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
         if (prefs.pcUrl.isBlank()) { phase = Phase.Unreachable; problem = "No computer address yet"; return }
         try {
             val st = Api.get("/api/auth/state", 8000)
+            pairing = st.bool("pairing")
+            if (pairing && !st.bool("ok") && prefs.pcPaired) problem = REMOVED
             when {
                 st.bool("enabled") && st.bool("setup") -> phase = Phase.NeedsSetup
                 st.bool("enabled") && !st.bool("ok") -> phase = Phase.NeedsLogin
@@ -92,11 +97,60 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
      * ({enabled, setup, ok}); throws with a readable message when it does not answer like A.S.T.R.O AI.
      */
     suspend fun probe(url: String): JSONObject {
-        val u = normalizeUrl(url)
-        if (u.isEmpty()) throw ApiError(0, "Type the computer's address")
-        val st = Api.get("$u/api/auth/state", 6000)
-        if (!st.has("enabled")) throw ApiError(0, "This address does not answer like A.S.T.R.O AI")
-        return st
+        val raw = url.trim().trimEnd('/')
+        if (raw.isEmpty()) throw ApiError(0, "Type the computer's address")
+        // No port typed: the desktop app's phone port first (4174), then the self-hosted server (4173).
+        val candidates = if (Regex("^(https?://)?[^/:]+$").matches(raw)) listOf("$raw:4174", "$raw:4173") else listOf(raw)
+        var last: Exception? = null
+        for (cand in candidates) {
+            val u = normalizeUrl(cand)
+            try {
+                val st = Api.get("$u/api/auth/state", 6000)
+                if (!st.has("enabled")) throw ApiError(0, "This address does not answer like A.S.T.R.O AI")
+                return st.put("_url", u)
+            } catch (e: Exception) { last = e }
+        }
+        throw last ?: ApiError(0, "Could not reach it")
+    }
+
+    /**
+     * Pairs with a computer (desktop app 1.8.1+, Settings > Phone) using the one-time code it shows, then switches to it.
+     * The computer gives this phone its own key, which can be removed there at any time. A wrong code throws.
+     */
+    suspend fun pair(urls: List<String>, code: String) {
+        var last: Exception? = null
+        for (raw in urls) {
+            val st = try { probe(raw) } catch (e: Exception) { last = e; continue }
+            if (!st.bool("pairing")) { last = ApiError(0, "This address does not offer pairing. Update A.S.T.R.O AI on the computer to 1.8.1 or later and use Settings > Phone, or sign in with the server's password."); continue }
+            val u = st.str("_url")
+            val j = Api.post("$u/api/phone/pair", jsonOf("code" to code.filter { it.isDigit() }, "name" to deviceName()), 20_000)
+            val token = j.str("token")
+            if (token.length < 32) throw ApiError(0, "The computer did not return a key")
+            prefs.pcUrl = u; prefs.pcToken = token; prefs.pcPaired = true
+            prefs.pcName = j.str("computer").ifEmpty { st.str("computer") }
+            prefs.connMode = "pc"
+            start()
+            return
+        }
+        throw last ?: ApiError(0, "Could not reach the computer")
+    }
+
+    private fun deviceName(): String {
+        val maker = android.os.Build.MANUFACTURER.orEmpty().replaceFirstChar { it.uppercase() }
+        val model = android.os.Build.MODEL.orEmpty()
+        return (if (model.startsWith(maker, ignoreCase = true)) model else "$maker $model").trim().ifEmpty { "Android phone" }.take(60)
+    }
+
+    /** Back to a computer this phone is already paired with (its key is kept while you use the built-in engine). */
+    fun reconnectPc() { if (prefs.pcPaired && prefs.pcToken.isNotEmpty()) { prefs.connMode = "pc"; start() } }
+
+    /** Unpairs: the computer deletes this phone's key (when it can be reached) and the phone forgets it. */
+    fun forgetPc() {
+        val url = prefs.pcUrl; val token = prefs.pcToken
+        if (token.isNotEmpty()) scope.launch { try { Api.requestBlocking("POST", "$url/api/auth/logout", JSONObject(), 8000, mapOf("X-Astro-Token" to token)) } catch (_: Exception) { } }
+        prefs.pcToken = ""; prefs.pcPaired = false; prefs.pcName = ""
+        prefs.connMode = "builtin"
+        start()
     }
 
     /** Signs in to the computer (or creates its first password) and switches to it. */
@@ -106,16 +160,20 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
         val j = Api.post(u + (if (create) "/api/auth/setup" else "/api/auth/login"), jsonOf("password" to password), 20_000)
         val token = j.str("token")
         if (token.length < 32) throw ApiError(0, "The computer did not return a session")
-        prefs.pcUrl = u; prefs.pcToken = token; prefs.connMode = "pc"
+        prefs.pcUrl = u; prefs.pcToken = token; prefs.pcPaired = false; prefs.pcName = ""; prefs.connMode = "pc"
         start()
     }
 
     /** Uses a computer that has no password (ASTRO_AUTH=off on a trusted network). */
-    fun useOpenPc(url: String) { prefs.pcUrl = normalizeUrl(url); prefs.pcToken = ""; prefs.connMode = "pc"; start() }
+    fun useOpenPc(url: String) { prefs.pcUrl = normalizeUrl(url); prefs.pcToken = ""; prefs.pcPaired = false; prefs.connMode = "pc"; start() }
 
     fun useBuiltIn() {
-        if (prefs.connMode == "pc" && prefs.pcToken.isNotEmpty()) scope.launch { try { Api.post("/api/auth/logout") } catch (_: Exception) { } }
-        prefs.connMode = "builtin"; prefs.pcToken = ""
+        // A paired phone keeps its key, so "Reconnect" works later without a new code; "Forget" unpairs.
+        if (!prefs.pcPaired) {
+            if (prefs.connMode == "pc" && prefs.pcToken.isNotEmpty()) scope.launch { try { Api.post("/api/auth/logout") } catch (_: Exception) { } }
+            prefs.pcToken = ""
+        }
+        prefs.connMode = "builtin"
         start()
     }
 
@@ -146,7 +204,7 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
             statusAt = System.currentTimeMillis()
             if (phase != Phase.Ready) { phase = Phase.Ready; problem = "" }
         } catch (e: ApiError) {
-            if (e.status == 401 && isPc) { phase = Phase.NeedsLogin; problem = e.message ?: "" }
+            if (e.status == 401 && isPc) { phase = Phase.NeedsLogin; problem = if (prefs.pcPaired) REMOVED else e.message ?: "" }
         } catch (_: Exception) { /* keep the last status */ }
     }
 
@@ -157,4 +215,8 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
     val models: List<JSONObject> get() = status.arr("models").objects()
     val providers: List<JSONObject> get() = status.arr("providers").objects()
     val version: String get() = status.str("version")
+
+    private companion object {
+        const val REMOVED = "This phone was removed on the computer, or the computer forgot it. Pair it again: on the computer, open Settings > Phone and click Pair a phone."
+    }
 }

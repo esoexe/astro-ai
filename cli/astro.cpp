@@ -47,7 +47,7 @@ using aj::Value;
 using aj::Object;
 using aj::Array;
 
-static const char* VERSION = "1.8.0";
+static const char* VERSION = "1.8.1";
 
 // ---------- terminal ----------
 static bool g_tty = false, g_color = false, g_err_tty = false;
@@ -734,6 +734,109 @@ static int cmd_models() {
 
 // Compilers, runtimes and language servers, installed portably by the engine (Extensions > Tools in the app).
 // astro ext: VS Code extensions from Open VSX for the extension host (preview). They run in the app's editor.
+// ---------- phone access (desktop Settings > Phone, from the terminal) ----------
+static Value phone_state() {
+    const Http r = http("GET", g_url + "/api/phone", "", 10);
+    if (!r.err.empty()) throw ApiError("Cannot reach the A.S.T.R.O AI server at " + g_url + " (" + r.err + ").", 0, Value());
+    Value j; aj::try_parse(r.body, j);
+    if (r.status == 404) throw ApiError("Phone access is not available in this engine (it is off with ASTRO_PHONE=off, and needs version 1.8.1 or later).", 404, j);
+    if (r.status < 200 || r.status >= 300) throw ApiError(j["error"].str().empty() ? "HTTP " + std::to_string(r.status) : j["error"].str(), r.status, j);
+    return j;
+}
+// Black modules on white, two QR rows per line (half blocks), so it scans on dark and light terminals alike.
+static void print_qr(const Value& rows) {
+    const auto* a = rows.arr();
+    if (!a || a->empty()) return;
+    const int n = static_cast<int>(a->size()), quiet = 2;
+    auto on = [&](int x, int y) {
+        x -= quiet; y -= quiet;
+        if (x < 0 || y < 0 || x >= n || y >= n) return false;
+        const std::string& row = (*a)[static_cast<size_t>(y)].str();
+        return static_cast<size_t>(x) < row.size() && row[static_cast<size_t>(x)] == '1';
+    };
+    const int size = n + 2 * quiet;
+    for (int y = 0; y < size; y += 2) {
+        std::string line = "  \x1b[30;107m";
+        for (int x = 0; x < size; ++x) {
+            const bool top = on(x, y), bottom = y + 1 < size && on(x, y + 1);
+            line += top && bottom ? "\xE2\x96\x88" : top ? "\xE2\x96\x80" : bottom ? "\xE2\x96\x84" : " ";
+        }
+        out(line + "\x1b[0m");
+    }
+}
+static std::string phone_code_text(const std::string& c) { return c.size() == 8 ? c.substr(0, 4) + " " + c.substr(4) : c; }
+// Plain text (no colours), shared by "astro phone" and the full-screen app's /phone.
+static std::string phone_status_text(const Value& j) {
+    std::string t;
+    const auto line = [&](const std::string& l) { t += (t.empty() ? "" : "\n") + l; };
+    if (!j["available"].truthy()) return "Phone access is not available here.";
+    if (!j["enabled"].truthy()) line("\xE2\x97\x8B Phones can't connect (off). Pair one to turn it on: astro phone pair (or /phone pair in the full-screen app).");
+    else if (j["listening"].truthy()) {
+        line("\xE2\x97\x8F Phones on your network can connect  \xC2\xB7  port " + std::to_string(static_cast<long long>(j["port"].num())));
+        if (const auto* u = j["urls"].arr()) for (const auto& x : *u) line("  " + x.str());
+    } else line("\xE2\x97\x8F " + (j["error"].str().empty() ? std::string("Starting\xE2\x80\xA6") : j["error"].str()));
+    const auto* d = j["devices"].arr();
+    if (!d || d->empty()) { line("No phones paired yet."); return t; }
+    line("Paired phones:");
+    for (const auto& x : *d) {
+        const long long seen = static_cast<long long>(x["last_seen"].num());
+        std::string when = "never used";
+        if (seen > 0) { const long long m = (now_ms() - seen) / 60000; when = m < 2 ? "active now" : m < 120 ? std::to_string(m) + " min ago" : m < 2880 ? std::to_string(m / 60) + " h ago" : std::to_string(m / 1440) + " days ago"; }
+        line("  " + x["name"].str() + "  \xC2\xB7  " + x["id"].str() + "  \xC2\xB7  " + when);
+    }
+    return t;
+}
+static void phone_status(const Value& j) { std::istringstream in(phone_status_text(j)); for (std::string l; std::getline(in, l);) out(l); }
+static int cmd_phone(const std::vector<std::string>& pos) {
+    const std::string sub = pos.empty() ? "status" : lower(pos[0]);
+    if (sub == "status" || sub == "devices" || sub == "list" || sub == "ls") { phone_status(phone_state()); return 0; }
+    if (sub == "on" || sub == "off") {
+        api("/api/phone/enable", Object{{"enabled", sub == "on"}}, 20);
+        std::this_thread::sleep_for(std::chrono::milliseconds(600));
+        phone_status(phone_state());
+        return 0;
+    }
+    if (sub == "remove" || sub == "rm") {
+        if (pos.size() < 2) { std::cerr << "astro phone remove <id>   (astro phone devices lists them)\n"; return 2; }
+        api("/api/phone/devices/remove", Object{{"id", pos[1]}}, 20);
+        out(green("\xE2\x9C\x94 ") + "Removed. That phone can't connect any more.");
+        return 0;
+    }
+    if (sub == "pair") {
+        Value j = phone_state();
+        if (!j["available"].truthy()) { phone_status(j); return 1; }
+        if (!j["enabled"].truthy() || !j["listening"].truthy()) {
+            if (!j["enabled"].truthy()) { out(dim("Turning on phone access (private networks, paired phones only)\xE2\x80\xA6")); api("/api/phone/enable", Object{{"enabled", true}}, 20); }
+            for (int i = 0; i < 20; ++i) { std::this_thread::sleep_for(std::chrono::milliseconds(250)); j = phone_state(); if (j["listening"].truthy() || !j["error"].str().empty()) break; }
+            if (!j["listening"].truthy()) { out(red(j["error"].str().empty() ? "Phone access did not start." : j["error"].str())); return 1; }
+        }
+        const size_t before = j["devices"].arr() ? j["devices"].arr()->size() : 0;
+        const Value p = api("/api/phone/pairing", {}, 20)["pairing"];
+        out("");
+        print_qr(p["qr"]["rows"]);
+        out("");
+        out(bold("Scan this with your phone's camera") + dim(" (A.S.T.R.O AI for Android 1.8.2 or later), or in the app tap"));
+        out(dim("Connect to my computer and type:"));
+        const auto* urls = j["urls"].arr();
+        out("  Address  " + peach(urls && !urls->empty() ? (*urls)[0].str() : std::string("(this computer's address)")));
+        if (urls) for (size_t i = 1; i < urls->size(); ++i) out("           " + dim((*urls)[i].str()));
+        out("  Code     " + bold(phone_code_text(p["code"].str())));
+        out(dim("The code works once and expires in 10 minutes. Both devices must be on the same Wi-Fi or a private network such as Tailscale."));
+        out(dim("Waiting for the phone\xE2\x80\xA6 (Ctrl+C cancels the code)"));
+        const int base = g_interrupts.load();
+        while (true) {
+            for (int i = 0; i < 8; ++i) { std::this_thread::sleep_for(std::chrono::milliseconds(250)); if (g_interrupts.load() != base) break; }
+            if (g_interrupts.load() != base) { try { api("/api/phone/pairing/cancel", {}, 10); } catch (...) {} out(dim("Cancelled. The code no longer works.")); return 130; }
+            const Value s = phone_state();
+            const auto* d = s["devices"].arr();
+            if (d && d->size() > before) { out(green("\xE2\x9C\x94 ") + "Paired " + bold(d->back()["name"].str()) + dim(". Remove it any time: astro phone remove " + d->back()["id"].str())); return 0; }
+            if (s["pairing"].is_null()) { out(yellow("The code expired or was used up. Run astro phone pair for a new one.")); return 1; }
+        }
+    }
+    std::cerr << "astro phone [status|pair|on|off|devices|remove <id>]\n"; (void)phone_status_text;
+    return 2;
+}
+
 static int cmd_ext(const std::vector<std::string>& pos) {
     const std::string sub = pos.empty() ? "list" : pos[0];
     if (sub == "list" || sub == "ls") {
@@ -938,7 +1041,8 @@ static void help() {
               << "  astro ext list|install|remove     VS Code extensions from Open VSX (preview, run in the editor)\n"
               << "  astro server status|start|stop    the local A.S.T.R.O AI engine\n"
               << "  astro update [--check]            install the newest version (terminal installs)\n"
-              << "  astro bug                         report a problem (opens a filled-in GitHub issue)\n\n"
+              << "  astro bug                         report a problem (opens a filled-in GitHub issue)\n"
+              << "  astro phone [pair|on|off|devices|remove <id>]  let the Android app use this computer (QR code + one-time code)\n\n"
               << bold("Options") << "\n"
               << "  -C <dir>            work in this folder (default: the current folder)\n"
               << "  --project <name>    use an existing A.S.T.R.O AI project instead of a folder\n"
@@ -958,7 +1062,8 @@ static void repl_help() {
              {"/review on|off", "second-model review after each task"}, {"/new", "start a new session"}, {"/sessions", "sessions in this project"},
              {"/resume <id>", "continue an earlier session"}, {"/diff", "what this session changed (git diff for repos)"}, {"/undo", "restore the project to before this session"},
              {"/parallel A | B | C", "run tasks in parallel, isolated; add --merge to merge"}, {"/agents", "all agents"}, {"/merge <id>", "merge an isolated agent"},
-             {"/discard <id>", "remove an isolated agent's copy"}, {"/quit", "leave (Ctrl+D)"}})
+             {"/discard <id>", "remove an isolated agent's copy"}, {"/phone [pair|on|off|devices]", "let the Android app use this computer"},
+             {"/quit", "leave (Ctrl+D)"}})
         out("  " + peach(c) + std::string(c.size() < 24 ? 24 - c.size() : 1, ' ') + dim(d));
     out(dim("End a line with \\ to write several lines. Ctrl+C stops the agent."));
 }
@@ -1056,6 +1161,7 @@ static int repl(Opts o, const std::string& project) {
                 else if (cmd == "merge") { if (arg.empty()) out(dim("  /merge <id>")); else { Opts q = o; q.keep = false; cmd_merge(arg, q); } }
                 else if (cmd == "discard") { if (arg.empty()) out(dim("  /discard <id>")); else { api("/api/agent/discard", Object{{"id", arg}}); out(dim("  Discarded.")); } }
                 else if (cmd == "stop") { if (!sid.empty()) api("/api/agent/stop", Object{{"id", sid}}); }
+                else if (cmd == "phone") { std::vector<std::string> a; std::istringstream in(arg); for (std::string w; in >> w;) a.push_back(w); cmd_phone(a); }
                 else out(dim("  Unknown command. /help lists them."));
             } catch (const std::exception& e) { out(red("  " + std::string(e.what()))); }
             continue;
@@ -1114,7 +1220,7 @@ int main(int argc, char** argv) {
         else pos.push_back(a);
     }
     if (o.mode != "plan" && o.mode != "ask" && o.mode != "auto") { std::cerr << "--mode must be plan, ask or auto\n"; return 2; }
-    static const std::set<std::string> cmds = {"run", "parallel", "agents", "attach", "logs", "diff", "merge", "discard", "stop", "undo", "models", "server", "chat", "help", "tools", "ext", "update", "bug"};
+    static const std::set<std::string> cmds = {"run", "parallel", "agents", "attach", "logs", "diff", "merge", "discard", "stop", "undo", "models", "server", "chat", "help", "tools", "ext", "update", "bug", "phone"};
     if (!pos.empty() && cmds.count(pos[0])) { o.cmd = pos[0]; pos.erase(pos.begin()); }
     if (o.cmd == "help") { help(); return 0; }
     if (o.cmd == "run") o.print = true;
@@ -1153,6 +1259,7 @@ int main(int argc, char** argv) {
         if (o.cmd == "models") return cmd_models();
         if (o.cmd == "tools") return cmd_tools(pos);
         if (o.cmd == "ext") return cmd_ext(pos);
+        if (o.cmd == "phone") return cmd_phone(pos);
         if (o.cmd == "diff") return cmd_diff(need_id());
         if (o.cmd == "merge") return cmd_merge(need_id(), o);
         if (o.cmd == "discard") { api("/api/agent/discard", Object{{"id", need_id()}}); out(dim("Discarded.")); return 0; }
