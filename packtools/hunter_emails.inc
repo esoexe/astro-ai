@@ -114,8 +114,8 @@ inline Result guess(const std::string& name, const std::string& domain0, const s
                     const std::string& found = "", const std::string& found_source = "") {
     std::string domain = strip(lower(domain0));
     { std::size_t k = 0; while (k < domain.size() && domain[k] == '@') ++k; domain = domain.substr(k); }
-    static const std::regex DOMAIN(R"(^[a-z0-9.\-]+\.[a-z]{2,}\n?$)");
-    if (!std::regex_search(domain, DOMAIN)) throw EmailError("--domain wants the company's email domain, like example.com");
+    static const std::regex DOMAIN_RE(R"(^[a-z0-9.\-]+\.[a-z]{2,}\n?$)");   // not DOMAIN: macOS <math.h> defines that as a macro
+    if (!std::regex_search(domain, DOMAIN_RE)) throw EmailError("--domain wants the company's email domain, like example.com");
     const Name n = parse_name(name);
     auto [counts, notes] = learn(known, domain);
     std::map<std::string, double> weights; for (const auto& [p, w] : PATTERNS) weights[p] = w;

@@ -7,9 +7,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 REPO=esoexe/astro-ai
 DL=website/downloads
-TAGS=("$@"); [ ${#TAGS[@]} -gt 0 ] || TAGS=(v1.8.1 android-v1.8.2)
-# the files website/downloads carries (the Windows installers are linked from the release page, not mirrored)
-WANT='^(astro-ai-clean.*|AstroAI-.*-(macos-.*|windows-arm64-portable-CLEAN\.zip|android-arm64\.apk)|astro-ai-vscode-.*\.vsix)$'
+TAGS=("$@"); [ ${#TAGS[@]} -gt 0 ] || TAGS=(v1.9.0 android-v1.9.0)
+# the files website/downloads carries: every CLEAN download the site links to (Windows, Linux, macOS, Android, VS Code)
+WANT='^(astro-ai-clean.*|AstroAI-.*-(macos-.*|windows-(x64|arm64)-(Setup|portable)-CLEAN\.(exe|zip)|android-arm64\.apk)|astro-ai-vscode-.*\.vsix)$'
 mkdir -p "$DL"
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 for tag in "${TAGS[@]}"; do

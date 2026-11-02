@@ -18,6 +18,7 @@ make && make test
 | `android/test_engine_qemu.sh` | The Android engine under qemu: start-up, app-token protection, shell commands, clean stop |
 | `tests/android_shim_test.js` | `web/android.js` with a mock Android bridge: voice, downloads, links, back, frame nonce |
 | `tests/ui_18_test.js` | 1.8 screens: welcome, feedback, Local only, sandbox, voice, Arabic, phone layout |
+| `tests/macos_macros.sh` | Every engine source compiles with the macros macOS `<math.h>` defines (`DOMAIN`, `OVERFLOW`, ...), so a name clash fails here, not on the Mac runner |
 
 UI tests (Playwright, optional): `tests/ui/gap_ui.js` and `tests/ui/chat_ui.js`.
 
