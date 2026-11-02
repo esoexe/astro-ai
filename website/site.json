@@ -2,51 +2,51 @@
   "name": "A.S.T.R.O AI",
   "url": "https://esoexe.github.io/astro-ai",
   "description": "A.S.T.R.O AI is a free desktop app for chat, code and agents, powered by a team of free AI models that answer as one. Windows, Linux and macOS.",
-  "version": "1.8.1",
-  "dateLabel": "October 30, 2026",
+  "version": "1.9.0",
+  "dateLabel": "November 2, 2026",
   "year": 2026,
   "repo": "https://github.com/esoexe/astro-ai",
   "highlights": [
-    "Use your computer from your phone: pair the Android app with a QR code in Settings → Phone",
-    "Off by default, private networks and paired phones only, one key per phone that you can remove",
-    "astro phone pair draws the pairing QR code right in your terminal",
-    "Also in 1.8: the native Android app, an honest Agent, feedback and opt-in error reports"
+    "Astro RE: see how any app, library or file works, from its format and imports down to disassembly. It reads files and never runs them",
+    "16 Astro Packs in the Library, adapted from Jake Schincariol's MIT-licensed agent skills, with their helpers built in (no Python or Node needed)",
+    "The Agent can inspect files with its new re tool, and /re does the same in the terminal",
+    "Also in 1.9: French and Arabic for every new screen, and the optional REA MCP server in one click"
   ],
   "highlights_i18n": {
     "fr": [
-      "Utilisez votre ordinateur depuis votre téléphone : associez l'application Android avec un code QR dans Paramètres → Téléphone",
-      "Désactivé par défaut, réseaux privés et téléphones associés uniquement, une clé par téléphone que vous pouvez retirer",
-      "astro phone pair affiche le code QR d'association directement dans votre terminal",
-      "Aussi dans la 1.8 : l'application Android native, un Agent honnête, les avis et les rapports d'erreurs facultatifs"
+      "Astro RE : voyez comment fonctionne une app, une bibliothèque ou un fichier, de son format et ses imports jusqu’au désassemblage. Il lit les fichiers sans jamais les exécuter",
+      "16 Astro Packs dans la Bibliothèque, adaptés des compétences d’agent de Jake Schincariol (licence MIT), avec leurs outils intégrés (ni Python ni Node nécessaires)",
+      "L’Agent peut inspecter des fichiers avec son nouvel outil re, et /re fait de même dans le terminal",
+      "Aussi dans la 1.9 : le français et l’arabe sur chaque nouvel écran, et le serveur MCP REA facultatif en un clic"
     ],
     "ar": [
-      "استخدم حاسوبك من هاتفك: أقرن تطبيق أندرويد برمز QR من الإعدادات ← الهاتف",
-      "معطّل افتراضيًا، للشبكات الخاصة والهواتف المقترنة فقط، مفتاح لكل هاتف يمكنك إزالته",
-      "يعرض astro phone pair رمز QR للإقران مباشرة في الطرفية",
-      "وفي 1.8 أيضًا: تطبيق أندرويد الأصلي، ووكيل صادق، والملاحظات وتقارير الأخطاء الاختيارية"
+      "Astro RE: اكتشف كيف يعمل أي تطبيق أو مكتبة أو ملف، من صيغته واستيراداته حتى التفكيك. يقرأ الملفات ولا يشغّلها أبدًا",
+      "16 حزمة من Astro Packs في المكتبة، مقتبسة من مهارات الوكلاء التي نشرها Jake Schincariol بترخيص MIT، وأدواتها مدمجة (دون الحاجة إلى Python أو Node)",
+      "يمكن للوكيل فحص الملفات بأداته الجديدة re، والأمر ‎/re يفعل الشيء نفسه في الطرفية",
+      "أيضًا في 1.9: الفرنسية والعربية في كل شاشة جديدة، وخادم REA MCP الاختياري بنقرة واحدة"
     ]
   },
   "android": {
-    "version": "1.8.2",
-    "dateLabel": "October 30, 2026",
+    "version": "1.9.0",
+    "dateLabel": "November 2, 2026",
     "min_android": "8.0",
     "highlights": [
       "Pair with the desktop app (1.8.1 or later): scan its QR code, or type the address and an 8-digit code",
       "The app always shows which computer it will connect to and waits for you",
-      "Reconnect or forget a paired computer; switching to the phone's own engine keeps the pairing",
+      "The phone's own engine is now 1.9.0: the Agent can inspect apps and files on the phone with Astro RE",
       "A native app: chat, live voice, notes, tasks, reminders, the Workspace and the Agent"
     ],
     "highlights_i18n": {
       "fr": [
         "Associez l'application de bureau (1.8.1 ou plus) : scannez son code QR, ou saisissez l'adresse et un code à 8 chiffres",
         "L'application indique toujours à quel ordinateur elle va se connecter et attend votre accord",
-        "Reconnectez ou oubliez un ordinateur associé ; passer au moteur du téléphone conserve l'association",
+        "Le moteur du téléphone passe en 1.9.0 : l’Agent peut inspecter des apps et des fichiers sur le téléphone avec Astro RE",
         "Une application native : discussion, voix en direct, notes, tâches, rappels, l'Espace de travail et l'Agent"
       ],
       "ar": [
         "أقرن التطبيق بتطبيق سطح المكتب (1.8.1 أو أحدث): امسح رمز QR الخاص به، أو اكتب العنوان ورمزًا من 8 أرقام",
         "يعرض التطبيق دائمًا الحاسوب الذي سيتصل به وينتظر موافقتك",
-        "أعد الاتصال بحاسوب مقترن أو انسه؛ والتبديل إلى محرك الهاتف يُبقي الإقران",
+        "أصبح محرك الهاتف بالإصدار 1.9.0: يمكن للوكيل فحص التطبيقات والملفات على الهاتف باستخدام Astro RE",
         "تطبيق أصلي: المحادثة والصوت المباشر والملاحظات والمهام والتذكيرات ومساحة العمل والوكيل"
       ]
     }
