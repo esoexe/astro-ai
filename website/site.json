@@ -2,32 +2,32 @@
   "name": "A.S.T.R.O AI",
   "url": "https://esoexe.github.io/astro-ai",
   "description": "A.S.T.R.O AI is a free desktop app for chat, code and agents, powered by a team of free AI models that answer as one. Windows, Linux and macOS.",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "dateLabel": "November 2, 2026",
   "year": 2026,
   "repo": "https://github.com/esoexe/astro-ai",
   "highlights": [
-    "Closer Pack: 11 skills that run a small sales team, from finding leads and cold openers to follow-ups, call coaching, proposals, contracts and a monthly forecast",
-    "Its helpers are built into the app in C++, and nothing is sent without your yes for that exact message",
-    "Clearer pack steps: browser, Gmail and calendar tasks now name what works in A.S.T.R.O AI (MCP servers you add), and morning runs use your system scheduler",
-    "The Android app moves to 1.9.1 with the same engine"
+    "Seed Pack: 11 skills for a startup raise, from competitor research and market size to investor matching, a plan, a model, a deck and investor updates",
+    "Its closer drafts one personal email per investor, schedules follow-ups on business days, sorts replies and writes the calendar invite, and nothing is sent without your yes for that batch",
+    "All 11 helpers are built into the app in C++, so the pack needs no Python",
+    "The Android app moves to 1.9.2 with the same engine"
   ],
   "highlights_i18n": {
     "fr": [
-      "Closer Pack : 11 compétences qui font tourner une petite équipe commerciale, de la recherche de prospects et des premiers e-mails aux relances, au coaching d’appel, aux devis, aux contrats et à la prévision du mois",
-      "Ses outils sont intégrés à l’app en C++, et rien n’est envoyé sans votre oui pour ce message précis",
-      "Des étapes plus claires dans les packs : navigateur, Gmail et agenda indiquent ce qui fonctionne vraiment dans A.S.T.R.O AI (les serveurs MCP que vous ajoutez), et les tâches du matin passent par le planificateur de votre système",
-      "L’app Android passe en 1.9.1 avec le même moteur"
+      "Seed Pack : 11 compétences pour une levée de fonds, de l’analyse des concurrents et de la taille du marché à la recherche d’investisseurs, au plan, au modèle financier, au pitch deck et aux nouvelles aux investisseurs",
+      "Son closer rédige un e-mail personnel par investisseur, planifie les relances en jours ouvrés, trie les réponses et écrit l’invitation d’agenda, et rien n’est envoyé sans votre oui pour ce lot",
+      "Les 11 outils sont intégrés à l’app en C++ : le pack n’a pas besoin de Python",
+      "L’app Android passe en 1.9.2 avec le même moteur"
     ],
     "ar": [
-      "Closer Pack: إحدى عشرة مهارة تدير فريق مبيعات صغيرًا، من إيجاد العملاء المحتملين وأول رسالة إلى المتابعة والتدريب أثناء المكالمة والعروض والعقود وتوقّع الشهر",
-      "أدواتها مدمجة في التطبيق بلغة C++، ولا يُرسَل شيء دون موافقتك على تلك الرسالة بعينها",
-      "خطوات أوضح في الحزم: مهام المتصفح وGmail والتقويم تذكر الآن ما يعمل فعلًا في A.S.T.R.O AI (خوادم MCP التي تضيفها)، والمهام الصباحية تعمل عبر مجدول نظامك",
-      "ينتقل تطبيق Android إلى 1.9.1 بالمحرك نفسه"
+      "Seed Pack: إحدى عشرة مهارة لجولة تمويل شركة ناشئة، من دراسة المنافسين وحجم السوق إلى إيجاد المستثمرين والخطة والنموذج المالي والعرض التقديمي وتحديثات المستثمرين",
+      "يكتب الـcloser رسالة شخصية لكل مستثمر، ويجدول المتابعات في أيام العمل، ويفرز الردود، ويكتب دعوة التقويم، ولا يُرسَل شيء دون موافقتك على تلك الدفعة",
+      "أدواتها الإحدى عشرة مدمجة في التطبيق بلغة C++، فلا تحتاج الحزمة إلى Python",
+      "ينتقل تطبيق Android إلى 1.9.2 بالمحرك نفسه"
     ]
   },
   "android": {
-    "version": "1.9.1",
+    "version": "1.9.2",
     "dateLabel": "November 2, 2026",
     "min_android": "8.0",
     "highlights": [
