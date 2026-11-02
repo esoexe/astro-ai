@@ -10,7 +10,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
-VER="1.9.2"
+VER="1.9.3"
 export ASTRO_VER="$VER"   # build_setup.sh and the Windows version resources read this
 OUT="$ROOT/desktop-builds"
 WORK="$ROOT/.cache/pkg"

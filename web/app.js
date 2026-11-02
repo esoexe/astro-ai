@@ -4465,6 +4465,7 @@
     $('#ws-team-new').onclick = () => { if (ws.agentMode) { agWsNew(); return; } if (ws.planRun) { ws.planRun.aborted = true; ws.planRun.ctrl?.abort(); } if (ws.teamBusy) { ws.teamBusy.abort(); } ws.team = []; wsSaveTeam(); wsRenderTeam(); };
     const tin = $('#ws-team-in');
     tin.addEventListener('input', () => { tin.style.height = 'auto'; tin.style.height = `${Math.min(180, tin.scrollHeight)}px`; });
+    agSlashAttach(tin, { active: () => !!ws.agentMode, project: () => ws.project });
     tin.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#ws-team-form').requestSubmit(); } });
     $('#ws-team-form').onsubmit = (e) => {
       e.preventDefault();
@@ -5333,7 +5334,7 @@
     $$('[data-tmode]').forEach((b) => b.classList.toggle('on', b.dataset.tmode === 'agent' ? ws.agentMode : !ws.agentMode && (b.dataset.tmode === 'fast') === ws.fast));
     $('#ws-team').classList.toggle('agent-mode', ws.agentMode);
     $('#ws-agteam')?.classList.toggle('on', AG.team);
-    if (ws.agentMode) { $('#ws-team-in')?.setAttribute('placeholder', 'Give the agent a job: build, fix, research, test…'); agWsHint(); agWsRender(); return; }
+    if (ws.agentMode) { $('#ws-team-in')?.setAttribute('placeholder', 'Give the agent a job: build, fix, research, test… / for commands'); agWsHint(); agWsRender(); return; }
     box._sid = ''; box._nodes = null;
     $('#ws-autofix')?.classList.toggle('on', ws.autofix);
     $('#ws-plan')?.classList.toggle('on', ws.plan);
@@ -7251,6 +7252,7 @@
     $('#ag-sq').addEventListener('keydown', (e) => { if (e.key === 'Escape') $('#ag-sfind').click(); });
     const tin = $('#ag-in');
     tin.addEventListener('input', () => { tin.style.height = 'auto'; tin.style.height = `${Math.min(200, tin.scrollHeight)}px`; });
+    agSlashAttach(tin, { active: () => true, project: () => AG.project });
     tin.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#ag-form').requestSubmit(); } });
     $('#ag-form').onsubmit = (e) => {
       e.preventDefault();
@@ -7325,6 +7327,56 @@
     const first = AG.list[0];
     if (first) await agSelect(first.id, true); else { const s = agNew(name); AG.cur = s.id; }
     agRenderAll();
+  }
+  // The "/" menu of the agent composers (Agent page and Workspace agent mode): built-in commands, custom commands and
+  // installed skills, so packs work without knowing their skill names. Arrows move, Enter or Tab fills in, Esc closes.
+  function agSlashAttach(ta, opts) {
+    const box = document.createElement('div');
+    box.className = 'ag-slash'; box.hidden = true; box.setAttribute('role', 'listbox'); box.setAttribute('aria-label', 'Commands and skills');
+    ta.before(box);
+    ta.setAttribute('aria-haspopup', 'listbox'); ta.setAttribute('aria-expanded', 'false');
+    const st = { matches: [], sel: 0, seq: 0 };
+    const close = () => { box.hidden = true; box.innerHTML = ''; st.matches = []; st.sel = 0; ta.setAttribute('aria-expanded', 'false'); };
+    const paint = () => {
+      box.innerHTML = st.matches.map((it, i) => `<button type="button" role="option" tabindex="-1" class="ag-slash-item${i === st.sel ? ' sel' : ''}" data-i="${i}" aria-selected="${i === st.sel}"${it.from ? ` title="${esc(it.from)}"` : ''}><code>${esc(it.cmd)}</code><span>${esc(it.desc)}</span><i class="ag-slash-kind ${it.kind}">${it.kind === 'skill' ? 'Skill' : 'Command'}</i></button>`).join('');
+      box.hidden = !st.matches.length; ta.setAttribute('aria-expanded', String(!box.hidden));
+      box.querySelector('.sel')?.scrollIntoView({ block: 'nearest' });
+    };
+    const update = async () => {
+      const v = ta.value;
+      if (!opts.active() || !/^\/[\w:.-]*$/.test(v)) { if (!box.hidden) close(); return; }
+      const seq = ++st.seq;
+      let items = [];
+      try { items = (await window.AstroDev?.slashItems?.(opts.project())) || []; } catch (_e) { items = []; }
+      if (seq !== st.seq || ta.value !== v || document.activeElement !== ta) return;
+      const q = v.slice(1).toLowerCase(); const nm = (it) => it.cmd.slice(1).toLowerCase();
+      st.matches = [...items.filter((it) => nm(it).startsWith(q)), ...items.filter((it) => !nm(it).startsWith(q) && (nm(it).includes(q) || it.desc.toLowerCase().includes(q)))].slice(0, 80);
+      st.sel = 0; paint();
+    };
+    const pick = (i) => {
+      const it = st.matches[i]; if (!it) return;
+      ta.value = `${it.cmd} `; close(); ta.focus();
+      ta.setSelectionRange(ta.value.length, ta.value.length);
+      ta.dispatchEvent(new Event('input'));
+    };
+    ta.addEventListener('input', update);
+    ta.addEventListener('focus', update);
+    ta.addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== ta) close(); }, 150));
+    // Registered before the composer's own Enter-to-send handler, so a pick never sends half a command.
+    ta.addEventListener('keydown', (e) => {
+      if (box.hidden || !st.matches.length) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        st.sel = (st.sel + (e.key === 'ArrowDown' ? 1 : -1) + st.matches.length) % st.matches.length; paint();
+      } else if (e.key === 'Tab' || (e.key === 'Enter' && !e.shiftKey && !e.isComposing)) {
+        const it = st.matches[st.sel];
+        // A finished command (for example "/help") sends on Enter as before.
+        if (e.key === 'Enter' && it && it.cmd.toLowerCase() === ta.value.trim().toLowerCase()) { close(); return; }
+        e.preventDefault(); e.stopImmediatePropagation(); pick(st.sel);
+      } else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); }
+    });
+    box.addEventListener('mousedown', (e) => { const b = e.target.closest('[data-i]'); if (b) { e.preventDefault(); pick(Number(b.dataset.i)); } });
+    return { close };
   }
   function agPageSend(text) {
     let s = agCurSession();

@@ -86,10 +86,21 @@
 .ag-cbox:focus-within { border-color: color-mix(in srgb, var(--accent) 60%, var(--border-strong)); box-shadow: 0 0 0 3px var(--accent-soft); }
 .ag .ag-cbox textarea { border: 0; background: transparent; box-shadow: none !important; padding: 10px 8px 6px; min-height: 44px; font-size: 15px; }
 .ag .ag-cbox textarea:focus { border: 0; }
-.ag-cbox .ag-row { margin-top: 2px; gap: 6px; }
+.ag-cbox .ag-row { margin-top: 2px; gap: 6px; flex-wrap: wrap; }
 .ag-cbox .ws-chip { height: 30px; border-radius: 99px; }
 .ag-cbox .ag-hint { font-size: 12px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .ag-cbox .ws-send { width: 34px; height: 34px; border-radius: 50%; flex: none; }
+/* "/" menu of the agent composers: commands and installed skills */
+.ag-cbox, .ws-team-comp { position: relative; }
+.ag-slash { position: absolute; left: 6px; right: 6px; bottom: calc(100% + 8px); background: var(--menu-bg); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 5px; max-height: min(340px, 50vh); overflow-y: auto; z-index: 30; }
+.ag-slash[hidden] { display: none; }
+.ag-slash-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; width: 100%; padding: 7px 10px; border-radius: 10px; text-align: start; color: inherit; background: none; border: 0; cursor: pointer; }
+.ag-slash-item.sel, .ag-slash-item:hover { background: var(--hover); }
+.ag-slash-item code { font-family: var(--mono); font-size: 12.5px; color: var(--accent); white-space: nowrap; }
+.ag-slash-item span { color: var(--text-2); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ag-slash-kind { font-style: normal; font-size: 10.5px; padding: 1px 7px; border-radius: 99px; color: var(--text-3); border: 1px solid var(--border); white-space: nowrap; }
+.ag-slash-kind.skill { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+@media (max-width: 600px) { .ag-slash-item { grid-template-columns: auto 1fr; } .ag-slash-kind { display: none; } }
 
 /* ---------- Session panel ---------- */
 .ag-side .ag-pane { padding: 12px; }

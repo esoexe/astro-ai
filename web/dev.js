@@ -520,6 +520,19 @@
     ['/mcp', 'Show MCP servers and their tools'],
     ['/agents', 'Show subagents and installed coding CLIs'],
   ];
+  // The '/' menu of the agent composers: built-in commands, custom commands, then installed skills (packs included).
+  async function slashItems(project) {
+    const scan = await getScan(project);
+    const seen = new Set(); const out = [];
+    const put = (cmd, desc, kind, from) => {
+      const key = cmd.toLowerCase(); if (seen.has(key)) return; seen.add(key);
+      out.push({ cmd, desc: clip(String(desc || '').replace(/\s+/g, ' ').trim(), 140), kind, from: from || '' });
+    };
+    for (const [c, d] of BUILTIN) put(c, d, 'command');
+    for (const c of [...(scan.commands || [])].sort((x, y) => String(x.name).localeCompare(String(y.name)))) put(`/${c.name}`, c.description, 'command', c.scope);
+    for (const k of [...(scan.skills || [])].sort((x, y) => String(x.name).localeCompare(String(y.name)))) put(`/${k.name}`, k.description, 'skill', k.owner || k.scope);
+    return out;
+  }
   function expandArgs(body, args) {
     const list = args.match(/"[^"]*"|\S+/g) || [];
     return body.replace(/\$ARGUMENTS|\{\{args\}\}/g, args).replace(/\$(\d)/g, (_m, n) => (list[Number(n) - 1] || '').replace(/^"|"$/g, ''));
@@ -1608,6 +1621,6 @@
     init, tools, beforeTool, afterTool, riskyCommand, pluginPermissionNotice, onStop, brief, agentInput, mode: modeOf, setMode, side, projectChanged, editorReady, inlineEdit,
     openVscode: () => { D.extTab = 'vscode'; lsSet('ext-tab', 'vscode'); A().wsSide('ext'); renderExt(true); },
     openTools: () => { D.extTab = 'tools'; lsSet('ext-tab', 'tools'); A().wsSide('ext'); renderExt(true); }, toolsLoad,
-    openFolder, openLibrary, paletteItems, checkProblems, agentManager, mcpRegistry, installPlugin, vsxInstall, openThemes, getScan, globRe, frontmatter, jsonc, unzipIndex, invalidate, applyLooks, renderExt,
+    openFolder, openLibrary, paletteItems, slashItems, checkProblems, agentManager, mcpRegistry, installPlugin, vsxInstall, openThemes, getScan, globRe, frontmatter, jsonc, unzipIndex, invalidate, applyLooks, renderExt,
   };
 })();

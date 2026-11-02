@@ -22,6 +22,9 @@ each one links to the exact upstream commit it was adapted from. (`chatgpt-youtu
 skills and helpers retargeted at ChatGPT, so the YouTube Pack covers it; `muesli` is a macOS Swift app, and the repos with
 no license are not adapted.)
 
+* To use an installed pack, type `/` in the Agent (the Agent page, or Workspace in Agent mode). The menu lists every
+  installed skill with its description; pick one with the arrow keys and Enter or Tab, then add what you want, for
+  example `/seed-plan a meal-kit delivery startup in Algiers` (1.9.3 or later). `/skills` lists them too.
 * The original Python and Node helper scripts are rewritten in C++ and built into the engine (`packtools/`), so a pack
   needs no Python or Node. Its skill runs them as `astro-server tool <skill>/<helper>`; 15 packs have helpers, the other 3
   are instructions only.
