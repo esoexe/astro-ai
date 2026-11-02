@@ -1,0 +1,31 @@
+{
+  "name": "astro-instagram",
+  "displayName": "Instagram Pack",
+  "version": "1.0.0",
+  "description": "13 skills for Instagram: reels with hook scoring and beats, captions, carousels, stories, comments, DMs, replies, profile audit, repurposing, a plain-voice style editor and a weekly plan.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/instagram-agent-skill",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "d03c56bb598be770c60b201f94237e5d1a4268a6"
+  },
+  "skills": [
+    "ig-audit",
+    "ig-caption",
+    "ig-carousel",
+    "ig-comment",
+    "ig-dm",
+    "ig-human",
+    "ig-plan",
+    "ig-profile",
+    "ig-reel",
+    "ig-reply",
+    "ig-repurpose",
+    "ig-story",
+    "ig-viral"
+  ]
+}

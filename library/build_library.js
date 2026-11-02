@@ -10,6 +10,9 @@
 //
 // Safety rules enforced here AND again by the desktop installer (astro_library.inc):
 //   * skills and plugins are text only (.md, .json, .txt); no scripts, no hooks, no styles
+//   * exception: Astro Packs (`"scripts": "node"` in catalog.json, first-party only) may also ship Node.js helper
+//     scripts (.mjs, standard library only, no network unless the pack says so) and .csv/.tsv data. They are reviewed
+//     here, pinned by SHA-256 like everything else, and run only when the agent calls them.
 //   * a plugin's .mcp.json may only list remote https servers
 //   * MCP packages are pinned to an exact version and started with `npx -y <pkg>@<x.y.z>`
 //   * no file may look like it contains a secret
@@ -19,10 +22,11 @@ const fs = require('fs'), path = require('path'), crypto = require('crypto'), zl
 const SRC = __dirname;
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,47}$/;
 const FILE_RE = /^(?:[A-Za-z0-9_][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_][A-Za-z0-9_.-]*\.(?:md|json|txt)$/;
+const PACK_FILE_RE = /^(?:[A-Za-z0-9_][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_][A-Za-z0-9_.-]*\.(?:md|json|txt|csv|tsv|mjs)$/;
 const DOT_OK = new Set(['.claude-plugin/plugin.json', '.mcp.json']);
-const MAX_FILE = 256 * 1024, MAX_ITEM = 2 * 1024 * 1024, MAX_FILES = 80;
+const MAX_FILE = 256 * 1024, MAX_ITEM = 2 * 1024 * 1024, MAX_FILES = 80, MAX_PACK_FILES = 160;
 const PKG_RE = /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*@\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
-const PERMS = new Set(['network', 'files', 'browser', 'account']);
+const PERMS = new Set(['network', 'files', 'browser', 'account', 'scripts']);
 const SECRET_RE = [
   /\bsk-[A-Za-z0-9_-]{20,}/, /\bsk-ant-[A-Za-z0-9_-]{20,}/, /\bgh[pousr]_[A-Za-z0-9]{30,}/, /\bgithub_pat_[A-Za-z0-9_]{30,}/,
   /\bgsk_[A-Za-z0-9]{30,}/, /\bAIza[0-9A-Za-z_-]{30,}/, /\bxox[abpr]-[A-Za-z0-9-]{10,}/, /\bhf_[A-Za-z0-9]{30,}/,
@@ -75,6 +79,26 @@ function checkText(rel, buf, errs) {
   for (const re of SECRET_RE) if (re.test(t)) errs.push(`${rel}: looks like it contains a secret (${re.source.slice(0, 18)}…)`);
   return t;
 }
+// Pack helpers: Node standard library only; no child processes, no eval; network only for packs that declare it.
+function checkScript(rel, t, network, programs, errs) {
+  // real module references only: import/export ... from 'x' (may span lines), import 'x', import('x'), require('x')
+  const IMPORT_RE = /^[ \t]*(?:import|export)\b[^;'"]*?\bfrom\s*['"]([^'"]+)['"]|^[ \t]*import\s*['"]([^'"]+)['"]|\bimport\s*\(\s*['"]([^'"]+)['"]|\brequire\s*\(\s*['"]([^'"]+)['"]/gm;
+  if (/\b(?:import|require)\s*\(\s*(?![\s'"])/.test(t)) errs.push(`${rel}: import() / require() must name a module directly (no computed names)`);
+  for (const m of t.matchAll(IMPORT_RE)) {
+    const mod = m[1] ?? m[2] ?? m[3] ?? m[4];
+    if (mod.startsWith('./') || mod.startsWith('../')) continue;
+    const name = mod.replace(/^node:/, '');
+    if (name === 'child_process' && programs) continue;
+    if (['child_process', 'cluster', 'worker_threads', 'vm', 'inspector', 'dgram', 'v8', 'wasi'].includes(name)) errs.push(`${rel}: imports ${mod}, which packs may not use`);
+    else if (['http', 'https', 'net', 'tls', 'dns', 'http2'].includes(name) && !network) errs.push(`${rel}: uses the network (${mod}) but the pack does not declare "network": true`);
+    else if (!/^node:/.test(mod) && !['fs', 'path', 'os', 'url', 'util', 'crypto', 'zlib', 'readline', 'stream', 'events', 'buffer', 'assert', 'string_decoder', 'querystring', 'timers', 'process'].includes(name)) errs.push(`${rel}: imports ${mod}; packs use the Node standard library only (no npm packages)`);
+  }
+  if (/\beval\s*\(|\bnew\s+Function\s*\(/.test(t)) errs.push(`${rel}: eval / new Function is not allowed`);
+  if (/\bfetch\s*\(/.test(t) && !network) errs.push(`${rel}: uses fetch() but the pack does not declare "network": true`);
+  if (programs && /child_process/.test(t)) {
+    if (/\bexec(?:Sync)?\s*\(|shell\s*:\s*true/.test(t)) errs.push(`${rel}: start programs with execFile/spawn and an argument list (no shell)`);
+  }
+}
 function checkMcpSpec(where, m, errs) {
   if (!m || typeof m !== 'object') return errs.push(`${where}: missing mcp spec`);
   if (m.type === 'http') {
@@ -103,6 +127,24 @@ function build(out) {
       license: it.license || 'MIT', tags: it.tags || [], verified: true,
       permissions: it.permissions || (it.kind === 'mcp' ? ['network'] : []), runs: it.runs || (it.kind === 'mcp' ? 'remote' : 'none'),
     };
+    // scripts: "node" = the pack ships .mjs helpers; "builtin" = its helpers are C++ inside the engine (${ASTRO_TOOL}, 1.9.0+)
+    const pack = it.scripts === 'node' || it.scripts === 'builtin';
+    if (it.scripts !== undefined && !pack) errs.push(`${where}: scripts must be "node" or "builtin"`);
+    if (it.min_version !== undefined) { if (!/^\d+\.\d+\.\d+$/.test(it.min_version)) errs.push(`${where}: min_version must look like 1.9.0`); else entry.min_version = it.min_version; }
+    if (it.scripts === 'builtin' && !it.min_version) errs.push(`${where}: built-in tool packs need min_version`);
+    if (pack) {
+      if (it.kind !== 'plugin') errs.push(`${where}: only plugins (packs) may carry scripts`);
+      entry.scripts = it.scripts; entry.runs = 'local';
+      if (!entry.permissions.includes('scripts')) entry.permissions = ['scripts', ...entry.permissions];
+    }
+    if (it.pack) entry.pack = true;
+    if (it.programs) { if (!Array.isArray(it.programs) || !it.programs.every((p) => /^[a-z0-9][a-z0-9_.-]{0,40}$/.test(p))) errs.push(`${where}: programs must be a list of program names`); else entry.programs = it.programs; }
+    if (it.network) entry.network = true;
+    if (it.caveats) entry.caveats = it.caveats;
+    if (it.source) {
+      if (!/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(it.source.repo || '') || !it.source.license || !it.source.author) errs.push(`${where}: source needs repo (https://github.com/...), license and author`);
+      entry.source = { repo: it.source.repo, license: it.source.license, author: it.source.author, ...(it.source.commit ? { commit: it.source.commit } : {}) };
+    }
     let fingerprint = '';
     if (it.kind === 'mcp') {
       checkMcpSpec(where, it.mcp, errs);
@@ -124,15 +166,17 @@ function build(out) {
       const dir = path.join(SRC, it.kind === 'skill' ? 'skills' : 'plugins', it.id);
       if (!fs.existsSync(dir)) { errs.push(`${where}: missing folder ${path.relative(SRC, dir)}`); continue; }
       const rels = walk(dir);
-      if (!rels.length || rels.length > MAX_FILES) errs.push(`${where}: needs 1-${MAX_FILES} files`);
+      const maxFiles = pack ? MAX_PACK_FILES : MAX_FILES;
+      if (!rels.length || rels.length > maxFiles) errs.push(`${where}: needs 1-${maxFiles} files`);
       let total = 0; const files = [];
       for (const rel of rels) {
         const isDot = rel.split('/').some((s) => s.startsWith('.'));
-        if ((isDot && !DOT_OK.has(rel)) || (!isDot && !FILE_RE.test(rel))) { errs.push(`${where}: file not allowed: ${rel} (text only: .md .json .txt)`); continue; }
+        if ((isDot && !DOT_OK.has(rel)) || (!isDot && !(pack ? PACK_FILE_RE : FILE_RE).test(rel))) { errs.push(`${where}: file not allowed: ${rel} (text only: .md .json .txt${pack ? ' .csv .tsv .mjs' : ''})`); continue; }
         if (/(^|\/)hooks(\/|\.json$)/.test(rel)) { errs.push(`${where}: hooks are not allowed in the library: ${rel}`); continue; }
         const buf = fs.readFileSync(path.join(dir, rel)); total += buf.length;
         const text = checkText(`${it.id}/${rel}`, buf, errs);
         if (rel.endsWith('.json')) { try { JSON.parse(text); } catch (e) { errs.push(`${where}: ${rel} is not valid JSON`); } }
+        if (rel.endsWith('.mjs')) checkScript(`${it.id}/${rel}`, text, it.network === true, Array.isArray(it.programs) && it.programs.length ? it.programs : null, errs);
         if (rel === '.mcp.json') {
           const j = JSON.parse(text); const servers = j.mcpServers || {};
           for (const [n, s] of Object.entries(servers)) { if (s.type !== 'http') errs.push(`${where}: plugin MCP server ${n} must be remote (type http)`); else checkMcpSpec(`${where} .mcp.json ${n}`, s, errs); }

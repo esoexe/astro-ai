@@ -1,0 +1,27 @@
+gametitle=Synthetic Test Game [SLUS-99999] (U)
+comment=Hand-written test patches // not stripped in metadata
+author=console-skill tests
+gsaspectratio=16:9
+gsinterlacemode=1
+// a comment line
+patch=1,EE,00100018,word,00000000
+patch=1,EE,0010001E,byte,00
+patch=0,EE,00100004,short,0000
+
+[Data]
+description=data writes
+patch=0,EE,00200000,word,0000270F
+patch=1,EE,00200004,word,3F800000
+patch=1,EE,20200008,word,12345678  // uncached mirror of 0x00200008
+patch=1,EE,0020000C,beword,AABBCCDD
+patch=0,EE,00200010,double,0102030405060708
+patch=0,EE,00200018,bytes,DEADBEEF01
+
+[Boot clears]
+patch=1,EE,00200100,word,00000063
+patch=0,EE,00200200,byte,01
+patch=1,EE,01000000,word,00000001
+
+[Unportable]
+patch=1,EE,70000010,word,00000001
+patch=1,IOP,00012340,word,00000000

@@ -10,6 +10,12 @@
 >
 > **Package managers:** `scoop bucket add astro-ai https://github.com/esoexe/astro-ai` then `scoop install astro-ai` (Windows) · `brew install --cask esoexe/tap/astro-ai` (macOS) · `brew install esoexe/tap/astro-ai` (Linux) · terminal only: `irm https://esoexe.github.io/astro-ai/install.ps1 | iex` or `curl -fsSL https://esoexe.github.io/astro-ai/install.sh | sh`
 
+### New in 1.9
+
+- **Astro RE (Reverse page, agent `re` tool, `/re` in the terminal):** see how an app, library or file works: format, architecture, sections, imports and exports, interesting strings, hex, Android manifests and signers, archives, database schemas and AI model files. It only reads the file and never runs it. Disassembly and decompiling use rizin, llvm-objdump/objdump, Ghidra or JADX when they are installed ("Get analyzers" opens Tools, which installs rizin, Ghidra and JADX without admin rights). Optional one-click [REA](https://github.com/morluto/rea) MCP server (MIT). Use it on software you own or may study; it will not help crack licences, bypass DRM or anti-cheat, or build malware.
+- **16 Astro Packs** in the Library (Workspace → Extensions → Library → Astro Packs), adapted from [Jake Schincariol](https://github.com/Jakeschincariol)'s MIT-licensed agent skills: YouTube, Instagram, LinkedIn, X, Founder, Replica, Arena, Duel, Hunter, Trader, Day Trader, Master, Console, Modes, Power Modes and Promptmaster. Their helpers are built into the engine in C++ (`astro-server tool <skill>/<helper>`), so they need no Python or Node. The trading packs (Trader, Day Trader) are for research and education, not financial advice.
+- **French and Arabic** for every new screen.
+
 ### New in 1.8
 
 - **Use your computer from your phone (1.8.1):** Settings → Phone pairs the Android app with a QR code. Off by default, private networks and paired phones only, one key per phone that you can remove. See [docs/android.md](docs/android.md#connect-to-my-computer).
@@ -304,6 +310,7 @@ The local model server must be running and expose a compatible `/chat/completion
 |---|---|
 | `workspace_server.cpp` | HTTP server, JSON, streaming, brain routing, providers, documents, calculator |
 | `astro_engine.inc` | Agent engine: background and parallel agents, isolated copies, merge and undo, `/api/agent/*` |
+| `packtools/` | Built-in pack tools (`astro-server tool <skill>/<helper>`): the C++ helpers of the Astro Packs, compiled as their own translation units, one per group (`packtools/packtools*.cpp`, so no single file needs much compiler memory) and linked into the engine; tests in `packtools/tests/` (the video tools need ffmpeg) |
 | `cli/astro.cpp`, `cli/json.h` | The terminal app `astro` |
 | `astro_ext.inc` | Login, keys, usage, web search and reader (SSRF-safe), vision, sync, static files |
 | `web/` | `index.html`, `styles.css`, `orbit.css` (Orbit design layer), `app.js`, `sw.js`, `manifest.webmanifest`, `icon.svg`, `vendor/` (libraries and fonts) |

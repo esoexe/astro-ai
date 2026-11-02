@@ -1,0 +1,29 @@
+{
+  "name": "astro-console",
+  "displayName": "Console Pack",
+  "version": "1.0.0",
+  "description": "11 skills to port PlayStation 2 games you own to PC with the open-source PS2Recomp recompiler: reverse engineering, graphics, sound, physics, saves, controllers, levels, testing, mods and builds for other platforms.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/console-skill",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "a508929f1e8f5dd6f54afe489fd74340df3b6f74"
+  },
+  "skills": [
+    "console-anywhere",
+    "console-backend",
+    "console-controller",
+    "console-graphics",
+    "console-levels",
+    "console-mod",
+    "console-physics",
+    "console-reverse",
+    "console-saves",
+    "console-sound",
+    "console-tester"
+  ]
+}

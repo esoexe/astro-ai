@@ -47,7 +47,7 @@ using aj::Value;
 using aj::Object;
 using aj::Array;
 
-static const char* VERSION = "1.8.1";
+static const char* VERSION = "1.9.0";
 
 // ---------- terminal ----------
 static bool g_tty = false, g_color = false, g_err_tty = false;
@@ -734,6 +734,48 @@ static int cmd_models() {
 
 // Compilers, runtimes and language servers, installed portably by the engine (Extensions > Tools in the app).
 // astro ext: VS Code extensions from Open VSX for the extension host (preview). They run in the app's editor.
+// ---------- Astro RE from the terminal: astro re <file> [view] ----------
+// Plain text (no colours), shared by "astro re" and the full-screen app's /re.
+static std::string re_text(const std::vector<std::string>& pos, bool json) {
+    if (pos.empty()) return "Usage: astro re <file> [overview|strings|imports|exports|symbols|sections|hex [offset]|disasm [symbol|address]|decompile [function|class]|zip [entry]]";
+    std::error_code ec; const std::string file = fs::absolute(fs::path(pos[0]), ec).string();
+    const std::string view = pos.size() > 1 ? pos[1] : "overview", arg = pos.size() > 2 ? pos[2] : "";
+    Object body{{"path", file}};
+    std::string route = "inspect";
+    if (view == "strings") { route = "strings"; if (arg.empty()) body["interesting"] = true; else body["filter"] = arg; body["limit"] = 300.0; }
+    else if (view == "imports" || view == "exports" || view == "symbols") { route = "symbols"; if (view != "symbols") body["where"] = view.substr(0, view.size() - 1); if (!arg.empty()) body["filter"] = arg; body["limit"] = 400.0; }
+    else if (view == "hex") { route = "hex"; body["at"] = arg.empty() ? "0" : arg; body["length"] = 512.0; }
+    else if (view == "disasm" || view == "decompile") { route = view; body["target"] = arg; body["count"] = 60.0; }
+    else if (view == "zip" || view == "files") { route = "zip"; if (!arg.empty()) body["entry"] = arg; }
+    else if (view != "overview" && view != "sections") return "Unknown view \"" + view + "\". Try: overview, strings, imports, exports, symbols, sections, hex, disasm, decompile, zip.";
+    const Value r = api("/api/re/" + route, body, view == "decompile" ? 1800 : 300);
+    if (json) return aj::dump(r);
+    std::string t; auto line = [&](const std::string& s) { t += s + "\n"; };
+    auto list = [&](const std::string& title, const Value& v) { if (auto a = v.arr(); a && !a->empty()) { line(title + ":"); for (const auto& x : *a) line("  - " + (x.obj() ? aj::dump(x) : x.str())); } };
+    if (route == "inspect" && view == "sections") {
+        for (const char* k : {"sections", "segments"}) if (auto a = r[k].arr()) for (const auto& s : *a) line(s["name"].str() + "  addr " + s["addr"].str() + "  off " + s["offset"].str() + "  size " + s["size"].str() + "  " + s["flags"].str());
+        return t.empty() ? "This format has no sections.\n" : t;
+    }
+    if (route == "inspect") {
+        line(r["format"].str() + (r["kind"].str().empty() ? "" : " \xC2\xB7 " + r["kind"].str()) + (r["arch"].str().empty() ? "" : " \xC2\xB7 " + r["arch"].str()) + " \xC2\xB7 " + r["bytes"].str() + " bytes");
+        for (const char* k : {"os", "language", "entry", "package", "version_name", "sha256"}) if (!r[k].str().empty()) line(std::string(k) + ": " + r[k].str());
+        if (auto m = r["mitigations"].obj()) { std::string s; for (const auto& [k, v] : *m) s += (s.empty() ? "" : ", ") + k + "=" + (std::holds_alternative<bool>(v.v) ? (v.truthy() ? "yes" : "no") : v.str()); line("mitigations: " + s); }
+        list("Findings", r["findings"]); list("Libraries", r["libraries"]); list("Notes", r["notes"]); list("Limitations", r["limitations"]); list("Unknowns", r["unknowns"]);
+        line("More: astro re " + pos[0] + " strings | imports | disasm | decompile");
+        return t;
+    }
+    if (route == "strings") { line(r["total"].str() + " strings"); if (auto a = r["strings"].arr()) for (const auto& s : *a) line(s["offset"].str() + "  " + (s["tag"].str().empty() ? "" : "[" + s["tag"].str() + "] ") + s["text"].str()); return t; }
+    if (route == "symbols") { line(r["total"].str() + " symbols"); if (auto a = r["symbols"].arr()) for (const auto& s : *a) line((s["addr"].str().empty() || s["addr"].str() == "0x0" ? std::string(4, ' ') : s["addr"].str() + "  ") + s["name"].str() + (s["lib"].str().empty() ? "" : "  (" + s["lib"].str() + ")")); return t; }
+    if (route == "hex") return r["dump"].str();
+    if (route == "zip") { if (!r["path"].str().empty()) return "Extracted " + r["name"].str() + " (" + r["bytes"].str() + " bytes) as " + r["path"].str() + "\nInspect it in the app's Reverse page, or ask the agent to.\n"; if (auto a = r["listing"].arr()) for (const auto& z : *a) line(z["name"].str() + "  " + z["bytes"].str()); return t; }
+    line(r["provider"].str() + " \xC2\xB7 " + r["target"].str() + " " + r["address"].str());
+    if (!r["limitation"].str().empty()) line(r["limitation"].str());
+    for (const char* k : {"listing", "pseudocode", "source", "bytes_hex"}) if (!r[k].str().empty()) t += r[k].str();
+    if (auto a = r["packages"].arr()) for (const auto& p : *a) line(p.str());
+    return t;
+}
+static int cmd_re(const std::vector<std::string>& pos, bool json) { const std::string t = re_text(pos, json); std::cout << t << (t.empty() || t.back() == '\n' ? "" : "\n"); return pos.empty() ? 2 : 0; }
+
 // ---------- phone access (desktop Settings > Phone, from the terminal) ----------
 static Value phone_state() {
     const Http r = http("GET", g_url + "/api/phone", "", 10);
@@ -1042,7 +1084,8 @@ static void help() {
               << "  astro server status|start|stop    the local A.S.T.R.O AI engine\n"
               << "  astro update [--check]            install the newest version (terminal installs)\n"
               << "  astro bug                         report a problem (opens a filled-in GitHub issue)\n"
-              << "  astro phone [pair|on|off|devices|remove <id>]  let the Android app use this computer (QR code + one-time code)\n\n"
+              << "  astro phone [pair|on|off|devices|remove <id>]  let the Android app use this computer (QR code + one-time code)\n"
+              << "  astro re <file> [strings|imports|disasm|decompile|...]  Astro RE: see how an app or binary works (read-only)\n\n"
               << bold("Options") << "\n"
               << "  -C <dir>            work in this folder (default: the current folder)\n"
               << "  --project <name>    use an existing A.S.T.R.O AI project instead of a folder\n"
@@ -1062,7 +1105,7 @@ static void repl_help() {
              {"/review on|off", "second-model review after each task"}, {"/new", "start a new session"}, {"/sessions", "sessions in this project"},
              {"/resume <id>", "continue an earlier session"}, {"/diff", "what this session changed (git diff for repos)"}, {"/undo", "restore the project to before this session"},
              {"/parallel A | B | C", "run tasks in parallel, isolated; add --merge to merge"}, {"/agents", "all agents"}, {"/merge <id>", "merge an isolated agent"},
-             {"/discard <id>", "remove an isolated agent's copy"}, {"/phone [pair|on|off|devices]", "let the Android app use this computer"},
+             {"/discard <id>", "remove an isolated agent's copy"}, {"/phone [pair|on|off|devices]", "let the Android app use this computer"}, {"/re <file> [view]", "Astro RE: inspect an app, binary or file"},
              {"/quit", "leave (Ctrl+D)"}})
         out("  " + peach(c) + std::string(c.size() < 24 ? 24 - c.size() : 1, ' ') + dim(d));
     out(dim("End a line with \\ to write several lines. Ctrl+C stops the agent."));
@@ -1161,6 +1204,7 @@ static int repl(Opts o, const std::string& project) {
                 else if (cmd == "merge") { if (arg.empty()) out(dim("  /merge <id>")); else { Opts q = o; q.keep = false; cmd_merge(arg, q); } }
                 else if (cmd == "discard") { if (arg.empty()) out(dim("  /discard <id>")); else { api("/api/agent/discard", Object{{"id", arg}}); out(dim("  Discarded.")); } }
                 else if (cmd == "stop") { if (!sid.empty()) api("/api/agent/stop", Object{{"id", sid}}); }
+                else if (cmd == "re" || cmd == "reverse") { std::vector<std::string> a; std::istringstream in(arg); for (std::string w; in >> w;) a.push_back(w); try { cmd_re(a, false); } catch (const std::exception& e) { out(red(std::string("  ") + e.what())); } }
                 else if (cmd == "phone") { std::vector<std::string> a; std::istringstream in(arg); for (std::string w; in >> w;) a.push_back(w); cmd_phone(a); }
                 else out(dim("  Unknown command. /help lists them."));
             } catch (const std::exception& e) { out(red("  " + std::string(e.what()))); }
@@ -1220,7 +1264,7 @@ int main(int argc, char** argv) {
         else pos.push_back(a);
     }
     if (o.mode != "plan" && o.mode != "ask" && o.mode != "auto") { std::cerr << "--mode must be plan, ask or auto\n"; return 2; }
-    static const std::set<std::string> cmds = {"run", "parallel", "agents", "attach", "logs", "diff", "merge", "discard", "stop", "undo", "models", "server", "chat", "help", "tools", "ext", "update", "bug", "phone"};
+    static const std::set<std::string> cmds = {"run", "parallel", "agents", "attach", "logs", "diff", "merge", "discard", "stop", "undo", "models", "server", "chat", "help", "tools", "ext", "update", "bug", "phone", "re", "reverse"};
     if (!pos.empty() && cmds.count(pos[0])) { o.cmd = pos[0]; pos.erase(pos.begin()); }
     if (o.cmd == "help") { help(); return 0; }
     if (o.cmd == "run") o.print = true;
@@ -1260,6 +1304,7 @@ int main(int argc, char** argv) {
         if (o.cmd == "tools") return cmd_tools(pos);
         if (o.cmd == "ext") return cmd_ext(pos);
         if (o.cmd == "phone") return cmd_phone(pos);
+        if (o.cmd == "re" || o.cmd == "reverse") return cmd_re(pos, o.json);
         if (o.cmd == "diff") return cmd_diff(need_id());
         if (o.cmd == "merge") return cmd_merge(need_id(), o);
         if (o.cmd == "discard") { api("/api/agent/discard", Object{{"id", need_id()}}); out(dim("Discarded.")); return 0; }

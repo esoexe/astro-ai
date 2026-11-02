@@ -63,10 +63,25 @@ Json library_index(bool force, std::string& error) {
 
 // ---------- validation shared by install ----------
 bool lib_id_ok(const std::string& id) { static const std::regex re(R"(^[a-z0-9][a-z0-9-]{0,47}$)"); return std::regex_match(id, re); }
-bool lib_file_ok(const std::string& rel) {
+// pack = an Astro Pack from the official catalog ("scripts": "node"): may also carry Node.js helpers (.mjs) and .csv/.tsv data.
+// "1.8.1" < "1.9.0": numeric, part by part (missing parts count as 0).
+inline bool lib_version_less(const std::string& a, const std::string& b) {
+    std::size_t i = 0, j = 0;
+    while (i < a.size() || j < b.size()) {
+        long x = 0, y = 0;
+        while (i < a.size() && a[i] != '.') { if (a[i] >= '0' && a[i] <= '9') x = x * 10 + (a[i] - '0'); ++i; }
+        while (j < b.size() && b[j] != '.') { if (b[j] >= '0' && b[j] <= '9') y = y * 10 + (b[j] - '0'); ++j; }
+        if (x != y) return x < y;
+        ++i; ++j;
+    }
+    return false;
+}
+
+bool lib_file_ok(const std::string& rel, bool pack = false) {
     if (rel == ".claude-plugin/plugin.json" || rel == ".mcp.json") return true;
     static const std::regex re(R"(^(?:[A-Za-z0-9_][A-Za-z0-9_.-]*/)*[A-Za-z0-9_][A-Za-z0-9_.-]*\.(?:md|json|txt)$)");
-    if (!std::regex_match(rel, re) || rel.find("..") != std::string::npos || rel.size() > 200) return false;
+    static const std::regex re_pack(R"(^(?:[A-Za-z0-9_][A-Za-z0-9_.-]*/)*[A-Za-z0-9_][A-Za-z0-9_.-]*\.(?:md|json|txt|csv|tsv|mjs)$)");
+    if (!std::regex_match(rel, pack ? re_pack : re) || rel.find("..") != std::string::npos || rel.size() > 200) return false;
     static const std::regex hooks(R"((^|/)hooks(/|\.json$))");
     return !std::regex_search(rel, hooks);
 }
@@ -618,7 +633,11 @@ void lib_install(int fd, const Json& body) {
         lib_mcp_forget(id);
     } else if (kind == "skill" || kind == "plugin") {
         const Json* files = item->get("files");
-        if (!files || !files->array_ptr() || files->array_ptr()->empty() || files->array_ptr()->size() > 80) { send_json(fd, 422, error_json("The catalog entry has no files.")); return; }
+        const bool pack = kind == "plugin" && (get_string(*item, "scripts") == "node" || get_string(*item, "scripts") == "builtin");
+        if (const std::string need = get_string(*item, "min_version"); !need.empty() && lib_version_less(ASTRO_APP_VERSION, need)) {
+            send_json(fd, 426, error_json("This pack needs A.S.T.R.O AI " + need + " or later (you have " ASTRO_APP_VERSION "). Update in Settings > About, then install it again.")); return;
+        }
+        if (!files || !files->array_ptr() || files->array_ptr()->empty() || files->array_ptr()->size() > (pack ? 160u : 80u)) { send_json(fd, 422, error_json("The catalog entry has no files.")); return; }
         const fs::path dest_root = ext_root() / (kind + "s");
         const fs::path dest = dest_root / id;
         if (fs::exists(dest, ec) && !reinstall && !json_bool(body, "replace", false)) {
@@ -633,7 +652,7 @@ void lib_install(int fd, const Json& body) {
         std::size_t total = 0;
         for (const auto& f : *files->array_ptr()) {
             const std::string rel = get_string(f, "path"), want = lower_copy(get_string(f, "sha256"));
-            if (!lib_file_ok(rel)) { fail(422, "The catalog lists a file type that is not allowed: " + truncate(rel, 80)); return; }
+            if (!lib_file_ok(rel, pack)) { fail(422, "The catalog lists a file type that is not allowed: " + truncate(rel, 80)); return; }
             if (want.size() != 64) { fail(422, "The catalog entry is missing a checksum."); return; }
             if (rel == ".mcp.json" && kind != "plugin") { fail(422, "Only plugins can bundle MCP servers."); return; }
             std::string data = library_get(base + rel, 300'000, error);
@@ -641,7 +660,7 @@ void lib_install(int fd, const Json& body) {
             if (sha256_hex(data) != want) { fail(422, "Checksum mismatch for " + rel + ". Nothing was installed. (The download was changed or corrupted.)"); return; }
             if (data.find('\0') != std::string::npos) { fail(422, "Binary content is not allowed: " + rel); return; }
             total += data.size();
-            if (total > 2'000'000) { fail(422, "The item is larger than allowed."); return; }
+            if (total > (pack ? 4'000'000u : 2'000'000u)) { fail(422, "The item is larger than allowed."); return; }
             if (rel.size() > 5 && rel.compare(rel.size() - 5, 5, ".json") == 0) {
                 try {
                     Json j = JsonParser(data).parse();

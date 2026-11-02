@@ -1,0 +1,23 @@
+{
+  "name": "astro-power-modes",
+  "displayName": "Power Modes",
+  "version": "1.0.0",
+  "description": "5 power modes: tournament (six strategies plus a judge), design-polish (anti-slop design audit), compress-prompts (shorter sub-agent briefs), self-critic (attack every claim before it ships) and idea-teardown (startup idea analysis).",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/claude-illegal-codes",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "ae136db77f3271c2490dbd267be0efe00596d2ec"
+  },
+  "skills": [
+    "compress-prompts",
+    "design-polish",
+    "idea-teardown",
+    "self-critic",
+    "tournament"
+  ]
+}

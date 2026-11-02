@@ -10,7 +10,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
-VER="1.8.1"
+VER="1.9.0"
 export ASTRO_VER="$VER"   # build_setup.sh and the Windows version resources read this
 OUT="$ROOT/desktop-builds"
 WORK="$ROOT/.cache/pkg"
@@ -29,7 +29,7 @@ if want linux; then
 echo "==> Linux binaries"
 gcc -std=c11 -O2 -c desktop/src/linux_compat.c -o "$WORK/linux_compat.o"
 COMPAT=("$WORK/linux_compat.o" -lm -static-libstdc++ -static-libgcc -Wl,--wrap=fmod -s)
-g++ -std=c++20 -O2 -pthread workspace_server.cpp -o "$WORK/bin/astro-server" $(pkg-config --cflags --libs libcurl) -lcrypto -lutil -lz "${COMPAT[@]}" &
+g++ -std=c++20 -O2 -pthread workspace_server.cpp packtools/packtools*.cpp -o "$WORK/bin/astro-server" $(pkg-config --cflags --libs libcurl) -lcrypto -lutil -lz "${COMPAT[@]}" &
 # Under ~2.5 GB free, two big compiles at once swap the machine to a standstill: build one at a time.
 if [ "$(awk '/MemAvailable/{print $2}' /proc/meminfo)" -lt 2500000 ]; then wait; fi
 g++ -std=c++17 -O2 -I"$TP/webview/include" desktop/src/astro_desktop.cpp -o "$WORK/bin/astro-desktop" \
@@ -58,7 +58,7 @@ verres() {   # verres <name> <description> <original file name>
 ROOT_DIR="$(pwd)"
 verres server "A.S.T.R.O AI engine" "astro-server.exe"
 verres cli "A.S.T.R.O AI terminal app" "astro.exe"
-x86_64-w64-mingw32-g++-posix -std=c++20 -O2 -DCURL_STATICLIB -I"$C/include" workspace_server.cpp "$WORK/win_compat.o" "$WORK/server_res.o" \
+x86_64-w64-mingw32-g++-posix -std=c++20 -O2 -DCURL_STATICLIB -I"$C/include" workspace_server.cpp packtools/packtools*.cpp "$WORK/win_compat.o" "$WORK/server_res.o" \
     -o "$WORK/bin/astro-server.exe" -static -static-libgcc -static-libstdc++ -L"$C/lib" -lcurl -lnghttp3 -lngtcp2_crypto_libressl \
     -lngtcp2 -lnghttp2 -lssh2 -lssl -lcrypto -lpsl -lbrotlidec -lbrotlicommon -lzstd -lz -lws2_32 -lcrypt32 -lbcrypt -lwldap32 \
     -liphlpapi -lsecur32 -lnormaliz -ladvapi32 -luser32 -s  # sequential: two parallel mingw compiles need ~1.5 GB RAM
@@ -81,7 +81,7 @@ if want windows-arm64; then
     for r in server cli; do "$A64_BIN/aarch64-w64-mingw32-windres" -I"$WORK" "$WORK/$r.rc" -O coff -o "$WORK/${r}_res_a64.o"; done
     CURL_LIBS=(-L"$CA64/lib" -lcurl -lnghttp3 -lngtcp2_crypto_libressl -lngtcp2 -lnghttp2 -lssh2 -lssl -lcrypto -lpsl -lbrotlidec -lbrotlicommon -lzstd -lz
                -lws2_32 -lcrypt32 -lbcrypt -lwldap32 -liphlpapi -lsecur32 -lnormaliz -ladvapi32 -luser32)
-    "$A64_BIN/aarch64-w64-mingw32-clang++" -std=c++20 -O2 -DCURL_STATICLIB -I"$CA64/include" workspace_server.cpp "$WORK/win_compat_a64.o" "$WORK/server_res_a64.o" \
+    "$A64_BIN/aarch64-w64-mingw32-clang++" -std=c++20 -O2 -DCURL_STATICLIB -I"$CA64/include" workspace_server.cpp packtools/packtools*.cpp "$WORK/win_compat_a64.o" "$WORK/server_res_a64.o" \
         -o "$WA/astro-server.exe" -static "${CURL_LIBS[@]}" -s
     "$A64_BIN/aarch64-w64-mingw32-clang++" -std=c++17 -O2 -Wno-unknown-pragmas -I"$TP/mingw-compat" -I"$TP/webview/include" -I"$TP/webview2/include" \
         desktop/src/astro_desktop.cpp "$WORK/astro_desktop_res_a64.o" -o "$WA/AstroAI.exe" -mwindows -static \
@@ -251,6 +251,7 @@ EOF
     if want mac; then
     MK="$WORK/AstroAI-$VER-macos-source-$TAG"; mkdir -p "$MK/src/server" "$MK/src/desktop" "$MK/src/webview" "$MK/assets" "$MK/payload"
     cp workspace_server.cpp platform.h ./*.inc "$MK/src/server/"
+    mkdir -p "$MK/src/server/packtools"; cp packtools/*.cpp packtools/*.h packtools/*.inc "$MK/src/server/packtools/"   # the built-in pack tools (own translation unit)
     mkdir -p "$MK/src/cli"; cp cli/*.cpp cli/*.h cli/*.inc "$MK/src/cli/"; echo "$CLI" > "$MK/payload/cli-name"
     cp desktop/src/astro_desktop.cpp "$MK/src/desktop/"
     cp -r "$TP/webview/include" "$MK/src/webview/"

@@ -830,6 +830,493 @@
       "permissions": [
         "network"
       ]
+    },
+    {
+      "id": "astro-youtube",
+      "kind": "plugin",
+      "name": "YouTube Pack (Astro Pack)",
+      "summary": "11 skills that run a YouTube channel: scripts with scored hooks, titles and packaging, chapters, retention and dead-air analysis, Shorts, SEO, comments and a weekly plan.",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/youtube-agent-skill",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "youtube",
+        "video",
+        "creator",
+        "marketing"
+      ],
+      "runs": "local",
+      "permissions": [
+        "scripts",
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/youtube-agent-skill",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "a2feb2104981a375ffd4f87ee04f4f5344ac43c6"
+      },
+      "scripts": "builtin",
+      "min_version": "1.9.0"
+    },
+    {
+      "id": "astro-instagram",
+      "kind": "plugin",
+      "name": "Instagram Pack (Astro Pack)",
+      "summary": "13 skills for Instagram: reels with hook scoring and beats, captions, carousels, stories, comments, DMs, replies, profile audit, repurposing, a plain-voice style editor and a weekly plan.",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/instagram-agent-skill",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "instagram",
+        "social",
+        "creator",
+        "marketing"
+      ],
+      "runs": "local",
+      "permissions": [
+        "scripts",
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/instagram-agent-skill",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "d03c56bb598be770c60b201f94237e5d1a4268a6"
+      },
+      "scripts": "builtin",
+      "min_version": "1.9.0"
+    },
+    {
+      "id": "astro-linkedin",
+      "kind": "plugin",
+      "name": "LinkedIn Pack (Astro Pack)",
+      "summary": "11 skills for LinkedIn: posts from 21 hook formulas, comments, replies, DMs, inbox triage, carousels, a scored profile audit, repurposing, a plain-voice style editor and a weekly plan.",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/linkedin-agent-skill",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "linkedin",
+        "social",
+        "career",
+        "marketing"
+      ],
+      "runs": "local",
+      "permissions": [
+        "scripts",
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/linkedin-agent-skill",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "add2c23882fe79180737d242ff80a5da205eda6a"
+      },
+      "scripts": "builtin",
+      "min_version": "1.9.0"
+    },
+    {
+      "id": "astro-x",
+      "kind": "plugin",
+      "name": "X Pack (Astro Pack)",
+      "summary": "11 skills that run an X account: posts, threads, replies, comments, DMs, profile, repurposing, a plain-voice style editor, a weekly plan and a virality study of what works in your niche.",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/x-agent-skill",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "x",
+        "twitter",
+        "social",
+        "marketing"
+      ],
+      "runs": "local",
+      "permissions": [
+        "scripts",
+        "network",
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/x-agent-skill",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "7822c29b4aedbd400b9339839d3f59f3652b1317"
+      },
+      "scripts": "builtin",
+      "min_version": "1.9.0",
+      "network": true,
+      "caveats": "Two helpers go online, with no login and no keys: the x-viral/pull tool reads public posts you chose through X's documented embed endpoint (one per second, capped per run, it never crawls or searches), and the x-plan/weights tool reads X's public ranking file on GitHub. Everything else runs offline."
+    },
+    {
+      "id": "astro-founder",
+      "kind": "plugin",
+      "name": "Founder Pack (Astro Pack)",
+      "summary": "11 skills that test a business before you launch it: board review, CFO unit economics, pricing, offer, competitors, consumer interviews, brand, marketing, ops, plan and launch.",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/founder-skill",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "startup",
+        "business",
+        "founder"
+      ],
+      "runs": "local",
+      "permissions": [
+        "scripts",
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/founder-skill",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "fd9385b0cfe1b96bebce3898fbd506d73eff5a9d"
+      },
+      "scripts": "builtin",
+      "min_version": "1.9.0"
+    },
+    {
+      "id": "astro-replica",
+      "kind": "plugin",
+      "name": "Replica Pack (Astro Pack)",
+      "summary": "11 skills that study an app's features and help you build your OWN original product in that space: recon, architecture, design tokens with contrast checks, build, backend, tests, visual diff, deploy and launch.",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/replica-skill",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "coding",
+        "product",
+        "web",
+        "startup"
+      ],
+      "runs": "local",
+      "permissions": [
+        "scripts",
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/replica-skill",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "77c9436fb3d18c3d58169efb8caf4fe906b0dc51"
+      },
+      "scripts": "builtin",
+      "min_version": "1.9.0",
+      "caveats": "Build an original product. Do not copy another company's name, logo, artwork, text, code or private APIs, and respect trademarks, copyright and terms of service. The brand sweep exists to make sure nothing of theirs ships."
+    },
+    {
+      "id": "astro-arena",
+      "kind": "plugin",
+      "name": "Arena (Astro Pack)",
+      "summary": "When an answer isn't good enough: many sub-agents solve the same task with different strategy cards, then attack, defend and are judged in a single-elimination bracket until one solution survives. Uses A.S.T.R.O AI's task tool (capped to your budget).",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/arena-skill",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "quality",
+        "agents",
+        "reasoning"
+      ],
+      "runs": "local",
+      "permissions": [
+        "scripts",
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/arena-skill",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "df07b8e518e10cdecd8cd7712d9958b6f396250e"
+      },
+      "scripts": "builtin",
+      "min_version": "1.9.0"
+    },
+    {
+      "id": "astro-duel",
+      "kind": "plugin",
+      "name": "Duel (Astro Pack)",
+      "summary": "Make an answer defend itself against a second model: a critic model challenges it, the agent defends or revises claim by claim, up to three rounds, with a record of what changed.",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/duel-skill",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "quality",
+        "reasoning",
+        "review"
+      ],
+      "runs": "local",
+      "permissions": [
+        "scripts",
+        "network",
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/duel-skill",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "eacccef179a4d301afb1169504296a9afac68743"
+      },
+      "scripts": "builtin",
+      "min_version": "1.9.0",
+      "network": true
+    },
+    {
+      "id": "astro-hunter",
+      "kind": "plugin",
+      "name": "Job Hunter Pack (Astro Pack)",
+      "summary": "11 skills that help you land a job: scout listings, tailor your resume and cover letter, research the company, LinkedIn and networking, applications, interview prep, salary negotiation, follow-ups and a tracker.",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/hunter-skill",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "career",
+        "jobs",
+        "resume"
+      ],
+      "runs": "local",
+      "permissions": [
+        "scripts",
+        "network",
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/hunter-skill",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "f40d6a94b61283785b20e47a237608d5b1976b1c"
+      },
+      "scripts": "builtin",
+      "min_version": "1.9.0",
+      "network": true
+    },
+    {
+      "id": "astro-trader",
+      "kind": "plugin",
+      "name": "Trader Pack (Astro Pack)",
+      "summary": "11 investing research skills from public data (SEC EDGAR 13F filings, House disclosures, news): copy an investor's portfolio, watch news and Congress, size trades to your budget, risk, rebalancing and tax lots.",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/trader-skill",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "finance",
+        "investing",
+        "research"
+      ],
+      "runs": "local",
+      "permissions": [
+        "scripts",
+        "network",
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/trader-skill",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "5189e79b9a480755a3733ac9713f5353981dbe18"
+      },
+      "scripts": "builtin",
+      "min_version": "1.9.0",
+      "network": true,
+      "programs": [
+        "pdftotext"
+      ],
+      "caveats": "Research and education only, not financial advice. Markets carry risk of loss and nothing here guarantees returns. The agent must never place, change or cancel an order without your explicit yes in the chat for that exact order; start with paper trading."
+    },
+    {
+      "id": "astro-day-trader",
+      "kind": "plugin",
+      "name": "Day Trader Pack (Astro Pack)",
+      "summary": "11 day-trading research skills from free public data (Yahoo Finance charts, Nasdaq symbol lists, SEC, House): chart scanner, news, entries and exits, budget, risk, broker tickets and a time machine that replays outcomes.",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/day-trader-skill",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "finance",
+        "trading",
+        "research"
+      ],
+      "runs": "local",
+      "permissions": [
+        "scripts",
+        "network",
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/day-trader-skill",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "3d0f4ef6986f4984b7c6bd46f7ff4f87744c3abd"
+      },
+      "scripts": "builtin",
+      "min_version": "1.9.0",
+      "network": true,
+      "programs": [
+        "pdftotext"
+      ],
+      "caveats": "Research and education only, not financial advice. Day trading is high risk and most day traders lose money; nothing here guarantees returns. The agent must never place, change or cancel an order without your explicit yes in the chat for that exact order; replay and paper trade first."
+    },
+    {
+      "id": "astro-master",
+      "kind": "plugin",
+      "name": "Master Pack (Astro Pack)",
+      "summary": "3 big skills: Edit (cut dead space, captions, dynamic visuals and stop motion with ffmpeg), Virality (find what works and rewrite it in your voice) and Build (design and code a site with contrast and quality checks).",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/master-skills",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "video",
+        "marketing",
+        "web",
+        "design"
+      ],
+      "runs": "local",
+      "permissions": [
+        "scripts",
+        "network",
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/master-skills",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "b5b43e44f0a976ad25bda5095a94c161aab2f086"
+      },
+      "scripts": "builtin",
+      "min_version": "1.9.0",
+      "network": true,
+      "programs": [
+        "ffmpeg",
+        "ffprobe"
+      ]
+    },
+    {
+      "id": "astro-console",
+      "kind": "plugin",
+      "name": "Console Pack (Astro Pack)",
+      "summary": "11 skills to port PlayStation 2 games you own to PC with the open-source PS2Recomp recompiler: reverse engineering, graphics, sound, physics, saves, controllers, levels, testing, mods and builds for other platforms.",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/console-skill",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "games",
+        "reverse-engineering",
+        "emulation"
+      ],
+      "runs": "local",
+      "permissions": [
+        "scripts",
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/console-skill",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "a508929f1e8f5dd6f54afe489fd74340df3b6f74"
+      },
+      "scripts": "builtin",
+      "min_version": "1.9.0",
+      "caveats": "Only for games you own, using your own disc dumps and your own console's BIOS. Astro will not download, share or help find ROMs, ISOs or BIOS files, and will not help bypass copy protection. Respect the game publisher's rights when sharing mods."
+    },
+    {
+      "id": "astro-modes",
+      "kind": "plugin",
+      "name": "Work Modes (Astro Pack)",
+      "summary": "25 one-word working modes for the agent: deep-rigor, minimal-diff, fix-all-errors, incident, distill, cost-cutter, build-plan, idea-storm, speedrun, long-haul and more. Plain prompt modes, no scripts.",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/unhinged-claude-skills",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "modes",
+        "coding",
+        "productivity"
+      ],
+      "runs": "none",
+      "permissions": [
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/unhinged-claude-skills",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "8f60ec6d9e28e430849b57b5e21cbdfe9860df99"
+      }
+    },
+    {
+      "id": "astro-power-modes",
+      "kind": "plugin",
+      "name": "Power Modes (Astro Pack)",
+      "summary": "5 power modes: tournament (six strategies plus a judge), design-polish (anti-slop design audit), compress-prompts (shorter sub-agent briefs), self-critic (attack every claim before it ships) and idea-teardown (startup idea analysis).",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/claude-illegal-codes",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "modes",
+        "quality",
+        "design"
+      ],
+      "runs": "none",
+      "permissions": [
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/claude-illegal-codes",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "ae136db77f3271c2490dbd267be0efe00596d2ec"
+      }
+    },
+    {
+      "id": "astro-promptmaster",
+      "kind": "plugin",
+      "name": "Promptmaster (Astro Pack)",
+      "summary": "Rewrites a vague request into a clear, complete prompt the first time, so you don't burn turns re-explaining. Includes a list of common waste patterns.",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/promptmaster-skill",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "prompting",
+        "productivity"
+      ],
+      "runs": "none",
+      "permissions": [
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/promptmaster-skill",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "43c704602fccaf18da67760bcb1022428591ddeb"
+      }
     }
   ]
 }

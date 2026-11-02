@@ -1,0 +1,21 @@
+{
+  "name": "astro-master",
+  "displayName": "Master Pack",
+  "version": "1.0.0",
+  "description": "3 big skills: Edit (cut dead space, captions, dynamic visuals and stop motion with ffmpeg), Virality (find what works and rewrite it in your voice) and Build (design and code a site with contrast and quality checks).",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/master-skills",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "b5b43e44f0a976ad25bda5095a94c161aab2f086"
+  },
+  "skills": [
+    "master-build",
+    "master-edit",
+    "master-virality"
+  ]
+}

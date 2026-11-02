@@ -457,6 +457,15 @@ std::string mcp_fingerprint(const McpSpec& m) {
     return s;
 }
 // Project MCP servers run commands from the opened folder, so they start only after the user trusts them (like VS Code's workspace trust).
+// Money actions (place / cancel / close an order, move money): the user must approve each call. The approval UI sets
+// "money_ok"; the model's tool arguments can't, because they travel inside "arguments".
+bool mcp_money_tool(const std::string& tool) {
+    const std::string t = lower_copy(tool);
+    static const std::regex read_only(R"(^(get|list|search|fetch|read|describe|show|query|lookup|find|check|view|watch)[_-])");
+    if (std::regex_search(t, read_only)) return false;
+    static const std::regex money(R"((order|trade|buy|sell|short|position|liquidat|exercise|transfer|withdraw|deposit|payment|payout|send_?money|wire|swap|stake|bridge|invoice_pay|charge|refund))");
+    return std::regex_search(t, money);
+}
 fs::path mcp_trust_file() { return fs::path(data_dir()) / ".astro_mcp_trust.json"; }
 // Trust is remembered per real folder (not per project name), so another folder opened under the same name is not trusted.
 std::string mcp_trust_key(const fs::path& base, const std::string& name) { std::error_code ec; return fs::weakly_canonical(base, ec).generic_string() + "|" + name; }
@@ -535,6 +544,7 @@ void dev_mcp(int fd, const std::string& action, const Json& body) {
     if (action == "stop") { mcp_kill(*c); c->error.clear(); send_json(fd, 200, mcp_conn_json(*it, c.get(), true)); return; }
     if (action == "restart") { mcp_start(*c); send_json(fd, 200, mcp_conn_json(*it, c.get(), true)); return; }
     if (action == "call") {
+        if (mcp_money_tool(get_string(body, "tool")) && !json_bool(body, "money_ok", false)) { send_json(fd, 428, error_json("BLOCKED: \"" + get_string(body, "tool") + "\" can place, change or cancel an order or move money, so the user must approve this exact call first. Show them the details and ask.")); return; }
         if (!c->ready) mcp_start(*c);
         if (!c->ready) { send_json(fd, 502, error_json("MCP server \"" + name + "\" is not running: " + c->error)); return; }
         Json::Object p; p["name"] = Json(get_string(body, "tool"));
@@ -596,7 +606,7 @@ void dev_scan(int fd, const Json& body) {
                 Json::Array extra; int k = 0;
                 for (fs::recursive_directory_iterator it(e.path(), fs::directory_options::skip_permission_denied, ec), end; it != end && !ec && k < 60; it.increment(ec))
                     if (it->is_regular_file(ec) && it->path() != sk) { extra.emplace_back(Json(fs::relative(it->path(), root, ec).generic_string())); ++k; }
-                if (!files.empty()) if (auto* o = std::get_if<Json::Object>(&files.back().value)) (*o)["files"] = Json(std::move(extra));
+                if (!files.empty()) if (auto* o = std::get_if<Json::Object>(&files.back().value)) { (*o)["files"] = Json(std::move(extra)); (*o)["dir"] = Json(e.path().lexically_normal().generic_string()); }
             }
         }
     };
@@ -652,6 +662,7 @@ void dev_scan(int fd, const Json& body) {
     for (const auto& [bin, label] : std::vector<std::pair<std::string, std::string>>{{"claude", "Claude Code"}, {"codex", "Codex CLI"}, {"opencode", "OpenCode"}, {"gemini", "Gemini CLI"}, {"dsh", "DeepSeek Harness"}, {"cursor-agent", "Cursor CLI"}, {"qwen", "Qwen Code"}, {"aider", "Aider"}})
         if (have_tool(bin)) { Json::Object c; c["bin"] = Json(bin); c["name"] = Json(label); clis.emplace_back(std::move(c)); }
     o["agents_cli"] = Json(std::move(clis));
+    o["tool"] = Json(packtools::tool_command());   // ${ASTRO_TOOL} for the browser agent: "<engine exe>" tool
     send_json(fd, 200, Json(std::move(o)));
 }
 

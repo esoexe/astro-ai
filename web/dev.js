@@ -25,7 +25,13 @@
     const m = t.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
     if (!m) return { meta: {}, body: t };
     const meta = {};
-    for (const line of m[1].split(/\r?\n/)) { const kv = line.match(/^([A-Za-z0-9_-]+)\s*:\s*(.*)$/); if (kv) meta[kv[1].toLowerCase()] = kv[2].replace(/^["']|["']$/g, '').trim(); }
+    const lines = m[1].split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+      const kv = lines[i].match(/^([A-Za-z0-9_-]+)\s*:\s*(.*)$/); if (!kv) continue;
+      let v = kv[2].trim();
+      if (/^[>|][-+]?$/.test(v)) { const parts = []; while (i + 1 < lines.length && /^(\s|$)/.test(lines[i + 1])) { const w = lines[++i].trim(); if (w) parts.push(w); } v = parts.join(' '); }   // YAML block scalar
+      meta[kv[1].toLowerCase()] = v.replace(/^["']|["']$/g, '').trim();
+    }
     return { meta, body: t.slice(m[0].length) };
   }
   function tomlPrompt(text) {   // Codex / Gemini CLI prompt files: description = "...", prompt = """..."""
@@ -63,7 +69,7 @@
   function digest(raw) {
     const enabled = pluginState(raw);
     const live = (f) => !f.owner || enabled[f.owner] !== false;
-    const out = { rules: [], skills: [], commands: [], agents: [], hooks: [], plugins: [], themes: [], snippets: [], scripts: [], styles: [], settings: {}, cli: raw.agents_cli || [], extRoot: raw.ext_root || '', enabled };
+    const out = { rules: [], skills: [], commands: [], agents: [], hooks: [], plugins: [], themes: [], snippets: [], scripts: [], styles: [], settings: {}, cli: raw.agents_cli || [], extRoot: raw.ext_root || '', tool: raw.tool || '', enabled };
     for (const f of raw.files || []) {
       if (f.kind === 'rule') out.rules.push(f);
       else if (f.kind === 'skill' && live(f)) {
@@ -437,18 +443,34 @@
       const k = scan.skills.find((x) => x.name.toLowerCase() === name.toLowerCase()) || scan.skills.find((x) => x.path.toLowerCase().includes(`/${name.toLowerCase()}/`));
       if (!k) throw new Error(`No skill named "${name}". Skills: ${scan.skills.map((x) => x.name).join(', ') || 'none installed'}.`);
       item.meta = { path: k.path };
+      // ${ASTRO_SKILL_DIR} -> the skill's folder, so its helper scripts can be run
+      const dir = String(k.dir || '').replace(/\\/g, '/'); const pm = dir.match(/^(.*\/plugins\/[^/]+)\//); const pack = pm ? pm[1] : `${dir}/..`;
+      const expand = (t) => (dir ? String(t).split('${ASTRO_SKILL_DIR}').join(dir).split('${CLAUDE_SKILL_DIR}').join(dir).replace(/\$(ASTRO|CLAUDE)_SKILL_DIR\b/g, dir).split('${ASTRO_PACK_DIR}').join(pack).split('${CLAUDE_PLUGIN_ROOT}').join(pack).split('${ASTRO_TOOL}').join(scan.tool ? `${scan.tool} --skill-dir "${dir}"` : 'astro-server tool') : String(t));
+      const hasScripts = (k.files || []).some((f) => /\.(mjs|js|py|sh|ps1)$/.test(f));
       if (call.file) {
         const r = await dev('ext/read', { scope: k.scope, project: s.project, path: String(call.file) });
-        return `${call.file}:\n${clip(r.content, 14000)}`;
+        return `${call.file}:\n${clip(expand(r.content), 14000)}`;
       }
-      item.out = clip(k.body, 4000);
+      item.out = clip(expand(k.body), 4000);
       const extra = (k.files || []).length ? `\nThe skill also has these files (read one with {"tool":"skill","name":"${k.name}","file":"<path>"}):\n${k.files.join('\n')}` : '';
-      return `SKILL "${k.name}" (${k.scope}) — follow these instructions:\n${clip(k.body, 14000)}${extra}`;
+      return `SKILL "${k.name}" (${k.scope}) — follow these instructions:\n${clip(expand(k.body), 14000)}${extra}${hasScripts && dir ? `\nSkill folder: ${dir} (run its helper scripts from there with bash, e.g. node "${dir}/<script>.mjs"; they need Node.js, installable in Settings > Tools).` : ''}`;
     },
     async mcp(s, call, item) {
       const server = String(call.server || '').trim(); const name = String(call.name || call.tool_name || call.method || '').trim();
       if (!server || !name) throw new Error('mcp needs "server" and "name" (see MCP TOOLS in the job).');
-      const r = await dev('mcp/call', { project: s.project, server, tool: name, arguments: call.arguments && typeof call.arguments === 'object' ? call.arguments : call.input || {} });
+      const args = call.arguments && typeof call.arguments === 'object' ? call.arguments : call.input || {};
+      // Money actions (orders, transfers): the user approves every single call, whatever the mode. Mirrors mcp_money_tool() in the engine.
+      const lname = name.toLowerCase(); let money_ok = false;
+      if (!/^(get|list|search|fetch|read|describe|show|query|lookup|find|check|view|watch)[_-]/.test(lname) && /(order|trade|buy|sell|short|position|liquidat|exercise|transfer|withdraw|deposit|payment|payout|send_?money|wire|swap|stake|bridge|invoice_pay|charge|refund)/.test(lname)) {
+        const ok = await new Promise((res) => {
+          A().showModal(`<h2 id="modal-title">Approve this money action?</h2><p class="sub">The agent wants to call <b>${esc(server)} → ${esc(name)}</b>. It can place, change or cancel an order or move money. Check every value.</p><pre class="dev-cmd" style="white-space:pre-wrap;max-height:300px;overflow:auto">${esc(JSON.stringify(args, null, 2))}</pre><div class="btn-row"><button type="button" class="btn primary" id="money-yes">Approve this call</button><button type="button" class="btn ghost" id="money-no">Deny</button></div>`);
+          document.getElementById('money-yes').onclick = () => { A().closeModal(); res(true); };
+          document.getElementById('money-no').onclick = () => { A().closeModal(); res(false); };
+        });
+        if (!ok) throw new Error('BLOCKED: The user did not approve this money action. Do not retry it unless they ask.');
+        money_ok = true;
+      }
+      const r = await dev('mcp/call', { project: s.project, server, tool: name, arguments: args, money_ok });
       const text = mcpResultText(r);
       item.out = clip(text, 12000);
       if (r.isError) throw new Error(clip(text || 'the MCP tool reported an error', 2000));
@@ -557,7 +579,7 @@
   async function openFolder() {
     const st = { path: lsGet('last-folder', ''), data: null, hidden: false };
     A().showModal(`<h2 id="modal-title">Open folder</h2><p class="sub">A.S.T.R.O AI works on the folder in place: the editor, terminal, Git and the agent use your real files. New sessions in a folder start in <b>Ask</b> mode (you approve each change), and a checkpoint is saved before every agent run.</p>
-      <div class="dev-browse"><div class="dev-bpath"><input class="input" id="dev-bpath" spellcheck="false" aria-label="Folder path" placeholder="/home/you/projects/app"><button type="button" class="btn small" id="dev-bgo">Go</button></div>
+      <div class="dev-browse"><div class="dev-bpath"><input class="input" id="dev-bpath" spellcheck="false" aria-label="Folder path" placeholder="/home/you/projects/app"><button type="button" class="btn small" id="dev-bgo">Open</button></div>
       <div class="dev-broots" id="dev-broots"></div><div class="dev-blist" id="dev-blist"><p class="hint">Loading…</p></div>
       <label class="dev-bhid"><input type="checkbox" id="dev-bhidden"> Show hidden folders</label></div>
       <div class="btn-row"><button type="button" class="btn primary" id="dev-bopen">${icon('i-folder-open')}Open this folder</button><button type="button" class="btn ghost" id="modal-close">Cancel</button></div>`);
@@ -656,9 +678,9 @@
   // skills and plugins from public GitHub repos, AI command-line tools and an AI app directory. The server downloads
   // and checks everything (exact versions, pinned commits, SHA-256 per file); this panel browses, shows exactly what
   // an item will run or write, and asks for the values it needs.
-  const LIB_KINDS = [['all', 'All'], ['mcp', 'MCP'], ['skill', 'Skills'], ['plugin', 'Plugins'], ['tool', 'AI tools']];
+  const LIB_KINDS = [['all', 'All'], ['pack', 'Astro Packs'], ['mcp', 'MCP'], ['skill', 'Skills'], ['plugin', 'Plugins'], ['tool', 'AI tools']];
   const LIB_KIND_LABEL = { mcp: 'MCP', skill: 'skill', plugin: 'plugin', tool: 'AI tool' };
-  const LIB_PERMS = { network: 'Talks to an online service', 'local-process': 'Runs a program on this computer', filesystem: 'Reads and writes files in a folder you choose', browser: 'Opens and controls a browser', account: 'Uses your account with a token you give it' };
+  const LIB_PERMS = { network: 'Talks to an online service', 'local-process': 'Runs a program on this computer', filesystem: 'Reads and writes files in a folder you choose', browser: 'Opens and controls a browser', account: 'Uses your account with a token you give it', scripts: 'Has Node.js helper scripts the agent can run on this computer', files: 'Reads and writes files in your project when the agent uses it' };
   const L2 = { man: null, manErr: '', rows: { mcp: [], skill: [], plugin: [], tool: [] }, loaded: {}, loading: {} };
   async function libLoad(force) {
     if (!force && D.lib?.data && Date.now() - D.lib.at < 60000) return D.lib.data;
@@ -684,7 +706,7 @@
     const m = it.mcp || {};
     return m.type === 'http' ? m.url : [m.command, ...(m.args || [])].join(' ');
   }
-  const libKindsInView = (kind) => (kind === 'all' ? ['mcp', 'skill', 'plugin', 'tool'] : [kind]);
+  const libKindsInView = (kind) => (kind === 'all' ? ['mcp', 'skill', 'plugin', 'tool'] : kind === 'pack' ? [] : [kind]);
   function libFlagBadge(f, kind) {
     const b = (t, cls) => `<span class="dev-scope${cls ? ' ' + cls : ''}">${esc(t)}</span>`;
     if (f.includes('h') || f.includes('e')) return b('remote');
@@ -699,11 +721,11 @@
     const words = q ? q.split(/\s+/).filter(Boolean) : [];
     const out = [];
     for (const it of reviewed) {
-      if (kind !== 'all' && it.kind !== kind) continue;
+      if (kind === 'pack' ? !it.pack : kind !== 'all' && it.kind !== kind) continue;
       const hay = `${it.id} ${it.name} ${it.summary} ${(it.tags || []).join(' ')} ${it.publisher || ''}`.toLowerCase();
       if (words.every((w) => hay.includes(w))) out.push({ it });
     }
-    if (!lsGet('lib-reviewed', '')) for (const k of libKindsInView(kind)) for (const r of L2.rows[k]) {
+    if (!lsGet('lib-reviewed', '') && kind !== 'pack') for (const k of libKindsInView(kind)) for (const r of L2.rows[k]) {
       if (ids.has(r[0])) continue;
       if (words.length) { const hay = r._s || (r._s = `${r[0]} ${r[1]} ${r[2]} ${r[3]} ${r[5]} ${r[6]}`.toLowerCase()); if (!words.every((w) => hay.includes(w))) continue; }
       out.push({ r, k });
@@ -713,7 +735,7 @@
   function libCard(m, inst) {
     if (m.it) {
       const it = m.it; const have = inst[it.id]; const upd = have && have.version !== it.version;
-      return `<div class="dev-item lib-card"><div class="dev-it-h"><b>${esc(it.name)}</b><span class="dev-scope">${esc(it.kind === 'mcp' ? 'MCP' : it.kind)}</span><span class="dev-scope s-global">reviewed</span>${it.runs === 'local' ? '<span class="dev-scope s-project">runs locally</span>' : ''}${have ? `<span class="dev-scope s-global">${upd ? 'update available' : 'installed'}</span>` : ''}</div>
+      return `<div class="dev-item lib-card"><div class="dev-it-h"><b>${esc(it.name)}</b><span class="dev-scope">${esc(it.kind === 'mcp' ? 'MCP' : it.kind)}</span><span class="dev-scope s-global">${it.pack ? 'Astro Pack' : 'reviewed'}</span>${it.runs === 'local' ? '<span class="dev-scope s-project">runs locally</span>' : ''}${have ? `<span class="dev-scope s-global">${upd ? 'update available' : 'installed'}</span>` : ''}</div>
         <p>${esc(clip(it.summary, 200))}</p>
         <div class="dev-it-a"><button type="button" class="ag-act" data-x="lib-open" data-id="${esc(it.id)}">${icon('i-eye')}Details</button>${have ? `${upd ? `<button type="button" class="ag-act" data-x="lib-open" data-id="${esc(it.id)}">${icon('i-refresh')}Update</button>` : ''}<button type="button" class="ag-act" data-x="lib-remove" data-id="${esc(it.id)}">${icon('i-trash')}Remove</button>` : `<button type="button" class="ag-act" data-x="lib-open" data-id="${esc(it.id)}">${icon('i-download')}Install</button>`}<span class="grow"></span><small>${esc(it.publisher || '')}</small></div></div>`;
     }
@@ -747,7 +769,7 @@
     try { data = await libLoad(force); } catch (err) { return `<div class="ws-note error">${esc(err.message)}</div>`; }
     const kind = lsGet('lib-kind', 'all');
     const items = data.items || [];
-    const count = (k) => (L2.man ? (k === 'all' ? L2.man.total : (L2.man.kinds[k] || {}).count || 0) : (k === 'all' ? items.length : items.filter((x) => x.kind === k).length));
+    const count = (k) => (k === 'pack' ? items.filter((x) => x.pack).length : L2.man ? (k === 'all' ? L2.man.total : (L2.man.kinds[k] || {}).count || 0) : (k === 'all' ? items.length : items.filter((x) => x.kind === k).length));
     setTimeout(() => { libRenderList(); libStartLoading(); }, 0);
     return `<div class="dev-inst lib-search"><input class="input" id="lib-q" placeholder="Search ${count('all').toLocaleString()} MCP servers, skills, plugins and AI tools" value="${esc(D.lib?.q || '')}" spellcheck="false" aria-label="Search the library"><button type="button" class="ws-btn sm" data-x="lib-refresh" title="Refresh">${icon('i-refresh')}</button></div>
       <div class="dev-acts lib-kinds">${LIB_KINDS.map(([k, l]) => `<button type="button" class="ws-btn sm${k === kind ? ' primary' : ''}" data-x="lib-kind" data-kind="${k}">${l} <small>${count(k).toLocaleString()}</small></button>`).join('')}<label class="lib-chk"><input type="checkbox" data-x="lib-reviewed" ${lsGet('lib-reviewed', '') ? 'checked' : ''}> Reviewed only</label></div>
@@ -773,7 +795,9 @@
       <div class="dev-sec">What it can do</div><ul class="lib-perms">${perms}</ul>
       ${what}
       ${inputs ? `<div class="dev-sec">Settings</div>${inputs}` : ''}
-      ${it.runs === 'local' ? '<p class="hint">This server runs on your computer with your user rights. Only install it if you trust the publisher.</p>' : ''}
+      ${it.caveats ? `<div class="ws-note"><b>Read first.</b> ${esc(it.caveats)}</div>` : ''}
+      ${it.source ? `<p class="hint">Adapted for A.S.T.R.O AI from <a href="${esc(it.source.repo)}" target="_blank" rel="noopener">${esc(it.source.repo.replace('https://github.com/', ''))}</a> by ${esc(it.source.author)} (${esc(it.source.license)}). Not made or endorsed by the original author; NOTICE.md in the pack lists the changes.</p>` : ''}
+      ${it.scripts === 'builtin' ? `<p class="hint">Its helper tools are built into A.S.T.R.O AI (version ${esc(it.min_version || '1.9.0')} or later), written in C++ by the A.S.T.R.O AI team. The agent runs them only for a matching job: in Auto mode without asking, in Ask mode after you approve.${it.network ? ' Some read public web data.' : ' They make no network requests.'}${it.programs ? ` Some call ${esc(it.programs.join(', '))} if installed.` : ''}</p>` : it.scripts === 'node' ? `<p class="hint">Its helper scripts are standard-library Node.js, checked by the A.S.T.R.O AI team and pinned by SHA-256. The agent runs them only for a matching job: in Auto mode without asking, in Ask mode after you approve.${it.network ? ' Some read public web data.' : ' They make no network requests.'}${it.programs ? ` Some call ${esc(it.programs.join(', '))} if installed.` : ''}${!D.lib?.data?.node ? ' Node.js is needed: install it in Settings > Tools.' : ''}</p>` : it.runs === 'local' ? '<p class="hint">This server runs on your computer with your user rights. Only install it if you trust the publisher.</p>' : ''}
       <div class="btn-row"><button type="button" class="btn primary" id="lib-go">${have ? (have.version !== it.version ? 'Update' : 'Reinstall') : 'Install'}</button><button type="button" class="btn ghost" id="modal-close">Cancel</button></div>`);
     libWireInstall(id, it.name, it.kind, it.runs === 'local');
   }

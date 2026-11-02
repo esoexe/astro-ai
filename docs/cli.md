@@ -89,6 +89,7 @@ Since version 1.5, `astro` opens a full-screen app in your terminal, in the styl
 | `/parallel "A" "B" [--merge]` | Run several agents at once, each in an isolated copy (`A \| B` also works). |
 | `/agents`, `/merge <id>`, `/discard <id>` | Manage isolated agents and apply or drop their changes. |
 | `/init` | Write `AGENTS.md`, a guide to this project for agents. |
+| `/re <file> [view]` | Astro RE (1.9): inspect an app, binary or file without running it. Same views as `astro re` below. |
 | `/export [file]`, `/copy` | Save the conversation as Markdown, or copy the last answer. |
 | `/theme [name]`, `/logo on\|off\|hd\|text\|auto\|info` | Colour theme with live preview; animated or still logo; HD picture or text logo. |
 | `/panel`, `/mouse`, `/status`, `/help` | Side panel, mouse scrolling, engine and session details, help. |
@@ -97,6 +98,25 @@ Since version 1.5, `astro` opens a full-screen app in your terminal, in the styl
 ### Classic prompt
 
 `astro --classic` (or `ASTRO_TUI=0`) keeps the line-by-line prompt from 1.4, which prints into your scrollback. It is also used automatically when stdin or stdout is not a terminal, or when `TERM=dumb`. It has the same commands. In ask mode the request appears inline as `[y] allow  [a] allow all this run  [n] deny`.
+
+## Astro RE: inspect a file (1.9)
+
+`astro re <file> [view]` shows how an app, library or file works. It only reads the file and never runs it.
+
+| View | What it shows |
+|---|---|
+| `overview` (default) | Format, architecture, system, language, entry point, findings, libraries it loads, notes |
+| `strings [filter]` | Interesting strings (URLs, keys, paths, crypto, formats), or every string that matches the filter |
+| `imports [filter]`, `exports [filter]`, `symbols [filter]` | Imported, exported or all symbols |
+| `sections` | Sections or segments |
+| `hex [offset]` | 512 bytes from an offset (decimal or `0x`) |
+| `disasm [symbol\|address]` | Disassembly with rizin, llvm-objdump or objdump (blank = entry point) |
+| `decompile [function\|class]` | Ghidra for native code, JADX for Android and Java (the first run on a big file can take minutes) |
+| `zip [entry]` | Entries of an archive (APK, JAR, IPA, ZIP), or one entry inspected |
+
+Add `--json` for the raw engine answer. rizin, Ghidra and JADX install without admin rights from Tools in the desktop app,
+or with `astro tools install rizin ghidra jadx`. Use it on software you own or are allowed to study: it will not help crack licences, bypass DRM or
+anti-cheat, or build malware.
 
 ## Print mode (scripts and CI)
 

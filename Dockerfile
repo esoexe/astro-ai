@@ -7,6 +7,7 @@ FROM debian:bookworm-slim AS build
 RUN apt-get update && apt-get install -y --no-install-recommends g++ make pkg-config libcurl4-openssl-dev libssl-dev ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
 COPY Makefile workspace_server.cpp platform.h *.inc ./
+COPY packtools ./packtools
 RUN make workspace_server
 
 FROM debian:bookworm-slim

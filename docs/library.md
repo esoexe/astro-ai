@@ -10,6 +10,20 @@ You can browse it in two places:
 * **Console** on the website (`/profile` > Library). You don't need to sign in. Each item has *Open in A.S.T.R.O AI*, a copyable config for Claude Code, Cursor, VS Code and OpenCode, and a zip download.
 * **A.S.T.R.O AI Desktop**: Workspace > Extensions > Library. Each item installs with one click.
 
+## Astro Packs (1.9)
+
+The **Astro Packs** tab lists 16 packs adapted from [Jake Schincariol](https://github.com/Jakeschincariol)'s MIT-licensed agent
+skills: YouTube, Instagram, LinkedIn, X, Founder, Replica, Arena, Duel, Hunter, Trader, Day Trader, Master, Console, Modes,
+Power Modes and Promptmaster. They are in the reviewed catalog, labelled *Community: adapted from Jake Schincariol (MIT)*, and
+each one links to the exact upstream commit it was adapted from.
+
+* The original Python and Node helper scripts are rewritten in C++ and built into the engine (`packtools/`), so a pack
+  needs no Python or Node. Its skill runs them as `astro-server tool <skill>/<helper>`; 13 packs have helpers, the other 3
+  are instructions only.
+* The source commits are pinned in `tools/jake_shas.txt`; `tools/port_packs.js` converts a repo into a pack and
+  `library/pack-overrides/` holds hand-written changes. Each pack ships the upstream licence in `NOTICE.md`.
+* The trading packs (Trader, Day Trader) are for research and education, not financial advice. Hunter is a job-search pack.
+
 ## Installing
 
 1. Click **Open in A.S.T.R.O AI** in the Console. This opens `astroai://library/<id>`. You can also open the Library tab in the app.

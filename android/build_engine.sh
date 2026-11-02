@@ -128,7 +128,7 @@ NOTICE
 # time that nothing newer than Android 8.0 is used. (A fully static bionic binary is NOT shipped: libc.a comes
 # from the newest Android and may make system calls that older phones' app sandbox forbids.)
 echo "Compiling the engine for Android arm64 (API $API)"
-COMMON=(-std=c++20 -O2 -Wall -Wextra -pthread -DCURL_STATICLIB -I"$PREFIX/include" "$ROOT/workspace_server.cpp")
+COMMON=(-std=c++20 -O2 -Wall -Wextra -pthread -DCURL_STATICLIB -I"$PREFIX/include" "$ROOT/workspace_server.cpp" "$ROOT"/packtools/packtools*.cpp)
 LIBS=(-L"$PREFIX/lib" -l:libcurl.a -l:libssl.a -l:libcrypto.a -l:libz.a -static-libstdc++)
 "$CXX" "${COMMON[@]}" -o "$WORK/workspace_server" "${LIBS[@]}"
 "$STRIP" "$WORK/workspace_server"

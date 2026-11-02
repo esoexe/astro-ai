@@ -1,0 +1,29 @@
+{
+  "name": "astro-youtube",
+  "displayName": "YouTube Pack",
+  "version": "1.0.0",
+  "description": "11 skills that run a YouTube channel: scripts with scored hooks, titles and packaging, chapters, retention and dead-air analysis, Shorts, SEO, comments and a weekly plan.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/youtube-agent-skill",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "a2feb2104981a375ffd4f87ee04f4f5344ac43c6"
+  },
+  "skills": [
+    "yt-audit",
+    "yt-chapters",
+    "yt-comment",
+    "yt-edit",
+    "yt-package",
+    "yt-plan",
+    "yt-retention",
+    "yt-script",
+    "yt-seo",
+    "yt-shorts",
+    "yt-viral"
+  ]
+}

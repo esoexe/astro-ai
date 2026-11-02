@@ -1,6 +1,7 @@
 // A.S.T.R.O AI native backend (formerly Workspace): C++20 + POSIX sockets + libcurl + OpenSSL.
 // The browser UI remains HTML/CSS/JavaScript in ./web.
 #include "platform.h"
+#include "packtools/packtools_api.h"   // built-in pack tools (astro-server tool <skill>/<helper>), compiled in packtools/packtools.cpp
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -27,6 +28,11 @@
 #include <thread>
 #include <variant>
 #include <vector>
+#include <memory>
+#include <cstdint>
+#include <cstdio>
+#include <stdexcept>
+#include <utility>
 #include <curl/curl.h>
 #include <regex>
 #include <set>
@@ -600,6 +606,7 @@ std::string brain_prompt_extra(const std::string& stage, bool voice, bool agent,
                "- todo {items:[{text, status}]}: write or update your task list for this job (status: todo, doing, done). Use it for multi-step jobs and keep it current.\n"
                "- skill {name}: load a skill (expert instructions listed under SKILLS in the job) and follow it. Load one only when the job matches its description.\n"
                "- mcp {server, name, arguments}: call a tool of a connected MCP server (listed under MCP TOOLS in the job, with their input schemas).\n"
+               "- re {op, path, ...}: Astro RE, read-only reverse engineering of a local file (binary, app, archive, model, database). op: inspect (format, arch, sections, imports, libraries, mitigations, language, signatures; start here), strings {filter?, interesting?}, symbols {filter?, where: import|export|internal}, hex {at|addr, length}, find {text|hex}, disasm {target: symbol or 0xADDR, count}, decompile {target} (Ghidra for native code, JADX for APK/DEX/JAR with a class name), zip {entry?} (list, or extract an entry and inspect the returned path), providers. Report facts with their evidence (offsets, addresses, section names) and say what stays unknown. Only analyse software the user owns or may study; never help crack licences, bypass DRM or anti-cheat, or build malware.\n"
                "- task {prompt, agent?}: hand a focused sub-task (research, review, an isolated change) to a subagent and get its report back. "
                "agent = one of the AGENTS listed in the job (custom subagents or installed coding CLIs such as claude, codex, opencode, gemini, dsh); omit it for a general research subagent.\n"
                "PROJECT CONTEXT: the job may include PROJECT RULES (AGENTS.md, CLAUDE.md, .cursorrules and similar: obey them), SKILLS, MCP TOOLS, AGENTS and a MODE. "
@@ -2309,6 +2316,7 @@ void load_runtime_credentials() {
 #include "astro_quality.inc"
 #include "astro_engine.inc"
 #include "astro_update.inc"
+#include "astro_re.inc"      // Astro RE: reverse engineering (static analysis + optional providers)
 
 void handle_api(int fd, const HttpRequest& request) {
     if (phone_remote_gate(fd, request)) return;   // requests from a phone: pairing and device tokens
@@ -2325,6 +2333,7 @@ void handle_api(int fd, const HttpRequest& request) {
     if (handle_quality_api(fd, request)) return;
     if (handle_engine_api(fd, request)) return;
     if (handle_update_api(fd, request)) return;
+    if (handle_re_api(fd, request)) return;
     if (handle_astro_api(fd, request)) return;
     if (request.method == "GET" && request.path == "/api/status") {
         const auto config = model_config();
@@ -2552,7 +2561,81 @@ static void install_shutdown_hook() {
 }
 #endif
 
-int main() {
+// packtools::http_ex_hook: urllib-like requests for master-build/sitecheck over https (redirects followed, the last
+// response's headers kept, the body capped). Any address: the helper checks the user's own sites, dev servers included.
+std::size_t packtools_header_line(char* ptr, std::size_t size, std::size_t count, void* userdata) {
+    auto* headers = static_cast<std::vector<std::pair<std::string, std::string>>*>(userdata);
+    std::string line(ptr, size * count);
+    while (!line.empty() && (line.back() == '\r' || line.back() == '\n')) line.pop_back();
+    if (line.rfind("HTTP/", 0) == 0) headers->clear();   // a new response (after a redirect)
+    else if (const auto colon = line.find(':'); colon != std::string::npos) {
+        std::size_t v = colon + 1;
+        while (v < line.size() && (line[v] == ' ' || line[v] == '\t')) ++v;
+        headers->emplace_back(line.substr(0, colon), line.substr(v));
+    }
+    return size * count;
+}
+packtools::HttpExResp packtools_http_ex(const packtools::HttpExReq& req) {
+    packtools::HttpExResp out;
+    CURL* curl = curl_easy_init();
+    if (!curl) { out.error = "curl unavailable"; return out; }
+    CappedBody body; body.cap = req.max_bytes ? req.max_bytes + 1 : 0;
+    struct curl_slist* list = nullptr;
+    for (const auto& h : req.headers) list = curl_slist_append(list, h.c_str());
+    const long ms = static_cast<long>(req.timeout_s * 1000.0);
+    curl_easy_setopt(curl, CURLOPT_URL, req.url.c_str());
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, req.follow_redirects ? 1L : 0L);
+    curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10L);
+    if (req.has_body) {
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE_LARGE, static_cast<curl_off_t>(req.body.size()));
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, req.body.c_str());
+        if (req.method != "POST") curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, req.method.c_str());
+    }
+    curl_easy_setopt(curl, CURLOPT_PROTOCOLS_STR, "http,https");
+    curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, ms);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, ms);
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, capped_write);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &body);
+    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, packtools_header_line);
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, &out.headers);
+    if (req.method == "HEAD") curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
+    if (req.insecure) { curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); }
+    const CURLcode code = curl_easy_perform(curl);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &out.status);
+    char* eff = nullptr; curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &eff); if (eff) out.final_url = eff;
+    if (code == CURLE_TOO_MANY_REDIRECTS) {
+        out.body.clear();   /* urllib: an HTTPError with the last 30x code */
+    } else if (code != CURLE_OK && !(code == CURLE_WRITE_ERROR && body.truncated)) {
+        out.status = 0;
+        out.dns_fail = code == CURLE_COULDNT_RESOLVE_HOST;
+        out.refused = code == CURLE_COULDNT_CONNECT;
+        out.timed_out = code == CURLE_OPERATION_TIMEDOUT;
+        out.tls_untrusted = code == CURLE_PEER_FAILED_VERIFICATION;
+        out.error = curl_easy_strerror(code);
+    }
+    out.body = std::move(body.data);
+    curl_slist_free_all(list);
+    curl_easy_cleanup(curl);
+    return out;
+}
+
+int main(int argc, char** argv) {
+    // "astro-server tool <name> ..." runs one built-in pack helper and exits; nothing of the server starts.
+    packtools::http_ex_hook() = packtools_http_ex;
+    packtools::http_hook() = [](const std::string& url, const std::vector<std::string>& headers, long timeout_s, const std::string* post) {
+        const FetchResult f = http_fetch(url, headers, post, timeout_s, std::size_t{256} << 20, true);
+        packtools::HttpResp r; r.status = f.status; r.body = f.body; r.error = f.truncated ? std::string("the response was too large") : f.error; return r;
+    };
+#ifdef _WIN32
+    packtools::exec_hook() = [](const std::vector<std::string>& args) {
+        const CommandResult c = run_capture(args, std::size_t{64} << 20);
+        packtools::ExecResult r; r.code = c.too_large ? -1 : c.exit_code; r.out = c.output; return r;
+    };
+#endif
+    if (const int tool_rc = packtools::maybe_tool(argc, argv); tool_rc >= 0) return tool_rc;
     install_shutdown_hook();
 #ifdef _WIN32
     WSADATA wsa;

@@ -21,6 +21,10 @@ const NO_DL = process.argv.includes('--no-dl');
 const DL_SRC = process.env.ASTRO_DL_DIR
   || [path.join(ROOT, '..', 'desktop-builds', 'clean'), path.join(ROOT, 'downloads')].find((p) => fs.existsSync(p))
   || path.join(ROOT, 'downloads');
+if (!NO_DL && !fs.existsSync(DL_SRC)) {
+  console.error(`build: no installers at ${DL_SRC}. Run tools/fetch_release_assets.sh (it fetches the CLEAN downloads from the GitHub releases and checks their SHA-256), or pass --no-dl.`);
+  process.exit(1);
+}
 
 const rm = (p) => fs.rmSync(p, { recursive: true, force: true });
 function copyDir(a, b) {

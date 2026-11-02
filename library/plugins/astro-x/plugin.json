@@ -1,0 +1,29 @@
+{
+  "name": "astro-x",
+  "displayName": "X Pack",
+  "version": "1.0.0",
+  "description": "11 skills that run an X account: posts, threads, replies, comments, DMs, profile, repurposing, a plain-voice style editor, a weekly plan and a virality study of what works in your niche.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/x-agent-skill",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "7822c29b4aedbd400b9339839d3f59f3652b1317"
+  },
+  "skills": [
+    "x-audit",
+    "x-comment",
+    "x-dm",
+    "x-human",
+    "x-plan",
+    "x-post",
+    "x-profile",
+    "x-reply",
+    "x-repurpose",
+    "x-thread",
+    "x-viral"
+  ]
+}

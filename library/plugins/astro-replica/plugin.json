@@ -1,0 +1,29 @@
+{
+  "name": "astro-replica",
+  "displayName": "Replica Pack",
+  "version": "1.0.0",
+  "description": "11 skills that study an app's features and help you build your OWN original product in that space: recon, architecture, design tokens with contrast checks, build, backend, tests, visual diff, deploy and launch.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/replica-skill",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "77c9436fb3d18c3d58169efb8caf4fe906b0dc51"
+  },
+  "skills": [
+    "replica-architect",
+    "replica-backend",
+    "replica-brand",
+    "replica-build",
+    "replica-deploy",
+    "replica-design",
+    "replica-diff",
+    "replica-entrepreneur",
+    "replica-launch",
+    "replica-recon",
+    "replica-test"
+  ]
+}

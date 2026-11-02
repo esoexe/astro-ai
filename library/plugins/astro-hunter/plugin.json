@@ -1,0 +1,29 @@
+{
+  "name": "astro-hunter",
+  "displayName": "Job Hunter Pack",
+  "version": "1.0.0",
+  "description": "11 skills that help you land a job: scout listings, tailor your resume and cover letter, research the company, LinkedIn and networking, applications, interview prep, salary negotiation, follow-ups and a tracker.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/hunter-skill",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "f40d6a94b61283785b20e47a237608d5b1976b1c"
+  },
+  "skills": [
+    "hunter-apply",
+    "hunter-connector",
+    "hunter-cover",
+    "hunter-followup",
+    "hunter-interview",
+    "hunter-linkedin",
+    "hunter-research",
+    "hunter-resume",
+    "hunter-salary",
+    "hunter-scout",
+    "hunter-tracker"
+  ]
+}

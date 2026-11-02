@@ -1,0 +1,29 @@
+{
+  "name": "astro-trader",
+  "displayName": "Trader Pack",
+  "version": "1.0.0",
+  "description": "11 investing research skills from public data (SEC EDGAR 13F filings, House disclosures, news): copy an investor's portfolio, watch news and Congress, size trades to your budget, risk, rebalancing and tax lots.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/trader-skill",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "5189e79b9a480755a3733ac9713f5353981dbe18"
+  },
+  "skills": [
+    "trader-alerts",
+    "trader-analyst",
+    "trader-broker",
+    "trader-budget",
+    "trader-copycat",
+    "trader-news",
+    "trader-pelosi",
+    "trader-rebalance",
+    "trader-risk",
+    "trader-screener",
+    "trader-tax"
+  ]
+}

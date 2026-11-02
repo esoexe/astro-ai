@@ -13,6 +13,7 @@ desktop-builds/
 .astro_android/
 android-signing/
 .astro_dev/
+.astro_re/
 
 # ---- build output ----
 /workspace_server

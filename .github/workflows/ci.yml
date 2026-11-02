@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: 22
       - name: Install build tools
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq g++ make pkg-config libcurl4-openssl-dev libssl-dev
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq g++ make pkg-config libcurl4-openssl-dev libssl-dev ffmpeg
       - name: No private files in the repository
         run: |
           bad=$(git ls-files | grep -E '(^|/)(\.workspace\.env|\.astro_keys\.env|\.astro_auth\.json|seed-keys\.env|gateway\.env)$|^desktop-builds/with-keys/|^outreach/|^uploads/|WITH-KEYS' || true)

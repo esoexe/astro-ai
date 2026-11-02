@@ -12,7 +12,8 @@ const BASE = process.argv[2] || process.env.ASTRO_URL || 'http://127.0.0.1:4370'
 const ROOT = path.join(__dirname, '..');
 const NUM = /\d+(?:[.,]\d+)*/g;
 const NAMES = new Set(['A.S.T.R.O AI', 'MCP', 'Markdown', 'JS', 'JavaScript', 'TypeScript', 'Python', 'Java', 'Bash', 'HTML/CSS', 'C++', 'Go', 'Rust',
-  'Ctrl Shift O', 'Local', 'my-project', 'English', 'Français', 'العربية', 'astro_sk_…']);
+  'Ctrl Shift O', 'Local', 'my-project', 'English', 'Français', 'العربية', 'astro_sk_…',
+  'Astro RE', 'rizin', 'objdump', 'llvm-objdump', 'Ghidra', 'JADX']);   // the Reverse page's analyzers
 
 (async () => {
   // Names come only from name fields, never from descriptions (the provider notes must be translated).
@@ -56,12 +57,16 @@ const NAMES = new Set(['A.S.T.R.O AI', 'MCP', 'Markdown', 'JS', 'JavaScript', 'T
     });
     for (const t of list) if (!isName(t) && !miss.has(t)) miss.set(t, where);
   };
+  // a fresh profile gets the first-run welcome dialog: check it, then close it (its backdrop would swallow every click below)
+  await collect('welcome');
+  await p.evaluate(() => document.getElementById('modal-close')?.click()); await p.keyboard.press('Escape'); await p.waitForTimeout(400);
+  await p.evaluate(() => localStorage.setItem('astro_welcome_v1', '1'));
   await collect('home');
-  for (const id of ['nav-workspace', 'nav-agent', 'nav-notes', 'nav-tasks', 'nav-reader', 'nav-lab', 'nav-assistant']) {
-    await p.click('#' + id).catch(() => {}); await p.waitForTimeout(1200); await collect(id);
+  for (const id of ['nav-workspace', 'nav-agent', 'nav-notes', 'nav-tasks', 'nav-reader', 'nav-lab', 'nav-reverse', 'nav-assistant']) {
+    await p.evaluate(() => document.querySelector('.rail-nav')?.classList.add('more-open')); await p.click('#' + id, { timeout: 5000 }).catch(() => console.log('  i18n coverage: could not open #' + id)); await p.waitForTimeout(1200); await collect(id);
   }
   for (const id of ['open-knowledge', 'open-calculator', 'brain-status']) {
-    await p.click('#' + id).catch(() => {}); await p.waitForTimeout(900); await collect(id);
+    await p.evaluate(() => document.querySelector('.rail-nav')?.classList.add('more-open')); await p.click('#' + id, { timeout: 5000 }).catch(() => console.log('  i18n coverage: could not open #' + id)); await p.waitForTimeout(900); await collect(id);
     await p.evaluate(() => document.getElementById('modal-close')?.click()); await p.keyboard.press('Escape'); await p.waitForTimeout(300);
   }
   for (const tab of ['general', 'appearance', 'brain', 'providers', 'account', 'voice', 'memory', 'data', 'phone', 'shortcuts', 'about']) {
@@ -90,8 +95,8 @@ const NAMES = new Set(['A.S.T.R.O AI', 'MCP', 'Markdown', 'JS', 'JavaScript', 'T
     });
     for (const t of list) if (!stale.has(t)) stale.set(t, where);
   };
-  for (const id of ['nav-assistant', 'nav-workspace', 'nav-agent', 'nav-notes', 'nav-tasks', 'nav-reader', 'nav-lab']) {
-    await p.click('#' + id).catch(() => {}); await p.waitForTimeout(1200); await staleCheck('fr:' + id);
+  for (const id of ['nav-assistant', 'nav-workspace', 'nav-agent', 'nav-notes', 'nav-tasks', 'nav-reader', 'nav-lab', 'nav-reverse']) {
+    await p.evaluate(() => document.querySelector('.rail-nav')?.classList.add('more-open')); await p.click('#' + id, { timeout: 5000 }).catch(() => console.log('  i18n coverage: could not open #' + id)); await p.waitForTimeout(1200); await staleCheck('fr:' + id);
   }
   for (const tab of ['general', 'brain', 'providers']) {
     await p.evaluate((t) => window.AstroAgent.openSettings(t), tab); await p.waitForTimeout(700); await staleCheck('fr:settings:' + tab);

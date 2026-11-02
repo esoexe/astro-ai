@@ -300,6 +300,7 @@ const std::map<std::string, std::string>& aliases() {
         {"start_process", "start_server"}, {"serve", "start_server"}, {"stop_process", "stop_server"}, {"logs", "server_logs"}, {"process_output", "server_logs"},
         {"ask", "ask_user"}, {"question", "ask_user"}, {"memory", "remember"}, {"show", "present"}, {"present_file", "present"}, {"open", "present"},
         {"find_files", "glob"}, {"lint", "diagnostics"}, {"problems", "diagnostics"}, {"check", "diagnostics"}, {"todowrite", "todo"}, {"todo_write", "todo"}, {"todos", "todo"},
+        {"reverse", "re"}, {"reverse_engineer", "re"}, {"astro_re", "re"}, {"disassemble", "re"}, {"decompile", "re"}, {"inspect_binary", "re"},
         {"use_skill", "skill"}, {"load_skill", "skill"}, {"mcp_call", "mcp"}, {"call_mcp", "mcp"}, {"subagent", "task"}, {"agent", "task"}, {"delegate", "task"},
     };
     return m;
@@ -317,6 +318,7 @@ Json::Object norm_call(const Json& c) {
         }
         if (it != o.end() && it->second.is_object()) { const Json::Object inner = *it->second.object_ptr(); for (const auto& [ik, iv] : inner) o[ik] = iv; }
     }
+    if ((t == "disassemble" || t == "decompile") && first_of(o, {"op"}).empty()) o["op"] = Json(t == "disassemble" ? "disasm" : "decompile");
     if (auto a = aliases().find(t); a != aliases().end()) t = a->second;
     o["tool"] = Json(t);
     auto set = [&](const char* key, std::initializer_list<const char*> keys) { o[key] = Json(first_of(o, keys)); };
@@ -327,6 +329,7 @@ Json::Object norm_call(const Json& c) {
     if (t == "edit_file") { set("old_text", {"old_text", "old_str", "old_string", "old", "search", "find"}); set("new_text", {"new_text", "new_str", "new_string", "new", "replace", "replacement"}); }
     if (t == "search" || t == "web_search") set("query", {"query", "q", "pattern", "text"});
     if (t == "fetch_page") set("url", {"url", "link", "href"});
+    if (t == "re") { set("path", {"path", "file", "binary", "file_path", "target_file"}); set("op", {"op", "operation", "mode", "action_name"}); }
     if (t == "start_server") set("command", {"command", "cmd"});
     if (t == "ask_user") set("question", {"question", "text", "prompt"});
     if (t == "remember") set("fact", {"fact", "text", "memory"});
@@ -492,6 +495,7 @@ std::string call_short(const Json::Object& c) {
     if (t == "glob") return "glob " + first_of(c, {"pattern", "glob", "query", "path"});
     if (t == "mcp") return "mcp " + sfield(c, "server") + " \xC2\xB7 " + sfield(c, "name");
     if (t == "skill") return "skill " + first_of(c, {"name", "skill"});
+    if (t == "re") return "re " + (sfield(c, "op").empty() ? std::string("inspect") : sfield(c, "op")) + " " + fs::path(sfield(c, "path")).filename().string();
     if (t == "task") return "task" + (sfield(c, "agent").empty() ? std::string() : " " + sfield(c, "agent"));
     return t;
 }
@@ -502,7 +506,7 @@ std::string call_short(const Json::Object& c) {
 struct CustomTool { std::string name, description, command; std::vector<std::pair<std::string, std::string>> args; bool readonly = false; int timeout = 120; };
 bool builtin_tool(const std::string& n) {
     static const std::set<std::string> b = {"bash", "read_file", "write_file", "edit_file", "delete_file", "list_files", "glob", "search", "web_search", "fetch_page",
-        "start_server", "server_logs", "stop_server", "ask_user", "remember", "present", "diagnostics", "todo", "skill", "mcp", "task"};
+        "start_server", "server_logs", "stop_server", "ask_user", "remember", "present", "diagnostics", "todo", "skill", "mcp", "task", "re"};
     return b.count(n) > 0 || aliases().count(n) > 0;
 }
 std::vector<CustomTool> custom_tools(const std::string& project) {
@@ -652,11 +656,18 @@ std::pair<std::map<std::string, std::string>, std::string> frontmatter(const std
     if (end == std::string::npos) return {meta, t};
     std::stringstream ss(t.substr(3, end - 3)); std::string line;
     static const std::regex kv(R"(^([A-Za-z0-9_-]+)\s*:\s*(.*)$)");
-    while (std::getline(ss, line)) {
-        if (!line.empty() && line.back() == '\r') line.pop_back();
+    std::vector<std::string> lines;
+    while (std::getline(ss, line)) { if (!line.empty() && line.back() == '\r') line.pop_back(); lines.push_back(line); }
+    for (std::size_t i = 0; i < lines.size(); ++i) {
+        line = lines[i];
         std::smatch m;
         if (std::regex_match(line, m, kv)) {
             std::string v = trim(m[2].str());
+            // YAML block scalars ("description: >-" then indented lines): join them into one line
+            if (v == ">" || v == ">-" || v == ">+" || v == "|" || v == "|-" || v == "|+") {
+                v.clear();
+                while (i + 1 < lines.size() && (lines[i + 1].empty() || lines[i + 1][0] == ' ' || lines[i + 1][0] == '\t')) { const std::string w = trim(lines[++i]); if (!w.empty()) v += (v.empty() ? "" : " ") + w; }
+            }
             if (v.size() >= 2 && (v.front() == '"' || v.front() == '\'') && v.back() == v.front()) v = v.substr(1, v.size() - 2);
             meta[lower(m[1].str())] = v;
         }
@@ -1180,24 +1191,55 @@ ToolOut exec_tool(Session& s, Json::Object& c) {
         if (!k) for (const auto& d : sc.skills) if (lower(d.path).find("/" + lower(name) + "/") != std::string::npos) { k = &d; break; }
         if (!k) { std::string names; for (const auto& d : sc.skills) names += (names.empty() ? "" : ", ") + d.name; throw std::runtime_error("No skill named \"" + name + "\". Skills: " + (names.empty() ? "none installed" : names) + "."); }
         o.meta["path"] = Json(k->path);
+        // Absolute folder of the skill, so its helper scripts can be run: ${ASTRO_SKILL_DIR} (and Claude-style ${CLAUDE_SKILL_DIR}).
+        const auto skill_dir = [&]() -> std::string {
+            std::string rel = k->path; const auto sl = rel.find_last_of('/'); rel = sl == std::string::npos ? std::string() : rel.substr(0, sl);
+            fs::path root = k->scope == "global" ? ext_root() : k->scope == "user" ? user_home_dir() : fs::path(projects_root()) / s.project;
+            return (root / rel).lexically_normal().generic_string();
+        }();
+        const auto expand = [&](std::string t) {
+            const std::string pack_dir = [&] { const auto p = skill_dir.find("/plugins/"); if (p == std::string::npos) return skill_dir + "/.."; const auto e = skill_dir.find('/', p + 9); return e == std::string::npos ? skill_dir : skill_dir.substr(0, e); }();
+            for (const auto& [from, to] : std::vector<std::pair<std::string, std::string>>{{"${ASTRO_SKILL_DIR}", skill_dir}, {"${CLAUDE_SKILL_DIR}", skill_dir}, {"$ASTRO_SKILL_DIR", skill_dir}, {"$CLAUDE_SKILL_DIR", skill_dir}, {"${ASTRO_PACK_DIR}", pack_dir}, {"${CLAUDE_PLUGIN_ROOT}", pack_dir}, {"${ASTRO_TOOL}", packtools::tool_command() + " --skill-dir \"" + skill_dir + "\""}})
+                for (std::size_t p = t.find(from); p != std::string::npos; p = t.find(from, p + to.size())) t.replace(p, from.size(), to);
+            return t;
+        };
         if (!sfield(c, "file").empty()) {
             const auto r = call("/api/dev/ext/read", P(s, {{"scope", Json(k->scope)}, {"path", Json(sfield(c, "file"))}}));
             if (!r.ok()) throw std::runtime_error(r.error());
-            o.result = sfield(c, "file") + ":\n" + clip(get_string(r.json, "content"), 14000); return o;
+            o.result = sfield(c, "file") + ":\n" + clip(expand(get_string(r.json, "content")), 14000); return o;
         }
         std::string extra;
         if (!k->files.empty()) { extra = "\nThe skill also has these files (read one with {\"tool\":\"skill\",\"name\":\"" + k->name + "\",\"file\":\"<path>\"}):\n"; for (const auto& f : k->files) extra += f + "\n"; }
-        o.out = clip(k->body, 3000);
-        o.result = "SKILL \"" + k->name + "\" (" + k->scope + ") \xE2\x80\x94 follow these instructions:\n" + clip(k->body, 14000) + extra;
+        o.out = clip(expand(k->body), 3000);
+        o.result = "SKILL \"" + k->name + "\" (" + k->scope + ") \xE2\x80\x94 follow these instructions:\n" + clip(expand(k->body), 14000) + extra
+                 + (std::none_of(k->files.begin(), k->files.end(), [](const std::string& f) { for (const char* e : {".mjs", ".js", ".py", ".sh", ".ps1"}) if (f.size() > std::strlen(e) && f.compare(f.size() - std::strlen(e), std::string::npos, e) == 0) return true; return false; }) ? std::string() : std::string()
+                 + "\nSkill folder: " + skill_dir + " (run its helper scripts from there with bash, e.g. node \"" + skill_dir + "/<script>.mjs\"; they need Node.js, installable in Settings > Tools).");
+        return o;
+    }
+    if (t == "re") {   // Astro RE: read-only reverse engineering of a local file (see astro_re.inc)
+        std::string op = lower(trim(sfield(c, "op")));
+        if (op.empty()) op = "inspect";
+        static const std::set<std::string> ops = {"inspect", "strings", "symbols", "hex", "find", "disasm", "decompile", "zip", "providers"};
+        if (!ops.count(op)) throw std::runtime_error("re needs op: inspect, strings, symbols, hex, find, disasm, decompile, zip or providers.");
+        Json::Object a; for (const auto& [k, v] : c) if (k != "tool" && k != "op") a[k] = v;
+        a["project"] = Json(s.project);
+        const auto r = call("/api/re/" + op, Json(a), {}, &s.cancel, 1600000);
+        if (!r.ok()) throw std::runtime_error(r.error());
+        Json j = r.json;
+        if (Json::Object* jo = std::get_if<Json::Object>(&j.value)) jo->erase("evidence_rule");
+        const std::string text = dump_json(j);
+        o.meta["op"] = Json(op); o.out = clip(text, 3000);
+        o.result = "ASTRO RE " + op + " (facts read from the file; cite offsets and addresses, keep unknowns as unknowns):\n" + clip(text, 24000);
         return o;
     }
     if (t == "mcp") {
         const std::string server = trim(sfield(c, "server")), name = trim(first_of(c, {"name", "tool_name", "method"}));
         if (server.empty() || name.empty()) throw std::runtime_error("mcp needs \"server\" and \"name\" (see MCP TOOLS in the job).");
+        const bool money_ok = [&] { auto mi = c.find("money_ok"); if (mi == c.end()) return false; const bool* b = std::get_if<bool>(&mi->second.value); return b && *b; }();
         Json args = Json(Json::Object{});
         if (auto it = c.find("arguments"); it != c.end() && it->second.is_object()) args = it->second;
         else if (auto it2 = c.find("input"); it2 != c.end() && it2->second.is_object()) args = it2->second;
-        const auto r = call("/api/dev/mcp/call", P(s, {{"server", Json(server)}, {"tool", Json(name)}, {"arguments", args}}), {}, &s.cancel, 300000);
+        const auto r = call("/api/dev/mcp/call", P(s, {{"server", Json(server)}, {"tool", Json(name)}, {"arguments", args}, {"money_ok", Json(money_ok)}}), {}, &s.cancel, 300000);
         if (!r.ok()) throw std::runtime_error(r.error());
         std::string text;
         if (const Json* ct = r.json.get("content"); ct && ct->array_ptr())
@@ -1298,7 +1340,9 @@ std::string project_brief(Session& s) {
     if (!rules.empty()) parts.push_back("PROJECT RULES (obey them; project rules win over global ones):\n" + rules);
     if (!sc.skills.empty()) {
         std::string k; int n = 0;
-        for (const auto& d : sc.skills) { if (++n > 60) break; k += "- " + d.name + ": " + clip(d.description, 200) + "\n"; }
+        // Many skills (Astro Packs add 10+ each): list more of them with shorter descriptions.
+        const bool many = sc.skills.size() > 60;
+        for (const auto& d : sc.skills) { if (++n > (many ? 180 : 60)) break; k += "- " + d.name + ": " + clip(one_line(d.description), many ? 110 : 200) + "\n"; }
         parts.push_back("SKILLS (load one with {\"tool\":\"skill\",\"name\":\"...\"} when the job matches its description):\n" + k);
     }
     std::string agents;
@@ -1629,6 +1673,20 @@ bool loop(Session& s, int limit, std::string& report, bool& unverified) {
                     if (a == "allow all" || a == "allow all in this run" || a == "a") s.allow_all = true;
                     else if (a == "deny" || a == "n" || a == "no") { blocked = true; throw std::runtime_error("BLOCKED: The user denied this action. Choose another approach, or ask_user what they want."); }
                     else if (!(a == "allow" || a == "y" || a == "yes")) { blocked = true; throw std::runtime_error("BLOCKED: The user denied this action and said: " + *ans); }
+                }
+                // Money actions need the user's yes for every single call, in every mode ("allow all" does not cover them).
+                c.erase("money_ok");   /* only the approval below may set it */
+                if (tool == "mcp" && mcp_money_tool(first_of(c, {"name", "tool_name", "method"}))) {
+                    if (!s.interactive) { blocked = true; throw std::runtime_error("BLOCKED: this MCP tool can place, change or cancel an order or move money, and nobody is here to approve it. Write the exact order in the report for the user to approve."); }
+                    Json args = Json(Json::Object{}); if (auto ai = c.find("arguments"); ai != c.end()) args = ai->second; else if (auto ii = c.find("input"); ii != c.end()) args = ii->second;
+                    push(s, Json::Object{{"type", Json("approval")}, {"id", Json(tid)}, {"text", Json("Money action: " + sfield(c, "server") + " \xE2\x86\x92 " + first_of(c, {"name", "tool_name", "method"}) + ". Approve this exact call?")}, {"preview", Json(clip(dump_json(args), 2000))}, {"tool", Json(tool)}, {"risky", Json("can place an order or move money")}});
+                    save(s);
+                    const auto ans = wait_answer(s, tid, "approval");
+                    if (!ans) throw Stopped{};
+                    push(s, Json::Object{{"type", Json("answered")}, {"id", Json(tid)}, {"answer", Json(*ans)}});
+                    const std::string a = lower(trim(*ans));
+                    if (!(a == "allow" || a == "y" || a == "yes" || a == "allow all" || a == "allow all in this run" || a == "a")) { blocked = true; throw std::runtime_error("BLOCKED: The user did not approve this money action" + (a == "deny" || a == "n" || a == "no" ? std::string(".") : ": " + *ans) + " Do not retry it unless they ask."); }
+                    c["money_ok"] = Json(true);
                 }
                 if ((tool == "bash" || tool == "start_server") && !s.allow_risky && s.mode != "plan") {
                     const std::string why = risky_command(sfield(c, "command"));

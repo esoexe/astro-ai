@@ -50,6 +50,9 @@ const char* TOOLS_CATALOG = R"JSON([
  {"id":"yaml-language-server","name":"YAML language server","group":"YAML","kind":"lsp","bins":["yaml-language-server"],"desc":"Validation and completion for YAML (with JSON schemas).","src":{"type":"npm","packages":["yaml-language-server"]}},
  {"id":"lua-language-server","name":"Lua language server","group":"Lua","kind":"lsp","bins":["lua-language-server"],"desc":"The Lua language server (LuaLS).",
   "src":{"type":"github","repo":"LuaLS/lua-language-server","asset":{"linux-x64":"^lua-language-server-[0-9.]+-linux-x64\\.tar\\.gz$","mac-arm64":"^lua-language-server-[0-9.]+-darwin-arm64\\.tar\\.gz$","mac-x64":"^lua-language-server-[0-9.]+-darwin-x64\\.tar\\.gz$","win-x64":"^lua-language-server-[0-9.]+-win32-x64\\.zip$"}},"bindirs":["bin"]},
+ {"id":"rizin","name":"rizin","group":"Reverse engineering","kind":"analyzer","bins":["rizin","rz-bin","rz-asm"],"desc":"Disassembler and binary analysis framework (LGPL-3.0). Astro RE uses it for disassembly.","src":{"type":"github","repo":"rizinorg/rizin","asset":{"win-x64":"^rizin-windows-shared64-v[0-9.]+\\.zip$"}},"bindirs":["*/bin","bin"],"system":{"linux-x64":"sudo apt install rizin    (objdump from binutils also works: sudo apt install binutils)","linux-arm64":"sudo apt install rizin","mac-arm64":"brew install rizin","mac-x64":"brew install rizin"}},
+ {"id":"jadx","name":"JADX","group":"Reverse engineering","kind":"analyzer","bins":["jadx"],"desc":"Android DEX/APK and Java decompiler (Apache-2.0). Astro RE uses it to turn APK, DEX and JAR files into Java source. Needs a JDK (Java 21 above).","src":{"type":"github","repo":"skylot/jadx","asset":{"*":"^jadx-[0-9.]+\\.zip$"}},"bindirs":["bin"]},
+ {"id":"ghidra","name":"Ghidra","group":"Reverse engineering","kind":"analyzer","bins":["analyzeHeadless"],"desc":"The NSA's open-source reverse engineering suite (Apache-2.0), about 570 MB. Astro RE runs it headless to decompile native functions into C-like pseudocode. Needs Java 21 (above).","src":{"type":"github","repo":"NationalSecurityAgency/ghidra","asset":{"*":"^ghidra_[0-9.]+_PUBLIC_[0-9]+\\.zip$"}},"bindirs":["*/support"]},
  {"id":"intelephense","name":"Intelephense (PHP)","group":"PHP","kind":"lsp","bins":["intelephense"],"desc":"PHP language server (the free features).","src":{"type":"npm","packages":["intelephense"]}}
 ])JSON";
 
@@ -113,8 +116,8 @@ std::string tools_platform() {
 const Json* tools_plat_entry(const Json* map, const std::string& plat) {
     if (!map) return nullptr;
     if (const Json* e = map->get(plat)) return e;
-    if (plat == "win-arm64") return map->get("win-x64");
-    return nullptr;
+    if (plat == "win-arm64") if (const Json* e = map->get("win-x64")) return e;
+    return map->get("*");   // one download for every system (Java tools)
 }
 fs::path tools_root() { std::error_code ec; const fs::path p = fs::path(data_dir()) / "tools"; fs::create_directories(p, ec); return p; }
 fs::path tools_manifest_path() { return tools_root() / "installed.json"; }

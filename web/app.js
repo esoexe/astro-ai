@@ -1736,7 +1736,7 @@
   // Views
   // ===========================================================================================
   function switchView(view) {
-    if (!['assistant', 'notes', 'tasks', 'lab', 'reader', 'workspace', 'agent'].includes(view)) return;
+    if (!['assistant', 'notes', 'tasks', 'lab', 'reader', 'workspace', 'agent', 're'].includes(view)) return;
     if (state.view === 'notes' && view !== 'notes') { clearTimeout(noteSaveTimer); saveActiveNote(); }
     state.view = view;
     el.chatView.hidden = view !== 'assistant';
@@ -1746,11 +1746,12 @@
     $('#reader-view').hidden = view !== 'reader';
     $('#ws-view').hidden = view !== 'workspace';
     $('#agent-view').hidden = view !== 'agent';
+    $('#re-view').hidden = view !== 're';
     $('#main').dataset.view = view;
     document.documentElement.dataset.view = view;
     $('.title-group').hidden = view !== 'assistant';
     $('#current-view-label').hidden = view === 'assistant';
-    $('#current-view-label').textContent = { notes: 'Notes', tasks: 'Tasks', lab: 'Model Lab', reader: 'Reader', workspace: 'Workspace', agent: 'Agent' }[view] || '';
+    $('#current-view-label').textContent = { notes: 'Notes', tasks: 'Tasks', lab: 'Model Lab', reader: 'Reader', workspace: 'Workspace', agent: 'Agent', re: 'Reverse' }[view] || '';
     $('#export-chat').hidden = view !== 'assistant' || !state.messages.length;
     $('#nav-assistant').classList.toggle('active', view === 'assistant');
     $('#nav-notes').classList.toggle('active', view === 'notes');
@@ -1759,8 +1760,10 @@
     $('#nav-reader').classList.toggle('active', view === 'reader');
     $('#nav-workspace').classList.toggle('active', view === 'workspace');
     $('#nav-agent').classList.toggle('active', view === 'agent');
+    $('#nav-reverse')?.classList.toggle('active', view === 're');
     if (view === 'workspace') wsShow();
     if (view === 'agent') agShow();
+    if (view === 're') window.AstroRE?.show($('#re-view'), { api: apiJson, icon, esc, toast, openTools: () => window.AstroDev?.openTools?.(), ask: reAskAgent });
     if (view === 'lab') renderLab();
     if (view === 'reader') renderReaderView();
     if (view === 'notes') renderNotes();
@@ -4061,6 +4064,14 @@
   $('#nav-lab').addEventListener('click', () => switchView('lab'));
   $('#nav-agent').addEventListener('click', () => switchView('agent'));
   $('#nav-reader').addEventListener('click', () => switchView('reader'));
+  $('#nav-reverse')?.addEventListener('click', () => switchView('re'));
+  // Reverse page -> Agent: open the agent with a ready prompt (the user reviews and sends it).
+  async function reAskAgent(prompt) {
+    switchView('agent');
+    for (let i = 0; i < 40 && !$('#ag-in'); i++) await new Promise((r) => setTimeout(r, 100));
+    const box = $('#ag-in'); if (!box) return;
+    box.value = prompt; box.dispatchEvent(new Event('input', { bubbles: true })); box.focus();
+  }
   $('#voice-button').addEventListener('click', startVoiceInput);
   $('#add-note').addEventListener('click', addNote);
   $('#notes-search').addEventListener('input', renderNotesList);

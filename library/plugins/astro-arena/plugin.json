@@ -1,0 +1,19 @@
+{
+  "name": "astro-arena",
+  "displayName": "Arena",
+  "version": "1.0.0",
+  "description": "When an answer isn't good enough: many sub-agents solve the same task with different strategy cards, then attack, defend and are judged in a single-elimination bracket until one solution survives. Uses A.S.T.R.O AI's task tool (capped to your budget).",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/arena-skill",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "df07b8e518e10cdecd8cd7712d9958b6f396250e"
+  },
+  "skills": [
+    "arena"
+  ]
+}

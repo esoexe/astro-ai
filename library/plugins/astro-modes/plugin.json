@@ -1,0 +1,43 @@
+{
+  "name": "astro-modes",
+  "displayName": "Work Modes",
+  "version": "1.0.0",
+  "description": "25 one-word working modes for the agent: deep-rigor, minimal-diff, fix-all-errors, incident, distill, cost-cutter, build-plan, idea-storm, speedrun, long-haul and more. Plain prompt modes, no scripts.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/unhinged-claude-skills",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "8f60ec6d9e28e430849b57b5e21cbdfe9860df99"
+  },
+  "skills": [
+    "apollo-13",
+    "autopilot",
+    "build-plan",
+    "compress-brief",
+    "cost-cutter",
+    "decide-and-go",
+    "deep-rigor",
+    "distill",
+    "exhaustive",
+    "fix-all-errors",
+    "heads-down",
+    "idea-storm",
+    "incident",
+    "long-haul",
+    "macgyver",
+    "minimal-diff",
+    "pragmatic",
+    "ruthless-focus",
+    "simplest-first",
+    "source-dive",
+    "speedrun",
+    "stopgap",
+    "ugly-first",
+    "use-whats-here",
+    "wild-ideas"
+  ]
+}

@@ -989,6 +989,7 @@ static const Cmd CMDS[] = {
     {"mouse", "", "Turn mouse-wheel scrolling on or off"},
     {"theme", "[name]", "Colour theme (the same themes as the app), with live preview"},
     {"phone", "[pair|on|off|remove <id>]", "Let the Android app use this computer: QR code + one-time code"},
+    {"re", "<file> [strings|imports|disasm|decompile|hex|zip]", "Astro RE: see how an app, binary or file works (read-only)"},
     {"logo", "on|off|hd|text|info", "Logo motion, and the HD picture or the text version"},
     {"status", "", "Engine, project and session details"},
     {"quit", "", "Exit (also Ctrl+D)"},
@@ -1732,6 +1733,13 @@ struct App {
         }
         if (cmd == "status") { status_block(); return; }
         if (cmd == "phone") { phone_cmd(arg); return; }
+        if (cmd == "re" || cmd == "reverse") {
+            std::vector<std::string> a; std::istringstream in(arg); for (std::string w; in >> w;) a.push_back(w);
+            if (a.empty()) { note(re_text(a, false), AMBER); return; }
+            note("Reading " + a[0] + "\xE2\x80\xA6");
+            async([a] { Object o; o["t"] = re_text(a, false); return Value(o); }, [this](const Value& r, const std::string& err) { if (!err.empty()) error_block(err); else note(r["t"].str()); });
+            return;
+        }
         if (cmd == "theme") {
             if (arg.empty()) { open_themes(); return; }
             if (!find_theme(arg)) { note("Unknown theme \"" + arg + "\". Type /theme to pick one.", AMBER); return; }

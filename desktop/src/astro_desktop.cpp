@@ -62,7 +62,7 @@ using namespace std::chrono_literals;
 
 namespace {
 
-constexpr const char* kVersion = "1.8.1";
+constexpr const char* kVersion = "1.9.0";
 
 // ------------------------------------------------------------------------------------------------
 // Small utilities

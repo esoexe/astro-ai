@@ -1,0 +1,29 @@
+{
+  "name": "astro-linkedin",
+  "displayName": "LinkedIn Pack",
+  "version": "1.0.0",
+  "description": "11 skills for LinkedIn: posts from 21 hook formulas, comments, replies, DMs, inbox triage, carousels, a scored profile audit, repurposing, a plain-voice style editor and a weekly plan.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/linkedin-agent-skill",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "add2c23882fe79180737d242ff80a5da205eda6a"
+  },
+  "skills": [
+    "li-audit",
+    "li-carousel",
+    "li-comment",
+    "li-dm",
+    "li-human",
+    "li-inbox",
+    "li-plan",
+    "li-post",
+    "li-profile",
+    "li-reply",
+    "li-repurpose"
+  ]
+}

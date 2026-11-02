@@ -52,7 +52,7 @@ const uniq = new Map(secrets.map((s) => [s.value, s])); const known = [...uniq.v
 
 // ---- 2. generic key shapes
 const shapes = [
-  ['OpenAI-style sk- key', /sk-(?:proj-|or-v1-|ant-)?[A-Za-z0-9_\-]{24,}/],
+  ['OpenAI-style sk- key', /(?<![A-Za-z0-9])sk-(?:proj-|or-v1-|ant-)?[A-Za-z0-9_\-]{24,}/],   // not inside a word ("musk-earnings-..." in a URL)
   ['Groq key', /gsk_[A-Za-z0-9]{30,}/], ['Google API key', /AIza[0-9A-Za-z_\-]{35}/],
   ['NVIDIA key', /nvapi-[A-Za-z0-9_\-]{30,}/], ['Hugging Face token', /hf_[A-Za-z0-9]{30,}/],
   ['GitHub token', /gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{40,}/], ['Cerebras key', /csk-[a-z0-9]{30,}/],

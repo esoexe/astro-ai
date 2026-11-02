@@ -1,0 +1,19 @@
+{
+  "name": "astro-promptmaster",
+  "displayName": "Promptmaster",
+  "version": "1.0.0",
+  "description": "Rewrites a vague request into a clear, complete prompt the first time, so you don't burn turns re-explaining. Includes a list of common waste patterns.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/promptmaster-skill",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "43c704602fccaf18da67760bcb1022428591ddeb"
+  },
+  "skills": [
+    "promptmaster"
+  ]
+}

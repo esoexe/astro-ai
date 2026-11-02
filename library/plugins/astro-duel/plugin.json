@@ -1,0 +1,19 @@
+{
+  "name": "astro-duel",
+  "displayName": "Duel",
+  "version": "1.0.0",
+  "description": "Make an answer defend itself against a second model: a critic model challenges it, the agent defends or revises claim by claim, up to three rounds, with a record of what changed.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/duel-skill",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "eacccef179a4d301afb1169504296a9afac68743"
+  },
+  "skills": [
+    "duel"
+  ]
+}

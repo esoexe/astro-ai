@@ -1,0 +1,29 @@
+{
+  "name": "astro-day-trader",
+  "displayName": "Day Trader Pack",
+  "version": "1.0.0",
+  "description": "11 day-trading research skills from free public data (Yahoo Finance charts, Nasdaq symbol lists, SEC, House): chart scanner, news, entries and exits, budget, risk, broker tickets and a time machine that replays outcomes.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/day-trader-skill",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "3d0f4ef6986f4984b7c6bd46f7ff4f87744c3abd"
+  },
+  "skills": [
+    "daytrade-alerts",
+    "daytrade-analyst",
+    "daytrade-broker",
+    "daytrade-budget",
+    "daytrade-entry",
+    "daytrade-exit",
+    "daytrade-news",
+    "daytrade-pelosi",
+    "daytrade-risk",
+    "daytrade-scanner",
+    "daytrade-timemachine"
+  ]
+}

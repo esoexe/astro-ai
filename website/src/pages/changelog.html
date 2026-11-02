@@ -9,8 +9,36 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
-    <article class="release latest reveal" id="v1-8-1">
-      <header><h2>1.8.1 · Android 1.8.2</h2><span class="badge">Latest</span><time datetime="2026-10-30">October 30, 2026</time></header>
+    <article class="release latest reveal" id="v1-9-0">
+      <header><h2>1.9.0</h2><span class="badge">Latest</span><time datetime="2026-11-02">November 2, 2026</time></header>
+      <p class="muted">Astro RE for seeing how software works, and 16 Astro Packs with their helpers built into the app.</p>
+
+      <h3>Astro RE</h3>
+      <ul class="ticks">
+        <li>A new <strong>Reverse</strong> page shows how an app, library or file works: format, architecture, sections, imports and exports, interesting strings (URLs, keys, paths, crypto), a hex view, Android manifests and signers, archives, database schemas and AI model files</li>
+        <li>Astro only reads the file. It never runs it, and every finding comes with the evidence it is based on</li>
+        <li>Disassembly and decompiling use rizin, llvm-objdump or objdump, Ghidra or JADX when they are installed. <em>Get analyzers</em> opens Tools, which installs rizin, Ghidra and JADX without admin rights</li>
+        <li>The Agent has a new <code>re</code> tool, and <code>/re &lt;file&gt;</code> does the same in the terminal app</li>
+        <li>Optional: add the open-source REA MCP server (morluto/rea, MIT) in one click so the Agent can use its analyzers too (needs Node.js 22.23 or later)</li>
+        <li>Use it on software you own or are allowed to study. Astro RE will not help crack licences, bypass DRM or anti-cheat, or build malware</li>
+      </ul>
+
+      <h3>Astro Packs</h3>
+      <ul class="ticks">
+        <li>16 packs in the Library (Workspace &rsaquo; Extensions &rsaquo; Library &rsaquo; Astro Packs), adapted from Jake Schincariol's MIT-licensed agent skills: YouTube, Instagram, LinkedIn, X, Founder, Replica, Arena, Duel, Hunter, Trader, Day Trader, Master, Console, Modes, Power Modes and Promptmaster</li>
+        <li>Their helpers are rewritten in C++ and built into the engine (<code>astro-server tool &lt;skill&gt;/&lt;helper&gt;</code>), so they work without installing Python or Node, on Windows, macOS, Linux and Android</li>
+        <li>Each pack credits its source and licence. The trading packs are for research and education, not financial advice</li>
+      </ul>
+
+      <h3>Languages and Android</h3>
+      <ul class="ticks">
+        <li>French and Arabic for every new screen; file paths and code show correctly inside Arabic text</li>
+        <li>The Android app moves to 1.9.0 with the new engine, so the Agent can use Astro RE on the phone too</li>
+      </ul>
+    </article>
+
+    <article class="release reveal" id="v1-8-1">
+      <header><h2>1.8.1 · Android 1.8.2</h2><time datetime="2026-10-30">October 30, 2026</time></header>
       <p class="muted">Use A.S.T.R.O AI on your computer from your phone: pair once with a QR code.</p>
 
       <h3>Phone access (desktop and terminal)</h3>

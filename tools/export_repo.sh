@@ -13,7 +13,7 @@ rm -rf "$OUT"; mkdir -p "$OUT"
 
 ALLOW=(
   workspace_server.cpp platform.h astro_ext.inc workspace_code.inc workspace_intel.inc workspace_ide.inc workspace_agent.inc
-  astro_dev.inc astro_library.inc astro_tools.inc astro_quality.inc astro_engine.inc astro_update.inc astro_phone.inc qrcodegen.inc cli ide sdk bench library .github docs
+  astro_dev.inc astro_library.inc astro_tools.inc astro_quality.inc astro_engine.inc astro_update.inc astro_phone.inc astro_re.inc qrcodegen.inc packtools cli ide sdk bench library .github docs
   providers.json Makefile Dockerfile .dockerignore .env.example README.md
   LICENSE LICENSE-MIT LICENSE-APACHE LICENSE-GPL THIRD-PARTY-NOTICES.md SECURITY.md
   start_workspace.sh start_local_ai.sh start_opencode.sh
@@ -25,6 +25,7 @@ for f in "${ALLOW[@]}"; do cp -a --parents "$f" "$OUT/"; done
 # local-only leftovers that can live inside allowed folders
 find "$OUT" \( -name node_modules -o -name __pycache__ -o -name .cache \) -prune -exec rm -rf {} +
 rm -f "$OUT/website/netlify.toml"
+rm -f "$OUT"/tools/unicode/*.txt   # the Unicode data files: tools/unicode/gen_unicode.cpp says where to download them
 # Android: sources only. The engine binary and CA file are rebuilt by android/build_engine.sh; signing keys and
 # local SDK paths never leave this computer.
 rm -rf "$OUT/android/app/src/main/jniLibs" "$OUT/android/app/build" "$OUT/android/build" "$OUT/android/.gradle" "$OUT/android/.kotlin"
@@ -34,7 +35,12 @@ find "$OUT/android" \( -name '*.jks' -o -name '*.keystore' -o -name '*.apk' -o -
 
 # the website's downloads: CLEAN edition only
 mkdir -p "$OUT/website/downloads"
-DL="website/downloads"; ls "$DL"/*CLEAN* >/dev/null 2>&1 || DL="desktop-builds/clean"
+DL="website/downloads"
+if ! ls "$DL"/*CLEAN* >/dev/null 2>&1; then
+  # the workspace snapshot leaves the published downloads out (they are large); get them back, checked, before exporting
+  echo "export: website/downloads is empty: fetching the published CLEAN downloads (tools/fetch_release_assets.sh)" >&2
+  bash tools/fetch_release_assets.sh >&2 || DL="desktop-builds/clean"
+fi
 for f in "$DL"/*CLEAN* "$DL"/astro-ai-vscode-*.vsix; do
   case "$f" in *WITH-KEYS*|*with-keys*) echo "refusing $f" >&2; exit 1;; esac
   cp "$f" "$OUT/website/downloads/"
@@ -88,6 +94,7 @@ desktop-builds/
 .astro_android/
 android-signing/
 .astro_dev/
+.astro_re/
 
 # ---- build output ----
 /workspace_server

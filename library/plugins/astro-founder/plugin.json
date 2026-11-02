@@ -1,0 +1,29 @@
+{
+  "name": "astro-founder",
+  "displayName": "Founder Pack",
+  "version": "1.0.0",
+  "description": "11 skills that test a business before you launch it: board review, CFO unit economics, pricing, offer, competitors, consumer interviews, brand, marketing, ops, plan and launch.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/founder-skill",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "fd9385b0cfe1b96bebce3898fbd506d73eff5a9d"
+  },
+  "skills": [
+    "founder-board",
+    "founder-brand",
+    "founder-cfo",
+    "founder-competitors",
+    "founder-consumer",
+    "founder-launch",
+    "founder-marketing",
+    "founder-offer",
+    "founder-ops",
+    "founder-plan",
+    "founder-pricing"
+  ]
+}

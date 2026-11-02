@@ -1,0 +1,52 @@
+/* A.S.T.R.O AI - Reverse page (Astro RE) */
+.re-wrap { max-width: 1180px; margin: 0 auto; padding: 22px 22px 60px; display: flex; flex-direction: column; gap: 14px; }
+.re-head { display: flex; gap: 16px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
+.re-head h2 { margin: 0; font-size: 22px; display: flex; align-items: center; gap: 10px; }
+.re-head h2 svg { width: 22px; height: 22px; color: var(--accent); }
+.re-head h2 small { font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 3px 9px; border-radius: 99px; }
+.re-head p { margin: 6px 0 0; max-width: 640px; }
+.re-muted { color: var(--text-3); font-size: 13px; line-height: 1.5; }
+.re-prov { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.re-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.re-bar .grow { flex: 1 1 320px; min-width: 0; }
+.re-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 10px; border-radius: 99px; border: 1px solid var(--border); color: var(--text-2); background: var(--surface); white-space: nowrap; }
+.re-chip.on { border-color: color-mix(in srgb, var(--ok) 45%, transparent); color: var(--ok); }
+.re-chip.on::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+.re-chip.off { border-color: color-mix(in srgb, var(--warn) 45%, transparent); color: var(--warn); }
+.re-chip.link { cursor: pointer; }
+.re-chip.link:hover { border-color: var(--accent); color: var(--accent); }
+.re-recent, .re-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.re-file { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); animation: re-in .25s ease; }
+.re-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.re-tabs { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--border); scrollbar-width: thin; }
+.re-tab { background: none; border: 0; padding: 9px 14px; color: var(--text-2); font: inherit; font-size: 14px; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: color .15s, border-color .15s; }
+.re-tab:hover { color: var(--text); }
+.re-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+.re-body { display: flex; flex-direction: column; gap: 12px; animation: re-in .2s ease; }
+.re-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+.re-card { padding: 14px 16px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); min-width: 0; }
+.re-card h4 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); }
+.re-card ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 1.5; word-break: break-word; }
+.re-card.good { border-left: 3px solid var(--accent); }
+.re-card.warn { border-left: 3px solid var(--warn); }
+.re-kv { display: flex; gap: 12px; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed var(--border); font-size: 14px; }
+.re-kv:last-of-type { border-bottom: 0; }
+.re-kv span { color: var(--text-3); flex: none; text-transform: capitalize; }
+.re-kv b { font-weight: 500; text-align: right; word-break: break-all; font-family: var(--mono); font-size: 13px; }
+.re-det summary { cursor: pointer; padding: 6px 0; font-size: 14px; text-transform: capitalize; }
+.re-det pre, .re-code { margin: 6px 0 0; padding: 12px 14px; border-radius: 12px; background: var(--code-bg); color: var(--code-text); font-family: var(--mono); font-size: 12.5px; line-height: 1.55; overflow: auto; max-height: 560px; white-space: pre; }
+.re-table-wrap { overflow: auto; max-height: 620px; border: 1px solid var(--border); border-radius: 12px; }
+.re-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.re-table th { position: sticky; top: 0; background: var(--surface-2); text-align: left; padding: 8px 10px; font-weight: 600; color: var(--text-2); z-index: 1; }
+.re-table td { padding: 6px 10px; border-top: 1px solid var(--border); vertical-align: top; word-break: break-all; }
+.re-table tr:hover td { background: var(--hover); }
+.re-table .mono, .mono { font-family: var(--mono); font-size: 12.5px; }
+.re-table a { color: var(--accent); text-decoration: none; }
+.re-empty { text-align: center; padding: 50px 20px; color: var(--text-2); max-width: 640px; margin: 0 auto; }
+.re-empty svg { width: 46px; height: 46px; color: var(--accent); opacity: .85; animation: re-float 3s ease-in-out infinite; }
+.re-empty code { font-family: var(--mono); background: var(--surface); padding: 1px 6px; border-radius: 6px; }
+.re-progress { margin: 0 0 8px; color: var(--text-2); }
+@keyframes re-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes re-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@media (max-width: 640px) { .re-wrap { padding: 14px 12px 50px; } .re-head h2 { font-size: 19px; } .re-kv { flex-direction: column; gap: 2px; } .re-kv b { text-align: left; } }
+@media (prefers-reduced-motion: reduce) { .re-file, .re-body, .re-empty svg { animation: none; } }
