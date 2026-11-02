@@ -18,7 +18,9 @@ Power Modes, Promptmaster, Closer (a small sales team: leads, outreach, follow-u
 proposals, contracts and a forecast; needs A.S.T.R.O AI 1.9.1 or later) and Seed (a startup raise: competitor research,
 market size, investor matching from public sources and SEC filings, plan, model, deck, investor updates, call prep, a
 term-sheet reader, a data room and a closer that drafts investor emails and books calls; needs A.S.T.R.O AI 1.9.2 or later). They are in the reviewed catalog, labelled *Community: adapted from Jake Schincariol (MIT)*, and
-each one links to the exact upstream commit it was adapted from.
+each one links to the exact upstream commit it was adapted from. (`chatgpt-youtube-agent-skill` is the same eleven YouTube
+skills and helpers retargeted at ChatGPT, so the YouTube Pack covers it; `muesli` is a macOS Swift app, and the repos with
+no license are not adapted.)
 
 * The original Python and Node helper scripts are rewritten in C++ and built into the engine (`packtools/`), so a pack
   needs no Python or Node. Its skill runs them as `astro-server tool <skill>/<helper>`; 15 packs have helpers, the other 3
