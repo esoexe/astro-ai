@@ -1,0 +1,29 @@
+{
+  "name": "astro-seed",
+  "displayName": "Seed Pack",
+  "version": "1.0.0",
+  "description": "11 skills that take a startup from idea to funded: competitor research from one-star reviews, market sizing, investor matching from public sources and SEC filings, a business plan, a financial model, a pitch deck, investor updates, call coaching, a term-sheet reader, a data room, and a closer that drafts investor emails and books the calls.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/seed-skill",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "fde88957238bd3bc28e80e1fe0b252a64507b108"
+  },
+  "skills": [
+    "seed-closer",
+    "seed-coach",
+    "seed-dataroom",
+    "seed-deck",
+    "seed-investors",
+    "seed-market",
+    "seed-model",
+    "seed-plan",
+    "seed-scout",
+    "seed-terms",
+    "seed-updates"
+  ]
+}

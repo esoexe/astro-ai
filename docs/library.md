@@ -12,14 +12,16 @@ You can browse it in two places:
 
 ## Astro Packs (1.9)
 
-The **Astro Packs** tab lists 17 packs adapted from [Jake Schincariol](https://github.com/Jakeschincariol)'s MIT-licensed agent
+The **Astro Packs** tab lists 18 packs adapted from [Jake Schincariol](https://github.com/Jakeschincariol)'s MIT-licensed agent
 skills: YouTube, Instagram, LinkedIn, X, Founder, Replica, Arena, Duel, Hunter, Trader, Day Trader, Master, Console, Modes,
-Power Modes, Promptmaster and Closer (a small sales team: leads, outreach, follow-ups, call coaching,
-proposals, contracts and a forecast; needs A.S.T.R.O AI 1.9.1 or later). They are in the reviewed catalog, labelled *Community: adapted from Jake Schincariol (MIT)*, and
+Power Modes, Promptmaster, Closer (a small sales team: leads, outreach, follow-ups, call coaching,
+proposals, contracts and a forecast; needs A.S.T.R.O AI 1.9.1 or later) and Seed (a startup raise: competitor research,
+market size, investor matching from public sources and SEC filings, plan, model, deck, investor updates, call prep, a
+term-sheet reader, a data room and a closer that drafts investor emails and books calls; needs A.S.T.R.O AI 1.9.2 or later). They are in the reviewed catalog, labelled *Community: adapted from Jake Schincariol (MIT)*, and
 each one links to the exact upstream commit it was adapted from.
 
 * The original Python and Node helper scripts are rewritten in C++ and built into the engine (`packtools/`), so a pack
-  needs no Python or Node. Its skill runs them as `astro-server tool <skill>/<helper>`; 14 packs have helpers, the other 3
+  needs no Python or Node. Its skill runs them as `astro-server tool <skill>/<helper>`; 15 packs have helpers, the other 3
   are instructions only.
 * The source commits are pinned in `tools/jake_shas.txt`; `tools/port_packs.js` converts a repo into a pack and
   `library/pack-overrides/` holds hand-written changes. Each pack ships the upstream licence in `NOTICE.md`.

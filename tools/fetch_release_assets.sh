@@ -2,12 +2,16 @@
 # Puts the CLEAN downloads the website self-hosts back into website/downloads, from the public GitHub releases, each
 # checked against the release's own SHA256SUMS.txt. The workspace keeps them out of its saved snapshot (they are large
 # and already published), so run this before `cd website && ASTRO_DL_DIR=downloads node build.js` after a reset.
-#   tools/fetch_release_assets.sh [tag ...]      default: the desktop and Android releases the site links to
+#   tools/fetch_release_assets.sh [tag ...]      default: the desktop and Android releases website/site.json names
 set -euo pipefail
 cd "$(dirname "$0")/.."
 REPO=esoexe/astro-ai
 DL=website/downloads
-TAGS=("$@"); [ ${#TAGS[@]} -gt 0 ] || TAGS=(v1.9.0 android-v1.9.0)
+# default: the versions website/site.json publishes (desktop, and Android when it has its own version)
+if [ $# -gt 0 ]; then TAGS=("$@"); else
+    ver=$(jq -r '.version' website/site.json); aver=$(jq -r '.android.version // .version' website/site.json)
+    TAGS=("v$ver" "android-v$aver")
+fi
 # the files website/downloads carries: every CLEAN download the site links to (Windows, Linux, macOS, Android, VS Code)
 WANT='^(astro-ai-clean.*|AstroAI-.*-(macos-.*|windows-(x64|arm64)-(Setup|portable)-CLEAN\.(exe|zip)|android-arm64\.apk)|astro-ai-vscode-.*\.vsix)$'
 mkdir -p "$DL"

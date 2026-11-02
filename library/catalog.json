@@ -1350,6 +1350,39 @@
       "min_version": "1.9.1",
       "network": true,
       "caveats": "The tools never send anything. Each email, proposal or agreement goes out only after your own yes for that one message (as a Gmail draft you send, or through a Gmail MCP server you added), and the log steps refuse anything else. Two helpers go online with no login or keys: prospector/leads reads one public page per business website, slowly and identifying itself, and researcher/brief reads up to 4 public pages of one business. Cold email has to follow the law where you send it: in the US (CAN-SPAM) every email needs your postal address and a plain opt-out, which the opener's footer adds; in the UK, EU and Canada cold email to people needs a lawful basis or consent first. Anyone who says no goes on the suppression list and is never emailed again."
+    },
+    {
+      "id": "astro-seed",
+      "kind": "plugin",
+      "name": "Seed Pack (Astro Pack)",
+      "summary": "11 skills that take a startup from idea to funded: competitor research from one-star reviews, market sizing, investor matching from public sources and SEC filings, a business plan, a financial model, a pitch deck, investor updates, call coaching, a term-sheet reader, a data room, and a closer that drafts investor emails and books the calls.",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/seed-skill",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "startup",
+        "fundraising",
+        "investors",
+        "business"
+      ],
+      "runs": "local",
+      "permissions": [
+        "scripts",
+        "network",
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/seed-skill",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "fde88957238bd3bc28e80e1fe0b252a64507b108"
+      },
+      "scripts": "builtin",
+      "min_version": "1.9.2",
+      "network": true,
+      "caveats": "No promise of funding: the tools draft, research and do arithmetic, and investors decide. The tools never send anything: seed-closer writes drafts, and a batch goes out only after your own yes in the chat (through a Gmail MCP server you added, or as drafts you send yourself). Two helpers go online with no login or keys: seed-scout reads the App Store's public search and review feeds, and seed-investors searches SEC EDGAR Form D filings, which asks every request to say who is asking (sec_user_agent in seed/config.json). Not legal advice: have a startup lawyer read any SAFE or term sheet before you sign it. Not investment advice: the model and the market size are only as good as your assumptions. Cold email has to follow the law where you send it; every email carries your real name, your postal address and an opt-out, and a no, an opt-out or a bounce ends that thread for good."
     }
   ]
 }

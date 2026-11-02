@@ -89,6 +89,17 @@ const HONEST_RULES = [
   ['A scheduled morning run may list and draft.', 'A morning run started from ' + OS_SCHED + ' may list and draft.'],
   // replica-deploy: install paths of the Python helpers do not apply to built-in tools
   ['(Paths are relative to wherever the pack is installed. Under `~/.astro-packs/skills/` that is `~/.astro-packs/skills/replica-diff/parity.mjs` and so on.)', '(These tools are built into A.S.T.R.O AI, so the commands work from any folder.)'],
+  // seed-skill (seed-closer, seed-updates): no built-in Gmail or calendar, no scheduler; the Allow / Deny card exists in Ask mode only
+  ['and Astro\'s own "Allow once" card asks again for every email.', 'and in Ask mode A.S.T.R.O AI\'s own Allow / Deny card asks again before every send.'],
+  ['then Astro sends through the user\'s own Gmail connector where the Allow once card is a second check.', 'then Astro sends through a Gmail MCP server the user added in A.S.T.R.O AI\'s MCP settings, where A.S.T.R.O AI\'s Allow / Deny card (Ask mode) is a second check.'],
+  ['## Sending: the Gmail-connector loop', '## Sending: the Gmail MCP loop'],
+  ['The user connects their own Gmail in Astro (Customize > Connectors) and sets the tools that send or draft to **Needs approval**, never Always allow. In A.S.T.R.O AI, keep them on ask in `.claude/settings.json` and never in allow. In the Astro Gmail connector checked on 2026-10-26 the tools are `send_message` (send), `create_draft` (leave it in Drafts), `reply` (answer inside a thread), `search_threads` and `get_thread` (read only); another Gmail connector may name them differently.',
+   'A.S.T.R.O AI has no built-in Gmail: the user adds a Gmail MCP server of their choice in A.S.T.R.O AI\'s MCP settings. Send in Ask mode, where every MCP call shows A.S.T.R.O AI\'s Allow / Deny card; answer each send with Allow, never "Allow all in this run". Auto mode shows no card, so there the recorded yes below is the only check: prefer Ask mode for sending. Tool names depend on the server (usually a send tool, a create-draft tool, a reply-in-thread tool and read-only search and get-thread tools): list the server\'s tools first and use the matching ones. No Gmail MCP server: the user sends the .eml files from their own mail app.'],
+  ['one tool call per email: `send_message` with that to, subject and body (or `create_draft` if the user would rather press send in Gmail). A follow-up or a reply goes in its thread with `reply` and the `thread_id`. Each call raises Astro\'s "Allow once / Deny" card: the second check.',
+   'one tool call per email: the server\'s send tool with that to, subject and body (or its create-draft tool if the user would rather press send in Gmail). A follow-up or a reply goes in its thread with the server\'s reply tool and the `thread_id`. In Ask mode each call raises A.S.T.R.O AI\'s Allow / Deny card: the second check.'],
+  ['Never from a scheduled or background task. A schedule may run `due`, `followup --due` and read replies; sending always waits for the user.',
+   'Never from a run nobody watches: not from an Auto-mode run left alone, and not from a script started from ' + OS_SCHED + '. Such a run may do `due`, `followup --due` and read replies; sending always waits for the user.'],
+  ['send it through the founder\'s own Gmail connector (or save Gmail drafts if they prefer).', 'send it through a Gmail MCP server the founder added in A.S.T.R.O AI\'s MCP settings (or save Gmail drafts if they prefer).'],
 ];
 // ---------- text adaptation ----------
 function makeTx(pack, skills, pyNames) {

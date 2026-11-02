@@ -287,6 +287,22 @@
         "outreach",
         "business"
       ]
+    },
+    {
+      "id": "astro-seed",
+      "name": "Seed Pack",
+      "repo": "seed-skill",
+      "layout": "root",
+      "network": true,
+      "min_version": "1.9.2",
+      "caveats": "No promise of funding: the tools draft, research and do arithmetic, and investors decide. The tools never send anything: seed-closer writes drafts, and a batch goes out only after your own yes in the chat (through a Gmail MCP server you added, or as drafts you send yourself). Two helpers go online with no login or keys: seed-scout reads the App Store's public search and review feeds, and seed-investors searches SEC EDGAR Form D filings, which asks every request to say who is asking (sec_user_agent in seed/config.json). Not legal advice: have a startup lawyer read any SAFE or term sheet before you sign it. Not investment advice: the model and the market size are only as good as your assumptions. Cold email has to follow the law where you send it; every email carries your real name, your postal address and an opt-out, and a no, an opt-out or a bounce ends that thread for good.",
+      "summary": "11 skills that take a startup from idea to funded: competitor research from one-star reviews, market sizing, investor matching from public sources and SEC filings, a business plan, a financial model, a pitch deck, investor updates, call coaching, a term-sheet reader, a data room, and a closer that drafts investor emails and books the calls.",
+      "tags": [
+        "startup",
+        "fundraising",
+        "investors",
+        "business"
+      ]
     }
   ],
   "skipped": [

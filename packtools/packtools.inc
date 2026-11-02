@@ -235,6 +235,11 @@ inline ExecResult run_cmd(const std::vector<std::string>& args, int timeout_s = 
 #include "seed_coach.inc"
 #include "seed_model.inc"
 #include "seed_scout.inc"
+#include "seed_terms.inc"
+#include "seed_deck.inc"
+#include "seed_plan.inc"
+#include "seed_investors.inc"
+#include "seed_closer.inc"
 #endif
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop

@@ -111,6 +111,23 @@ else
   out=$(cd "$TMP" && eval "$tool --skill-dir \"$CP/sales-coach\" sales-coach/coach card --objection price"); rc=$?
   [ $rc -eq 0 ] && has "$out" "Objection: price" && ok "installed sales-coach uses its bundled objections" || bad "coach card rc=$rc: $(echo "$out" | head -3)"
 fi
+# the Seed Pack (1.9.2): installs with the Closer's default template, and the installed closer drafts from it
+[ "$(echo "$idx" | jq -r '.items[] | select(.id=="astro-seed") | .min_version')" = 1.9.2 ] && ok "catalog: astro-seed min_version 1.9.2" || bad "seed min_version"
+r=$(post /api/dev/library/install '{"id":"astro-seed"}')
+if [ "$(printf '%s\n1.9.2\n' "$ver" | sort -V | head -1)" != 1.9.2 ]; then
+  has "$r" "needs A.S.T.R.O AI 1.9.2" && ok "older engine ($ver) refuses the Seed Pack" || bad "seed version gate: $r"
+else
+  has "$r" '"ok":true' && ok "install astro-seed" || bad "install seed: $r"
+  SP="$TMP/data/ext/plugins/astro-seed/skills"
+  grep -q '${ASTRO_TOOL} seed-closer/closer' "$SP/seed-closer/SKILL.md" && [ -f "$SP/seed-closer/template.txt" ] && ok "seed-closer installed with its template" || bad "seed files: $(ls "$SP/seed-closer" 2>&1)"
+  ! grep -qi 'connector\|allow once' "$SP/seed-closer/SKILL.md" && ok "seed-closer names MCP servers, not connectors" || bad "seed-closer still mentions connectors"
+  mkdir -p "$TMP/raise/seed" && cp "$ROOT/packtools/tests/fixtures/seed/seed-closer/config.json" "$ROOT/packtools/tests/fixtures/seed/seed-closer/investors.json" "$TMP/raise/seed/"
+  out=$(cd "$TMP/raise" && eval "$tool --skill-dir \"$SP/seed-closer\" seed-closer/closer draft --ids maya-chen --today 2026-10-26"); rc=$?
+  [ $rc -eq 0 ] && has "$out" 'Subject: Leashly: dog walks without the surprise fees' && [ -f "$TMP/raise/seed/outreach/maya-chen-1.eml" ] && ok "installed seed-closer drafts from the bundled template" || bad "seed draft rc=$rc: $(echo "$out" | tail -2)"
+  cp "$SP/seed-plan/config.example.json" "$TMP/raise/seed/config.json"
+  out=$(cd "$TMP/raise" && eval "$tool --skill-dir \"$SP/seed-closer\" seed-closer/closer draft --today 2026-10-26" 2>&1); rc=$?
+  [ $rc -eq 1 ] && has "$out" "founder.name is 'Your Name'" && ok "the installed example config is refused until it has a real name" || bad "seed example rc=$rc: $out"
+fi
 out=$("$ROOT/workspace_server" tool nope 2>&1); rc=$?
 [ $rc -eq 2 ] && has "$out" "unknown tool 'nope'" && ok "unknown tool exit 2" || bad "unknown tool: $rc $out"
 echo "packtools e2e: $pass passed, $fail failed"; [ $fail -eq 0 ]
