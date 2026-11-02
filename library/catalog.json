@@ -1317,6 +1317,39 @@
         "author": "Jake Schincariol",
         "commit": "43c704602fccaf18da67760bcb1022428591ddeb"
       }
+    },
+    {
+      "id": "astro-closer",
+      "kind": "plugin",
+      "name": "Closer Pack (Astro Pack)",
+      "summary": "11 skills that run a small sales team: find and rank leads, cold openers, follow-ups, a research brief before each call, booking calls, live call coaching from captions, proposals, contracts, win-backs, a deal pipeline and a monthly forecast.",
+      "publisher": "Community: adapted from Jake Schincariol (MIT)",
+      "homepage": "https://github.com/Jakeschincariol/closer-skill",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "sales",
+        "crm",
+        "outreach",
+        "business"
+      ],
+      "runs": "local",
+      "permissions": [
+        "scripts",
+        "network",
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/Jakeschincariol/closer-skill",
+        "license": "MIT",
+        "author": "Jake Schincariol",
+        "commit": "0b0107690e202010710a59eb7d0b47d331255e59"
+      },
+      "scripts": "builtin",
+      "min_version": "1.9.1",
+      "network": true,
+      "caveats": "The tools never send anything. Each email, proposal or agreement goes out only after your own yes for that one message (as a Gmail draft you send, or through a Gmail MCP server you added), and the log steps refuse anything else. Two helpers go online with no login or keys: prospector/leads reads one public page per business website, slowly and identifying itself, and researcher/brief reads up to 4 public pages of one business. Cold email has to follow the law where you send it: in the US (CAN-SPAM) every email needs your postal address and a plain opt-out, which the opener's footer adds; in the UK, EU and Canada cold email to people needs a lawful basis or consent first. Anyone who says no goes on the suppression list and is never emailed again."
     }
   ]
 }

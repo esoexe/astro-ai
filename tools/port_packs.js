@@ -74,6 +74,19 @@ const HONEST_RULES = [
   ['every few minutes from a Astro scheduled task or `/loop`.', 'every few minutes, each time the user asks, or from ' + OS_SCHED + '.'],
   ['in the background or on a `/loop` until a setup triggers', 'in the background until a setup triggers'],
   ['(a Astro scheduled task or cron, every 15 minutes in market hours is plenty)', '(from ' + OS_SCHED + '; every 15 minutes in market hours is plenty)'],
+  // closer-skill (sales-coach, record-keeper, scheduler, follow-up): A.S.T.R.O AI has no Chrome extension, no built-in
+  // Gmail or calendar connector and no scheduler. Say what really works: MCP servers the user adds, and files.
+  ['With Astro in Chrome, read the captions area every few seconds (`get_page_text` or `read_page` on the Meet tab)', 'With a browser tool that can see the Meet tab (such as the Playwright Browser MCP server from the Library, with the user in the meeting in the window it opens), read the captions area every few seconds'],
+  ['read off the page by Astro in Chrome', 'read off the page by a browser tool'],
+  ['(Astro in Chrome or the', '(the Playwright Browser MCP server from the Library or the'],
+  ['(Astro in Chrome, the', '(the Playwright Browser MCP server from the Library, the'],
+  ['Astro in Chrome', 'a browser tool (such as the Playwright Browser MCP server from the Library)'],
+  ['No Gmail connector?', 'No Gmail MCP server?'],
+  ['(the Gmail connector)', "(through a Gmail MCP server the user added in A.S.T.R.O AI's MCP settings)"],
+  ['the Gmail connector', "a Gmail MCP server the user added in A.S.T.R.O AI's MCP settings"],
+  ['No calendar connector:', 'No calendar MCP server:'],
+  ['the calendar connector', "a calendar MCP server the user added in A.S.T.R.O AI's MCP settings"],
+  ['A scheduled morning run may list and draft.', 'A morning run started from ' + OS_SCHED + ' may list and draft.'],
   // replica-deploy: install paths of the Python helpers do not apply to built-in tools
   ['(Paths are relative to wherever the pack is installed. Under `~/.astro-packs/skills/` that is `~/.astro-packs/skills/replica-diff/parity.mjs` and so on.)', '(These tools are built into A.S.T.R.O AI, so the commands work from any folder.)'],
 ];
@@ -123,6 +136,7 @@ function makeTx(pack, skills, pyNames) {
       .replace(/a small Python script/g, 'a small Node.js script').replace(/Python 3 standard library/g, 'Node.js standard library').replace(/\(Python 3\b/g, '(Node.js').replace(/Python `zlib\.decompress`/g, 'Node `zlib.inflateSync`').replace(/\bpython3? -m yt_dlp\b/g, 'yt-dlp');
     // Claude Desktop's permission model and schedulers do not exist in A.S.T.R.O AI: say what really happens
     for (const [a, b] of HONEST_RULES) s = s.replace(ws(a), b);
+    s = s.replace(/(^|[.!?]\s+)a browser tool \(such as/gm, '$1A browser tool (such as');   // a rewrite that starts a sentence
     s = s.replace(/\bthe Task tool\b/gi, 'the task tool').replace(/\bTask tool\b/g, 'task tool');
     s = s.replace(/\bWebFetch\b/g, 'fetch_page').replace(/\bWebSearch\b/g, 'web_search').replace(/\bAskUserQuestion\b/g, 'ask_user');
     if (where === 'SKILL.md') s = foldFrontmatter(s);
@@ -169,7 +183,7 @@ function buildPack(pack) {
   const pyFiles = []; const pyNames = new Set();
   for (const sk of skills) for (const rel of (sk.single ? [] : walk(sk.dir))) if (rel.endsWith('.py') && !/(^|\/)test_[^/]*\.py$|(^|\/)_load\.py$/.test(rel)) { pyFiles.push({ sk, rel }); pyNames.add(path.basename(rel, '.py')); }
   const tx = makeTx(pack, skills, pyNames);
-  const notes = []; const missing = [];
+  const notes = []; const missing = []; let ruled = 0;
   const put = (rel, text) => { const p = path.join(out, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, text); };
 
   for (const sk of skills) {
@@ -186,7 +200,7 @@ function buildPack(pack) {
         let t = tx(buf.toString('utf8'), path.basename(rel));
         if (rel === 'SKILL.md') {
           if (/(^|-)human$/.test(sk.orig)) t = t.replace(/\n---\n/, () => `\n---\n${STYLE_NOTE}`);
-          if (pack.caveats && /trader|daytrade|console|replica/.test(sk.name)) t = t.replace(/\n---\n/, () => `\n---\n${TRADING_NOTE(pack.caveats)}`);
+          if (pack.caveats && /trader|daytrade|console|replica/.test(sk.name)) { t = t.replace(/\n---\n/, () => `\n---\n${TRADING_NOTE(pack.caveats)}`); ruled++; }
         }
         buf = Buffer.from(t);
       } else if (ext === '.json') {   // notes inside data files name the helpers too
@@ -245,7 +259,7 @@ function buildPack(pack) {
     return pyFiles.some((o) => o.sk === sk && o.rel !== rel && BUILTIN.has(`${sk.name}/${path.basename(o.rel, '.py')}`) && imp.test(fs.readFileSync(path.join(sk.dir, o.rel), 'utf8')));
   };
   for (const { sk, rel } of pyFiles) { const h = path.basename(rel, '.py'); const want = `skills/${sk.name}/${rel.replace(/\.py$/, '.mjs')}`; if (!BUILTIN.has(`${sk.name}/${h}`) && !libCovered(sk, rel, h) && !fs.existsSync(path.join(out, want))) missing.push(want); }
-  return { skills, notes, missing, out, scripts: walk(out).some((r) => r.endsWith('.mjs')), builtin: builtin > 0 };
+  return { skills, notes, missing, out, scripts: walk(out).some((r) => r.endsWith('.mjs')), builtin: builtin > 0, ruled: ruled > 0 };
 }
 
 function writeMeta(pack, r) {
@@ -263,8 +277,8 @@ function writeMeta(pack, r) {
 (${repoUrl}${commit ? `, commit ${commit.slice(0, 12)}` : ''}), used under the MIT License below.
 
 Changes made for A.S.T.R.O AI:
-${r.builtin ? '- Python helpers were re-written in C++ and built into A.S.T.R.O AI itself (run with \`\${ASTRO_TOOL}\`, A.S.T.R.O AI 1.9.0 or later); they print what the originals printed. The Python files are not included.\n' : ''}${r.scripts ? '- Python helpers were re-written as Node.js scripts (\`.mjs\`, Node standard library only) that do the same job; the Python files are not included.\n' : ''}- Commands, paths and the assistant's name were adapted (\`\${ASTRO_SKILL_DIR}\`, \`\${ASTRO_PACK_DIR}\`, \`~/.astro-packs/\`).
-${renamed.length ? `- Skills were renamed: ${renamed.map((s) => `\`${s.orig}\` → \`${s.name}\``).join(', ')}.\n` : ''}${pack.caveats ? `- A safety rule was added to the skills: ${pack.caveats}\n` : ''}- Tests, install instructions for other tools and repository files were left out.
+${r.builtin ? '- Python helpers were re-written in C++ and built into A.S.T.R.O AI itself (run with \`\${ASTRO_TOOL}\`, A.S.T.R.O AI ' + (pack.min_version || '1.9.0') + ' or later); they print what the originals printed. The Python files are not included.\n' : ''}${r.scripts ? '- Python helpers were re-written as Node.js scripts (\`.mjs\`, Node standard library only) that do the same job; the Python files are not included.\n' : ''}- Commands, paths and the assistant's name were adapted (\`\${ASTRO_SKILL_DIR}\`, \`\${ASTRO_PACK_DIR}\`, \`~/.astro-packs/\`).
+${renamed.length ? `- Skills were renamed: ${renamed.map((s) => `\`${s.orig}\` → \`${s.name}\``).join(', ')}.\n` : ''}${pack.caveats ? `- ${r.ruled ? 'A safety rule was added to the skills' : 'A note was added to the README and the Library listing'}: ${pack.caveats}\n` : ''}- Tests, install instructions for other tools and repository files were left out.
 
 This pack is not made or endorsed by ${CFG.author}. Report problems with the A.S.T.R.O AI version to https://github.com/esoexe/astro-ai/issues.
 
@@ -282,12 +296,12 @@ ${pack.caveats ? `> **Read first.** ${pack.caveats}\n\n` : ''}Adapted from [${pa
 
 | Skill | |
 |---|---|
-${r.skills.map((s) => { const t = fs.readFileSync(path.join(r.out, 'skills', s.name, 'SKILL.md'), 'utf8'); const m = /^description:\s*(?:>-?\s*\n)?([\s\S]*?)\n(?:[a-z_-]+:|---)/m.exec(t); const d = (m ? m[1] : '').replace(/\s+/g, ' ').trim(); return `| \`${s.name}\` | ${d.slice(0, 220).replace(/\|/g, '/')} |`; }).join('\n')}
+${r.skills.map((s) => { const t = fs.readFileSync(path.join(r.out, 'skills', s.name, 'SKILL.md'), 'utf8'); const m = /^description:\s*(?:>-?\s*\n)?([\s\S]*?)\n(?:[a-z_-]+:|---)/m.exec(t); let d = (m ? m[1] : '').replace(/\s+/g, ' ').trim().replace(/^"([\s\S]*)"$/, '$1'); if (d.length > 220) d = d.slice(0, 220).replace(/\s+\S*$/, '') + '…'; return `| \`${s.name}\` | ${d.replace(/\|/g, '/')} |`; }).join('\n')}
 
 ## Use
 
 Ask the agent for the job in plain words ("write chapters for this transcript"), or name the skill.
-${r.builtin ? `Some skills run helper tools that are built into A.S.T.R.O AI (1.9.0 or later); nothing extra to install.\n` : ''}${r.scripts ? `Some skills run small helper scripts with Node.js. If Node.js is missing, install it in Settings > Tools.\n` : ''}${pack.network ? 'Some helpers read public web data (they say which site in their help text).\n' : ''}${pack.programs ? `Some helpers call ${pack.programs.join(', ')} if it is installed.\n` : ''}`);
+${r.builtin ? `Some skills run helper tools that are built into A.S.T.R.O AI (${pack.min_version || '1.9.0'} or later); nothing extra to install.\n` : ''}${r.scripts ? `Some skills run small helper scripts with Node.js. If Node.js is missing, install it in Settings > Tools.\n` : ''}${pack.network ? 'Some helpers read public web data (they say which site in their help text).\n' : ''}${pack.programs ? `Some helpers call ${pack.programs.join(', ')} if it is installed.\n` : ''}`);
   return { repoUrl, commit };
 }
 
@@ -299,7 +313,7 @@ function upsertCatalog(pack, r, meta) {
     runs: r.scripts || r.builtin ? 'local' : 'none', permissions: [...(r.scripts || r.builtin ? ['scripts'] : []), ...(pack.network ? ['network'] : []), 'files'],
     pack: true, source: { repo: meta.repoUrl, license: 'MIT', author: CFG.author, ...(meta.commit ? { commit: meta.commit } : {}) } };
   if (r.scripts) item.scripts = 'node'; else if (r.builtin) item.scripts = 'builtin';
-  if (r.builtin) item.min_version = '1.9.0';
+  if (r.builtin) item.min_version = pack.min_version || '1.9.0';   // packs.json min_version: the release that first built its tools in
   if (pack.network) item.network = true;
   if (pack.programs) item.programs = pack.programs;
   if (pack.caveats) item.caveats = pack.caveats;

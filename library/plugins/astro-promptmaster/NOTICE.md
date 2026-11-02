@@ -4,7 +4,6 @@
 (https://github.com/Jakeschincariol/promptmaster-skill, commit 43c704602fcc), used under the MIT License below.
 
 Changes made for A.S.T.R.O AI:
-- Python helpers were re-written as Node.js scripts (`.mjs`, Node standard library only) that do the same job; the Python files are not included.
 - Commands, paths and the assistant's name were adapted (`${ASTRO_SKILL_DIR}`, `${ASTRO_PACK_DIR}`, `~/.astro-packs/`).
 - Tests, install instructions for other tools and repository files were left out.
 

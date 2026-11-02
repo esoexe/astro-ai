@@ -8,9 +8,9 @@ Adapted from [master-skills](https://github.com/Jakeschincariol/master-skills) b
 
 | Skill | |
 |---|---|
-| `master-build` | Takes someone with no technical skill from "I want a website or app that does X" to a live, working, great-looking product. Merges the best design skills (impeccable, Anthropic's frontend-design) with the best engineerin |
-| `master-edit` | "Edit talking-head and short-form video end to end: cut dead space, ums and retakes, add word-timed captions, dynamic visuals and stop motion, then finish the audio at -14 LUFS and export for Reels, TikTok and Shorts. Co |
-| `master-virality` | "Find what is already working in a niche, then rewrite it in the user's own voice for their audience and hand back a shoot-ready short-form video script (Reels, TikTok, Shorts), with a LinkedIn post or long-form version  |
+| `master-build` | Takes someone with no technical skill from "I want a website or app that does X" to a live, working, great-looking product. Merges the best design skills (impeccable, Anthropic's frontend-design) with the best… |
+| `master-edit` | Edit talking-head and short-form video end to end: cut dead space, ums and retakes, add word-timed captions, dynamic visuals and stop motion, then finish the audio at -14 LUFS and export for Reels, TikTok and Shorts.… |
+| `master-virality` | Find what is already working in a niche, then rewrite it in the user's own voice for their audience and hand back a shoot-ready short-form video script (Reels, TikTok, Shorts), with a LinkedIn post or long-form version… |
 
 ## Use
 

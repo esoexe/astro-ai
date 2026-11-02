@@ -8,7 +8,7 @@ Adapted from [arena-skill](https://github.com/Jakeschincariol/arena-skill) by Ja
 
 | Skill | |
 |---|---|
-| `arena` | "Make 100 versions of Astro fight to the death over one task. Spins up N sub-agents (default 100, --quick for 16), gives every one the exact same task plus a different strategy card (reasoning mode, workflow, strategy),  |
+| `arena` | Make 100 versions of Astro fight to the death over one task. Spins up N sub-agents (default 100, --quick for 16), gives every one the exact same task plus a different strategy card (reasoning mode, workflow, strategy),… |
 
 ## Use
 

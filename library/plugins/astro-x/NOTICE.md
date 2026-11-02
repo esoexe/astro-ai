@@ -6,7 +6,7 @@
 Changes made for A.S.T.R.O AI:
 - Python helpers were re-written in C++ and built into A.S.T.R.O AI itself (run with `${ASTRO_TOOL}`, A.S.T.R.O AI 1.9.0 or later); they print what the originals printed. The Python files are not included.
 - Commands, paths and the assistant's name were adapted (`${ASTRO_SKILL_DIR}`, `${ASTRO_PACK_DIR}`, `~/.astro-packs/`).
-- A safety rule was added to the skills: Two helpers go online, with no login and no keys: the x-viral/pull tool reads public posts you chose through X's documented embed endpoint (one per second, capped per run, it never crawls or searches), and the x-plan/weights tool reads X's public ranking file on GitHub. Everything else runs offline.
+- A note was added to the README and the Library listing: Two helpers go online, with no login and no keys: the x-viral/pull tool reads public posts you chose through X's documented embed endpoint (one per second, capped per run, it never crawls or searches), and the x-plan/weights tool reads X's public ranking file on GitHub. Everything else runs offline.
 - Tests, install instructions for other tools and repository files were left out.
 
 This pack is not made or endorsed by Jake Schincariol. Report problems with the A.S.T.R.O AI version to https://github.com/esoexe/astro-ai/issues.

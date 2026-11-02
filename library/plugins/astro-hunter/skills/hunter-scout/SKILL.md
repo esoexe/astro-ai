@@ -49,7 +49,7 @@ ${ASTRO_TOOL} hunter-scout/jobs --help
 | Amazon | manual | amazon.jobs links Amazon's Conditions of Use, which exclude robots and data mining |
 
 For a manual company, open its careers search in the user's own browser
-(`jobs boards` prints the link). Astro in Chrome can read the results
+(`jobs boards` prints the link). A browser tool (such as the Playwright Browser MCP server from the Library) can read the results
 page with the user present, one page at a time, and the user can save the
 search or turn on alerts in their own account. Never loop through pages, never
 script it.
@@ -112,7 +112,7 @@ Chicago with three years of Go, Python and distributed systems, open to
 relocating. His dream companies are Google, Meta, NVIDIA, Netflix and Amazon.
 `jobs search` reads NVIDIA's Workday board and Netflix's careers search,
 then prints the manual route for Google, Meta and Amazon. Jordan searches
-Google's careers site with Astro in Chrome and finds the Software Engineer
+Google's careers site with a browser tool (such as the Playwright Browser MCP server from the Library) and finds the Software Engineer
 role on Google Cloud, Infrastructure in Mountain View. Netflix's "Software
 Engineer (L6) - Compute Runtime" (remote, United States) scores 75: title
 match, remote, posted 20 days ago, skills to check on the posting. He picks

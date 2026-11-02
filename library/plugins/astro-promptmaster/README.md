@@ -8,7 +8,7 @@ Adapted from [promptmaster-skill](https://github.com/Jakeschincariol/promptmaste
 
 | Skill | |
 |---|---|
-| `promptmaster` | "Rewrite the user's raw request into an optimized prompt before answering it, audit it against the 35 credit-waste patterns in waste-patterns.json, and enforce every locked decision in decisions.md so nothing gets re-exp |
+| `promptmaster` | Rewrite the user's raw request into an optimized prompt before answering it, audit it against the 35 credit-waste patterns in waste-patterns.json, and enforce every locked decision in decisions.md so nothing gets… |
 
 ## Use
 

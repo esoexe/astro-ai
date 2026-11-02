@@ -38,7 +38,7 @@ In this order, and confirm the person with the user before anything else:
 1. The posting itself (some name the team or the manager) and the team's
    public pages, engineering blog posts and conference talks.
 2. A LinkedIn people search the user runs in their own browser, for example
-   "Engineering Manager Google Cloud Infrastructure". Astro in Chrome can
+   "Engineering Manager Google Cloud Infrastructure". A browser tool (such as the Playwright Browser MCP server from the Library) can
    read that one results page with the user present. No scraping, no bulk
    profile visits, no automated searches: LinkedIn's User Agreement (section
    8.2) forbids bots and automated access.
@@ -98,10 +98,9 @@ the subject") and an edited draft needs a new yes.
 
 ## Step 5: it goes out from the user's own accounts
 
-- **Email**: create it as a draft in the user's Gmail with the Gmail
-  connector. The user opens it and sends it (or tells Astro, for that one
+- **Email**: create it as a draft in the user's Gmail with a Gmail MCP server the user added in A.S.T.R.O AI's MCP settings. The user opens it and sends it (or tells Astro, for that one
   draft, to send it).
-- **LinkedIn**: with Astro in Chrome and the user watching, open the
+- **LinkedIn**: with a browser tool (such as the Playwright Browser MCP server from the Library) and the user watching, open the
   person's profile, choose Connect, Add a note, paste the approved note. The
   user clicks Send. One person at a time, at human pace. Never a loop.
 
@@ -176,7 +175,7 @@ application is even sent.
 - Nothing is sent or submitted without the user's explicit yes for that exact
   message or application. Astro drafts, the user approves, and it goes out
   from the user's own accounts: email as a Gmail draft the user sends,
-  LinkedIn through Astro in Chrome with the user present, one at a time,
+  LinkedIn through a browser tool (such as the Playwright Browser MCP server from the Library) with the user present, one at a time,
   the user clicking Send.
 - No bulk or automated messaging, no scraping behind logins, no tricks around
   a site's limits. LinkedIn's terms forbid bots and automated messaging.

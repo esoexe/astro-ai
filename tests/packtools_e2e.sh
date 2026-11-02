@@ -97,6 +97,20 @@ out=$(cd "$TMP" && eval "$tool master-build/sitecheck \"$TMP/web1\" --json"); rc
 printf 'We delve into a rich tapestry of ideas \xe2\x80\x94 truly.\n' > "$TMP/draft.txt"
 out=$(cd "$TMP" && eval "$tool --skill-dir \"$MP/master-virality\" master-virality/humanize draft.txt"); rc=$?
 [ $rc -eq 0 ] && ! has "$out" "tapestry" && ! has "$out" $'\xe2\x80\x94' && ok "installed humanize uses its bundled lexicon" || bad "humanize rc=$rc: $out"
+# the Closer Pack (1.9.1): installs with its example board, and its C++ helpers read the installed files
+[ "$(echo "$idx" | jq -r '.items[] | select(.id=="astro-closer") | .min_version')" = 1.9.1 ] && ok "catalog: astro-closer min_version 1.9.1" || bad "closer min_version"
+r=$(post /api/dev/library/install '{"id":"astro-closer"}')
+if [ "$(printf '%s\n1.9.1\n' "$ver" | sort -V | head -1)" != 1.9.1 ]; then
+  has "$r" "needs A.S.T.R.O AI 1.9.1" && ok "older engine ($ver) refuses the Closer Pack" || bad "closer version gate: $r"
+else
+  has "$r" '"ok":true' && ok "install astro-closer" || bad "install closer: $r"
+  CP="$TMP/data/ext/plugins/astro-closer/skills"
+  grep -q '${ASTRO_TOOL} pipeline/deals' "$CP/pipeline/SKILL.md" && [ -f "$CP/pipeline/pipeline.example.json" ] && ok "pipeline skill installed with its example board" || bad "closer files: $(ls "$CP/pipeline" 2>&1)"
+  out=$(cd "$TMP" && eval "$tool --skill-dir \"$CP/pipeline\" pipeline/deals --file \"$CP/pipeline/pipeline.example.json\" board --today 2026-10-29"); rc=$?
+  [ $rc -eq 0 ] && has "$out" 'Open: $19,364 across 5 deals. Won to date: $2,500.' && ok "installed pipeline/deals reads the board" || bad "closer board rc=$rc: $(echo "$out" | tail -2)"
+  out=$(cd "$TMP" && eval "$tool --skill-dir \"$CP/sales-coach\" sales-coach/coach card --objection price"); rc=$?
+  [ $rc -eq 0 ] && has "$out" "Objection: price" && ok "installed sales-coach uses its bundled objections" || bad "coach card rc=$rc: $(echo "$out" | head -3)"
+fi
 out=$("$ROOT/workspace_server" tool nope 2>&1); rc=$?
 [ $rc -eq 2 ] && has "$out" "unknown tool 'nope'" && ok "unknown tool exit 2" || bad "unknown tool: $rc $out"
 echo "packtools e2e: $pass passed, $fail failed"; [ $fail -eq 0 ]

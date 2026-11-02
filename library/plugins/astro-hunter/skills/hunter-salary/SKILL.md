@@ -123,7 +123,7 @@ Google offer is higher, so Jordan's counter rests on the BLS numbers, not on Ama
 
 - Nothing is sent or submitted without the user's explicit yes for that exact message or
   application. Astro drafts, the user approves, then it goes out from the user's own
-  accounts: email as a Gmail draft first; LinkedIn messages through Astro in Chrome with
+  accounts: email as a Gmail draft first; LinkedIn messages through a browser tool (such as the Playwright Browser MCP server from the Library) with
   the user present, one at a time, at human pace, the user clicking Send; application forms
   filled and left for the user to submit.
 - No bulk or automated messaging, no scraping behind logins, no tricks around a site's

@@ -8,7 +8,7 @@ Adapted from [duel-skill](https://github.com/Jakeschincariol/duel-skill) by Jake
 
 | Skill | |
 |---|---|
-| `duel` | Have an independent critic model (OpenAI, or any OpenAI-compatible provider the user configures) challenge Astro's answer, then defend or revise it through a short evidence-led debate. Use for "duel this with ChatGPT", " |
+| `duel` | Have an independent critic model (OpenAI, or any OpenAI-compatible provider the user configures) challenge Astro's answer, then defend or revise it through a short evidence-led debate. Use for "duel this with ChatGPT",… |
 
 ## Use
 

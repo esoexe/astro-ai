@@ -16,7 +16,7 @@ ${ASTRO_TOOL} master-build/sitecheck https://the-live-site.com --external   # af
 
 ## 2. Screenshots at three widths
 
-Use the harness browser tool if you have one (Astro in Chrome, the A.S.T.R.O AI preview browser): resize to 375x812, 768x1024, 1440x900 and screenshot each page.
+Use the harness browser tool if you have one (the Playwright Browser MCP server from the Library, the A.S.T.R.O AI preview browser): resize to 375x812, 768x1024, 1440x900 and screenshot each page.
 
 Without one, Playwright's CLI gives true viewports:
 

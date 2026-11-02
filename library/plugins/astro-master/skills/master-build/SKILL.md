@@ -156,7 +156,7 @@ Run it, watch it fail for the right reason, write the smallest code that passes,
 Follow `checklists/qa.md`. The short version:
 
 1. **Automated sweep:** `${ASTRO_TOOL} master-build/sitecheck site/` until it reports zero errors; review each warning.
-2. **Screenshots at three widths, every page.** Use your browser tool if the harness has one (Astro in Chrome or the A.S.T.R.O AI preview browser: resize to 375x812, 768x1024, 1440x900). Otherwise Playwright's CLI, which emulates true viewports:
+2. **Screenshots at three widths, every page.** Use your browser tool if the harness has one (the Playwright Browser MCP server from the Library or the A.S.T.R.O AI preview browser: resize to 375x812, 768x1024, 1440x900). Otherwise Playwright's CLI, which emulates true viewports:
 
    ```bash
    npx playwright screenshot --viewport-size=375,812 --full-page http://127.0.0.1:8000/ qa/home-375.png

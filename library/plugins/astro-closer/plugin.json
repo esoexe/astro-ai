@@ -1,0 +1,29 @@
+{
+  "name": "astro-closer",
+  "displayName": "Closer Pack",
+  "version": "1.0.0",
+  "description": "11 skills that run a small sales team: find and rank leads, cold openers, follow-ups, a research brief before each call, booking calls, live call coaching from captions, proposals, contracts, win-backs, a deal pipeline and a monthly forecast.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/Jakeschincariol/closer-skill",
+    "author": "Jake Schincariol",
+    "license": "MIT",
+    "commit": "0b0107690e202010710a59eb7d0b47d331255e59"
+  },
+  "skills": [
+    "contract-writer",
+    "follow-up",
+    "forecaster",
+    "pipeline",
+    "proposal-writer",
+    "prospector",
+    "record-keeper",
+    "researcher",
+    "sales-coach",
+    "scheduler",
+    "win-back"
+  ]
+}

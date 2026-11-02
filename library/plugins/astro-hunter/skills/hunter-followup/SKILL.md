@@ -69,15 +69,13 @@ them is never a "follow-up".
    an answer to their question). Fill every `[fill: ...]`; nothing goes out with one.
 3. Show the draft. Ask: "Send this to <name>? Reply yes or no." One message per
    question. Never "yes to all".
-4. On a yes: email goes in as a Gmail draft from the user's account (the Gmail
-   connector), and the user presses Send. A LinkedIn message is typed by Astro in
-   Chrome with the user watching, and the user clicks Send.
+4. On a yes: email goes in as a Gmail draft from the user's account (through a Gmail MCP server the user added in A.S.T.R.O AI's MCP settings), and the user presses Send. A LinkedIn message is typed by a browser tool (such as the Playwright Browser MCP server from the Library) with the user watching, and the user clicks Send.
 5. Only after it went out: `followup record ... --approval "<their reply, word
    for word>"`. It logs the message and sets the next follow-up date, or none.
 6. When they answer, `followup reply` logs it. A "no" closes every thread with
    that person for good. A request to stop: `followup stop`.
 
-A scheduled morning run may list and draft. It never sends: nobody is there to say yes.
+A morning run started from your operating system's scheduler (Task Scheduler on Windows, cron or launchd on macOS and Linux; A.S.T.R.O AI has no built-in scheduler) may list and draft. It never sends: nobody is there to say yes.
 
 ## Example: Maya C. in the reel
 
@@ -110,7 +108,7 @@ a thank-you within 24 hours (template after-coffee)". The full state is
 
 - Nothing is sent or submitted without the user's explicit yes for that exact message or
   application. Astro drafts, the user approves, then it goes out from the user's own
-  accounts: email as a Gmail draft first; LinkedIn messages through Astro in Chrome with
+  accounts: email as a Gmail draft first; LinkedIn messages through a browser tool (such as the Playwright Browser MCP server from the Library) with
   the user present, one at a time, at human pace, the user clicking Send; application forms
   filled and left for the user to submit.
 - No bulk or automated messaging, no scraping behind logins, no tricks around a site's

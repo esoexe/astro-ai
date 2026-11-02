@@ -1,6 +1,6 @@
 ---
 name: hunter-apply
-description: "The Application Assistant. Fills the user's job applications from their own saved answers and leaves every one as a draft for them to review and submit: maps each form question to hunter/profile.json (name, links, work authorization, sponsorship, start date, relocation and more), flags what only the user can answer (salary, voluntary self-identification, anything not in the profile), runs a per-application checklist (tailored resume, cover letter, research, warm intro), fills the form in the user's browser with Astro in Chrome and stops before Submit. Use when the user says 'apply to this job', 'fill out the application', 'fill the Greenhouse form', 'prep my application', 'what's left before I apply', or 'save it as a draft'."
+description: "The Application Assistant. Fills the user's job applications from their own saved answers and leaves every one as a draft for them to review and submit: maps each form question to hunter/profile.json (name, links, work authorization, sponsorship, start date, relocation and more), flags what only the user can answer (salary, voluntary self-identification, anything not in the profile), runs a per-application checklist (tailored resume, cover letter, research, warm intro), fills the form in the user's browser with a browser tool (such as the Playwright Browser MCP server from the Library) and stops before Submit. Use when the user says 'apply to this job', 'fill out the application', 'fill the Greenhouse form', 'prep my application', 'what's left before I apply', or 'save it as a draft'."
 argument-hint: "[role id]"
 ---
 
@@ -59,8 +59,7 @@ ${ASTRO_TOOL} hunter-apply/answers --help
    Tailored resume (`/hunter-resume`), cover letter if the form takes one
    (`/hunter-cover`), research brief (`/hunter-research`), work
    authorization in the profile, and ideally a warm intro (`/hunter-connector`).
-2. With the user present, open the application in their browser with Astro
-   in Chrome and read the form. Write its questions, as labelled, to a JSON
+2. With the user present, open the application in their browser with a browser tool (such as the Playwright Browser MCP server from the Library) and read the form. Write its questions, as labelled, to a JSON
    list (with `options` for selects and `required` where marked).
 3. Map them:
 

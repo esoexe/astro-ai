@@ -4,7 +4,6 @@
 (https://github.com/Jakeschincariol/unhinged-claude-skills, commit 8f60ec6d9e28), used under the MIT License below.
 
 Changes made for A.S.T.R.O AI:
-- Python helpers were re-written as Node.js scripts (`.mjs`, Node standard library only) that do the same job; the Python files are not included.
 - Commands, paths and the assistant's name were adapted (`${ASTRO_SKILL_DIR}`, `${ASTRO_PACK_DIR}`, `~/.astro-packs/`).
 - Skills were renamed: `autopilot-chaos` → `autopilot`, `redneck-engineer` → `build-plan`, `chinese-grandpa` → `compress-brief`, `tax-fraud` → `cost-cutter`, `cowboy-coder` → `decide-and-go`, `weaponized-autism` → `deep-rigor`, `meth-lab` → `distill`, `caffeine-overdose` → `exhaustive`, `rage-compile` → `fix-all-errors`, `feral-goblin` → `heads-down`, `crackhead-energy` → `idea-storm`, `panic-mode` → `incident`, `zero-sleep` → `long-haul`, `keyboard-gremlin` → `minimal-diff`, `questionable-engineering` → `pragmatic`, `sleep-deprived-founder` → `ruthless-focus`, `divorced-dad` → `simplest-first`, `basement-hacker` → `source-dive`, `duct-tape-dev` → `stopgap`, `goblin-mode` → `ugly-first`, `gas-station-genius` → `use-whats-here`, `schizotech` → `wild-ideas`.
 - Tests, install instructions for other tools and repository files were left out.

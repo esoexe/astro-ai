@@ -40,6 +40,7 @@
 // PACKTOOLS_GROUP (the test harness, a quick single-file build) every group is compiled at once.
 //   1 = the dispatcher + trader, day-trader, hunter    2 = master-skills virality/build    3 = master-skills edit
 //   4 = console    5 = social and founder packs (duel, founder, replica)    6 = arena
+//   7 = closer (sales)
 #ifndef PACKTOOLS_GROUP
 #define PACKTOOLS_GROUP 0
 #endif
@@ -211,6 +212,18 @@ inline ExecResult run_cmd(const std::vector<std::string>& args, int timeout_s = 
 #endif
 #if PACKTOOLS_IN(6)
 #include "social_arena.inc"
+#endif
+#if PACKTOOLS_IN(7)
+#include "closer_common.inc"
+#include "closer_forecast.inc"
+#include "closer_followup.inc"
+#include "closer_docs.inc"
+#include "closer_prospect.inc"
+#include "closer_log.inc"
+#include "closer_brief.inc"
+#include "closer_coach.inc"
+#include "closer_slots.inc"
+#include "closer_winback.inc"
 #endif
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
