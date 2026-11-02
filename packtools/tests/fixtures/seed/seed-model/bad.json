@@ -1,0 +1,10 @@
+{
+  "_about": "Synthetic assumptions with every kind of mistake the model refuses.",
+  "start_month": "2027-13",
+  "price": -5,
+  "take_rate_pct": 120,
+  "raise": "lots",
+  "cac": 40,
+  "customers": {"new_month_1": 10, "churn_monthly_pct": 100, "orders_per_customer_month": 2, "new_growth_pct": [5, 4, 3, 2]},
+  "use_of_funds": {"Hiring": 0}
+}

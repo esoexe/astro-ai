@@ -1,0 +1,59 @@
+{
+ "resultCount": 1,
+ "results": [
+  {
+   "wrapperType": "software",
+   "kind": "software",
+   "trackId": 1900000202,
+   "trackName": "Pawpost - Pet Sitters & Walkers",
+   "trackCensoredName": "Pawpost - Pet Sitters & Walkers",
+   "bundleId": "example.synthetic.1900000202",
+   "sellerName": "Pawpost Inc (synthetic)",
+   "artistName": "Pawpost Inc (synthetic)",
+   "artistId": 1900000209,
+   "averageUserRating": 4.7501,
+   "averageUserRatingForCurrentVersion": 4.7501,
+   "userRatingCount": 31007,
+   "userRatingCountForCurrentVersion": 31007,
+   "primaryGenreName": "Lifestyle",
+   "primaryGenreId": 6012,
+   "genres": [
+    "Lifestyle"
+   ],
+   "genreIds": [
+    "6012"
+   ],
+   "price": 0.0,
+   "formattedPrice": "Free",
+   "currency": "USD",
+   "version": "4.6.0",
+   "releaseDate": "2019-04-02T07:00:00Z",
+   "currentVersionReleaseDate": "2026-10-14T16:00:00Z",
+   "trackViewUrl": "https://apps.apple.com/us/app/synthetic/id1900000202?uo=4",
+   "artistViewUrl": "https://apps.apple.com/us/developer/synthetic/id1900000209?uo=4",
+   "artworkUrl60": "https://example.invalid/60.png",
+   "artworkUrl100": "https://example.invalid/100.png",
+   "artworkUrl512": "https://example.invalid/512.png",
+   "contentAdvisoryRating": "4+",
+   "trackContentRating": "4+",
+   "minimumOsVersion": "16.0",
+   "languageCodesISO2A": [
+    "EN"
+   ],
+   "fileSizeBytes": "123456789",
+   "description": "A synthetic test app.",
+   "releaseNotes": "Bug fixes.",
+   "isGameCenterEnabled": false,
+   "features": [],
+   "supportedDevices": [
+    "iPhone15-iPhone15"
+   ],
+   "advisories": [],
+   "screenshotUrls": [],
+   "ipadScreenshotUrls": [],
+   "appletvScreenshotUrls": [],
+   "isVppDeviceBasedLicensingEnabled": true,
+   "sellerUrl": "https://example.invalid"
+  }
+ ]
+}

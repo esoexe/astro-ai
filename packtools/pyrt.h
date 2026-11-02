@@ -570,6 +570,8 @@ inline void eprint(const std::string& s) { flush(); std::fwrite(s.data(), 1, s.s
 struct Arg {
     std::vector<std::string> flags; std::string dest_, action_ = "store", type_, nargs_, metavar_, help_, type_name_; bool has_metavar = false;
     Val dflt; Val konst; bool has_default = false; std::vector<std::string> choices_; bool required_ = false, req_set = false;
+    bool nodef_ = false;
+    bool hidden_ = false;
     bool suppress_ = false;   // default=argparse.SUPPRESS, help=argparse.SUPPRESS: unset unless given, and not listed
     std::function<Val(const std::string&)> conv;   // custom type; throw PyErr("ArgumentTypeError", msg) for a custom message
     bool opt() const { return !flags.empty(); }
@@ -597,6 +599,8 @@ struct Arg {
     Arg& help(std::string h) { help_ = std::move(h); return *this; }
     Arg& dest(std::string d) { dest_ = std::move(d); return *this; }
     Arg& suppress() { suppress_ = true; return *this; }
+    Arg& hidden() { hidden_ = true; return *this; }   // help=argparse.SUPPRESS alone: not listed, the default still set
+    Arg& no_default() { nodef_ = true; return *this; }   // default=argparse.SUPPRESS alone: unset unless given, still listed in help
 };
 struct Parser {
     std::string prog, description, epilog;
@@ -664,7 +668,7 @@ inline std::vector<std::string> usage_parts(const P& P_, bool which) {
     std::vector<std::string> parts; std::vector<const Act*> done;
     auto one = [](const Act& x) { return zero(x) ? x.flags[0] : x.flags[0] + " " + fmt_args(x); };
     for (const auto& x : P_.acts) {
-        if (is_opt(x) != which || std::find(done.begin(), done.end(), &x) != done.end() || (x.a && x.a->suppress_)) continue;
+        if (is_opt(x) != which || std::find(done.begin(), done.end(), &x) != done.end() || (x.a && (x.a->suppress_ || x.a->hidden_))) continue;
         if (which) {
             const std::pair<bool, std::vector<std::string>>* g = nullptr;
             for (const auto& gr : P_.p->groups) if (std::find(gr.second.begin(), gr.second.end(), x.dest) != gr.second.end()) g = &gr;
@@ -772,7 +776,7 @@ inline std::string help_text(const P& P_) {
     if (!P_.p->description.empty()) o += text(P_.p->description);
     auto hs = [&](const Act& x) { if (x.help) return std::string("show this help message and exit"); if (x.parser) return x.sp->sub_help; if (x.a->action_ == "version" && x.a->help_.empty()) return std::string("show program's version number and exit"); return replace_all(replace_all(replace_all(x.a->help_, "%(default)s", pystr(x.a->dflt)), "%(prog)s", P_.prog), "%%", "%"); };
     auto inv_of = [&](const Act& x) { if (!is_opt(x)) return metavar(x); std::vector<std::string> inv; for (const auto& f : x.flags) inv.push_back(zero(x) ? f : f + " " + fmt_args(x)); return join(inv, ", "); };
-    auto shown = [&](const Act& x) { return !(x.a && x.a->suppress_); };
+    auto shown = [&](const Act& x) { return !(x.a && (x.a->suppress_ || x.a->hidden_)); };
     std::size_t maxlen = 0;   // _action_max_length
     for (const auto& x : P_.acts) {
         if (!shown(x)) continue;
@@ -859,7 +863,7 @@ inline std::string nargs_pat(const Act& x) {
 }
 std::vector<std::string> parse_into(const P& P_, const std::vector<std::string>& argv, Dict& ns);
 inline void set_defaults(const P& P_, Dict& ns, bool override_existing) {
-    for (const auto& x : P_.acts) { if (x.help || x.dest.empty() || (x.a && x.a->suppress_)) continue; if (override_existing || !ns.has(x.dest)) ns.set(x.dest, x.parser ? Val() : x.a->dflt); }
+    for (const auto& x : P_.acts) { if (x.help || x.dest.empty() || (x.a && (x.a->suppress_ || x.a->nodef_))) continue; if (override_existing || !ns.has(x.dest)) ns.set(x.dest, x.parser ? Val() : x.a->dflt); }
 }
 inline std::vector<std::string> parse_into(const P& P_, const std::vector<std::string>& argv, Dict& ns) {
     bool has_neg = false; for (const auto& x : P_.acts) for (const auto& f : x.flags) if (neg_num(f)) has_neg = true;

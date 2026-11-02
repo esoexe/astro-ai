@@ -1,0 +1,12 @@
+{
+  "created_by": "seed-scout", "generated": "2026-10-25", "low_stars": 2, "weak_point_by": "gap",
+  "theme_labels": {"fees": "fees and pricing", "cancellations": "cancellations and no-shows"},
+  "apps": [
+    {"name": "Wag!", "app_id": 940734609, "rating": 4.8, "ratings": 67447, "reviews_read": 500, "low_reviews": 324,
+     "themes": {"fees": 80, "cancellations": 81, "support": 95}, "top_theme": "cancellations",
+     "weak_point": "cancellations and no-shows", "weak_point_count": 81, "examples": [], "source": "synthetic fixture"},
+    {"name": "Rover", "app_id": 547320928, "rating": 4.9, "ratings": 515771, "reviews_read": 500, "low_reviews": 341,
+     "themes": {"fees": 106, "cancellations": 42, "support": 87}, "top_theme": "fees",
+     "weak_point": "fees and pricing", "weak_point_count": 106, "examples": [], "source": "synthetic fixture"}
+  ]
+}

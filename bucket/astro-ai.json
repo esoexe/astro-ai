@@ -1,5 +1,5 @@
 {
-    "version": "1.9.0",
+    "version": "1.9.1",
     "description": "Free desktop app and terminal agent for chat, code and agents, powered by a team of free AI models that answer as one.",
     "homepage": "https://esoexe.github.io/astro-ai/",
     "license": "MIT OR Apache-2.0 OR GPL-3.0-only",
@@ -9,14 +9,14 @@
     ],
     "architecture": {
         "64bit": {
-            "url": "https://github.com/esoexe/astro-ai/releases/download/v1.9.0/AstroAI-1.9.0-windows-x64-portable-CLEAN.zip",
-            "hash": "d1a5937478c096bc8285e8f102f800fbb4c193d6da3343b4e3f28ba81a266d1d",
-            "extract_dir": "AstroAI-1.9.0-windows-x64-CLEAN"
+            "url": "https://github.com/esoexe/astro-ai/releases/download/v1.9.1/AstroAI-1.9.1-windows-x64-portable-CLEAN.zip",
+            "hash": "4cf67105a281e14b649bcedaec7f61b05d4efb852bd31af0919ad7a1defa4b1d",
+            "extract_dir": "AstroAI-1.9.1-windows-x64-CLEAN"
         },
         "arm64": {
-            "url": "https://github.com/esoexe/astro-ai/releases/download/v1.9.0/AstroAI-1.9.0-windows-arm64-portable-CLEAN.zip",
-            "hash": "3f909e17781568e4c9d493ff61f7c9b493684521ff38e9d45a97cf3609e82b0a",
-            "extract_dir": "AstroAI-1.9.0-windows-arm64-CLEAN"
+            "url": "https://github.com/esoexe/astro-ai/releases/download/v1.9.1/AstroAI-1.9.1-windows-arm64-portable-CLEAN.zip",
+            "hash": "0853744d741e336356351c06d457803ccdb1fb8e85140b1d1fb85059559a4b7d",
+            "extract_dir": "AstroAI-1.9.1-windows-arm64-CLEAN"
         }
     },
     "bin": "astro.exe",

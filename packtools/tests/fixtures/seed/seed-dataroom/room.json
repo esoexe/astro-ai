@@ -1,0 +1,23 @@
+{
+  "_about": "SYNTHETIC data room for seed-dataroom tests: file names and dates only (the tests create empty files and set each one's modified date to noon UTC on that day). Leashly is fictional.",
+  "today": "2026-10-26",
+  "files": [
+    {"path": "01 Company/Leashly one-pager.pdf", "modified": "2026-10-20", "bytes": 2048},
+    {"path": "01 Company/Leashly business plan.md", "modified": "2026-10-25", "bytes": 9100},
+    {"path": "02 Pitch deck/Leashly pitch deck 2026-10-24.pdf", "modified": "2026-10-26", "bytes": 5120},
+    {"path": "03 Financials/Leashly financial model.xlsx", "modified": "2026-10-25", "bytes": 4096},
+    {"path": "03 Financials/Use of funds.pdf", "modified": "2026-10-25", "bytes": 1024},
+    {"path": "04 Market/Market sizing TAM SAM SOM.pdf", "modified": "2026-10-25", "bytes": 1500},
+    {"path": "04 Market/Competitor analysis.pdf", "modified": "2026-10-25", "bytes": 1500},
+    {"path": "05 Product/Demo video link.txt", "modified": "2026-10-22", "bytes": 64},
+    {"path": "05 Product/Traction metrics 2026-06.pdf", "modified": "2026-10-25", "bytes": 800},
+    {"path": "05 Product/Brand colours.pdf", "modified": "2026-10-01", "bytes": 300},
+    {"path": "06 Team/Founder bios.pdf", "modified": "2026-09-01", "bytes": 700},
+    {"path": "07 Legal/Certificate of incorporation.pdf", "modified": "2025-03-14", "bytes": 3000},
+    {"path": "08 Cap table/Cap table.xlsx", "modified": "2026-08-01", "bytes": 900},
+    {"path": "08 Cap table/Northlight SAFE.pdf", "modified": "2026-10-10", "bytes": 1200},
+    {"path": "09 Customers/Waitlist counts by city.csv", "modified": "2026-10-25", "bytes": 200},
+    {"path": "09 Customers/customer list export.csv", "modified": "2026-10-25", "bytes": 5000},
+    {"path": "notes from the Northlight call.txt", "modified": "2026-10-26", "bytes": 100}
+  ]
+}

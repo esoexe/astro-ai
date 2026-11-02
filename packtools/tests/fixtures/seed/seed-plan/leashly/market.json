@@ -1,0 +1,19 @@
+{
+  "_note": "Synthetic fixture in seed-market's shape for the reel's fictional Leashly. The 71M dog homes and the $158B 2025 spend are the reel's APPA figures; the shares, the spend per home and the metro count are made-up assumptions.",
+  "created_by": "seed-market",
+  "generated": "2026-10-26",
+  "method": "top-down",
+  "tam": 8520000000,
+  "sam": 228000000,
+  "som": 22800000,
+  "currency": "USD",
+  "inputs": [
+    {"name": "US homes with a dog", "value": 71000000, "unit": "homes", "source": "APPA 2026 State of the Industry report, americanpetproducts.org", "kind": "publication", "level": "tam"},
+    {"name": "Share of dog homes that pay for walks", "value": 10, "unit": "%", "source": "assumption: the Leashly pilot survey (fictional)", "kind": "assumption", "level": "tam"},
+    {"name": "Walking spend per paying home a year", "value": 1200, "unit": "USD", "source": "assumption: 4 walks a month at $25", "kind": "assumption", "level": "tam"},
+    {"name": "Dog homes in the 3 launch metros", "value": 1900000, "unit": "homes", "source": "assumption: three metros picked for the launch (fictional)", "kind": "assumption", "level": "sam"},
+    {"name": "Share of the SAM won in 3 years", "value": 10, "unit": "%", "source": "assumption: the founder's 3-year target", "kind": "assumption", "level": "som"},
+    {"name": "US pet industry spend, 2025", "value": 158000000000, "unit": "USD", "source": "APPA 2026 State of the Industry report, americanpetproducts.org", "kind": "publication", "level": "context"}
+  ],
+  "notes": ["TAM = 71M dog homes x 10% x $1,200.", "SAM = 1.9M dog homes in the launch metros x 10% x $1,200.", "SOM = 10% of the SAM."]
+}

@@ -1,0 +1,44 @@
+{
+  "_note": "Synthetic fixture in seed-scout's compare shape. The ratings and the 106 of 341 / 81 of 324 counts are the reel's (App Store, Oct 25 2026); the other theme counts and the example titles are made up for the test.",
+  "created_by": "seed-scout",
+  "generated": "2026-10-25",
+  "low_stars": 2,
+  "weak_point_by": "gap",
+  "theme_labels": {"fees": "fees and pricing", "cancellations": "cancellations and no-shows", "support": "customer support", "bugs": "bugs and app quality", "trust": "trust and safety", "payments": "payments and refunds", "availability": "availability"},
+  "apps": [
+    {
+      "name": "Rover",
+      "app_id": 547320928,
+      "rating": 4.9,
+      "ratings": 515771,
+      "reviews_read": 500,
+      "low_reviews": 341,
+      "themes": {"fees": 106, "support": 64, "bugs": 51, "trust": 37, "payments": 33, "cancellations": 29, "availability": 22},
+      "top_theme": "fees",
+      "weak_point": "fees and pricing",
+      "weak_point_count": 106,
+      "examples": [
+        {"title": "Synthetic example: the fees kept adding up", "date": "2026-10-14", "stars": 1},
+        {"title": "Synthetic example: paid more than the quote", "date": "2026-10-18", "stars": 2}
+      ],
+      "source": "https://itunes.apple.com/us/rss/customerreviews/page=1/id=547320928/sortby=mostrecent/json"
+    },
+    {
+      "name": "Wag!",
+      "app_id": 940734609,
+      "rating": 4.8,
+      "ratings": 67447,
+      "reviews_read": 500,
+      "low_reviews": 324,
+      "themes": {"cancellations": 81, "support": 58, "bugs": 47, "fees": 41, "payments": 30, "trust": 26, "availability": 25},
+      "top_theme": "cancellations",
+      "weak_point": "cancellations and no-shows",
+      "weak_point_count": 81,
+      "examples": [
+        {"title": "Synthetic example: walker cancelled an hour before", "date": "2026-09-20", "stars": 1},
+        {"title": "Synthetic example: nobody came and nobody told me", "date": "2026-08-29", "stars": 1}
+      ],
+      "source": "https://itunes.apple.com/us/rss/customerreviews/page=1/id=940734609/sortby=mostrecent/json"
+    }
+  ]
+}

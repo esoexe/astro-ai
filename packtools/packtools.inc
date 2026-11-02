@@ -40,7 +40,7 @@
 // PACKTOOLS_GROUP (the test harness, a quick single-file build) every group is compiled at once.
 //   1 = the dispatcher + trader, day-trader, hunter    2 = master-skills virality/build    3 = master-skills edit
 //   4 = console    5 = social and founder packs (duel, founder, replica)    6 = arena
-//   7 = closer (sales)
+//   7 = closer (sales)    8 = seed (startup fundraising)
 #ifndef PACKTOOLS_GROUP
 #define PACKTOOLS_GROUP 0
 #endif
@@ -224,6 +224,17 @@ inline ExecResult run_cmd(const std::vector<std::string>& args, int timeout_s = 
 #include "closer_coach.inc"
 #include "closer_slots.inc"
 #include "closer_winback.inc"
+#endif
+#if PACKTOOLS_IN(8)
+#include "bigdec.h"
+#include "seed_common.inc"
+#include "seed_dataroom.inc"
+#include "seed_random.inc"
+#include "seed_market.inc"
+#include "seed_updates.inc"
+#include "seed_coach.inc"
+#include "seed_model.inc"
+#include "seed_scout.inc"
 #endif
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop

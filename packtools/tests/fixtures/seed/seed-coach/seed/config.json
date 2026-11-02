@@ -1,0 +1,8 @@
+{
+  "_about": "SYNTHETIC test fixture: Leashly is the reel's made-up startup.",
+  "startup": {"name": "Leashly", "one_liner": "A dog-walking app with flat prices and a backup walker on every walk",
+              "sector": "pet care marketplace", "stage": "seed", "geography": "United States", "raise": 1500000,
+              "instrument": "post-money SAFE"},
+  "founder": {"name": "Test Founder", "email": "founder@leashly.example", "company_address": "1 Example Street"},
+  "outreach": {"daily_cap": 20, "followup_days": [3, 7], "max_touches": 3, "business_days": true}
+}

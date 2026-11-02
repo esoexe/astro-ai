@@ -1,0 +1,179 @@
+{
+ "took": 37,
+ "timed_out": false,
+ "_shards": {
+  "total": 50,
+  "successful": 50,
+  "skipped": 0,
+  "failed": 0
+ },
+ "hits": {
+  "total": {
+   "value": 6,
+   "relation": "eq"
+  },
+  "max_score": 9.81,
+  "hits": [
+   {
+    "_index": "edgar_file",
+    "_type": "_doc",
+    "_id": "0009990001-26-000001:primary_doc.xml",
+    "_score": 9.81,
+    "_source": {
+     "ciks": [
+      "0009990001"
+     ],
+     "period_ending": null,
+     "file_num": [
+      "021-990001"
+     ],
+     "display_names": [
+      "Pawtrail Labs, Inc.  (CIK 0009990001)"
+     ],
+     "xsl": "xslFormDX01",
+     "sequence": "1",
+     "root_forms": [
+      "D"
+     ],
+     "file_date": "2026-03-02",
+     "biz_states": [
+      "CA"
+     ],
+     "sics": [],
+     "form": "D/A",
+     "adsh": "0009990001-26-000001",
+     "film_num": [
+      "25990001"
+     ],
+     "biz_locations": [
+      "San Francisco, CA"
+     ],
+     "file_type": "D/A",
+     "file_description": null,
+     "inc_states": [
+      "DE"
+     ],
+     "items": []
+    }
+   },
+   {
+    "_index": "edgar_file",
+    "_type": "_doc",
+    "_id": "0009990004-26-000002:primary_doc.xml",
+    "_score": 8.2,
+    "_source": {
+     "ciks": [
+      "0009990004"
+     ],
+     "period_ending": null,
+     "file_num": [
+      "021-990004"
+     ],
+     "display_names": [
+      "Snoutwell Inc.  (CIK 0009990004)"
+     ],
+     "xsl": "xslFormDX01",
+     "sequence": "1",
+     "root_forms": [
+      "D"
+     ],
+     "file_date": "2026-08-03",
+     "biz_states": [
+      "TX"
+     ],
+     "sics": [],
+     "form": "D",
+     "adsh": "0009990004-26-000002",
+     "film_num": [
+      "25990002"
+     ],
+     "biz_locations": [
+      "Austin, TX"
+     ],
+     "file_type": "D",
+     "file_description": null,
+     "inc_states": [
+      "DE"
+     ],
+     "items": []
+    }
+   },
+   {
+    "_index": "edgar_file",
+    "_type": "_doc",
+    "_id": "0009990003-25-000004:primary_doc.xml",
+    "_score": 7.75,
+    "_source": {
+     "ciks": [
+      "0009990003"
+     ],
+     "period_ending": null,
+     "file_num": [
+      "021-990003"
+     ],
+     "display_names": [
+      "Pawtrail Ventures Fund I, L.P.  (CIK 0009990003)"
+     ],
+     "xsl": "xslFormDX01",
+     "sequence": "1",
+     "root_forms": [
+      "D"
+     ],
+     "file_date": "2025-11-14",
+     "biz_states": [
+      "CA"
+     ],
+     "sics": [],
+     "form": "D",
+     "adsh": "0009990003-25-000004",
+     "film_num": [
+      "25990004"
+     ],
+     "biz_locations": [
+      "Menlo Park, CA"
+     ],
+     "file_type": "D",
+     "file_description": null,
+     "inc_states": [
+      "DE"
+     ],
+     "items": []
+    }
+   }
+  ]
+ },
+ "aggregations": {
+  "form_filter": {
+   "doc_count_error_upper_bound": 0,
+   "sum_other_doc_count": 0,
+   "buckets": [
+    {
+     "key": "D",
+     "doc_count": 4
+    },
+    {
+     "key": "D/A",
+     "doc_count": 1
+    }
+   ]
+  },
+  "biz_states_filter": {
+   "doc_count_error_upper_bound": 0,
+   "sum_other_doc_count": 0,
+   "buckets": [
+    {
+     "key": "CA",
+     "doc_count": 3
+    },
+    {
+     "key": "TX",
+     "doc_count": 1
+    },
+    {
+     "key": "NY",
+     "doc_count": 1
+    }
+   ]
+  }
+ }
+}

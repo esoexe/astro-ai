@@ -1,0 +1,25 @@
+{
+  "_about": "SYNTHETIC rows the Closer must refuse, plus one good row. Invented people, .example domains.",
+  "investors": [
+    {"id": "maya-chen", "name": "Maya Chen", "firm": "Northlight Ventures", "email": "maya@northlight.example",
+     "sectors": ["pet care"], "reasons": ["Led two pet-care seed rounds"], "sources": ["https://northlight.example/team/maya-chen"],
+     "fit": 96, "personal_line": "Saw you led two pet-care seed rounds, so you know the 20% fee problem better than anyone."},
+    {"id": "gary-stone", "name": "Gary Stone", "firm": "Stonewall Partners", "email": "gary@stonewall.example",
+     "sectors": ["consumer"], "sources": ["https://stonewall.example/team"], "fit": 80,
+     "personal_line": "I love what you're doing at Stonewall Partners and wanted to connect."},
+    {"id": "nina-hart", "name": "Nina Hart", "firm": "Hart Capital", "email": "nina@hartcap.example",
+     "sectors": ["pet care"], "reasons": ["Backed a pet insurance seed round"], "sources": [], "fit": 79,
+     "personal_line": "You backed a pet insurance seed round last spring, so pet owners' trust is familiar ground."},
+    {"id": "omar-said", "name": "Omar Said", "firm": "Said Seed", "sectors": ["marketplaces"],
+     "sources": ["https://saidseed.example"], "fit": 78,
+     "personal_line": "Your marketplace teardown series on liquidity is the best thing I read this year."},
+    {"id": "lena-fox", "name": "Lena Fox", "firm": "Foxglove Fund", "email": "lena@foxglove.example",
+     "sectors": ["pet care"], "sources": ["https://foxglove.example"], "fit": 77, "personal_line": ""},
+    {"id": "dana-cole", "name": "Dana Cole", "firm": "Cole Ventures", "email": "dana@coleventures.example",
+     "sectors": ["pet care"], "reasons": ["Led two pet-care seed rounds"], "sources": ["https://coleventures.example"], "fit": 76,
+     "personal_line": "Saw you led two pet-care seed rounds, so you know the 20% fee problem better than anyone."},
+    {"id": "ray-kim", "name": "Ray Kim", "firm": "Kim Partners", "email": "ray@kimpartners.example",
+     "sectors": ["pet care"], "reasons": ["Led a dog-daycare round"], "sources": ["https://kimpartners.example"], "fit": 75,
+     "personal_line": "Saw you led the dog-daycare round in Denver last spring and..."}
+  ]
+}

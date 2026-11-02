@@ -1,0 +1,17 @@
+Leashly: 36-month model, Jan 2027 to Dec 2029 (USD)
+                             Year 1         Year 2         Year 3
+  Walks                     124,640        423,104        798,272
+  GMV                    $3,116,000    $10,577,600    $19,956,800
+  Revenue                  $467,400     $1,586,640     $2,993,520
+  Gross profit             $277,324       $941,406     $1,776,155
+  Opex                     $957,800     $1,467,120     $1,679,880
+  Net                     -$680,476      -$525,714        $96,275
+  Cash at year end         $819,524       $293,810       $390,086
+  Customers (end)             2,490          6,200          9,999
+
+  Per walk           price $25.00, you keep $3.75 (15%), costs $1.53, contribution $2.23
+  Per customer       LTV $254.29 on a $60.00 CAC: LTV:CAC 4.24x, CAC paid back in 3.37 months
+  Breakeven          month 29 (May 2029), and every month after it
+  Peak burn          $82,801 in month 5 (May 2027)
+  Runway             the cash lasts all 36 months (low point $252,553 in month 28)
+  Use of funds       adds up to the $1,500,000 raise

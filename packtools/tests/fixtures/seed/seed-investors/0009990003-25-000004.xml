@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<edgarSubmission xmlns="http://www.sec.gov/edgar/formd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <schemaVersion>X0708</schemaVersion>
+  <submissionType>D</submissionType>
+  <testOrLive>LIVE</testOrLive>
+  <primaryIssuer>
+    <cik>0009990003</cik>
+    <entityName>Pawtrail Ventures Fund I, L.P.</entityName>
+    <issuerAddress><street1>100 Example Street</street1><street2>Suite 5</street2><city>Menlo Park</city><stateOrCountry>CA</stateOrCountry><stateOrCountryDescription>X</stateOrCountryDescription><zipCode>00000</zipCode></issuerAddress>
+    <issuerPhoneNumber>555-010-0100</issuerPhoneNumber>
+    <jurisdictionOfInc>DELAWARE</jurisdictionOfInc>
+    <issuerPreviousNameList><value>None</value></issuerPreviousNameList>
+    <edgarPreviousNameList><value>None</value></edgarPreviousNameList>
+    <entityType>Limited Partnership</entityType>
+    <yearOfInc><withinFiveYears>true</withinFiveYears><value>2025</value></yearOfInc>
+  </primaryIssuer>
+  <relatedPersonsList>
+    <relatedPersonInfo><relatedPersonName><firstName>Pat</firstName><middleName/><lastName>Exampleton</lastName></relatedPersonName><relatedPersonAddress><street1>1 Example Street</street1><city>Menlo Park</city><stateOrCountry>CA</stateOrCountry><stateOrCountryDescription>X</stateOrCountryDescription><zipCode>00000</zipCode></relatedPersonAddress><relatedPersonRelationshipList><relationship>Promoter</relationship></relatedPersonRelationshipList><relationshipClarification/></relatedPersonInfo>
+    </relatedPersonsList>
+  <offeringData>
+    <industryGroup><industryGroupType>Pooled Investment Fund</industryGroupType><investmentFundInfo><investmentFundType>Venture Capital Fund</investmentFundType><is40Act>false</is40Act></investmentFundInfo></industryGroup>
+    <issuerSize><revenueRange>Decline to Disclose</revenueRange></issuerSize>
+    <federalExemptionsExclusions><item>06b</item></federalExemptionsExclusions>
+    <typeOfFiling><newOrAmendment><isAmendment>false</isAmendment></newOrAmendment><dateOfFirstSale><value>2025-10-01</value></dateOfFirstSale></typeOfFiling>
+    <durationOfOffering><moreThanOneYear>false</moreThanOneYear></durationOfOffering>
+    <typesOfSecuritiesOffered><isPooledInvestmentFundInterestsType>true</isPooledInvestmentFundInterestsType></typesOfSecuritiesOffered>
+    <businessCombinationTransaction><isBusinessCombinationTransaction>false</isBusinessCombinationTransaction></businessCombinationTransaction>
+    <minimumInvestmentAccepted>250000</minimumInvestmentAccepted>
+    <salesCompensationList/>
+    <offeringSalesAmounts><totalOfferingAmount>Indefinite</totalOfferingAmount><totalAmountSold>12000000</totalAmountSold><totalRemaining>Indefinite</totalRemaining><clarificationOfResponse/></offeringSalesAmounts>
+    <investors><hasNonAccreditedInvestors>false</hasNonAccreditedInvestors><totalNumberAlreadyInvested>40</totalNumberAlreadyInvested></investors>
+    <salesCommissionsFindersFees><salesCommissions><dollarAmount>0</dollarAmount></salesCommissions><findersFees><dollarAmount>0</dollarAmount></findersFees></salesCommissionsFindersFees>
+    <useOfProceeds><grossProceedsUsed><dollarAmount>0</dollarAmount></grossProceedsUsed></useOfProceeds>
+    <signatureBlock><authorizedRepresentative>false</authorizedRepresentative><signature><issuerName>Pawtrail Ventures Fund I, L.P.</issuerName><signatureName>/s/ Signer</signatureName><nameOfSigner>Signer</nameOfSigner><signatureTitle>CEO</signatureTitle><signatureDate>2025-11-14</signatureDate></signature></signatureBlock>
+  </offeringData>
+</edgarSubmission>

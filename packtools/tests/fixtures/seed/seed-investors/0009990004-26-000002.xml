@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<edgarSubmission xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <schemaVersion>X0708</schemaVersion>
+  <submissionType>D</submissionType>
+  <testOrLive>LIVE</testOrLive>
+  <primaryIssuer>
+    <cik>0009990004</cik>
+    <entityName>Snoutwell Inc.</entityName>
+    <issuerAddress><street1>100 Example Street</street1><street2>Suite 5</street2><city>Austin</city><stateOrCountry>TX</stateOrCountry><stateOrCountryDescription>X</stateOrCountryDescription><zipCode>00000</zipCode></issuerAddress>
+    <issuerPhoneNumber>555-010-0100</issuerPhoneNumber>
+    <jurisdictionOfInc>DELAWARE</jurisdictionOfInc>
+    <issuerPreviousNameList><value>None</value></issuerPreviousNameList>
+    <edgarPreviousNameList><value>None</value></edgarPreviousNameList>
+    <entityType>Corporation</entityType>
+    <yearOfInc><withinFiveYears>true</withinFiveYears><value>2025</value></yearOfInc>
+  </primaryIssuer>
+  <relatedPersonsList>
+    <relatedPersonInfo><relatedPersonName><firstName>Morgan</firstName><middleName/><lastName>Mockridge</lastName></relatedPersonName><relatedPersonAddress><street1>1 Example Street</street1><city>Austin</city><stateOrCountry>TX</stateOrCountry><stateOrCountryDescription>X</stateOrCountryDescription><zipCode>00000</zipCode></relatedPersonAddress><relatedPersonRelationshipList><relationship>Executive Officer</relationship><relationship>Director</relationship></relatedPersonRelationshipList><relationshipClarification/></relatedPersonInfo>
+    <relatedPersonInfo><relatedPersonName><firstName>Riley</firstName><middleName/><lastName>Samplewood</lastName></relatedPersonName><relatedPersonAddress><street1>1 Example Street</street1><city>Austin</city><stateOrCountry>TX</stateOrCountry><stateOrCountryDescription>X</stateOrCountryDescription><zipCode>00000</zipCode></relatedPersonAddress><relatedPersonRelationshipList><relationship>Director</relationship></relatedPersonRelationshipList><relationshipClarification/></relatedPersonInfo>
+    </relatedPersonsList>
+  <offeringData>
+    <industryGroup><industryGroupType>Other Technology</industryGroupType></industryGroup>
+    <issuerSize><revenueRange>Decline to Disclose</revenueRange></issuerSize>
+    <federalExemptionsExclusions><item>06b</item></federalExemptionsExclusions>
+    <typeOfFiling><newOrAmendment><isAmendment>false</isAmendment></newOrAmendment><dateOfFirstSale><value>2026-07-15</value></dateOfFirstSale></typeOfFiling>
+    <durationOfOffering><moreThanOneYear>false</moreThanOneYear></durationOfOffering>
+    <typesOfSecuritiesOffered><isOtherType>true</isOtherType><descriptionOfOtherType>Simple Agreement for Future Equity</descriptionOfOtherType></typesOfSecuritiesOffered>
+    <businessCombinationTransaction><isBusinessCombinationTransaction>false</isBusinessCombinationTransaction></businessCombinationTransaction>
+    <minimumInvestmentAccepted>0</minimumInvestmentAccepted>
+    <salesCompensationList/>
+    <offeringSalesAmounts><totalOfferingAmount>1500000</totalOfferingAmount><totalAmountSold>900000</totalAmountSold><totalRemaining>600000</totalRemaining><clarificationOfResponse/></offeringSalesAmounts>
+    <investors><hasNonAccreditedInvestors>false</hasNonAccreditedInvestors><totalNumberAlreadyInvested>11</totalNumberAlreadyInvested></investors>
+    <salesCommissionsFindersFees><salesCommissions><dollarAmount>0</dollarAmount></salesCommissions><findersFees><dollarAmount>0</dollarAmount></findersFees></salesCommissionsFindersFees>
+    <useOfProceeds><grossProceedsUsed><dollarAmount>0</dollarAmount></grossProceedsUsed></useOfProceeds>
+    <signatureBlock><authorizedRepresentative>false</authorizedRepresentative><signature><issuerName>Snoutwell Inc.</issuerName><signatureName>/s/ Signer</signatureName><nameOfSigner>Signer</nameOfSigner><signatureTitle>CEO</signatureTitle><signatureDate>2026-08-03</signatureDate></signature></signatureBlock>
+  </offeringData>
+</edgarSubmission>

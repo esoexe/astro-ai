@@ -1,0 +1,9 @@
+SAFE SIDE LETTER (SYNTHETIC EXAMPLE)
+
+Invented for testing seed-terms: Leashly, Inc. and Harbor Seed Fund are fictional.
+
+Post-money valuation cap: $10,000,000. Discount: none.
+
+Most Favored Nation: If, before this SAFE converts, the Company issues another SAFE or convertible note with a lower valuation cap or a better discount, the Investor may elect to amend this SAFE to match those terms.
+
+Pro Rata: The Investor may buy its pro rata share of the next priced round.

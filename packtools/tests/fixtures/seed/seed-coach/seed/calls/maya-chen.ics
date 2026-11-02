@@ -1,0 +1,12 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//seed-skill//closer//EN
+BEGIN:VEVENT
+UID:maya-chen-20261105@leashly.example
+DTSTAMP:20261102T120000Z
+DTSTART:20261105T150000Z
+DTEND:20261105T153000Z
+SUMMARY:Leashly x Northlight Ventures: intro call
+LOCATION:Google Meet https://meet.google.com/abc-defg-hij
+END:VEVENT
+END:VCALENDAR

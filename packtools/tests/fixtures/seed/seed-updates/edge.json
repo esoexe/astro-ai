@@ -1,0 +1,20 @@
+{
+  "_about": "Synthetic metrics for the edge cases: a raise landing (money_in), a month with an explicit net_burn, a gap month, a metric that starts later, a percent metric that does not move.",
+  "company": "Edge Co",
+  "currency": "USD",
+  "metrics": [
+    {"key": "revenue", "label": "Revenue", "unit": "usd"},
+    {"key": "users", "label": "Users", "unit": "count"},
+    {"key": "churn", "label": "Churn", "unit": "pct", "better": "down"},
+    {"key": "nps", "label": "NPS", "unit": "count"}
+  ],
+  "headline": ["revenue", "users"],
+  "months": [
+    {"month": "2026-12", "values": {"revenue": 1000, "users": 100, "churn": 5}, "cash": 50000},
+    {"month": "2027-01", "values": {"revenue": 0, "users": 120, "churn": 5}, "cash": 44000},
+    {"month": "2027-02", "values": {"revenue": 1500, "users": 150, "churn": 4.5, "nps": 41}, "cash": 538000, "money_in": 500000},
+    {"month": "2027-03", "values": {"revenue": 1500, "users": 180, "churn": 4.5, "nps": 44}, "cash": 531000, "net_burn": 7500},
+    {"month": "2027-05", "values": {"revenue": 2000, "users": 200, "churn": 4}, "cash": 520000},
+    {"month": "2027-06", "values": {"revenue": 2600, "users": 230, "churn": 3.5}, "cash": 523000, "tldr": "Cash went up in June.", "highlights": ["First month in the black."], "lowlights": ["Support backlog grew."], "asks": ["Intros to two design partners."]}
+  ]
+}

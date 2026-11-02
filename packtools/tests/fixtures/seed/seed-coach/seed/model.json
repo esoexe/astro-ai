@@ -1,0 +1,12 @@
+{
+  "created_by": "seed-model", "note": "SYNTHETIC test fixture in the seed-model schema (Leashly, made up).",
+  "assumptions": {"company": "Leashly", "unit": "walk", "price": 25, "take_rate_pct": 15, "cac": 60, "raise": 1500000,
+                  "customers": {"churn_monthly_pct": 7}},
+  "months": [],
+  "summary": {"company": "Leashly", "currency": "USD", "revenue_y1": 467400, "revenue_y2": 1586640, "revenue_y3": 2993520,
+              "breakeven_month": 29, "peak_burn": 82801, "runway_months": 36, "raise": 1500000,
+              "use_of_funds": {"Product and engineering": 600000, "City launches (3 cities)": 450000,
+                               "Marketing": 300000, "Operations and insurance": 150000}},
+  "unit_economics": {"unit": "walk", "price": 25, "take_rate_pct": 15, "revenue_per_order": 3.75, "cost_per_order": 1.525,
+                     "contribution_per_order": 2.225, "cac": 60, "ltv": 254.29, "ltv_cac": 4.24, "cac_payback_months": 3.37}
+}

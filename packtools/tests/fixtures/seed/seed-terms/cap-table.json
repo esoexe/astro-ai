@@ -1,0 +1,12 @@
+{
+  "_about": "SYNTHETIC cap table for seed-terms tests: fictional holders of fictional Leashly, Inc.",
+  "holders": [
+    {"name": "Casey Morgan (founder)", "shares": 6000000},
+    {"name": "Riley Park (co-founder)", "shares": 2000000}
+  ],
+  "pool_unissued": 1000000,
+  "safes": [
+    {"name": "Northlight", "investment": "500k", "cap": "10m"},
+    {"name": "Harbor Seed", "investment": "250k", "cap": "8m", "discount": "20"}
+  ]
+}

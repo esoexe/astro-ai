@@ -1,0 +1,260 @@
+{
+  "created_by": "seed-investors",
+  "generated": "2026-10-26",
+  "ask": 1500000,
+  "criteria": {
+    "stage": "seed",
+    "sectors": [
+      "pet care",
+      "marketplaces",
+      "local services",
+      "consumer"
+    ],
+    "geo": [
+      "US"
+    ],
+    "check": {
+      "min": 75000,
+      "max": 750000
+    }
+  },
+  "investors": [
+    {
+      "id": "maya-chen",
+      "name": "Maya Chen",
+      "firm": "Northlight Ventures",
+      "role": "Partner",
+      "email": "maya@northlight.example",
+      "stage": [
+        "pre-seed",
+        "seed"
+      ],
+      "check_min": 250000,
+      "check_max": 1000000,
+      "sectors": [
+        "pet care",
+        "consumer marketplaces"
+      ],
+      "geo": [
+        "US"
+      ],
+      "last_relevant_deal": {
+        "what": "led the second of her two pet-care seed rounds",
+        "date": "2026-04-13"
+      },
+      "sources": [
+        "https://northlight.example/team/maya-chen",
+        "https://northlight.example/portfolio"
+      ],
+      "warm_intro": true,
+      "personal_line": "Saw you led two pet-care seed rounds, so you know the 20% fee problem better than anyone.",
+      "notes": "FICTIONAL example from the reel. Intro through a founder she backed.",
+      "fit": 96,
+      "reasons": [
+        "invests at seed (+25)",
+        "sectors match: pet care, marketplaces, consumer (+25)",
+        "checks of $250K-$1M fit the $75K-$750K you want (+20)",
+        "led the second of her two pet-care seed rounds, 196 days ago (+11)",
+        "invests in US (+10)",
+        "warm intro available (+5)"
+      ],
+      "added": "2026-10-26"
+    },
+    {
+      "id": "daniel-okafor",
+      "name": "Daniel Okafor",
+      "firm": "Harbor Seed Fund",
+      "role": "General Partner",
+      "email": "daniel@harborseed.example",
+      "stage": [
+        "seed"
+      ],
+      "check_min": 100000,
+      "check_max": 500000,
+      "sectors": [
+        "local services",
+        "marketplaces",
+        "gig economy"
+      ],
+      "geo": [
+        "US"
+      ],
+      "last_relevant_deal": {
+        "what": "backed a home-services marketplace at seed",
+        "date": "2026-06-28"
+      },
+      "sources": [
+        "https://harborseed.example/team",
+        "https://press.example/harbor-seed-new-fund"
+      ],
+      "warm_intro": false,
+      "personal_line": "Your post on gig-marketplace trust stuck with me, and trust is the whole product here.",
+      "notes": "FICTIONAL example from the reel.",
+      "fit": 93,
+      "reasons": [
+        "invests at seed (+25)",
+        "sectors match: marketplaces, local services (+25)",
+        "checks of $100K-$500K fit the $75K-$750K you want (+20)",
+        "backed a home-services marketplace at seed, 120 days ago (+13)",
+        "invests in US (+10)"
+      ],
+      "added": "2026-10-26"
+    },
+    {
+      "id": "priya-raman",
+      "name": "Priya Raman",
+      "firm": "Kite Hill Capital",
+      "role": "Principal",
+      "email": "priya@kitehill.example",
+      "stage": [
+        "seed",
+        "series a"
+      ],
+      "check_min": 500000,
+      "check_max": 2000000,
+      "sectors": [
+        "consumer subscriptions",
+        "pet care"
+      ],
+      "geo": [
+        "US"
+      ],
+      "last_relevant_deal": {
+        "what": "wrote about hidden fees in pet apps and joined a pet-health seed round",
+        "date": "2026-04-09"
+      },
+      "sources": [
+        "https://kitehill.example/team/priya-raman",
+        "https://kitehill.example/notes/pet-app-fees"
+      ],
+      "warm_intro": false,
+      "personal_line": "You wrote that pet apps hide their fees, and Leashly is built on the opposite.",
+      "notes": "FICTIONAL example from the reel.",
+      "fit": 91,
+      "reasons": [
+        "invests at seed (+25)",
+        "sectors match: pet care, consumer (+25)",
+        "checks of $500K-$2M fit the $75K-$750K you want (+20)",
+        "wrote about hidden fees in pet apps and joined a pet-health seed round, 200 days ago (+11)",
+        "invests in US (+10)"
+      ],
+      "added": "2026-10-26"
+    },
+    {
+      "id": "sam-whitaker",
+      "name": "Sam Whitaker",
+      "firm": "Angel investor",
+      "role": "Ex-founder, pet tech",
+      "email": "sam@whitaker.example",
+      "stage": [
+        "pre-seed",
+        "seed"
+      ],
+      "check_min": 25000,
+      "check_max": 100000,
+      "sectors": [
+        "pet care",
+        "consumer"
+      ],
+      "geo": [
+        "US"
+      ],
+      "last_relevant_deal": {
+        "what": "angel check into a dog-food startup after selling his pet-supplies company",
+        "date": "2026-01-09"
+      },
+      "sources": [
+        "https://whitaker.example/about",
+        "https://press.example/pet-supplies-acquired"
+      ],
+      "warm_intro": false,
+      "personal_line": "As a pet-tech founder yourself, you have seen what a late cancellation does to an owner's week.",
+      "notes": "FICTIONAL example from the reel.",
+      "fit": 89,
+      "reasons": [
+        "invests at seed (+25)",
+        "sectors match: pet care, consumer (+25)",
+        "checks of $25K-$100K fit the $75K-$750K you want (+20)",
+        "angel check into a dog-food startup after selling his pet-supplies company, 290 days ago (+9)",
+        "invests in US (+10)"
+      ],
+      "added": "2026-10-26"
+    },
+    {
+      "id": "elena-brooks",
+      "name": "Elena Brooks",
+      "firm": "Bluebell Ventures",
+      "role": "Partner",
+      "email": "elena@bluebell.example",
+      "stage": [
+        "seed"
+      ],
+      "check_min": 250000,
+      "check_max": 750000,
+      "sectors": [
+        "marketplaces",
+        "local services"
+      ],
+      "geo": [
+        "US"
+      ],
+      "last_relevant_deal": {
+        "what": "led a seed round in a local cleaning marketplace",
+        "date": "2025-10-01"
+      },
+      "sources": [
+        "https://bluebell.example/thesis/trust-in-local-services"
+      ],
+      "warm_intro": false,
+      "personal_line": "Your thesis on trust in local services is exactly the gap a backup walker closes.",
+      "notes": "FICTIONAL example from the reel.",
+      "fit": 87,
+      "reasons": [
+        "invests at seed (+25)",
+        "sectors match: marketplaces, local services (+25)",
+        "checks of $250K-$750K fit the $75K-$750K you want (+20)",
+        "led a seed round in a local cleaning marketplace, 390 days ago (+7)",
+        "invests in US (+10)"
+      ],
+      "added": "2026-10-26"
+    },
+    {
+      "id": "marcus-lee",
+      "name": "Marcus Lee",
+      "firm": "Copperline VC",
+      "role": "Associate",
+      "email": "marcus@copperline.example",
+      "stage": [
+        "seed"
+      ],
+      "check_min": 100000,
+      "check_max": 400000,
+      "sectors": [
+        "consumer",
+        "pet care"
+      ],
+      "geo": [
+        "US"
+      ],
+      "last_relevant_deal": {
+        "what": "two dog-care brands in the portfolio; the latest closed its seed",
+        "date": "2025-07-03"
+      },
+      "sources": [
+        "https://copperline.example/portfolio"
+      ],
+      "warm_intro": false,
+      "personal_line": "With two dog-care brands in your portfolio, you already know these owners.",
+      "notes": "FICTIONAL example from the reel.",
+      "fit": 85,
+      "reasons": [
+        "invests at seed (+25)",
+        "sectors match: pet care, consumer (+25)",
+        "checks of $100K-$400K fit the $75K-$750K you want (+20)",
+        "two dog-care brands in the portfolio; the latest closed its seed, 480 days ago (+5)",
+        "invests in US (+10)"
+      ],
+      "added": "2026-10-26"
+    }
+  ]
+}

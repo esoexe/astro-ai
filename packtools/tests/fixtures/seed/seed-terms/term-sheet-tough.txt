@@ -1,0 +1,37 @@
+SUMMARY OF TERMS FOR A SERIES SEED PREFERRED STOCK FINANCING (SYNTHETIC EXAMPLE)
+
+This document is invented for testing seed-terms. Leashly, Inc. and Quarry Peak Capital are fictional. It is not a real offer and not a template to copy.
+
+Issuer: Leashly, Inc.
+
+Investors: Quarry Peak Capital and other investors approved by the Lead Investor.
+
+Amount: $1,500,000 of Series Seed Preferred Stock.
+
+Pre-Money Valuation: $6,000,000, which includes an available option pool equal to 15% of the post-money fully diluted capitalization, created before the closing and counted in the pre-money.
+
+Liquidation Preference: On a liquidation or a sale of the Company, holders of Series Seed will first receive two times (2x) the Original Purchase Price, plus declared and unpaid dividends, and will then participate with the Common Stock on an as-converted basis in the remaining proceeds.
+
+Dividends: The Series Seed will carry an 8% cumulative dividend, accruing annually and payable before any dividend on the Common Stock.
+
+Anti-dilution: The conversion price of the Series Seed will be subject to a full ratchet adjustment if the Company issues any shares below the Series Seed price.
+
+Redemption: At the election of the holders of a majority of the Series Seed, the Company shall redeem the Series Seed at the Original Purchase Price plus accrued dividends at any time after the fifth anniversary of the closing.
+
+Board of Directors: The Board shall consist of three members: two directors designated by the holders of Series Seed and one director designated by the holders of Common Stock.
+
+Protective Provisions: So long as any Series Seed is outstanding, the Company will not, without the consent of the holders of a majority of the Series Seed: (i) amend the charter; (ii) issue senior securities; (iii) approve the annual budget; (iv) hire or terminate any employee with a salary above $100,000; or (v) incur indebtedness above $50,000.
+
+Pay-to-Play: Any holder of Series Seed who does not buy its full pro rata share of the next financing will have its Series Seed converted to Common Stock.
+
+Drag-Along: Holders of a majority of the Series Seed may require all stockholders to vote in favor of a sale of the Company that they approve.
+
+Pro Rata Rights: The Investors may purchase up to two times their pro rata share of any future financing (super pro rata).
+
+Founder Vesting: All shares held by the founders, including shares already vested, will be subject to a new four-year vesting schedule commencing on the closing, with a one-year cliff.
+
+Most Favored Nation: If the Company issues securities on better terms before the next priced round, the Investors may choose to receive those terms.
+
+No-Shop: For sixty (60) days after signing, the Company will not solicit, encourage or discuss any other financing.
+
+Expiration: This term sheet will expire if not signed by the Company within 48 hours of delivery.

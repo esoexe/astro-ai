@@ -1,0 +1,301 @@
+{
+  "created_by": "seed-plan",
+  "tagline": "Dog walks without the surprise fees.",
+  "brand": {
+    "brand": "#2F6FEB",
+    "ink": "#0E1B33",
+    "accent": "#FFB020"
+  },
+  "sections": [
+    {
+      "key": "executive_summary",
+      "title": "Executive summary",
+      "text": "Leashly is a dog-walking app with one flat price, $25 a walk, and a backup walker on standby for every booking. Owners on the big apps complain about fees and late cancellations. We keep 15% of each walk and charge owners nothing on top. We are raising a $1.5M seed to launch in 3 cities, and the model reaches breakeven in month 29 on this round alone.",
+      "pitch": "Flat $25 walks and a backup walker on every booking.",
+      "points": []
+    },
+    {
+      "key": "problem",
+      "title": "Problem",
+      "text": "Dog owners pay fees on top of fees, and walkers cancel at the last minute. On Rover, 106 of the 341 most recent one and two star reviews mention fees. On Wag!, 81 of 324 mention cancellations. Owners are not asking for a cheaper walk. They are asking for a price they can predict and a walk that happens.",
+      "pitch": "Owners pay fees on top of fees. Walkers cancel last minute.",
+      "points": []
+    },
+    {
+      "key": "solution",
+      "title": "Solution",
+      "text": "One flat price per walk with no owner fee, and a second walker on standby near every booking. If the first walker cancels, the backup takes the walk and the owner gets a text, not an apology.",
+      "pitch": "$25 flat walks. A backup walker on every booking.",
+      "points": [
+        "No owner fee, ever",
+        "A backup walker on standby",
+        "Live tracking and photos"
+      ]
+    },
+    {
+      "key": "market",
+      "title": "Market",
+      "text": "71 million US homes have a dog. Top-down, if 10% of them pay for walks at $1,200 a year, US dog walking is a $8.5B market. Our 3 launch metros hold about 1.9 million dog homes: a $228M serviceable market. Winning 10% of it in three years is a $22.8M obtainable market.",
+      "pitch": "$158B US pet spend (2025). 71M US homes have a dog.",
+      "points": []
+    },
+    {
+      "key": "competition",
+      "title": "Competition",
+      "text": "Rover (4.9 stars, 515,771 ratings) and Wag! (4.8 stars, 67,447 ratings) are loved for choice. Their own low reviews say what is broken: fees on Rover, cancellations on Wag!. Leashly answers both with one flat price and a backup walker.",
+      "pitch": "Rover: fees. Wag!: cancellations.",
+      "points": []
+    },
+    {
+      "key": "business_model",
+      "title": "Business model",
+      "text": "Owners pay $25 a walk and nothing on top. Leashly keeps 15% ($3.75) and pays the card fees and the backup walker's standby fee out of it, which leaves $2.23 a walk. An owner books about 8 walks a month, so a $60 customer pays back in 3.37 months and is worth $254.29 over its life: 4.24x what it cost to win.",
+      "pitch": "15% take rate. No owner fee.",
+      "points": []
+    },
+    {
+      "key": "go_to_market",
+      "title": "Go-to-market",
+      "text": "Launch one city at a time: Austin first, then a second metro in month 5 and a third in month 9. Each launch starts where dog owners already are: dog parks, vets and groomers, with a free first walk. Walkers come from local dog-sitting groups and pet stores.",
+      "pitch": "Launch in 3 cities, dog parks + vets.",
+      "points": [
+        "City 2 in month 5, city 3 in month 9",
+        "A free first walk at dog parks and vets",
+        "Walkers from local pet communities"
+      ]
+    },
+    {
+      "key": "financial_plan",
+      "title": "Financial plan",
+      "text": "The model starts from the 210 owners in our pilot and adds 150 new owners in month 1, growing 10% a month in year one. Revenue grows from $467,400 in year one to $2,993,520 in year three. Monthly burn peaks at $82,801 when the second city opens, and the business breaks even in month 29 with $252,553 still in the bank at the low point.",
+      "pitch": "Breakeven in month 29 on the seed alone.",
+      "points": []
+    },
+    {
+      "key": "use_of_funds",
+      "title": "Use of funds",
+      "text": "Most of the raise goes to product and engineering and to the three city launches. The rest pays for marketing at the launches and for operations and walker insurance. The raise carries the plan through breakeven without a second round.",
+      "pitch": "$1.5M seed to launch in 3 cities.",
+      "points": []
+    }
+  ],
+  "team": [
+    {
+      "name": "Your Name",
+      "role": "Founder and CEO",
+      "line": "Ran the Austin pilot with 210 owners"
+    },
+    {
+      "name": "Your Co-founder",
+      "role": "Founder and CTO",
+      "line": "Built the booking and backup-walker matching"
+    }
+  ],
+  "numbers": {
+    "currency": "USD",
+    "raise": 1500000,
+    "instrument": "post-money SAFE",
+    "stage": "seed",
+    "unit_economics": {
+      "unit": "walk",
+      "units": "walks",
+      "price": 25,
+      "take_rate_pct": 15,
+      "revenue_per_order": 3.75,
+      "cost_per_order": 1.525,
+      "costs": [
+        {
+          "label": "card processing (2.9% + $0.30)",
+          "amount": 1.025
+        },
+        {
+          "label": "backup walker on standby",
+          "amount": 0.5
+        }
+      ],
+      "contribution_per_order": 2.225,
+      "orders_per_customer_month": 8,
+      "contribution_per_customer_month": 17.8,
+      "churn_monthly_pct": 7,
+      "cac": 60,
+      "ltv": 254.29,
+      "ltv_cac": 4.24,
+      "cac_payback_months": 3.37
+    },
+    "financials": {
+      "months": 36,
+      "start_month": "2027-01",
+      "end_month": "2029-12",
+      "revenue_y1": 467400,
+      "revenue_y2": 1586640,
+      "revenue_y3": 2993520,
+      "gmv_y1": 3116000,
+      "gmv_y2": 10577600,
+      "gmv_y3": 19956800,
+      "breakeven_month": 29,
+      "breakeven_date": "2029-05",
+      "peak_burn": 82801,
+      "peak_burn_month": 5,
+      "runway_months": 36,
+      "cash_out_month": null,
+      "cash_low": 252553,
+      "cash_low_month": 28,
+      "cash_end": 390085.6,
+      "customers_end": 9999,
+      "years": [
+        {
+          "year": 1,
+          "orders": 124640,
+          "gmv": 3116000,
+          "revenue": 467400,
+          "gross_profit": 277324,
+          "opex": 957800,
+          "net": -680476,
+          "cash_end": 819524,
+          "customers_end": 2490
+        },
+        {
+          "year": 2,
+          "orders": 423104,
+          "gmv": 10577600,
+          "revenue": 1586640,
+          "gross_profit": 941406.4,
+          "opex": 1467120,
+          "net": -525713.6,
+          "cash_end": 293810.4,
+          "customers_end": 6200
+        },
+        {
+          "year": 3,
+          "orders": 798272,
+          "gmv": 19956800,
+          "revenue": 2993520,
+          "gross_profit": 1776155.2,
+          "opex": 1679880,
+          "net": 96275.2,
+          "cash_end": 390085.6,
+          "customers_end": 9999
+        }
+      ]
+    },
+    "model_raise": 1500000,
+    "use_of_funds": {
+      "Product and engineering": 600000,
+      "City launches (3 cities)": 450000,
+      "Marketing": 300000,
+      "Operations and insurance": 150000
+    },
+    "use_of_funds_pct": {
+      "Product and engineering": 40,
+      "City launches (3 cities)": 30,
+      "Marketing": 20,
+      "Operations and insurance": 10
+    },
+    "market": {
+      "method": "top-down",
+      "currency": "USD",
+      "tam": 8520000000,
+      "sam": 228000000,
+      "som": 22800000,
+      "inputs": [
+        {
+          "name": "US homes with a dog",
+          "value": 71000000,
+          "unit": "homes",
+          "source": "APPA 2026 State of the Industry report, americanpetproducts.org",
+          "kind": "publication",
+          "level": "tam"
+        },
+        {
+          "name": "Share of dog homes that pay for walks",
+          "value": 10,
+          "unit": "%",
+          "source": "assumption: the Leashly pilot survey (fictional)",
+          "kind": "assumption",
+          "level": "tam"
+        },
+        {
+          "name": "Walking spend per paying home a year",
+          "value": 1200,
+          "unit": "USD",
+          "source": "assumption: 4 walks a month at $25",
+          "kind": "assumption",
+          "level": "tam"
+        },
+        {
+          "name": "Dog homes in the 3 launch metros",
+          "value": 1900000,
+          "unit": "homes",
+          "source": "assumption: three metros picked for the launch (fictional)",
+          "kind": "assumption",
+          "level": "sam"
+        },
+        {
+          "name": "Share of the SAM won in 3 years",
+          "value": 10,
+          "unit": "%",
+          "source": "assumption: the founder's 3-year target",
+          "kind": "assumption",
+          "level": "som"
+        },
+        {
+          "name": "US pet industry spend, 2025",
+          "value": 158000000000,
+          "unit": "USD",
+          "source": "APPA 2026 State of the Industry report, americanpetproducts.org",
+          "kind": "publication",
+          "level": "context"
+        }
+      ],
+      "notes": [
+        "TAM = 71M dog homes x 10% x $1,200.",
+        "SAM = 1.9M dog homes in the launch metros x 10% x $1,200.",
+        "SOM = 10% of the SAM."
+      ]
+    },
+    "competitors": [
+      {
+        "name": "Rover",
+        "rating": 4.9,
+        "ratings": 515771,
+        "reviews_read": 500,
+        "low_reviews": 341,
+        "top_theme": "fees",
+        "top_label": "fees and pricing",
+        "top_count": 106,
+        "weak_point": "fees and pricing",
+        "source": "https://itunes.apple.com/us/rss/customerreviews/page=1/id=547320928/sortby=mostrecent/json"
+      },
+      {
+        "name": "Wag!",
+        "rating": 4.8,
+        "ratings": 67447,
+        "reviews_read": 500,
+        "low_reviews": 324,
+        "top_theme": "cancellations",
+        "top_label": "cancellations and no-shows",
+        "top_count": 81,
+        "weak_point": "cancellations and no-shows",
+        "source": "https://itunes.apple.com/us/rss/customerreviews/page=1/id=940734609/sortby=mostrecent/json"
+      }
+    ],
+    "competitors_generated": "2026-10-25",
+    "low_stars": 2
+  },
+  "flags": [],
+  "notes": [],
+  "built": "2026-10-26",
+  "startup": {
+    "name": "Leashly",
+    "one_liner": "A dog-walking app with flat prices and a backup walker on every walk",
+    "sector": "pet care marketplace",
+    "stage": "seed",
+    "geography": "United States",
+    "raise": 1500000,
+    "instrument": "post-money SAFE"
+  },
+  "founder": {
+    "name": "Your Name",
+    "email": "you@leashly.example"
+  }
+}

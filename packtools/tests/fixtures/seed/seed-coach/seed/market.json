@@ -1,0 +1,72 @@
+{
+  "created_by": "seed-market",
+  "generated": "2026-10-26",
+  "method": "top-down TAM, bottom-up SAM, SOM 2.5% of SAM in 3 years",
+  "tam": 17040000000,
+  "sam": 960000000,
+  "som": 24000000,
+  "currency": "USD",
+  "inputs": [
+    {
+      "name": "US homes with a dog",
+      "value": 71000000,
+      "unit": "count",
+      "source": "APPA 2026 State of the Industry report (americanpetproducts.org)",
+      "kind": "publication",
+      "level": "tam"
+    },
+    {
+      "name": "share that pays for dog walking",
+      "value": 10,
+      "unit": "%",
+      "source": "assumption: about 1 in 10 dog homes pays for walks; check with a survey",
+      "kind": "assumption",
+      "level": "tam"
+    },
+    {
+      "name": "spend a year each",
+      "value": 2400,
+      "unit": "USD a year",
+      "source": "assumption: 8 walks a month at the 25 dollar price",
+      "kind": "assumption",
+      "level": "tam"
+    },
+    {
+      "name": "customers you can reach",
+      "value": 400000,
+      "unit": "count",
+      "source": "assumption: launch-city dog homes x 1 in 10",
+      "kind": "assumption",
+      "level": "sam"
+    },
+    {
+      "name": "walks a year per customer",
+      "value": 96,
+      "unit": "per year",
+      "source": "assumption: 8 walks a month",
+      "kind": "assumption",
+      "level": "sam"
+    },
+    {
+      "name": "price per walk",
+      "value": 25,
+      "unit": "USD",
+      "source": "Leashly pricing, 25 dollars a walk",
+      "kind": "publication",
+      "level": "sam"
+    }
+  ],
+  "notes": [],
+  "methods": {
+    "tam": "top-down",
+    "sam": "bottom-up"
+  },
+  "formulas": {
+    "tam": "71,000,000 US homes with a dog x 10% x $2,400 = $17,040,000,000",
+    "sam": "400,000 customers you can reach x 96 walks a year x $25 = $960,000,000",
+    "som": "2.5% of SAM $960,000,000 = $24,000,000"
+  },
+  "som_share_pct": 2.5,
+  "som_years": 3,
+  "som_reason": "Owners leaving Rover over fees and Wag over cancellations switch to flat walks"
+}

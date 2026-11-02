@@ -1,0 +1,16 @@
+{
+  "created_by": "seed-market",
+  "generated": "2026-10-26",
+  "method": "top-down TAM, bottom-up SAM",
+  "tam": 500000000,
+  "sam": 960000000,
+  "som": null,
+  "currency": "USD",
+  "inputs": [
+    {"name": "dog homes in the city", "value": 50000, "unit": "count", "source": "google", "kind": "publication", "level": "tam"},
+    {"name": "share that pays for walks", "value": 100, "unit": "%", "source": "assumption: every home pays for walks", "kind": "assumption", "level": "tam"},
+    {"name": "spend a year", "value": 10000, "unit": "USD a year", "source": "TBD", "kind": "publication", "level": "tam"},
+    {"name": "paying homes", "value": 400000, "unit": "count", "source": "assumption: synthetic test value for the check", "kind": "assumption", "level": "sam"}
+  ],
+  "notes": []
+}

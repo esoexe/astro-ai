@@ -1,0 +1,26 @@
+{
+  "_about": "SYNTHETIC test config for seed-closer: Leashly and its founder Casey Morgan are fictional, every address is on a reserved .example domain.",
+  "startup": {
+    "name": "Leashly",
+    "one_liner": "A dog-walking app with flat prices and a backup walker on every walk",
+    "tagline": "Dog walks without the surprise fees",
+    "sector": "pet care marketplace",
+    "stage": "seed",
+    "geography": "United States",
+    "raise": 1500000,
+    "instrument": "post-money SAFE"
+  },
+  "founder": {
+    "name": "Casey Morgan",
+    "title": "Founder",
+    "email": "casey@leashly.example",
+    "company_address": "100 Example Street, Austin, TX 78701"
+  },
+  "sec_user_agent": "Casey Morgan casey@leashly.example",
+  "outreach": {
+    "daily_cap": 20,
+    "followup_days": [3, 7],
+    "max_touches": 3,
+    "business_days": true
+  }
+}
