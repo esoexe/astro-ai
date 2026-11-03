@@ -1579,8 +1579,8 @@
       "id": "astro-motion",
       "kind": "plugin",
       "name": "Motion Pack (Astro Pack)",
-      "summary": "The 8 official GSAP skills from GreenSock: core tweens and easing, timelines, ScrollTrigger scroll stories, plugins (Flip, SplitText, MorphSVG, Draggable, ScrollSmoother), utilities, React, Vue, Svelte and Nuxt, and performance.",
-      "publisher": "Community: adapted from GreenSock (MIT)",
+      "summary": "The 8 official GSAP skills from GreenSock (core, timelines, ScrollTrigger, plugins, utilities, React, Vue, Svelte, Nuxt, performance) plus a StringTune skill: CSS-first smooth scroll and attribute-driven effects from Fiddle.Digital.",
+      "publisher": "Community: adapted from GreenSock (MIT), StringTune skill by the Astro AI team",
       "homepage": "https://github.com/greensock/gsap-skills",
       "license": "MIT",
       "tags": [
@@ -1589,7 +1589,10 @@
         "gsap",
         "scroll",
         "design",
-        "frontend"
+        "frontend",
+        "stringtune",
+        "smooth-scroll",
+        "parallax"
       ],
       "runs": "none",
       "permissions": [],
@@ -1600,7 +1603,7 @@
         "author": "GreenSock",
         "commit": "aed9cfd3277740755f6bfc1155c7aa645403b760"
       },
-      "caveats": "Motion should explain something, not decorate everything; every skill covers prefers-reduced-motion. GSAP and its plugins are free, including for commercial use."
+      "caveats": "Motion should explain something, not decorate everything; every skill covers prefers-reduced-motion. GSAP and its plugins are free, including for commercial use. StringTune is a separate library, not a GSAP plugin; the skill matches StringTune 1.2.x."
     }
   ]
 }

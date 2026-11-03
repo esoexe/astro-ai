@@ -6,6 +6,11 @@ Only the skills/*/SKILL.md files are included; examples, assets, llms.txt and ot
 
 This pack is not made or endorsed by GreenSock or Webflow. Report problems with the A.S.T.R.O AI version to https://github.com/esoexe/astro-ai/issues.
 
+The **stringtune** skill (skills/stringtune) is original text written by the A.S.T.R.O AI team. It describes
+StringTune by Fiddle.Digital (npm @fiddle-digital/string-tune, MIT License, Copyright (c) 2023 Fiddle-Digital),
+using facts from its public documentation at https://tune.fiddle.digital/docs. No StringTune code or documentation
+text is included. This skill is not made or endorsed by Fiddle.Digital.
+
 ---
 
 MIT License

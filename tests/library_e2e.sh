@@ -66,6 +66,7 @@ r=$(call install '{"id":"21st-magic","inputs":{"TWENTY_FIRST_API_KEY":"k21test"}
 r=$(call install '{"id":"astro-design"}');               has "$r" '"ok":true' && [ -f "$EXT/plugins/astro-design/skills/ui-ux-pro-max/data/styles.csv" ] && [ -f "$EXT/plugins/astro-design/skills/ui-ux-pro-max/data/stacks/react.csv" ] && ok "Design Pack installed with its data" || bad "astro-design: $r"
 grep -q 'ASTRO_TOOL} ui-ux-pro-max/search' "$EXT/plugins/astro-design/skills/ui-ux-pro-max/SKILL.md" && ! grep -q 'python' "$EXT/plugins/astro-design/skills/ui-ux-pro-max/SKILL.md" && ok "UUPM skill calls the built-in search, no Python" || bad "uupm skill text"
 r=$(call install '{"id":"astro-3d"}');                   has "$r" '"ok":true' && [ -f "$EXT/plugins/astro-3d/skills/threejs-shaders/SKILL.md" ] && ok "3D Pack installed" || bad "astro-3d: $r"
+r=$(call install '{"id":"astro-motion"}');               has "$r" '"ok":true' && [ -f "$EXT/plugins/astro-motion/skills/stringtune/SKILL.md" ] && [ -f "$EXT/plugins/astro-motion/skills/stringtune/references/modules.md" ] && grep -q 'not GSAP' "$EXT/plugins/astro-motion/skills/stringtune/SKILL.md" && ok "Motion Pack installed with the StringTune skill" || bad "astro-motion: $r"
 r=$(call installed '{}');                               has "$r" '"git-flow"' && ok "receipts listed" || bad "installed: $r"
 # Uninstall removes only our files.
 echo "my notes" > "$EXT/plugins/git-flow/NOTES.md"

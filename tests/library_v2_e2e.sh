@@ -40,6 +40,7 @@ const det = {
   'p1-acme-plugin': { k: 'plugin', n: 'p1', repo: 'acme/plugins', c: C, dir: 'p1', f: plugFiles },
   'some-app': { k: 'tool', t: 'link', n: 'Some app', url: 'https://example.com' },
   'cli-unpinned': { k: 'tool', t: 'npm', n: 'cli', pkg: 'left-pad', bins: ['x'] },
+  'theme-acme-vsx': { k: 'plugin', t: 'vsx', n: 'Theme', vsx: 'acme.theme', ns: 'acme', name: 'theme', v: '1.0.0', web: 'https://open-vsx.org/extension/acme/theme' },
 };
 const buckets = {};
 for (const [id, d] of Object.entries(det)) { const hh = sha(id).slice(0, 2); (buckets[hh] = buckets[hh] || {})[id] = d; }
@@ -94,6 +95,7 @@ grep -q 'example.com/mcp' "$P/.mcp.json" && ! grep -q '"command"' "$P/.mcp.json"
 ! grep -q hooks "$P/.claude-plugin/plugin.json" && ok "plugin hooks stripped" || bad "plugin hooks"
 r=$(call install '{"id":"some-app"}');                     has "$r" 'not something to install' && ok "app links are not installable" || bad "app: $r"
 r=$(call install '{"id":"cli-unpinned"}');                 has "$r" 'pinned' && ok "unpinned CLI refused" || bad "cli: $r"
+r=$(call install '{"id":"theme-acme-vsx"}');               has "$r" 'Code tool' && [ ! -e "$TMP/data/ext/plugins/theme-acme-vsx" ] && ok "Open VSX entry sent to the Code tool, nothing installed" || bad "vsx: $r"
 r=$(call install '{"id":"nothing-here"}');                 has "$r" 'not in the A.S.T.R.O AI Library' && ok "unknown id refused" || bad "unknown: $r"
 r=$(call uninstall '{"id":"hello-acme"}');                 has "$r" '"ok":true' && [ ! -e "$EXT/skills/hello-acme" ] && ok "community skill uninstalled" || bad "uninstall: $r"
 r=$(call uninstall '{"id":"remote-one"}');                 has "$r" '"ok":true' && ! grep -q 'remote-one' "$EXT/mcp.json" && ok "community MCP uninstalled" || bad "uninstall mcp: $r"

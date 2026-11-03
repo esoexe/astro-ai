@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 // Builds the community catalog of the Astro AI Library (schema 2): every MCP server in the official MCP Registry,
-// Agent Skills and Claude Code plugins found in public GitHub repos, installable AI command-line tools and a
-// directory of AI apps. The website serves the result as static files and Astro AI Desktop installs from it.
+// MCP servers published on npm and as Hugging Face Spaces, MCP projects tagged on GitHub, Docker's mcp/ images,
+// Agent Skills and Claude Code plugins found in public GitHub repos, Open VSX editor extensions, installable AI
+// command-line tools and a directory of AI apps. The website serves the result as static files and Astro AI Desktop
+// installs from it. Only public APIs are used, robots.txt is respected (PyPI's JSON and simple APIs are disallowed
+// for crawlers, so PyPI is not bulk-indexed) and every count is real: nothing is padded or duplicated.
 //
-//   node library/import/index_all.js <out-dir> [--reviewed <index.json>] [--max-repos N] [--only mcp,skills,tools,apps]
+//   node library/import/index_all.js <out-dir> [--reviewed <index.json>] [--max-repos N]
+//        [--only mcp,npm,hf,docker,openvsx,skills,ghmcp,tools,apps] [--budget-min M] [--search-min M] [--npm-min M]
 //
 // Output (<out-dir> is normally dist/library/v2):
 //   manifest.json                  counts, the shard files of each kind and where the data came from
@@ -23,7 +27,17 @@ const OUT = argv[0] && !argv[0].startsWith('--') ? path.resolve(argv[0]) : path.
 const SOURCES = JSON.parse(fs.readFileSync(path.join(__dirname, 'sources.json'), 'utf8'));
 const CLI = JSON.parse(fs.readFileSync(path.join(__dirname, 'cli_tools.json'), 'utf8'));
 const MAX_REPOS = Number(opt('max-repos', SOURCES.max_repos || 2500));
-const ONLY = new Set((opt('only', 'mcp,skills,tools,apps')).split(','));
+const ONLY = new Set((opt('only', 'mcp,npm,hf,docker,openvsx,skills,ghmcp,tools,apps')).split(','));
+const T_START = Date.now();
+const BUDGET_END = T_START + Number(opt('budget-min', 300)) * 60000;
+// Service bases (overridable so the tests can point them at a local fake server).
+const NPM = process.env.ASTRO_IDX_NPM || 'https://registry.npmjs.org';
+const HF = process.env.ASTRO_IDX_HF || 'https://huggingface.co';
+const OVSX = process.env.ASTRO_IDX_OVSX || 'https://open-vsx.org';
+const DHUB = process.env.ASTRO_IDX_DOCKER || 'https://hub.docker.com';
+const GHAPI = process.env.ASTRO_IDX_GHAPI || 'https://api.github.com';
+const DELAY = process.env.ASTRO_IDX_DELAY_SCALE != null ? Number(process.env.ASTRO_IDX_DELAY_SCALE) : 1;   // tests set 0
+const pause = (ms) => sleep(ms * DELAY);
 const LIVE = opt('live', 'https://esoexe.github.io/astro-ai/library/v2/');
 const CACHE = path.resolve(opt('cache', path.join(os.tmpdir(), 'astro-lib-git')));
 const CONC = Number(opt('jobs', 8));
@@ -35,18 +49,25 @@ const log = (...a) => console.log('[library]', ...a);
 const clip = (s, n) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s; };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function get(url, { json = true, tries = 4, timeout = 30000 } = {}) {
+async function get(url, { json = true, tries = 4, timeout = 30000, headers = {}, meta = null } = {}) {
   let last;
   for (let i = 0; i < tries; i++) {
     try {
-      const r = await fetch(url, { headers: { 'User-Agent': UA, Accept: json ? 'application/json' : '*/*' }, signal: AbortSignal.timeout(timeout) });
+      const r = await fetch(url, { headers: { 'User-Agent': UA, Accept: json ? 'application/json' : '*/*', ...headers }, signal: AbortSignal.timeout(timeout) });
       if (r.status === 404) return null;
+      if (r.status === 429) { await sleep(Math.min(120000, (Number(r.headers.get('retry-after')) || 20) * 1000)); throw new Error('HTTP 429'); }
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      if (meta) meta.headers = r.headers;
       return json ? await r.json() : await r.text();
     } catch (e) { last = e; await sleep(800 * (i + 1)); }
   }
   throw new Error(`${url}: ${last && last.message}`);
 }
+// "Safe and clean": adult content, jailbreaks and malware never enter the catalog, whatever the source.
+const UNSAFE = /\b(nsfw|porn\w*|hentai|nud(?:e|es|ity|ify)|undress\w*|deep-?nude|erotic\w*|onlyfans|sex|sexy|sexual|xxx|uncensored|jailbreak\w*|keylogger|info-?stealer|stealer|ransomware|botnet|ddos|carding)\b/i;
+const safeText = (...t) => !UNSAFE.test(t.filter(Boolean).join(' ').replace(/[-_]+/g, ' '));
+const ghKey = (u) => { const m = /github\.com[/:]([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)/.exec(String(u || '')); return m ? `${m[1]}/${m[2].replace(/\.git$/, '')}`.toLowerCase() : ''; };
+const COVERED = new Set();   // github owner/repo (lower) of MCP servers already listed from a richer source
 async function pool(items, n, fn) {
   let i = 0; const out = new Array(items.length);
   await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (i < items.length) { const k = i++; out[k] = await fn(items[k], k); } }));
@@ -74,7 +95,11 @@ const rows = { mcp: [], skill: [], plugin: [], tool: [] };
 const details = new Map();
 const sourcesUsed = [];
 const STATE = { repos: {}, ids: {} };
-const add = (kind, row, det) => { rows[kind].push(row); details.set(row[0], det); };
+let blocked = 0;
+const add = (kind, row, det) => {
+  if (!det.reviewed && !safeText(row[0], row[1], row[2])) { blocked++; return false; }
+  rows[kind].push(row); details.set(row[0], det); return true;
+};
 
 // ------------------------------------------------------------------ reviewed items (schema 1 index)
 function addReviewed(indexPath) {
@@ -151,6 +176,7 @@ function mcpRemoteSpec(r, inputs) {
   }
   return { t: r.type === 'sse' ? 'sse' : 'http', url, headers };
 }
+const REG_PKGS = new Set();   // "npm:<name>", "oci:<image>" already listed by the registry
 async function importMcp() {
   const base = SOURCES.mcp_registry;
   const all = new Map();
@@ -182,16 +208,17 @@ async function importMcp() {
     if (!spec && sse) { inputs.length = 0; spec = mcpRemoteSpec(sse, inputs); }
     const repo = s.repository && s.repository.url;
     const web = s.websiteUrl || repo || '';
+    if (ghKey(repo)) COVERED.add(ghKey(repo));
+    for (const p of s.packages || []) if (p.identifier) REG_PKGS.add(p.registryType + ':' + String(p.identifier).toLowerCase().replace(/^docker\.io\//, ''));
     const id = makeId(short && owner && !short.toLowerCase().includes(owner.toLowerCase()) ? `${owner}-${short}` : short || owner, 'mcp:' + name);
     const flags = (spec ? spec.t === 'http' ? 'h' : spec.t === 'sse' ? 'e' : spec.cmd === 'npx' ? 'n' : spec.cmd === 'uvx' ? 'p' : 'd' : 'l')
       + (meta.status === 'deprecated' ? 'x' : '')
       + ((spec && ((spec.env || []).some((x) => x.secret && x.req) || (spec.headers || []).some((x) => x.secret))) ? 's' : '');
     const title = s.title || short || name;
-    add('mcp', [id, clip(title, 70), clip(s.description, 140), owner || ns, flags, '', s.version || ''], {
+    if (add('mcp', [id, clip(title, 70), clip(s.description, 140), owner || ns, flags, '', s.version || ''], {
       k: 'mcp', n: clip(title, 90), d: clip(s.description, 600), v: s.version || '', reg: name, web, repo: repo || undefined,
       st: meta.status && meta.status !== 'active' ? meta.status : undefined, i: spec || undefined, in: inputs.length ? inputs : undefined,
-    });
-    n++;
+    })) n++;
   }
   sourcesUsed.push({ kind: 'mcp', name: 'Official MCP Registry', url: 'https://registry.modelcontextprotocol.io', count: n });
 }
@@ -394,43 +421,97 @@ function reposFromMarkdown(md) {
 }
 
 // GitHub repository search by topic (needs a token: GITHUB_TOKEN in Actions). Search returns at most 1000 results per
-// query, so big topics are split by creation date until each slice fits.
-const TOPICS = ['claude-skills', 'agent-skills', 'claude-code-plugin', 'claude-code-plugins', 'claude-plugin', 'claude-code-skills', 'codex-skills', 'skill-md', 'agentskills', 'claude-code-marketplace', 'claude-skill', 'agent-skill', 'anthropic-skills', 'cursor-skills', 'gemini-skills', 'opencode-skills'];
-async function searchTopics(token, budgetEnd) {
-  const found = new Map();
+// query, so big topics are split by date until each slice fits. Results are kept between builds (state-gh.json):
+// every build asks only for repos pushed since the last build, then continues a full sweep of all topics where the
+// previous build stopped, so the whole of GitHub's topic lists is re-read every few days within the rate limit.
+// Repos not seen by any sweep for 45 days (deleted, made private, topic removed) are dropped.
+const TOPICS = SOURCES.skill_topics || ['claude-skills', 'agent-skills', 'claude-code-plugin'];
+const MCP_TOPICS = SOURCES.mcp_topics || [];
+const GH = { items: {}, npm: {}, sweep: null, inc: null };   // state-gh.json
+const today = () => new Date().toISOString().slice(0, 10);
+async function loadGhState() {
+  if (argv.includes('--fresh')) return;
+  const src = opt('prev', LIVE);
+  let j = null;
+  try {
+    if (/^https?:/.test(src)) j = await get(src + 'state-gh.json', { tries: 2, timeout: 120000 });
+    else if (fs.existsSync(path.join(src, 'state-gh.json'))) j = JSON.parse(fs.readFileSync(path.join(src, 'state-gh.json'), 'utf8'));
+  } catch (e) { log('previous GitHub state unavailable: ' + e.message); }
+  if (j && j.schema === 1) { GH.items = j.items || {}; GH.npm = j.npm || {}; GH.sweep = j.sweep || null; GH.inc = j.inc || null; }
+  log(`GitHub state: ${Object.keys(GH.items).length} repos, ${Object.keys(GH.npm).length} npm packages`);
+}
+function ghTake(it, group) {
+  if (!it || !it.full_name || it.fork || it.archived || it.private) return;
+  const k = it.full_name.toLowerCase();
+  const e = GH.items[k] || (GH.items[k] = { g: 0 });
+  e.r = it.full_name; e.s = it.stargazers_count || 0; e.p = it.pushed_at || e.p; e.g |= group; e.seen = today();
+  e.d = clip(it.description || '', 200) || undefined;
+  e.h = /^https:\/\/[^\s"'<>]+$/.test(it.homepage || '') ? String(it.homepage).slice(0, 200) : undefined;
+  e.l = it.license && it.license.spdx_id && it.license.spdx_id !== 'NOASSERTION' ? it.license.spdx_id : undefined;
+  const tp = (it.topics || []).filter((t) => !/^(mcp|mcp-server|model-context-protocol|ai|claude|llm)$/.test(t)).slice(0, 4);
+  e.t = tp.length ? tp.join(',') : undefined;
+}
+async function searchTopics(token, searchEnd) {
   let last = 0, calls = 0;
   const call = async (q, page) => {
-    const wait = last + 2100 - Date.now(); if (wait > 0) await sleep(wait);
+    const wait = last + 2100 * DELAY - Date.now(); if (wait > 0) await sleep(wait);
     last = Date.now(); calls++;
     for (let attempt = 0; attempt < 5; attempt++) {
-      const r = await fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&per_page=100&page=${page}`, { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'User-Agent': UA, 'X-GitHub-Api-Version': '2022-11-28' }, signal: AbortSignal.timeout(30000) }).catch((e) => ({ ok: false, status: 0, e }));
+      const r = await fetch(`${GHAPI}/search/repositories?q=${encodeURIComponent(q)}&per_page=100&page=${page}`, { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'User-Agent': UA, 'X-GitHub-Api-Version': '2022-11-28' }, signal: AbortSignal.timeout(30000) }).catch((e) => ({ ok: false, status: 0, e }));
       if (r.ok) return r.json();
-      if (r.status === 403 || r.status === 429) { const reset = Number(r.headers.get('x-ratelimit-reset') || 0) * 1000; await sleep(Math.max(5000, Math.min(65000, reset - Date.now() + 1000))); continue; }
+      if (r.status === 403 || r.status === 429) { const reset = Number((r.headers && r.headers.get('x-ratelimit-reset')) || 0) * 1000; await sleep(Math.max(5000, Math.min(65000, reset - Date.now() + 1000))); continue; }
       if (r.status === 422) return { total_count: 0, items: [] };
       await sleep(3000);
     }
     throw new Error('search failed: ' + q);
   };
-  const day = (d) => d.toISOString().slice(0, 10);
-  const slice = async (topic, from, to) => {
-    if (Date.now() > budgetEnd) return;
-    const q = `topic:${topic} created:${day(from)}..${day(to)}`;
+  const iso = (ms) => new Date(ms).toISOString().replace(/\.\d{3}Z$/, 'Z');
+  // Walks [from, to] in ascending order, splitting until every slice has at most 1000 results. Returns false when the
+  // time budget ran out; onLeaf(to) is called after each finished slice so the sweep can resume from there.
+  const walk = async (topic, group, field, from, to, onLeaf) => {
+    if (Date.now() > searchEnd) return false;
+    const q = `topic:${topic} ${field}:${iso(from)}..${iso(to)}`;
     const first = await call(q, 1);
-    if (first.total_count > 1000 && to - from > 86400000) {
-      const mid = new Date(from.getTime() + Math.floor((to - from) / 2 / 86400000) * 86400000);
-      await slice(topic, from, mid); await slice(topic, new Date(mid.getTime() + 86400000), to); return;
+    if (first.total_count > 1000 && to - from > 3600000) {
+      const mid = from + Math.floor((to - from) / 2);
+      if (!(await walk(topic, group, field, from, mid, onLeaf))) return false;
+      return walk(topic, group, field, mid + 1000, to, onLeaf);
     }
-    const take = (j) => { for (const it of j.items || []) if (!it.fork && !it.archived) found.set(it.full_name.toLowerCase(), { repo: it.full_name, stars: it.stargazers_count || 0, pushed: it.pushed_at }); };
-    take(first);
+    for (const it of first.items || []) ghTake(it, group);
     const pages = Math.min(10, Math.ceil(first.total_count / 100));
-    for (let p = 2; p <= pages; p++) take(await call(q, p));
+    for (let p = 2; p <= pages; p++) { const j = await call(q, p); for (const it of j.items || []) ghTake(it, group); }
+    if (onLeaf) onLeaf(to);
+    return true;
   };
-  for (const t of TOPICS) {
-    const before = found.size;
-    try { await slice(t, new Date('2008-01-01'), new Date(Date.now() + 86400000)); } catch (e) { log(`  topic ${t}: ${e.message}`); }
-    log(`  topic ${t}: +${found.size - before} repos (${found.size} total, ${calls} searches)`);
+  const all = [...TOPICS.map((t) => [t, 1]), ...MCP_TOPICS.map((t) => [t, 2])];
+  const now = Date.now(), before = Object.keys(GH.items).length;
+  // 1. repos pushed since the previous build (new repos and updates)
+  if (GH.inc) {
+    const since = Date.parse(GH.inc) - 6 * 3600000;
+    for (const [t, g] of all) { try { await walk(t, g, 'pushed', since, now + 3600000, null); } catch (e) { log(`  topic ${t} (recent): ${e.message}`); } }
+    log(`  recent pushes: ${calls} searches`);
   }
-  return found;
+  GH.inc = new Date(now).toISOString();
+  // 2. continue the full sweep (by creation date) where the last build stopped
+  const START = Date.parse('2008-01-01T00:00:00Z');
+  let cur = GH.sweep && all.some(([t]) => t === GH.sweep.topic) ? GH.sweep : { topic: all[0][0], from: START, cycle: today() };
+  let guard = 0;
+  while (Date.now() < searchEnd && guard++ < all.length + 1) {
+    const ti = all.findIndex(([t]) => t === cur.topic), [t, g] = all[ti];
+    const c0 = calls, n0 = Object.keys(GH.items).length;
+    let ok = false;
+    try { ok = await walk(t, g, 'created', cur.from || START, now + 86400000, (to) => { cur.from = to + 1000; }); } catch (e) { log(`  topic ${t}: ${e.message}`); }
+    log(`  topic ${t}: ${ok ? 'swept' : 'paused'} (+${Object.keys(GH.items).length - n0} new, ${calls - c0} searches)`);
+    if (!ok) break;
+    if (ti + 1 < all.length) cur = { topic: all[ti + 1][0], from: START, cycle: cur.cycle };
+    else { log(`  full sweep finished (started ${cur.cycle})`); cur = { topic: all[0][0], from: START, cycle: today() }; GH.lastCycle = today(); }
+  }
+  GH.sweep = cur;
+  // 3. drop repos no sweep has seen for 45 days
+  const cutoff = new Date(Date.now() - 45 * 86400000).toISOString().slice(0, 10);
+  let dropped = 0;
+  for (const [k, e] of Object.entries(GH.items)) if (!e.seen || e.seen < cutoff) { delete GH.items[k]; dropped++; }
+  log(`GitHub topics: ${Object.keys(GH.items).length} repos (${Object.keys(GH.items).length - before + dropped} new, ${dropped} dropped) with ${calls} searches`);
 }
 
 // The previous build (published on the website): lets unchanged repos be reused instead of cloned again.
@@ -455,7 +536,7 @@ async function loadPrevious() {
 
 async function importRepos() {
   fs.mkdirSync(CACHE, { recursive: true });
-  const t0 = Date.now(), budgetEnd = t0 + Number(opt('budget-min', 300)) * 60000;
+  const t0 = Date.now(), budgetEnd = BUDGET_END;
   const prio = new Map();   // lower = more trusted (official first)
   const meta = new Map();   // repo(lower) -> {repo, stars, pushed}
   const push = (r, p, m) => { const k = r.toLowerCase(); if (!prio.has(k)) { prio.set(k, p); meta.set(k, { repo: r, stars: 0, ...(m || {}) }); } else if (m) Object.assign(meta.get(k), m); };
@@ -466,13 +547,13 @@ async function importRepos() {
       if (md) { const found = reposFromMarkdown(md); found.forEach((r) => push(r, 1000)); log(`list ${l.repo}: ${found.length} links`); }
     } catch (e) { log(`list ${l.repo} failed: ${e.message}`); }
   }
-  const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || (opt('token-file') ? fs.readFileSync(opt('token-file'), 'utf8').trim() : '');
-  if (token && !argv.includes('--no-search')) {
-    log('GitHub topic search…');
-    const found = await searchTopics(token, t0 + Math.min(60, Number(opt('budget-min', 300)) / 3) * 60000);
-    for (const [, m] of found) push(m.repo, 2000, { stars: m.stars, pushed: m.pushed });
-  } else log('GitHub topic search skipped (no token)');
+  for (const e of Object.values(GH.items)) if (e.g & 1) push(e.r, 2000, { stars: e.s, pushed: e.p });
   const prev = argv.includes('--fresh') ? null : await loadPrevious();
+  if (prev) {   // repos indexed before stay in the queue even if this build's sweep hasn't reached them yet
+    const names = new Map();
+    for (const d of prev.det.values()) if (d.repo) names.set(d.repo.toLowerCase(), d.repo);
+    for (const k of Object.keys(prev.state.repos || {})) push(names.get(k) || k, 2500);
+  }
   // order: trusted sources first, then by stars
   let queue = [...prio.keys()].sort((a, b) => (prio.get(a) - prio.get(b)) || ((meta.get(b).stars || 0) - (meta.get(a).stars || 0))).slice(0, MAX_REPOS);
   const stats = { ok: 0, failed: 0, empty: 0, reused: 0, skipped: 0, toobig: 0 };
@@ -532,7 +613,7 @@ async function importRepos() {
       if (c.fp) seenFp.add(fpKey);
       const id = c.id || makeId(c.idBase || c.row[1], c.key);
       c.row[0] = id; c.det.fp = c.fp;
-      add(c.kind, c.row, c.det);
+      if (!add(c.kind, c.row, c.det)) continue;
       items[c.key] = id; idsOut[c.key] = id;
       if (c.kind === 'skill') skills++; else plugins++;
     }
@@ -630,6 +711,208 @@ async function importApps() {
   if (!n) throw new Error('no app list could be read');
 }
 
+// ------------------------------------------------------------------ MCP servers on npm
+// npm's search API returns at most 10,000 results per query, so the "mcp" keyword is read through several narrower
+// queries (keyword intersections). Only packages that install a command are listed (libraries such as SDKs are
+// not servers); they run at the exact version with npx, like registry entries. Results are cached between builds so
+// a package's metadata is fetched again only when its version changes.
+const NPM_PKG = /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/;
+async function importNpm() {
+  const queries = opt('npm-queries') ? opt('npm-queries').split('|') : SOURCES.npm_queries || [];
+  const end = Math.min(BUDGET_END, Date.now() + Number(opt('npm-min', 25)) * 60000);
+  let calls = 0, last = 0, seen = 0;
+  const found = new Map();
+  for (const q of queries) {
+    if (Date.now() > end) { log('npm: time budget used, keeping the cached packages for the rest'); break; }
+    let firstName = '', prevName = '';
+    for (let from = 0; from < 10000; from += 250) {
+      if (Date.now() > end) break;
+      const wait = last + 1200 * DELAY - Date.now(); if (wait > 0) await sleep(wait);
+      last = Date.now(); calls++;
+      let j;
+      try { j = await get(`${NPM}/-/v1/search?text=${encodeURIComponent(q)}&size=250&from=${from}`, { tries: 5 }); } catch (e) { log(`npm "${q}": ${e.message}`); break; }
+      const objs = (j && j.objects) || [];
+      if (!objs.length) break;
+      const n0 = objs[0].package && objs[0].package.name;
+      if (from === 0) firstName = n0; else if (n0 === firstName || n0 === prevName) break;   // past the result window (about 5,500): npm repeats a page
+      prevName = n0;
+      for (const o of objs) { const p = o.package || {}; if (p.name && NPM_PKG.test(p.name) && !found.has(p.name)) found.set(p.name, p); }
+      if (objs.length < 250) break;
+    }
+  }
+  log(`npm: ${found.size} packages from ${calls} searches`);
+  // which of them install a command (cached per version)
+  const todo = [...found.values()].filter((p) => !(GH.npm[p.name] && GH.npm[p.name].v === p.version));
+  let fetched = 0;
+  await pool(todo, 12, async (p) => {
+    if (Date.now() > BUDGET_END) return;
+    try {
+      const doc = await get(`${NPM}/${p.name.replace('/', '%2F')}`, { headers: { Accept: 'application/vnd.npm.install-v1+json' }, tries: 3 });
+      const v = doc && doc.versions && doc.versions[p.version];
+      if (!v) return;
+      const bin = typeof v.bin === 'string' ? 1 : Object.keys(v.bin || {}).length ? 1 : 0;
+      GH.npm[p.name] = { v: p.version, b: bin, x: v.deprecated ? 1 : 0 };
+      fetched++;
+    } catch {}
+  });
+  for (const p of found.values()) {
+    const e = GH.npm[p.name]; if (!e || e.v !== p.version) continue;
+    seen++;
+    e.d = clip(p.description || '', 200) || undefined;
+    e.r = (p.links && p.links.repository) || undefined;
+    e.w = (p.links && p.links.homepage) || undefined;
+    e.u = (p.publisher && p.publisher.username) || undefined;
+    e.k = (p.keywords || []).filter((k) => typeof k === 'string' && !/^(mcp|mcp-server|ai|model-context-protocol|modelcontextprotocol)$/i.test(k)).slice(0, 4).map((k) => clip(k, 24)).join(',') || undefined;
+    e.seen = today();
+  }
+  const cutoff = new Date(Date.now() - 45 * 86400000).toISOString().slice(0, 10);
+  for (const [k, e] of Object.entries(GH.npm)) if (!e.seen || e.seen < cutoff) delete GH.npm[k];
+  let n = 0;
+  for (const name of Object.keys(GH.npm).sort()) {
+    const e = GH.npm[name];
+    if (!e.b || REG_PKGS.has('npm:' + name.toLowerCase())) continue;
+    const pkg = `${name}@${e.v}`;
+    if (!/^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*@\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(pkg)) continue;
+    const scope = name.startsWith('@') ? name.slice(1, name.indexOf('/')) : '';
+    const short = name.split('/').pop();
+    const id = makeId(scope && !short.includes(scope) ? `${scope}-${short}` : short, 'npm:' + name);
+    const repo = /^https:\/\/[^\s"'<>]+$/.test(e.r || '') ? e.r : undefined;
+    if (add('mcp', [id, clip(short, 70), clip(e.d || 'MCP server on npm', 140), e.u || scope || 'npm', 'n' + (e.x ? 'x' : ''), e.k || '', e.v], {
+      k: 'mcp', n: clip(name, 90), d: clip(e.d || '', 600), v: e.v, npm: name, web: (/^https:\/\//.test(e.w || '') && e.w) || repo || `https://www.npmjs.com/package/${name}`, repo, src: 'npm',
+      st: e.x ? 'deprecated' : undefined, i: { t: 'stdio', cmd: 'npx', args: ['-y', pkg], env: [] },
+    })) { n++; if (ghKey(repo)) COVERED.add(ghKey(repo)); }
+  }
+  log(`npm: ${n} MCP servers that install a command (${fetched} package versions checked)`);
+  sourcesUsed.push({ kind: 'mcp', name: 'npm (packages tagged mcp that install a command)', url: 'https://www.npmjs.com/search?q=keywords:mcp', count: n });
+}
+
+// ------------------------------------------------------------------ MCP servers as Hugging Face Spaces
+// Gradio Spaces started with mcp_server=True are tagged "mcp-server" and serve MCP over SSE at a fixed path.
+async function importHf() {
+  let url = `${HF}/api/spaces?filter=mcp-server&limit=1000`, pages = 0, n = 0;
+  const seenIds = new Set();
+  while (url && pages < 200) {
+    const meta = {};
+    const j = await get(url, { meta, timeout: 60000 });
+    pages++;
+    for (const sp of j || []) {
+      if (!sp || !sp.id || sp.private || seenIds.has(sp.id)) continue;
+      seenIds.add(sp.id);
+      const [owner, nm] = sp.id.split('/');
+      const card = sp.cardData || {};
+      const title = clip(card.title || nm, 70), desc = clip(card.short_description || '', 300);
+      const sub = String(sp.subdomain || sp.id.replace('/', '-').replace(/[_.]+/g, '-').toLowerCase());
+      const gradio = sp.sdk === 'gradio' && /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/.test(sub) && (sp.subdomain || sub.length <= 56);   // longer names get a hashed subdomain
+      const id = makeId(`${nm}-${owner}`, 'hf:' + sp.id);
+      const tags = (sp.tags || []).filter((t) => !/^(gradio|mcp-server|region:|docker|static|streamlit)/.test(t)).slice(0, 4).join(',');
+      if (add('mcp', [id, title, desc || `Hugging Face Space by ${owner}`, owner, gradio ? 'e' : 'l', tags, 'Space', sp.likes || 0], {
+        k: 'mcp', n: title, d: desc, web: `https://huggingface.co/spaces/${sp.id}`, src: 'hf', lic: card.license || undefined,
+        i: gradio ? { t: 'sse', url: `https://${sub}.hf.space/gradio_api/mcp/sse`, headers: [] } : undefined,
+        note: gradio ? 'Free Spaces sleep when unused and can take a minute to wake up; some need a Hugging Face token or have usage limits.' : undefined,
+      })) n++;
+    }
+    const link = meta.headers && meta.headers.get('link');
+    const m = link && /<([^>]+)>;\s*rel="next"/.exec(link);
+    url = m ? m[1] : '';
+    if (url && !url.startsWith(HF)) url = '';
+  }
+  log(`Hugging Face: ${n} MCP Spaces from ${pages} pages`);
+  sourcesUsed.push({ kind: 'mcp', name: 'Hugging Face Spaces tagged mcp-server', url: 'https://huggingface.co/spaces?filter=mcp-server', count: n });
+}
+
+// ------------------------------------------------------------------ Docker's MCP catalog (docker/mcp-registry, MIT)
+// Docker Hub's API no longer pages anonymously, so the catalog is read from its source repo with a shallow git clone.
+async function importDocker() {
+  const repo = SOURCES.docker_mcp_repo || 'docker/mcp-registry';
+  const dir = path.join(CACHE, 'docker_mcp_registry');
+  fs.mkdirSync(CACHE, { recursive: true });
+  fs.rmSync(dir, { recursive: true, force: true });
+  let n = 0;
+  try {
+    await run('git', ['clone', '--quiet', '--depth', '1', '--filter=blob:none', '--no-checkout', '--single-branch', (process.env.ASTRO_IDX_GIT || 'https://github.com/') + repo + '.git', dir], { timeout: 120000 });
+    const tree = (await run('git', ['ls-tree', '-r', 'HEAD', 'servers'], { cwd: dir })).split('\n').filter(Boolean).map((l) => { const t = l.indexOf('\t'); return { sha: l.slice(0, t).split(/\s+/)[2], path: l.slice(t + 1) }; }).filter((e) => /^servers\/[a-z0-9][a-z0-9._-]*\/server\.yaml$/.test(e.path));
+    const raw = await run('git', ['cat-file', '--batch'], { cwd: dir, input: tree.map((e) => e.sha).join('\n') + '\n', encoding: 'buffer', timeout: 300000 });
+    const blobs = new Map(); let off = 0;
+    while (off < raw.length) { const nl = raw.indexOf(10, off); if (nl < 0) break; const h = raw.slice(off, nl).toString().split(' '); if (h[1] === 'missing') { off = nl + 1; continue; } const sz = Number(h[2]); blobs.set(h[0], raw.slice(nl + 1, nl + 1 + sz).toString('utf8')); off = nl + 1 + sz + 1; }
+    for (const e of tree) {
+      const y = blobs.get(e.sha) || '';
+      // the few fields we need from a flat YAML file (no YAML library: top-level and one level of nesting)
+      const top = (k) => { const m = new RegExp('^' + k + ':\\s*(.+)$', 'm').exec(y); return m ? m[1].trim().replace(/^(['"])(.*)\1$/, '$2') : ''; };
+      const sub = (sec, k) => { const m = new RegExp('^' + sec + ':\\s*\\n((?:[ \\t]+.*\\n?)*)', 'm').exec(y); if (!m) return ''; const mm = new RegExp('^[ \\t]+' + k + ':\\s*(.+)$', 'm').exec(m[1]); return mm ? mm[1].trim().replace(/^(['"])(.*)\1$/, '$2') : ''; };
+      const name = top('name') || e.path.split('/')[1];
+      const image = top('image');
+      if (!/^[a-z0-9][a-z0-9._-]*$/.test(name) || top('type') === 'poci') continue;
+      if (image && REG_PKGS.has('oci:' + image.toLowerCase())) continue;
+      const title = sub('about', 'title') || name, desc = sub('about', 'description');
+      const project = sub('source', 'project');
+      const remote = !image;   // remote servers have no image
+      const id = makeId(`${name}-docker`, 'docker:' + name);
+      const web = image ? `https://hub.docker.com/r/${image}` : `https://github.com/${repo}/tree/main/servers/${name}`;
+      if (add('mcp', [id, clip(title, 70), clip(desc || 'MCP server in Docker\'s MCP catalog', 140), 'Docker MCP catalog', 'l', clip(sub('meta', 'category'), 24), image || 'remote'], {
+        k: 'mcp', n: clip(title, 90), d: clip(desc, 600), web, repo: /^https:\/\/github\.com\//.test(project) ? project : undefined, src: 'docker', img: image || undefined,
+        note: remote ? undefined : 'Runs with Docker (docker run -i --rm ' + image + '); see its page for the settings it needs.',
+      })) { n++; if (ghKey(project)) COVERED.add(ghKey(project)); }
+    }
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  if (!n) throw new Error('no servers read from ' + repo);
+  log(`Docker MCP catalog: ${n} servers`);
+  sourcesUsed.push({ kind: 'mcp', name: "Docker's MCP catalog (docker/mcp-registry)", url: 'https://hub.docker.com/mcp', count: n });
+}
+
+// ------------------------------------------------------------------ Open VSX editor extensions
+// The search API stops at offset 10,000, so it is read in both date orders and per category (robots.txt asks for
+// 2 seconds between requests).
+async function importOpenVsx() {
+  const byKey = new Map();
+  const cats = SOURCES.openvsx_categories || [];
+  const runs = [['', 'asc'], ['', 'desc'], ...cats.flatMap((c) => [[c, 'asc'], [c, 'desc']])];
+  let calls = 0, total = 0;
+  for (const [cat, order] of runs) {
+    if (Date.now() > BUDGET_END) break;
+    let catTotal = Infinity;
+    for (let off = 0; off < 10000 && off < catTotal; off += 1000) {
+      await pause(2000); calls++;
+      const j = await get(`${OVSX}/api/-/search?size=1000&offset=${off}&sortBy=timestamp&sortOrder=${order}${cat ? '&category=' + encodeURIComponent(cat) : ''}`, { timeout: 60000 });
+      const ex = (j && j.extensions) || [];
+      catTotal = (j && j.totalSize) || 0; if (!cat) total = Math.max(total, catTotal);
+      for (const e of ex) if (e.namespace && e.name) byKey.set(`${e.namespace}.${e.name}`.toLowerCase(), e);
+      if (ex.length < 1000) break;
+    }
+    if (cat && catTotal <= 10000 && order === 'asc') runs.splice(runs.findIndex(([c, o]) => c === cat && o === 'desc'), 1);   // one direction was enough
+  }
+  let n = 0;
+  for (const [key, e] of [...byKey.entries()].sort()) {
+    if (e.deprecated) continue;
+    const name = clip(e.displayName || e.name, 70);
+    const id = makeId(`${e.name}-${e.namespace}-vsx`, 'ovsx:' + key);
+    if (add('plugin', [id, name, clip(e.description || '', 140), clip(e.namespace, 40), 'lv', 'open-vsx,editor', e.version || '', 0], {
+      k: 'plugin', t: 'vsx', n: name, d: clip(e.description || '', 600), v: e.version || undefined, vsx: `${e.namespace}.${e.name}`,
+      web: `https://open-vsx.org/extension/${encodeURIComponent(e.namespace)}/${encodeURIComponent(e.name)}`, src: 'open-vsx', verified: e.verified ? 1 : undefined,
+    })) n++;
+  }
+  log(`Open VSX: ${n} extensions (${byKey.size} read of ${total}, ${calls} requests)`);
+  sourcesUsed.push({ kind: 'plugin', name: 'Open VSX editor extensions (themes, languages, snippets and more; install them in the Code tool)', url: 'https://open-vsx.org', count: n });
+}
+
+// ------------------------------------------------------------------ MCP projects tagged on GitHub
+// Repos with an MCP topic that no richer source already lists. These are links: read the repo to set them up.
+function importGhMcp() {
+  let n = 0;
+  for (const e of Object.values(GH.items)) {
+    if (!(e.g & 2) || !e.r) continue;
+    const k = e.r.toLowerCase();
+    if (COVERED.has(k)) continue;
+    if (!e.d && !(e.s > 0)) continue;   // no description and no stars: usually an empty experiment
+    const [owner, name] = e.r.split('/');
+    const id = makeId(name.toLowerCase().includes(owner.toLowerCase()) ? name : `${name}-${owner}`, 'ghmcp:' + k);
+    if (add('mcp', [id, clip(name, 70), clip(e.d || 'MCP project on GitHub', 140), owner, 'l', e.t || '', 'GitHub', e.s || 0], {
+      k: 'mcp', n: clip(e.r, 90), d: clip(e.d || '', 600), web: e.h || `https://github.com/${e.r}`, repo: `https://github.com/${e.r}`, lic: e.l, src: 'github', stars: e.s || undefined,
+    })) n++;
+  }
+  log(`GitHub: ${n} more MCP projects from topics`);
+  sourcesUsed.push({ kind: 'mcp', name: 'GitHub repositories with an MCP topic (links)', url: 'https://github.com/topics/mcp-server', count: n });
+}
+
 // ------------------------------------------------------------------ fallback: reuse the last published catalog
 async function reusePublished(reason, stale = true) {
   log(`reusing the published catalog (${reason})`);
@@ -638,9 +921,9 @@ async function reusePublished(reason, stale = true) {
   fs.rmSync(OUT, { recursive: true, force: true });
   fs.mkdirSync(path.join(OUT, 'list'), { recursive: true }); fs.mkdirSync(path.join(OUT, 'detail'), { recursive: true });
   const files = [...Object.values(man.kinds).flatMap((k) => k.shards), ...Array.from({ length: 256 }, (_, i) => 'detail/' + i.toString(16).padStart(2, '0') + '.json')];
-  files.push('state.json');
+  files.push('state.json', 'state-gh.json');
   let missing = 0;
-  await pool(files, 8, async (f) => { const t = await get(LIVE + f, { json: false }); if (t != null) fs.writeFileSync(path.join(OUT, f), t); else if (f !== 'state.json') missing++; });
+  await pool(files, 8, async (f) => { const t = await get(LIVE + f, { json: false, timeout: 120000 }).catch((e) => { if (/^state/.test(f)) return null; throw e; }); if (t != null) fs.writeFileSync(path.join(OUT, f), t); else if (!/^state/.test(f)) missing++; });
   if (missing) throw new Error(`${missing} published files are missing`);
   if (stale) man.stale = reason;
   fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify(man));
@@ -672,12 +955,14 @@ function write() {
   const man = {
     schema: 2, generated: new Date().toISOString(), total, kinds, sources: sourcesUsed,
     row: ['id', 'name', 'summary', 'publisher', 'flags', 'tags', 'extra', 'stars'],
-    flags: { r: 'reviewed by Astro AI', h: 'remote MCP (https)', e: 'remote MCP (SSE)', n: 'npm package', p: 'PyPI package', d: 'Docker image', g: 'files from GitHub (pinned commit)', c: 'includes scripts or installs a command', l: 'link only', s: 'needs a key or token', x: 'deprecated' },
+    flags: { r: 'reviewed by Astro AI', h: 'remote MCP (https)', e: 'remote MCP (SSE)', n: 'npm package', p: 'PyPI package', d: 'Docker image', g: 'files from GitHub (pinned commit)', c: 'includes scripts or installs a command', l: 'link only', v: 'Open VSX editor extension (installs in the Code tool)', s: 'needs a key or token', x: 'deprecated' },
+    filtered: blocked,
     detail: 'detail/{hh}.json where hh is the first two hex characters of sha256(id)',
   };
   fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify(man, null, 1));
   fs.writeFileSync(path.join(OUT, 'state.json'), JSON.stringify({ generated: man.generated, repos: STATE.repos, ids: STATE.ids }));
-  log(`wrote ${total} items to ${OUT} (${Object.entries(kinds).map(([k, v]) => `${k} ${v.count}`).join(', ')}; details ${(bytes / 1e6).toFixed(1)} MB)`);
+  fs.writeFileSync(path.join(OUT, 'state-gh.json'), JSON.stringify({ schema: 1, generated: man.generated, inc: GH.inc, sweep: GH.sweep, lastCycle: GH.lastCycle, items: GH.items, npm: GH.npm }));
+  log(`wrote ${total} items to ${OUT} (${Object.entries(kinds).map(([k, v]) => `${k} ${v.count}`).join(', ')}; details ${(bytes / 1e6).toFixed(1)} MB; ${blocked} unsafe entries left out)`);
 }
 
 (async () => {
@@ -686,11 +971,25 @@ function write() {
     try { await reusePublished('reuse', false); log('reused the published catalog'); return; } catch (e) { log(`nothing to reuse (${e.message}); building it now`); }
   }
   addReviewed(opt('reviewed', ''));
+  await loadGhState();
+  const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || (opt('token-file') ? fs.readFileSync(opt('token-file'), 'utf8').trim() : '');
+  const search = async () => {
+    if (!token || argv.includes('--no-search')) { log('GitHub topic search skipped (no token); using the saved results'); return; }
+    const mins = Math.min(Number(opt('search-min', 90)), Math.max(5, (BUDGET_END - Date.now()) / 60000 / 2));
+    log(`GitHub topic search (up to ${Math.round(mins)} min)…`);
+    await searchTopics(token, Date.now() + mins * 60000);
+  };
   const jobs = [];
   if (ONLY.has('tools')) jobs.push(['tools', importCli]);
   if (ONLY.has('mcp')) jobs.push(['mcp', importMcp]);
+  if (ONLY.has('npm')) jobs.push(['npm', importNpm]);
+  if (ONLY.has('hf')) jobs.push(['hf', importHf]);
+  if (ONLY.has('docker')) jobs.push(['docker', importDocker]);
+  if (ONLY.has('openvsx')) jobs.push(['openvsx', importOpenVsx]);
   if (ONLY.has('apps')) jobs.push(['apps', importApps]);
+  if (ONLY.has('skills') || ONLY.has('ghmcp')) jobs.push(['search', search]);
   if (ONLY.has('skills')) jobs.push(['skills', importRepos]);
+  if (ONLY.has('ghmcp')) jobs.push(['ghmcp', importGhMcp]);
   const failed = [];
   for (const [name, fn] of jobs) { try { await fn(); } catch (e) { failed.push(name); log(`${name} failed: ${e.message}`); } }
   if (failed.length && failed.length === jobs.length) { await reusePublished(`all sources failed: ${failed.join(', ')}`); return; }

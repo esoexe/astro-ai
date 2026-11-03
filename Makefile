@@ -41,6 +41,7 @@ test: $(TARGET) astro
 	bash tests/library_e2e.sh
 	bash tests/library_v2_e2e.sh
 	bash tests/local_engines_e2e.sh
+	bash tests/indexer_sources_e2e.sh
 	bash tests/quality_test.sh
 	bash tests/engine_e2e.sh
 	bash tests/macos_macros.sh

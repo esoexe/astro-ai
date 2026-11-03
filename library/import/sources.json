@@ -1,5 +1,5 @@
 {
-  "_comment": "Where the community catalog comes from. Repos are read with a shallow git clone (no API keys, no scraping of sites that ask not to be crawled). Order matters: when the same skill appears in several repos, the first one wins, so official sources come first.",
+  "_comment": "Where the community catalog comes from. Repos are read with a shallow git clone (no API keys, no scraping of sites that ask not to be crawled). Order matters: when the same skill appears in several repos, the first one wins, so official sources come first. The daily build also reads npm search (keyword mcp), Hugging Face Spaces tagged mcp-server, Docker Hub mcp/ images, Open VSX and GitHub topic search (with the workflow token); PyPI is not bulk-indexed because its robots.txt disallows its JSON and simple APIs for crawlers.",
   "mcp_registry": "https://registry.modelcontextprotocol.io/v0/servers",
   "repos": [
     "anthropics/skills",
@@ -49,34 +49,318 @@
     "mcollina/skills"
   ],
   "skill_lists": [
-    { "repo": "VoltAgent/awesome-agent-skills", "file": "README.md" },
-    { "repo": "travisvn/awesome-claude-skills", "file": "README.md" },
-    { "repo": "ComposioHQ/awesome-claude-skills", "file": "README.md" },
-    { "repo": "hesreallyhim/awesome-claude-code", "file": "README.md" },
-    { "repo": "ComposioHQ/awesome-claude-plugins", "file": "README.md" },
-    { "repo": "BehiSecc/awesome-claude-skills", "file": "README.md" },
-    { "repo": "heilcheng/awesome-agent-skills", "file": "README.md" },
-    { "repo": "skillmatic-ai/awesome-agent-skills", "file": "README.md" }
+    {
+      "repo": "VoltAgent/awesome-agent-skills",
+      "file": "README.md"
+    },
+    {
+      "repo": "travisvn/awesome-claude-skills",
+      "file": "README.md"
+    },
+    {
+      "repo": "ComposioHQ/awesome-claude-skills",
+      "file": "README.md"
+    },
+    {
+      "repo": "hesreallyhim/awesome-claude-code",
+      "file": "README.md"
+    },
+    {
+      "repo": "ComposioHQ/awesome-claude-plugins",
+      "file": "README.md"
+    },
+    {
+      "repo": "BehiSecc/awesome-claude-skills",
+      "file": "README.md"
+    },
+    {
+      "repo": "heilcheng/awesome-agent-skills",
+      "file": "README.md"
+    },
+    {
+      "repo": "skillmatic-ai/awesome-agent-skills",
+      "file": "README.md"
+    }
   ],
-  "max_repos": 2500,
+  "max_repos": 150000,
   "app_lists": [
-    { "repo": "mahseema/awesome-ai-tools", "file": "README.md" },
-    { "repo": "steven2358/awesome-generative-ai", "file": "README.md" },
-    { "repo": "ai-collection/ai-collection", "file": "README.md" },
-    { "repo": "e2b-dev/awesome-ai-agents", "file": "README.md" },
-    { "repo": "jamesmurdza/awesome-ai-devtools", "file": "README.md" },
-    { "repo": "filipecalegario/awesome-generative-ai", "file": "README.md" },
-    { "repo": "ikaijua/Awesome-AITools", "file": "README-EN.md" },
-    { "repo": "eudk/awesome-ai-tools", "file": "README.md" },
-    { "repo": "Hannibal046/Awesome-LLM", "file": "README.md" },
-    { "repo": "kyrolabs/awesome-agents", "file": "README.md" },
-    { "repo": "slavakurilyak/awesome-ai-agents", "file": "README.md" },
-    { "repo": "tensorchord/Awesome-LLMOps", "file": "README.md" },
-    { "repo": "janhq/awesome-local-ai", "file": "README.md" },
-    { "repo": "f/awesome-chatgpt-prompts", "file": "README.md" },
-    { "repo": "humanloop/awesome-chatgpt", "file": "README.md" },
-    { "repo": "sindresorhus/awesome-chatgpt", "file": "readme.md" },
-    { "repo": "Shubhamsaboo/awesome-llm-apps", "file": "README.md" },
-    { "repo": "underlines/awesome-ml", "file": "README.md" }
+    {
+      "repo": "mahseema/awesome-ai-tools",
+      "file": "README.md"
+    },
+    {
+      "repo": "steven2358/awesome-generative-ai",
+      "file": "README.md"
+    },
+    {
+      "repo": "ai-collection/ai-collection",
+      "file": "README.md"
+    },
+    {
+      "repo": "e2b-dev/awesome-ai-agents",
+      "file": "README.md"
+    },
+    {
+      "repo": "jamesmurdza/awesome-ai-devtools",
+      "file": "README.md"
+    },
+    {
+      "repo": "filipecalegario/awesome-generative-ai",
+      "file": "README.md"
+    },
+    {
+      "repo": "ikaijua/Awesome-AITools",
+      "file": "README-EN.md"
+    },
+    {
+      "repo": "eudk/awesome-ai-tools",
+      "file": "README.md"
+    },
+    {
+      "repo": "Hannibal046/Awesome-LLM",
+      "file": "README.md"
+    },
+    {
+      "repo": "kyrolabs/awesome-agents",
+      "file": "README.md"
+    },
+    {
+      "repo": "slavakurilyak/awesome-ai-agents",
+      "file": "README.md"
+    },
+    {
+      "repo": "tensorchord/Awesome-LLMOps",
+      "file": "README.md"
+    },
+    {
+      "repo": "janhq/awesome-local-ai",
+      "file": "README.md"
+    },
+    {
+      "repo": "f/awesome-chatgpt-prompts",
+      "file": "README.md"
+    },
+    {
+      "repo": "humanloop/awesome-chatgpt",
+      "file": "README.md"
+    },
+    {
+      "repo": "sindresorhus/awesome-chatgpt",
+      "file": "readme.md"
+    },
+    {
+      "repo": "Shubhamsaboo/awesome-llm-apps",
+      "file": "README.md"
+    },
+    {
+      "repo": "underlines/awesome-ml",
+      "file": "README.md"
+    }
+  ],
+  "skill_topics": [
+    "claude-skills",
+    "agent-skills",
+    "claude-code-plugin",
+    "claude-code-plugins",
+    "claude-plugin",
+    "claude-code-skills",
+    "codex-skills",
+    "skill-md",
+    "agentskills",
+    "claude-code-marketplace",
+    "claude-skill",
+    "agent-skill",
+    "anthropic-skills",
+    "cursor-skills",
+    "gemini-skills",
+    "opencode-skills",
+    "claude-code-skill",
+    "codex-skill",
+    "copilot-skills",
+    "ai-agent-skills"
+  ],
+  "mcp_topics": [
+    "mcp-server",
+    "model-context-protocol",
+    "mcp-servers",
+    "modelcontextprotocol",
+    "mcp-tools",
+    "mcp-tool",
+    "model-context-protocol-servers",
+    "mcp"
+  ],
+  "npm_queries": [
+    "keywords:mcp-server",
+    "keywords:modelcontextprotocol",
+    "keywords:model-context-protocol",
+    "keywords:mcp-servers",
+    "keywords:mcp-tool",
+    "keywords:mcp-tools",
+    "keywords:mcp",
+    "keywords:mcp keywords:ai",
+    "keywords:mcp keywords:server",
+    "keywords:mcp keywords:typescript",
+    "keywords:mcp keywords:claude",
+    "keywords:mcp keywords:llm",
+    "keywords:mcp keywords:agent",
+    "keywords:mcp keywords:ai-agent",
+    "keywords:mcp keywords:tools",
+    "keywords:mcp keywords:cursor",
+    "keywords:mcp keywords:anthropic",
+    "keywords:mcp keywords:api",
+    "keywords:mcp keywords:automation",
+    "keywords:mcp keywords:cli",
+    "keywords:mcp keywords:openai",
+    "keywords:mcp keywords:sdk",
+    "keywords:mcp keywords:database",
+    "keywords:mcp keywords:browser",
+    "keywords:mcp keywords:github",
+    "keywords:mcp keywords:search",
+    "keywords:mcp keywords:memory",
+    "keywords:mcp keywords:javascript",
+    "keywords:mcp keywords:nodejs",
+    "keywords:mcp keywords:node",
+    "keywords:mcp keywords:ai-tools",
+    "keywords:mcp keywords:claude-code",
+    "keywords:mcp keywords:windsurf",
+    "keywords:mcp keywords:vscode",
+    "keywords:mcp keywords:chatgpt",
+    "keywords:mcp keywords:gemini",
+    "keywords:mcp keywords:crypto",
+    "keywords:mcp keywords:blockchain",
+    "keywords:mcp keywords:web3",
+    "keywords:mcp keywords:finance",
+    "keywords:mcp keywords:devtools",
+    "keywords:mcp keywords:productivity",
+    "keywords:mcp keywords:workflow",
+    "keywords:mcp keywords:agents",
+    "keywords:mcp keywords:rag",
+    "keywords:mcp keywords:data",
+    "keywords:mcp keywords:analytics",
+    "keywords:mcp keywords:security",
+    "keywords:mcp keywords:testing",
+    "keywords:mcp keywords:docs",
+    "keywords:mcp keywords:documentation",
+    "keywords:mcp keywords:markdown",
+    "keywords:mcp keywords:image",
+    "keywords:mcp keywords:video",
+    "keywords:mcp keywords:audio",
+    "keywords:mcp keywords:playwright",
+    "keywords:mcp keywords:puppeteer",
+    "keywords:mcp keywords:web-scraping",
+    "keywords:mcp keywords:scraper",
+    "keywords:mcp keywords:slack",
+    "keywords:mcp keywords:discord",
+    "keywords:mcp keywords:notion",
+    "keywords:mcp keywords:google",
+    "keywords:mcp keywords:aws",
+    "keywords:mcp keywords:cloud",
+    "keywords:mcp keywords:kubernetes",
+    "keywords:mcp keywords:docker",
+    "keywords:mcp keywords:postgres",
+    "keywords:mcp keywords:mysql",
+    "keywords:mcp keywords:sqlite",
+    "keywords:mcp keywords:mongodb",
+    "keywords:mcp keywords:redis",
+    "keywords:mcp keywords:git",
+    "keywords:mcp keywords:figma",
+    "keywords:mcp keywords:design",
+    "keywords:mcp keywords:ui",
+    "keywords:mcp keywords:react",
+    "keywords:mcp keywords:nextjs",
+    "keywords:mcp keywords:stdio",
+    "keywords:mcp keywords:sse",
+    "keywords:mcp keywords:http",
+    "keywords:mcp keywords:streamable-http",
+    "keywords:mcp keywords:json-rpc",
+    "keywords:mcp keywords:plugin",
+    "keywords:mcp keywords:integration",
+    "keywords:mcp keywords:assistant",
+    "keywords:mcp keywords:copilot",
+    "keywords:mcp keywords:llm-tools",
+    "keywords:mcp keywords:tool",
+    "keywords:mcp keywords:context",
+    "keywords:mcp keywords:codex",
+    "keywords:mcp keywords:opencode",
+    "keywords:mcp keywords:gemini-cli",
+    "keywords:mcp keywords:protocol",
+    "keywords:mcp keywords:wallet",
+    "keywords:mcp keywords:solana",
+    "keywords:mcp keywords:ethereum",
+    "keywords:mcp keywords:trading",
+    "keywords:mcp keywords:stock",
+    "keywords:mcp keywords:weather",
+    "keywords:mcp keywords:maps",
+    "keywords:mcp keywords:email",
+    "keywords:mcp keywords:calendar",
+    "keywords:mcp keywords:jira",
+    "keywords:mcp keywords:linear",
+    "keywords:mcp keywords:obsidian",
+    "keywords:mcp keywords:knowledge-base",
+    "keywords:mcp keywords:vector",
+    "keywords:mcp keywords:embeddings",
+    "keywords:mcp keywords:ollama",
+    "keywords:mcp keywords:local",
+    "keywords:mcp keywords:filesystem",
+    "keywords:mcp keywords:file",
+    "keywords:mcp keywords:shell",
+    "keywords:mcp keywords:terminal",
+    "keywords:mcp keywords:ssh",
+    "keywords:mcp keywords:code",
+    "keywords:mcp keywords:coding",
+    "keywords:mcp keywords:developer-tools",
+    "keywords:mcp keywords:dev-tools",
+    "keywords:mcp-server keywords:ai",
+    "keywords:mcp-server keywords:typescript",
+    "keywords:mcp-server keywords:claude",
+    "keywords:mcp-server keywords:llm",
+    "keywords:mcp-server keywords:agent",
+    "keywords:mcp-server keywords:tools",
+    "keywords:mcp-server keywords:cursor",
+    "keywords:mcp-server keywords:api",
+    "keywords:mcp-server keywords:automation",
+    "keywords:mcp-server keywords:cli",
+    "keywords:mcp-server keywords:openai",
+    "keywords:mcp-server keywords:database",
+    "keywords:mcp-server keywords:browser",
+    "keywords:mcp-server keywords:github",
+    "keywords:mcp-server keywords:search",
+    "keywords:mcp-server keywords:memory",
+    "keywords:mcp-server keywords:nodejs",
+    "keywords:mcp-server keywords:claude-code",
+    "keywords:mcp-server keywords:productivity",
+    "keywords:mcp-server keywords:workflow",
+    "keywords:mcp-server keywords:security",
+    "keywords:mcp-server keywords:testing",
+    "keywords:mcp-server keywords:docs",
+    "keywords:mcp-server keywords:image",
+    "keywords:mcp-server keywords:slack",
+    "keywords:mcp-server keywords:notion",
+    "keywords:mcp-server keywords:google",
+    "keywords:mcp-server keywords:aws",
+    "keywords:mcp-server keywords:postgres",
+    "keywords:mcp-server keywords:git"
+  ],
+  "openvsx_categories": [
+    "Themes",
+    "Snippets",
+    "Programming Languages",
+    "Linters",
+    "Debuggers",
+    "Formatters",
+    "Keymaps",
+    "Language Packs",
+    "Other",
+    "Machine Learning",
+    "AI",
+    "Chat",
+    "Data Science",
+    "Visualization",
+    "Notebooks",
+    "Education",
+    "Testing",
+    "SCM",
+    "Extension Packs",
+    "Azure"
   ]
 }

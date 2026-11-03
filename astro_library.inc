@@ -424,6 +424,8 @@ void lib_install_community(int fd, const Json& body, const std::string& id, cons
         if (!lib_save_mcp(fd, id, Json(std::move(server)), reinstall, body)) return;
         receipt["mcp"] = Json(id);
         receipt["registry"] = Json(get_string(item, "reg"));
+    } else if (k == "plugin" && get_string(item, "t") == "vsx") {
+        send_json(fd, 422, error_json("This is an editor extension from Open VSX: install it in the Code tool (Extensions, VS Code tab).")); return;
     } else if (k == "skill" || k == "plugin") {
         const std::string repo = get_string(item, "repo"), commit = get_string(item, "c"), dir = get_string(item, "dir");
         if (!lib_repo_ok(repo) || !lib_commit_ok(commit) || !lib_reldir_ok(dir)) { send_json(fd, 422, error_json("The catalog entry has an invalid source.")); return; }

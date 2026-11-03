@@ -1,8 +1,8 @@
 {
   "name": "astro-motion",
   "displayName": "Motion Pack",
-  "version": "1.0.0",
-  "description": "The 8 official GSAP skills from GreenSock: the core API (tweens, easing, stagger, matchMedia and reduced motion), timelines, ScrollTrigger (pinning, scrub, scroll stories), plugins (Flip, SplitText, MorphSVG, Draggable, ScrollSmoother and more), utilities, React (useGSAP), Vue, Svelte and Nuxt, and performance.",
+  "version": "1.1.0",
+  "description": "The 8 official GSAP skills from GreenSock (core API, timelines, ScrollTrigger, plugins, utilities, React, Vue, Svelte and Nuxt, performance) plus a StringTune skill: the CSS-first smooth-scroll and attribute-driven animation library from Fiddle.Digital, and how to drive GSAP timelines from it.",
   "author": {
     "name": "The Astro AI team"
   },
@@ -21,6 +21,16 @@
     "gsap-react",
     "gsap-scrolltrigger",
     "gsap-timeline",
-    "gsap-utils"
+    "gsap-utils",
+    "stringtune"
+  ],
+  "also": [
+    {
+      "skill": "stringtune",
+      "written_by": "The Astro AI team",
+      "about": "StringTune by Fiddle.Digital (MIT)",
+      "docs": "https://tune.fiddle.digital/docs/overview",
+      "package": "@fiddle-digital/string-tune"
+    }
   ]
 }

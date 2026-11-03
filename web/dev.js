@@ -732,6 +732,7 @@
   const libKindsInView = (kind) => (kind === 'all' ? ['mcp', 'skill', 'plugin', 'tool'] : kind === 'pack' ? [] : [kind]);
   function libFlagBadge(f, kind) {
     const b = (t, cls) => `<span class="dev-scope${cls ? ' ' + cls : ''}">${esc(t)}</span>`;
+    if (f.includes('v')) return b('editor extension', 's-project');
     if (f.includes('h') || f.includes('e')) return b('remote');
     if (f.includes('n') || f.includes('p') || f.includes('d')) return b(kind === 'tool' ? (f.includes('n') ? 'npm' : 'PyPI') : 'runs locally', 's-project');
     if (f.includes('l')) return b(kind === 'tool' ? 'app / site' : 'link only');
@@ -762,7 +763,7 @@
         <p>${esc(clip(it.summary, 200))}</p>
         <div class="dev-it-a"><button type="button" class="ag-act" data-x="lib-open" data-id="${esc(it.id)}">${icon('i-eye')}Details</button>${have ? `${upd ? `<button type="button" class="ag-act" data-x="lib-open" data-id="${esc(it.id)}">${icon('i-refresh')}Update</button>` : ''}<button type="button" class="ag-act" data-x="lib-remove" data-id="${esc(it.id)}">${icon('i-trash')}Remove</button>` : `<button type="button" class="ag-act" data-x="lib-open" data-id="${esc(it.id)}">${icon('i-download')}Install</button>`}<span class="grow"></span><small>${esc(it.publisher || '')}</small></div></div>`;
     }
-    const [id, name, summary, publisher, flags] = m.r; const have = inst[id]; const link = flags.includes('l');
+    const [id, name, summary, publisher, flags] = m.r; const have = inst[id]; const link = flags.includes('l') && !flags.includes('v');
     return `<div class="dev-item lib-card"><div class="dev-it-h"><b>${esc(name)}</b><span class="dev-scope">${esc(LIB_KIND_LABEL[m.k])}</span>${libFlagBadge(flags, m.k)}${flags.includes('x') ? '<span class="dev-scope s-project">deprecated</span>' : ''}${have ? '<span class="dev-scope s-global">installed</span>' : ''}</div>
       <p>${esc(clip(summary || '', 200))}</p>
       <div class="dev-it-a"><button type="button" class="ag-act" data-x="lib-open" data-id="${esc(id)}">${icon(link ? 'i-globe' : have ? 'i-eye' : 'i-download')}${link ? 'Open' : have ? 'Details' : 'Install'}</button>${have ? `<button type="button" class="ag-act" data-x="lib-remove" data-id="${esc(id)}">${icon('i-trash')}Remove</button>` : ''}<span class="grow"></span><small>${m.r[7] ? '★ ' + Number(m.r[7]).toLocaleString() + ' · ' : ''}${esc(publisher || '')}</small></div></div>`;
@@ -851,7 +852,8 @@
     const k = d.k;
     const safe = (u) => (/^https?:\/\/[^\s"'<>]+$/i.test(String(u || '')) ? String(u) : '');
     const links = [d.web && safe(d.web) ? `<a href="${esc(d.web)}" target="_blank" rel="noopener noreferrer">${k === 'skill' || k === 'plugin' ? 'Files on GitHub' : 'Website'}</a>` : '', d.repo && k === 'mcp' && safe(d.repo) && d.repo !== d.web ? `<a href="${esc(d.repo)}" target="_blank" rel="noopener noreferrer">Source</a>` : ''].filter(Boolean).join(' · ');
-    const src = k === 'mcp' ? 'Official MCP Registry' : d.repo ? `GitHub · ${d.repo}` : d.src ? `listed in ${d.src}` : (d.t === 'npm' ? 'npm' : 'PyPI');
+    const SRC = { npm: 'npm', hf: 'Hugging Face Spaces', docker: 'Docker Hub', github: 'GitHub topics', 'open-vsx': 'Open VSX' };
+    const src = SRC[d.src] || (k === 'mcp' ? 'Official MCP Registry' : d.repo ? `GitHub · ${d.repo}` : d.src ? `listed in ${d.src}` : (d.t === 'npm' ? 'npm' : 'PyPI'));
     const head = `<h2 id="modal-title">${esc(d.n || id)}</h2><p class="hint">${esc(d.d || '')}</p>
       <p class="hint">Community · ${esc(src)}${d.lic && d.lic !== 'see repo' ? ' · ' + esc(d.lic) : ''}${d.v ? ' · version ' + esc(d.v) : ''}${d.stars ? ' · ★ ' + Number(d.stars).toLocaleString() : ''}${links ? ' · ' + links : ''}</p>
       <p class="hint">Indexed automatically, not reviewed by the A.S.T.R.O AI team. Read what it does before you install it.</p>`;
@@ -861,9 +863,24 @@
       document.getElementById('modal-close').onclick = () => A().closeModal();
       return;
     }
+    if (k === 'plugin' && d.t === 'vsx') {   // Open VSX extension: installs into the Code tool's extension host
+      const [ns, ...rest] = String(d.vsx || '').split('.'); const nm = rest.join('.');
+      A().showModal(`${head}<p class="hint">An editor extension (themes, languages, snippets, tools). It installs into the Code tool, downloaded from Open VSX with its checksum checked. Some extensions use editor features A.S.T.R.O does not provide yet; the Extensions panel lists them.</p><div class="btn-row"><button type="button" class="btn primary" id="lib-vsx">Install in the Code tool</button><button type="button" class="btn ghost" id="modal-close">Close</button></div>`);
+      document.getElementById('modal-close').onclick = () => A().closeModal();
+      document.getElementById('lib-vsx').onclick = async () => {
+        const b = document.getElementById('lib-vsx'); b.disabled = true; b.textContent = 'Installing…';
+        try { const r = await dev('exthost/install', { namespace: ns, name: nm }); A().closeModal(); A().toast(`${r.displayName || d.n} installed${r.verified === 'sha256' ? ' · checksum verified' : ''}`); await vscAfterChange(); }
+        catch (err) { b.disabled = false; b.textContent = 'Install in the Code tool'; A().toast(err.message, 'error'); }
+      };
+      return;
+    }
     let what = '', inputs = '', warn = '';
     if (k === 'mcp') {
       const i = d.i;
+      if (!i && d.src) {   // listed as a link (GitHub topic, Docker image, non-Gradio Space)
+        A().showModal(`${head}<div class="ws-note">Link only: this project has no one-click setup. Open its page and follow its instructions, then add it under MCP.</div><div class="btn-row">${safe(d.web) ? `<a class="btn primary" href="${esc(d.web)}" target="_blank" rel="noopener noreferrer">Open page</a>` : ''}<button type="button" class="btn ghost" id="modal-close">Close</button></div>`);
+        document.getElementById('modal-close').onclick = () => A().closeModal(); return;
+      }
       if (!i) {
         A().showModal(`${head}<div class="ws-note">This server has no one-click setup yet (its package type isn't supported). Use its website or source to set it up.</div><div class="btn-row"><button type="button" class="btn ghost" id="modal-close">Close</button></div>`);
         document.getElementById('modal-close').onclick = () => A().closeModal(); return;
@@ -871,6 +888,7 @@
       what = `<div class="dev-sec">${i.t === 'stdio' ? 'Runs this command' : 'Connects to'}</div><code class="dev-cmd">${esc(i.t === 'stdio' ? [i.cmd, ...(i.args || [])].join(' ') : i.url)}</code>`;
       inputs = [...(d.in || []).map((x) => field(x.name, x.label, x.req, x.secret, x.def)), ...(i.env || []).map((x) => field(x.name, x.label, x.req, x.secret, x.def)), ...(i.headers || []).filter((x) => !x.value).map((x) => field(x.h, x.label, x.req, x.secret || /auth|key|token/i.test(x.h), ''))].join('');
       if (i.t === 'stdio') warn = `<p class="hint">This server runs on your computer with your user rights${i.cmd === 'docker' ? ' (inside Docker)' : ''}. Only install it if you trust the publisher.</p>`;
+      if (d.note) warn += `<p class="hint">${esc(d.note)}</p>`;
     } else if (k === 'skill' || k === 'plugin') {
       what = `<div class="dev-sec">Files it adds (${(d.f || []).length}) · pinned to commit ${esc(String(d.c || '').slice(0, 7))}</div><div class="lib-files">${(d.f || []).map((f) => `<div><code>${esc(f[0])}</code><small title="SHA-256 ${esc(f[1])}">${esc(f[1].slice(0, 12))}… · ${Number(f[2] || 0).toLocaleString()} B</small></div>`).join('')}</div>`;
       if ((d.f || []).some((f) => /\.(py|sh|js|mjs|ts|ps1|rb|bat|cmd)$/i.test(f[0]))) warn = '<p class="hint">It includes scripts. They are saved as text and only run if the agent runs them, under your permission mode.</p>';

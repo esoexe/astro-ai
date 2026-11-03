@@ -979,7 +979,7 @@
     const b = await detailCache[hh];
     return b[id] || null;
   };
-  const flagPill = (f, kind) => f.includes('h') ? h('span', { class: 'pill', text: 'Remote' }) : f.includes('e') ? h('span', { class: 'pill', text: 'Remote (SSE)' })
+  const flagPill = (f, kind) => f.includes('v') ? h('span', { class: 'pill', text: 'Editor extension' }) : f.includes('h') ? h('span', { class: 'pill', text: 'Remote' }) : f.includes('e') ? h('span', { class: 'pill', text: 'Remote (SSE)' })
     : f.includes('n') ? h('span', { class: 'pill warn', text: kind === 'tool' ? 'npm' : 'Runs locally · npm' }) : f.includes('p') ? h('span', { class: 'pill warn', text: kind === 'tool' ? 'PyPI' : 'Runs locally · PyPI' })
     : f.includes('d') ? h('span', { class: 'pill warn', text: 'Docker' }) : f.includes('l') ? h('span', { class: 'pill', text: kind === 'tool' ? 'App / site' : 'Link only' })
     : f.includes('g') ? h('span', { class: 'pill ok', text: f.includes('c') ? 'Text + scripts' : 'Text only' }) : null;
@@ -1021,14 +1021,15 @@
     try { d = await fetchDetail(id); } catch (e) { box.replaceChildren(banner('warn', 'alert', 'Could not load the details: ' + e.message)); return; }
     if (!d) { box.replaceChildren(banner('warn', 'alert', 'This item is no longer in the library.')); return; }
     const kind = d.k;
-    const src = kind === 'mcp' ? 'Official MCP Registry' : d.repo ? 'GitHub · ' + d.repo : d.src ? 'Listed in ' + d.src : kind === 'tool' && d.t !== 'link' ? (d.t === 'npm' ? 'npm' : 'PyPI') : '';
+    const SRC = { npm: 'npm', hf: 'Hugging Face Spaces', docker: 'Docker\u2019s MCP catalog', github: 'GitHub topic search', 'open-vsx': 'Open VSX' };
+    const src = SRC[d.src] || (kind === 'mcp' ? 'Official MCP Registry' : d.repo ? 'GitHub · ' + d.repo : d.src ? 'Listed in ' + d.src : kind === 'tool' && d.t !== 'link' ? (d.t === 'npm' ? 'npm' : 'PyPI') : '');
     const body = [
       h('div', { class: 'row', style: { gap: '6px', flexWrap: 'wrap' } }, h('span', { class: 'pill accent', text: KIND_LABEL[kind] || kind }), h('span', { class: 'pill', title: 'Indexed automatically. Not reviewed by the A.S.T.R.O AI team.', text: 'Community' }), flagPill(flags, kind),
         flags.includes('s') ? h('span', { class: 'pill warn', text: 'Needs a key or token' }) : null, flags.includes('x') ? h('span', { class: 'pill warn', text: 'Deprecated' }) : null,
         h('span', { class: 'faint', text: [publisher, d.lic && d.lic !== 'see repo' ? d.lic : '', d.v ? 'v' + d.v : '', d.stars ? '★ ' + nf(d.stars) : ''].filter(Boolean).join(' · ') })),
       h('p', { class: 'muted', style: { margin: '12px 0' } }, d.d || summary || ''),
       h('div', { class: 'row', style: { gap: '8px', flexWrap: 'wrap' } },
-        d.web ? extBtn(kind === 'skill' || kind === 'plugin' ? 'View files on GitHub' : 'Website', d.web, 'cx-btn-outline cx-btn-sm', 'ext') : null,
+        d.web ? extBtn(d.t === 'vsx' ? 'Open VSX page' : kind === 'skill' || kind === 'plugin' ? 'View files on GitHub' : 'Website', d.web, 'cx-btn-outline cx-btn-sm', 'ext') : null,
         d.repo && kind === 'mcp' && d.repo !== d.web ? extBtn('Source', d.repo, 'cx-btn-outline cx-btn-sm', 'code') : null,
         d.url ? extBtn('Open ' + (d.url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]), d.url, 'cx-btn-primary cx-btn-sm', 'ext') : null),
       h('p', { class: 'faint', style: { marginTop: '8px' } }, 'Source: ', src, '. Community items are indexed automatically and haven\u2019t been reviewed by the A.S.T.R.O AI team. Read what an item does before you install it.'),
@@ -1041,7 +1042,10 @@
         const need = [...(d.in || []).map((x) => [x.name, x.label, x.req]), ...(i.env || []).map((x) => [x.name, x.label, x.req]), ...(i.headers || []).filter((x) => !x.value).map((x) => [x.h, x.label, x.req])];
         if (need.length) body.push(h('h3', { class: 'lib-h', text: 'You will need' }), h('ul', { class: 'lib-perms' }, need.map(([n, l, r]) => h('li', {}, h('code', { text: n }), ' ', l && l !== n ? l : '', r ? '' : ' (optional)'))));
         sections.push(['astro', 'A.S.T.R.O AI desktop'], ['other', 'Other apps']);
-      } else body.push(banner('', 'info', 'This server has no one-click setup yet (its package type isn\u2019t supported). Use its website or source to set it up.'));
+        if (d.note) body.push(h('p', { class: 'faint', text: d.note }));
+      } else body.push(banner('', 'info', d.src ? 'Link only: this project has no one-click setup. Open its page and follow its instructions.' : 'This server has no one-click setup yet (its package type isn\u2019t supported). Use its website or source to set it up.'));
+    } else if (kind === 'plugin' && d.t === 'vsx') {
+      body.push(h('p', { class: 'muted' }, 'An editor extension. In A.S.T.R.O AI, open the Code tool, then Extensions → VS Code, and search for ', h('code', { text: d.vsx || '' }), '. It downloads from Open VSX and checks the checksum. It also works in VSCodium and other editors that use Open VSX.'));
     } else if (kind === 'skill' || kind === 'plugin') {
       body.push(h('h3', { class: 'lib-h', text: `Files (${(d.f || []).length}) · pinned to commit ${String(d.c || '').slice(0, 7)} · each one is checked against its SHA-256` }),
         h('div', { class: 'lib-files' }, (d.f || []).slice(0, 200).map((f) => h('div', {}, h('code', { text: f[0] }), h('span', { class: 'faint mono', title: 'SHA-256 ' + f[1], text: f[1].slice(0, 16) + '… · ' + nf(f[2]) + ' B' })))));
@@ -1079,7 +1083,7 @@
   PAGES.library = {
     title: 'Library',
     render(v) {
-      v.append(pageHead('Library', 'Every MCP server in the official MCP Registry, Agent Skills and Claude Code plugins from public GitHub repos, AI command-line tools and a directory of AI apps. Install in A.S.T.R.O AI with one click, or use them in Claude Code, Cursor, VS Code and OpenCode.',
+      v.append(pageHead('Library', 'Every MCP server in the official MCP Registry plus MCP servers from npm, Hugging Face Spaces, Docker\u2019s catalog and GitHub, Agent Skills and Claude Code plugins from public GitHub repos, Open VSX editor extensions, AI command-line tools and a directory of AI apps. Install in A.S.T.R.O AI with one click, or use them in Claude Code, Cursor, VS Code and OpenCode.',
         [linkBtn('Get A.S.T.R.O AI', ROOT + 'download.html', 'cx-btn-outline', 'download')]));
       v.append(h('div', { class: 'lib-trust' },
         [['shield', 'Pinned and checked', 'MCP packages run at exact versions. Skills and plugins are pinned to a git commit, and every file is checked against its SHA-256.'],
@@ -1166,7 +1170,7 @@
         q.oninput = debounce(() => { libQuery = q.value; lib2.shown = 60; paintGrid(); }, 150);
         const srcs = man ? (man.sources || []).map((s) => `${s.name} (${nf(s.count)})`).join(' · ') : '';
         holder.replaceChildren(h('div', { class: 'toolbar' }, h('div', { class: 'search' }, ico('search'), q), kinds, h('div', { class: 'spacer' }), count), sub, status, grid, more,
-          h('p', { class: 'faint', style: { marginTop: '18px' } }, man ? `Updated ${new Date(man.generated).toLocaleDateString()} from: ${srcs}. ` : 'The community catalog could not be loaded; showing reviewed items. ',
+          h('p', { class: 'faint', style: { marginTop: '18px' } }, man ? `Updated ${new Date(man.generated).toLocaleDateString()} from: ${srcs}. ${man.filtered ? nf(man.filtered) + " entries were left out by the safety filter. " : ""}` : 'The community catalog could not be loaded; showing reviewed items. ',
             'Third-party items belong to their publishers. ', h('a', { href: (document.querySelector('meta[name="astro-repo"]')?.content || 'https://github.com/esoexe/astro-ai') + '/tree/main/library', target: '_blank', rel: 'noopener', text: 'How the library is built' }), '.'));
         paint();
         const want = ((location.hash.split('?')[1] || '') + '&' + location.search.slice(1)).match(/(?:^|&)id=([a-z0-9-]{1,48})/);
