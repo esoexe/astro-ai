@@ -1,7 +1,7 @@
 class AstroAi < Formula
   desc "Free desktop app and terminal agent for chat, code and agents, powered by a team of free AI models that answer as one."
   homepage "https://esoexe.github.io/astro-ai/"
-  version "1.9.6"
+  version "1.9.7"
   license any_of: ["MIT", "Apache-2.0", "GPL-3.0-only"]
 
   livecheck do
@@ -12,12 +12,12 @@ class AstroAi < Formula
   depends_on :linux
 
   on_arm do
-    url "https://github.com/esoexe/astro-ai/releases/download/v1.9.6/astro-ai-clean-1.9.6-linux-arm64-portable-CLEAN.tar.gz"
-    sha256 "96f48dd512a756bcc3739a941e0397fe5fca3248d9b8841686d4de7aa6f5298a"
+    url "https://github.com/esoexe/astro-ai/releases/download/v1.9.7/astro-ai-clean-1.9.7-linux-arm64-portable-CLEAN.tar.gz"
+    sha256 "52b2d8bca9e6b8e006bf764a6d0adcc72701182b522a56eaeb7cd697baa846f5"
   end
   on_intel do
-    url "https://github.com/esoexe/astro-ai/releases/download/v1.9.6/astro-ai-clean-1.9.6-linux-x64-portable-CLEAN.tar.gz"
-    sha256 "f3f58b3a5c45b733dd44b845dd0e0e71337f6efdc8dd5cd9f4f4b9a1059fdc3a"
+    url "https://github.com/esoexe/astro-ai/releases/download/v1.9.7/astro-ai-clean-1.9.7-linux-x64-portable-CLEAN.tar.gz"
+    sha256 "b7c2c0ccc06419b21520e53322475895507ed2a19f93a2e181b40dce2d098cda"
   end
 
   def install

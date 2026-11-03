@@ -9,8 +9,34 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
-    <article class="release latest reveal" id="v1-9-6">
-      <header><h2>1.9.6</h2><span class="badge">Latest</span><time datetime="2026-11-03">November 3, 2026</time></header>
+    <article class="release latest reveal" id="v1-9-7">
+      <header><h2>1.9.7</h2><span class="badge">Latest</span><time datetime="2026-11-03">November 3, 2026</time></header>
+      <p class="muted">The Library gets its own site, so it can keep growing.</p>
+
+      <h3>Library: its own site</h3>
+      <ul class="ticks">
+        <li>The community catalog is also published at <a href="https://esoexe.github.io/astro-library/">esoexe.github.io/astro-library</a>, rebuilt every day. A GitHub Pages site holds at most 1 GB, so the catalog no longer has to share this website's space with the installers</li>
+        <li>Everything there is compressed, in small pages, with a search index: the app and the Console download only the results you look at, instead of whole lists</li>
+        <li>If that site can't be reached, both fall back to the copy on this website. Older versions of the app keep using that copy</li>
+        <li>The library site's build also runs GitHub code search for <code>SKILL.md</code> files, continuing each day where the last build stopped, so it finds skill repositories that have no topic</li>
+        <li>Community entries are indexed automatically and not reviewed: read what an item does before you install it. The real count is on the library site and the Library page; it is not a million yet</li>
+      </ul>
+
+      <h3>Fixes</h3>
+      <ul class="ticks">
+        <li>Desktop: a <code>#library</code> link now opens the Library even when the app reloads on its first start to load your synced data</li>
+        <li>Library details show where a community entry comes from and its notes (for example that a Space may need a minute to wake up), and no longer say "no one-click setup" twice</li>
+        <li>Console: the item count in "All" no longer leaves out the reviewed items</li>
+      </ul>
+
+      <h3>Android</h3>
+      <ul class="ticks">
+        <li>No change: the Android app stays at 1.9.2</li>
+      </ul>
+    </article>
+
+    <article class="release reveal" id="v1-9-6">
+      <header><h2>1.9.6</h2><time datetime="2026-11-03">November 3, 2026</time></header>
       <p class="muted">StringTune for scroll and cursor effects, and a much bigger Library.</p>
 
       <h3>Motion Pack</h3>

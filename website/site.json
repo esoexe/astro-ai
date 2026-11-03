@@ -2,28 +2,25 @@
   "name": "A.S.T.R.O AI",
   "url": "https://esoexe.github.io/astro-ai",
   "description": "A.S.T.R.O AI is a free desktop app for chat, code and agents, powered by a team of free AI models that answer as one. Windows, Linux and macOS.",
-  "version": "1.9.6",
+  "version": "1.9.7",
   "dateLabel": "November 3, 2026",
   "year": 2026,
   "repo": "https://github.com/esoexe/astro-ai",
   "highlights": [
-    "StringTune in the Motion Pack: scroll, parallax, cursor and text effects from HTML attributes",
-    "Many more MCP servers in the Library: npm, Hugging Face Spaces, Docker’s MCP catalog and GitHub, next to the official registry",
-    "About 20,000 Open VSX editor extensions in the Library, installed through the Code tool",
-    "The catalog now grows every day: GitHub search picks up where the last run stopped"
+    "The Library gets its own site, with room to grow far past what this website can hold",
+    "The app and the Console search it without downloading it: only small compressed pages and a search index",
+    "More skill repositories every day, found with GitHub code search for SKILL.md files"
   ],
   "highlights_i18n": {
     "fr": [
-      "StringTune dans le Motion Pack : défilement, parallaxe, curseur et effets de texte à partir d’attributs HTML",
-      "Beaucoup plus de serveurs MCP dans la Bibliothèque : npm, Spaces Hugging Face, le catalogue MCP de Docker et GitHub, en plus du registre officiel",
-      "Environ 20 000 extensions d’éditeur Open VSX dans la Bibliothèque, installées par l’outil Code",
-      "Le catalogue grandit chaque jour : la recherche GitHub reprend là où la dernière exécution s’est arrêtée"
+      "La Bibliothèque a son propre site, avec de la place pour grandir bien au-delà de ce que ce site peut contenir",
+      "L’app et la Console y cherchent sans la télécharger : seulement de petites pages compressées et un index de recherche",
+      "Chaque jour, plus de dépôts de compétences, trouvés par la recherche de code GitHub sur les fichiers SKILL.md"
     ],
     "ar": [
-      "StringTune في حزمة الحركة: تأثيرات التمرير والمنظور والمؤشر والنص من سمات HTML",
-      "خوادم MCP أكثر بكثير في المكتبة: npm وHugging Face Spaces وكتالوج Docker وGitHub، إلى جانب السجل الرسمي",
-      "نحو 20,000 إضافة محرر من Open VSX في المكتبة، تُثبَّت عبر أداة Code",
-      "الكتالوج يكبر كل يوم: بحث GitHub يكمل من حيث توقف التشغيل السابق"
+      "للمكتبة موقعها الخاص الآن، مع مساحة لتنمو أبعد بكثير مما يتسع له هذا الموقع",
+      "يبحث التطبيق والكونسول فيها دون تنزيلها: فقط صفحات صغيرة مضغوطة وفهرس بحث",
+      "المزيد من مستودعات المهارات كل يوم، يُعثر عليها بالبحث في شيفرة GitHub عن ملفات SKILL.md"
     ]
   },
   "android": {
