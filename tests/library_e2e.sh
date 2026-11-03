@@ -59,6 +59,13 @@ ls "$EXT/.library-staging" 2>/dev/null | grep -q . && bad "staging left behind" 
 cp "$EXT/mcp.json" "$TMP/mcp.bak"; echo "{ broken" > "$EXT/mcp.json"
 r=$(call install '{"id":"memory"}');                    has "$r" 'mcp.json has an error' && [ "$(cat "$EXT/mcp.json")" = "{ broken" ] && ok "broken mcp.json left alone" || bad "broken mcp.json: $r"
 cp "$TMP/mcp.bak" "$EXT/mcp.json"
+# Design tools (1.9.5): a bare subcommand word ("npx shadcn mcp"), a remote server keyed by x-api-key, a pack with data.
+r=$(call install '{"id":"shadcn"}');                     has "$r" '"ok":true' && grep -q '"shadcn@[0-9.]*"' "$EXT/mcp.json" && grep -q '"mcp"' "$EXT/mcp.json" && ok "stdio MCP with a subcommand word" || bad "shadcn: $r"
+r=$(call install '{"id":"21st-magic"}');                 has "$r" 'required' && ok "21st.dev key required" || bad "21st required: $r"
+r=$(call install '{"id":"21st-magic","inputs":{"TWENTY_FIRST_API_KEY":"k21test"}}'); has "$r" '"ok":true' && grep -q '21st.dev/api/mcp' "$EXT/mcp.json" && grep -q '"x-api-key": *"k21test"' "$EXT/mcp.json" && ok "21st.dev key stored as its header" || bad "21st: $r"
+r=$(call install '{"id":"astro-design"}');               has "$r" '"ok":true' && [ -f "$EXT/plugins/astro-design/skills/ui-ux-pro-max/data/styles.csv" ] && [ -f "$EXT/plugins/astro-design/skills/ui-ux-pro-max/data/stacks/react.csv" ] && ok "Design Pack installed with its data" || bad "astro-design: $r"
+grep -q 'ASTRO_TOOL} ui-ux-pro-max/search' "$EXT/plugins/astro-design/skills/ui-ux-pro-max/SKILL.md" && ! grep -q 'python' "$EXT/plugins/astro-design/skills/ui-ux-pro-max/SKILL.md" && ok "UUPM skill calls the built-in search, no Python" || bad "uupm skill text"
+r=$(call install '{"id":"astro-3d"}');                   has "$r" '"ok":true' && [ -f "$EXT/plugins/astro-3d/skills/threejs-shaders/SKILL.md" ] && ok "3D Pack installed" || bad "astro-3d: $r"
 r=$(call installed '{}');                               has "$r" '"git-flow"' && ok "receipts listed" || bad "installed: $r"
 # Uninstall removes only our files.
 echo "my notes" > "$EXT/plugins/git-flow/NOTES.md"

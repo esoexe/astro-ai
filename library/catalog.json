@@ -599,6 +599,138 @@
       ]
     },
     {
+      "id": "21st-magic",
+      "kind": "mcp",
+      "name": "21st.dev Magic",
+      "summary": "Generate and find polished React + Tailwind components (heroes, pricing, navbars, testimonials) from the 21st.dev community library, then drop them into your project.",
+      "publisher": "21st.dev",
+      "homepage": "https://21st.dev/mcp",
+      "license": "ISC",
+      "tags": [
+        "design",
+        "frontend",
+        "components",
+        "react"
+      ],
+      "runs": "remote",
+      "permissions": [
+        "network",
+        "account"
+      ],
+      "mcp": {
+        "type": "http",
+        "url": "https://21st.dev/api/mcp"
+      },
+      "inputs": [
+        {
+          "name": "TWENTY_FIRST_API_KEY",
+          "label": "21st.dev API key",
+          "kind": "header",
+          "header": "x-api-key",
+          "secret": true,
+          "required": true,
+          "help": "https://21st.dev/mcp"
+        }
+      ],
+      "caveats": "Needs your own 21st.dev account and key. The free plan has a small monthly allowance and each generation uses it; larger use is a paid 21st.dev plan. Components come from the 21st.dev community: check the licence shown on each one before you ship it."
+    },
+    {
+      "id": "shadcn",
+      "kind": "mcp",
+      "name": "shadcn/ui",
+      "summary": "Browse, search and install components from shadcn/ui and any shadcn registry (forms, dialogs, tables, charts, blocks) straight into your project with its own CLI.",
+      "publisher": "shadcn",
+      "homepage": "https://ui.shadcn.com/docs/mcp",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "frontend",
+        "components",
+        "react"
+      ],
+      "runs": "local",
+      "permissions": [
+        "network",
+        "files"
+      ],
+      "requires": [
+        "node"
+      ],
+      "min_version": "1.9.5",
+      "mcp": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "shadcn@4.23.0",
+          "mcp"
+        ]
+      },
+      "caveats": "Installs components into the project folder it runs in (it asks the shadcn CLI to write files). Works best in a project that already has a components.json; the agent can run shadcn init first."
+    },
+    {
+      "id": "magic-ui",
+      "kind": "mcp",
+      "name": "Magic UI",
+      "summary": "The Magic UI component library for the agent: 150+ animated React + Tailwind components (marquees, number tickers, animated beams, text effects, backgrounds) with their code.",
+      "publisher": "Magic UI",
+      "homepage": "https://github.com/magicuidesign/mcp",
+      "license": "MIT",
+      "tags": [
+        "design",
+        "frontend",
+        "components",
+        "animation"
+      ],
+      "runs": "local",
+      "permissions": [
+        "network"
+      ],
+      "requires": [
+        "node"
+      ],
+      "mcp": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "@magicuidesign/mcp@2.1.0"
+        ]
+      }
+    },
+    {
+      "id": "mobile-mcp",
+      "kind": "mcp",
+      "name": "Mobile (iOS and Android)",
+      "summary": "Drive iOS simulators, Android emulators and real devices: open apps, tap, type, swipe, read the screen and take screenshots, so the agent can check the mobile app it built.",
+      "publisher": "Mobile Next",
+      "homepage": "https://github.com/mobile-next/mobile-mcp",
+      "license": "Apache-2.0",
+      "tags": [
+        "mobile",
+        "testing",
+        "android",
+        "ios"
+      ],
+      "runs": "local",
+      "permissions": [
+        "files"
+      ],
+      "requires": [
+        "node",
+        "Android platform tools (adb) or Xcode"
+      ],
+      "mcp": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "@mobilenext/mobile-mcp@1.0.16"
+        ]
+      },
+      "caveats": "Controls whatever device or emulator is connected, including taps and typing. Use a test device or an emulator, not your personal phone with your accounts open. iOS needs a Mac with Xcode."
+    },
+    {
       "id": "everything",
       "kind": "mcp",
       "name": "MCP Test Server",
@@ -1383,6 +1515,92 @@
       "min_version": "1.9.2",
       "network": true,
       "caveats": "No promise of funding: the tools draft, research and do arithmetic, and investors decide. The tools never send anything: seed-closer writes drafts, and a batch goes out only after your own yes in the chat (through a Gmail MCP server you added, or as drafts you send yourself). Two helpers go online with no login or keys: seed-scout reads the App Store's public search and review feeds, and seed-investors searches SEC EDGAR Form D filings, which asks every request to say who is asking (sec_user_agent in seed/config.json). Not legal advice: have a startup lawyer read any SAFE or term sheet before you sign it. Not investment advice: the model and the market size are only as good as your assumptions. Cold email has to follow the law where you send it; every email carries your real name, your postal address and an opt-out, and a no, an opt-out or a bounce ends that thread for good."
+    },
+    {
+      "id": "astro-design",
+      "kind": "plugin",
+      "name": "Design Pack (Astro Pack)",
+      "summary": "Professional design for websites, 3D sites, web apps, mobile apps and desktop software: a design director that runs the whole job from brief to a visual check, UI/UX Pro Max (79 styles, 192 palettes, 74 font pairings, 119 UX rules, 22 stacks, with a built-in search that writes your design system) and Anthropic’s frontend-design guidance.",
+      "publisher": "Community: adapted from Next Level Builder (MIT) and Anthropic (Apache-2.0)",
+      "homepage": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill",
+      "license": "MIT AND Apache-2.0",
+      "tags": [
+        "astro-pack",
+        "design",
+        "frontend",
+        "ui",
+        "ux",
+        "website"
+      ],
+      "runs": "local",
+      "permissions": [
+        "scripts",
+        "files"
+      ],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill",
+        "license": "MIT",
+        "author": "Next Level Builder",
+        "commit": "713eef51b04efc98d6fa565323b495f7c9c89fd4"
+      },
+      "scripts": "builtin",
+      "min_version": "1.9.5",
+      "caveats": "These skills raise the floor: a design system before code, one clear direction and a visual check at phone, tablet and desktop sizes. They do not guarantee a result a human designer would sign off; look at what the agent built and ask for changes. The search runs offline inside A.S.T.R.O AI. The 21st.dev, shadcn, Magic UI and Playwright servers are separate Library items."
+    },
+    {
+      "id": "astro-3d",
+      "kind": "plugin",
+      "name": "3D Pack (Astro Pack)",
+      "summary": "13 skills for 3D websites with three.js and React Three Fiber: scenes, geometry, PBR materials, lighting, textures, animation, glTF loading, shaders and TSL, post-processing, interaction, performance and the glTF asset pipeline, on WebGL or WebGPU.",
+      "publisher": "Community: adapted from CloudAI-X (MIT)",
+      "homepage": "https://github.com/CloudAI-X/threejs-skills",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "3d",
+        "threejs",
+        "webgl",
+        "design",
+        "frontend"
+      ],
+      "runs": "none",
+      "permissions": [],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/CloudAI-X/threejs-skills",
+        "license": "MIT",
+        "author": "CloudAI-X",
+        "commit": "0e181866f095b5f06d005133876e926515390d95"
+      },
+      "caveats": "Written for three.js r186, React Three Fiber 9.8, drei 10.7 and gltf-transform 4.5; on other versions check the release notes. 3D costs battery and data on phones: keep text in HTML, load the canvas lazily and respect reduced motion (the Design Pack does this)."
+    },
+    {
+      "id": "astro-motion",
+      "kind": "plugin",
+      "name": "Motion Pack (Astro Pack)",
+      "summary": "The 8 official GSAP skills from GreenSock: core tweens and easing, timelines, ScrollTrigger scroll stories, plugins (Flip, SplitText, MorphSVG, Draggable, ScrollSmoother), utilities, React, Vue, Svelte and Nuxt, and performance.",
+      "publisher": "Community: adapted from GreenSock (MIT)",
+      "homepage": "https://github.com/greensock/gsap-skills",
+      "license": "MIT",
+      "tags": [
+        "astro-pack",
+        "animation",
+        "gsap",
+        "scroll",
+        "design",
+        "frontend"
+      ],
+      "runs": "none",
+      "permissions": [],
+      "pack": true,
+      "source": {
+        "repo": "https://github.com/greensock/gsap-skills",
+        "license": "MIT",
+        "author": "GreenSock",
+        "commit": "aed9cfd3277740755f6bfc1155c7aa645403b760"
+      },
+      "caveats": "Motion should explain something, not decorate everything; every skill covers prefers-reduced-motion. GSAP and its plugins are free, including for commercial use."
     }
   ]
 }

@@ -10,7 +10,7 @@ function mergeExtra(doc) {
   const paid = extra.paid.map((p) => ({ kind: 'openai', ...p, paid: true, auto_models: p.auto_models || 1, wait_seconds: p.wait_seconds || 90 }));
   const local = extra.local.map((p) => ({
     kind: 'openai', ...p, local: true, keyless: true, discover: true, models: p.models || [], max_models: p.max_models || 40,
-    auto_models: 1, parallel: 1, wait_seconds: 240,
+    auto_models: 1, parallel: 1, wait_seconds: p.wait_seconds || 240,   // Colibri streams experts from disk: slower, so it waits longer
     limits: p.limits || `Runs on your own computer: free, uses your RAM/CPU/GPU. ${p.hint || ''}`.trim(),
     privacy: 'Stays on your computer',
   }));

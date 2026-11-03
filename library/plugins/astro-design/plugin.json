@@ -1,0 +1,21 @@
+{
+  "name": "astro-design",
+  "displayName": "Design Pack",
+  "version": "1.0.0",
+  "description": "Professional design for websites, 3D sites, web apps, mobile apps and desktop software: a design director that runs the whole job, UI/UX Pro Max design intelligence (79 styles, 192 palettes, 74 font pairings, 119 UX rules, 22 stacks, built-in search), and Anthropic's frontend-design guidance for distinctive, non-template visuals.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT AND Apache-2.0",
+  "source": {
+    "repo": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill",
+    "author": "Next Level Builder",
+    "license": "MIT",
+    "commit": "713eef51b04efc98d6fa565323b495f7c9c89fd4"
+  },
+  "skills": [
+    "design-director",
+    "ui-ux-pro-max",
+    "frontend-design"
+  ]
+}

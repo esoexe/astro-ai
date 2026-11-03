@@ -1,0 +1,31 @@
+{
+  "name": "astro-3d",
+  "displayName": "3D Pack",
+  "version": "1.0.0",
+  "description": "13 skills for 3D on the web with three.js r186 and React Three Fiber 9: scenes, cameras and renderers, geometry and instancing, PBR materials, lighting and shadows, textures, animation, glTF loading, shaders and TSL, post-processing, interaction, performance and the glTF asset pipeline (Draco, meshopt, KTX2), on WebGL or WebGPU.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/CloudAI-X/threejs-skills",
+    "author": "CloudAI-X",
+    "license": "MIT",
+    "commit": "0e181866f095b5f06d005133876e926515390d95"
+  },
+  "skills": [
+    "threejs-animation",
+    "threejs-asset-pipeline",
+    "threejs-fundamentals",
+    "threejs-geometry",
+    "threejs-interaction",
+    "threejs-lighting",
+    "threejs-loaders",
+    "threejs-materials",
+    "threejs-performance",
+    "threejs-postprocessing",
+    "threejs-react-three-fiber",
+    "threejs-shaders",
+    "threejs-textures"
+  ]
+}

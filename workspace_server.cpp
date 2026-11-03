@@ -1742,8 +1742,11 @@ bool looks_like_chat_model(const std::string& id) {
 }
 
 // GET {base}/models. Returns nullopt when the platform does not answer (then the listed models are used).
+// owners (optional) gets each model's "owned_by" in the same order ("" when the server does not say), so two
+// local engines that share a port (vLLM and Colibri both default to :8000) can each keep only their own models.
 std::optional<std::vector<std::string>> discover_models(const std::string& base_url, const std::string& key,
-                                                       const std::vector<std::string>& extra_headers = {}) {
+                                                       const std::vector<std::string>& extra_headers = {},
+                                                       std::vector<std::string>* owners = nullptr) {
     CURL* curl = curl_easy_init();
     if (!curl) return std::nullopt;
     std::string response;
@@ -1772,10 +1775,13 @@ std::optional<std::vector<std::string>> discover_models(const std::string& base_
         if (!data) data = parsed.get("models");
         if (!data || !data->array_ptr()) return std::nullopt;
         std::vector<std::string> ids;
+        if (owners) owners->clear();
         for (const Json& item : *data->array_ptr()) {
             std::string id = item.get("id") ? item.get("id")->string_or() : (item.get("name") ? item.get("name")->string_or() : "");
             if (id.rfind("models/", 0) == 0) id = id.substr(7); // Gemini lists "models/<id>"
-            if (!id.empty()) ids.push_back(id);
+            if (id.empty()) continue;
+            ids.push_back(id);
+            if (owners) owners->push_back(item.get("owned_by") ? item.get("owned_by")->string_or() : "");
         }
         return ids;
     } catch (...) { return std::nullopt; }
@@ -1884,17 +1890,33 @@ void build_registry() {
                     std::vector<std::string> extra_headers;
                     if (const Json* hs = p.get("discover_headers"); hs && hs->object_ptr())
                         for (const auto& [hk, hv] : *hs->object_ptr()) if (hv.string_ptr()) extra_headers.push_back(hk + ": " + *hv.string_ptr());
-                    bool unreachable = false;
+                    bool unreachable = false, other_engine = false;
                     if (json_bool(p, "discover", false) && (!key.empty() || info.keyless)) {
-                        if (auto found = discover_models(base, key, extra_headers)) {
+                        std::vector<std::string> owners;
+                        if (auto found = discover_models(base, key, extra_headers, &owners)) {
                             const std::string suffix = get_string(p, "discover_suffix");
                             const std::string exclude_suffix = get_string(p, "discover_exclude_suffix");
                             const std::string contains = get_string(p, "discover_contains");
+                            // discover_owned_by: keep only models this engine says it owns; discover_exclude_owned_by: drop
+                            // another engine's models; discover_exclude_contains: drop helper models (substrings, any case).
+                            const std::string owned_by = get_string(p, "discover_owned_by");
+                            const std::string exclude_owned_by = get_string(p, "discover_exclude_owned_by");
+                            const auto exclude_contains = json_strings(p.get("discover_exclude_contains"));
+                            auto owner_of = [&](std::size_t i) { return i < owners.size() ? owners[i] : std::string(); };
+                            auto excluded = [&](const std::string& m) {
+                                const std::string lower = lower_copy(m);
+                                for (const auto& x : exclude_contains) if (!x.empty() && lower.find(lower_copy(x)) != std::string::npos) return true;
+                                return false;
+                            };
                             for (const auto& m : listed)
                                 if (std::find(found->begin(), found->end(), m) != found->end()) models.push_back(m);
                             std::vector<std::string> extra;
-                            for (const auto& m : *found) {
+                            for (std::size_t i = 0; i < found->size(); ++i) {
+                                const std::string& m = (*found)[i];
                                 if (std::find(models.begin(), models.end(), m) != models.end()) continue;
+                                if (!owned_by.empty() && owner_of(i) != owned_by) { other_engine = true; continue; }
+                                if (!exclude_owned_by.empty() && owner_of(i) == exclude_owned_by) { other_engine = true; continue; }
+                                if (excluded(m)) continue;
                                 if (!suffix.empty() && !m.ends_with(suffix)) continue;
                                 if (!exclude_suffix.empty() && m.ends_with(exclude_suffix)) continue;
                                 if (!contains.empty() && m.find(contains) == std::string::npos) continue;
@@ -1921,7 +1943,7 @@ void build_registry() {
                         models = listed;
                     }
                     add_routes(p, info, kind, models, base, key);
-                    if (models.empty() && info.local) info.status = unreachable ? "Not running on this computer (" + base + ")" : "Running, but no models are loaded";
+                    if (models.empty() && info.local) info.status = unreachable ? "Not running on this computer (" + base + ")" : other_engine ? "Another local engine is using " + base + " (set " + (info.base_url_key.empty() ? std::string("its URL") : info.base_url_key) + " to this one's address)" : "Running, but no models are loaded";
                     else if (models.empty()) info.status = "Key found, but no chat models were listed";
                 }
             }

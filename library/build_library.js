@@ -107,7 +107,7 @@ function checkMcpSpec(where, m, errs) {
     if (m.command !== 'npx') errs.push(`${where}: local servers must start with npx`);
     const a = m.args || [];
     if (a[0] !== '-y' || !PKG_RE.test(a[1] || '')) errs.push(`${where}: args must be ["-y", "<package>@<exact version>", ...]`);
-    for (const x of a.slice(2)) if (!/^(?:--?[A-Za-z0-9][A-Za-z0-9-]*(?:=[A-Za-z0-9._:/-]*)?|\{[A-Z][A-Z0-9_]*\})$/.test(x)) errs.push(`${where}: unsafe argument ${JSON.stringify(x)}`);
+    for (const x of a.slice(2)) if (!/^(?:--?[A-Za-z0-9][A-Za-z0-9-]*(?:=[A-Za-z0-9._:/-]*)?|\{[A-Z][A-Z0-9_]*\}|[a-z][a-z0-9-]{0,31})$/.test(x)) errs.push(`${where}: unsafe argument ${JSON.stringify(x)}`);
   } else errs.push(`${where}: type must be http or stdio`);
 }
 

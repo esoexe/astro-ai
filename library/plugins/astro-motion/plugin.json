@@ -1,0 +1,26 @@
+{
+  "name": "astro-motion",
+  "displayName": "Motion Pack",
+  "version": "1.0.0",
+  "description": "The 8 official GSAP skills from GreenSock: the core API (tweens, easing, stagger, matchMedia and reduced motion), timelines, ScrollTrigger (pinning, scrub, scroll stories), plugins (Flip, SplitText, MorphSVG, Draggable, ScrollSmoother and more), utilities, React (useGSAP), Vue, Svelte and Nuxt, and performance.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/greensock/gsap-skills",
+    "author": "GreenSock",
+    "license": "MIT",
+    "commit": "aed9cfd3277740755f6bfc1155c7aa645403b760"
+  },
+  "skills": [
+    "gsap-core",
+    "gsap-frameworks",
+    "gsap-performance",
+    "gsap-plugins",
+    "gsap-react",
+    "gsap-scrolltrigger",
+    "gsap-timeline",
+    "gsap-utils"
+  ]
+}

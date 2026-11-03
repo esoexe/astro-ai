@@ -441,7 +441,25 @@
       "base_url": "http://127.0.0.1:8000/v1",
       "base_url_key": "VLLM_URL",
       "signup": "https://docs.vllm.ai/",
-      "hint": "vllm serve <model> --port 8000"
+      "hint": "vllm serve <model> --port 8000",
+      "discover_exclude_owned_by": "colibri"
+    },
+    {
+      "id": "colibri",
+      "name": "Colibri (big MoE models on this computer)",
+      "base_url": "http://127.0.0.1:8000/v1",
+      "base_url_key": "COLIBRI_URL",
+      "key": "COLI_API_KEY",
+      "signup": "https://github.com/JustVugg/colibri",
+      "hint": "Install Colibri (Windows: START-HERE.bat, Linux and macOS: ./start-here.sh); it serves on port 8000",
+      "discover_owned_by": "colibri",
+      "discover_exclude_contains": [
+        "laya",
+        "gliner",
+        "-decide"
+      ],
+      "wait_seconds": 600,
+      "limits": "Runs on your own computer: free. Colibri streams the experts of large MoE models from your disk, so it needs at least 8 GB of RAM and about 22 GB of free disk, and it answers slower than a cloud model. Install: START-HERE.bat on Windows, ./start-here.sh on Linux and macOS. COLI_API_KEY only if you set one in Colibri."
     },
     {
       "id": "sglang",

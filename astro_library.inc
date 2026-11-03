@@ -87,7 +87,8 @@ bool lib_file_ok(const std::string& rel, bool pack = false) {
 }
 bool lib_https_url(const std::string& u) { static const std::regex re(R"(^https://[A-Za-z0-9.-]+(:\d+)?/[^\s"'<>]*$)"); return std::regex_match(u, re); }
 bool lib_pkg_ok(const std::string& p) { static const std::regex re(R"(^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*@\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$)"); return std::regex_match(p, re); }
-bool lib_flag_ok(const std::string& a) { static const std::regex re(R"(^(?:--?[A-Za-z0-9][A-Za-z0-9-]*(?:=[A-Za-z0-9._:/-]*)?|\{[A-Z][A-Z0-9_]*\})$)"); return std::regex_match(a, re); }
+// a flag (--x, -x, --x=value), a {PLACEHOLDER}, or a bare lowercase subcommand word ("npx shadcn mcp")
+bool lib_flag_ok(const std::string& a) { static const std::regex re(R"(^(?:--?[A-Za-z0-9][A-Za-z0-9-]*(?:=[A-Za-z0-9._:/-]*)?|\{[A-Z][A-Z0-9_]*\}|[a-z][a-z0-9-]{0,31})$)"); return std::regex_match(a, re); }
 // A value the user typed for an argument, environment variable or header. Arguments reach cmd.exe on Windows,
 // so shell syntax is refused everywhere to keep the behaviour the same on every OS.
 bool lib_value_ok(const std::string& v, bool arg) {

@@ -12,7 +12,7 @@ You can browse it in two places:
 
 ## Astro Packs (1.9)
 
-The **Astro Packs** tab lists 18 packs adapted from [Jake Schincariol](https://github.com/Jakeschincariol)'s MIT-licensed agent
+The **Astro Packs** tab lists 21 packs. 18 are adapted from [Jake Schincariol](https://github.com/Jakeschincariol)'s MIT-licensed agent
 skills: YouTube, Instagram, LinkedIn, X, Founder, Replica, Arena, Duel, Hunter, Trader, Day Trader, Master, Console, Modes,
 Power Modes, Promptmaster, Closer (a small sales team: leads, outreach, follow-ups, call coaching,
 proposals, contracts and a forecast; needs A.S.T.R.O AI 1.9.1 or later) and Seed (a startup raise: competitor research,
@@ -28,11 +28,47 @@ no license are not adapted.)
   On a new Agent session, *From your packs* shows one chip per installed pack; a chip opens the same menu with only
   that pack's skills (1.9.4 or later).
 * The original Python and Node helper scripts are rewritten in C++ and built into the engine (`packtools/`), so a pack
-  needs no Python or Node. Its skill runs them as `astro-server tool <skill>/<helper>`; 15 packs have helpers, the other 3
+  needs no Python or Node. Its skill runs them as `astro-server tool <skill>/<helper>`; 16 packs have helpers, the other 5
   are instructions only.
 * The source commits are pinned in `tools/jake_shas.txt`; `tools/port_packs.js` converts a repo into a pack and
   `library/pack-overrides/` holds hand-written changes. Each pack ships the upstream licence in `NOTICE.md`.
 * The trading packs (Trader, Day Trader) are for research and education, not financial advice. Hunter is a job-search pack.
+
+## Design tools (1.9.5)
+
+For websites, 3D sites, web apps, mobile apps and desktop software. Every item names its upstream source and licence.
+
+| Item | Kind | Source and licence | What it does |
+|---|---|---|---|
+| **Design Pack** (`astro-design`) | Astro Pack, built-in helper | [UI/UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) (MIT), [frontend-design](https://github.com/anthropics/skills/tree/main/skills/frontend-design) (Apache-2.0), design-director by the A.S.T.R.O AI team | `design-director` runs the job from a written brief to a visual check; `ui-ux-pro-max` is the design database with its search rewritten in C++ (`astro-server tool ui-ux-pro-max/search`); `frontend-design` is Anthropic's guidance for non-template visuals. Needs 1.9.5. |
+| **3D Pack** (`astro-3d`) | Astro Pack, instructions | [threejs-skills](https://github.com/CloudAI-X/threejs-skills) (MIT) | 13 three.js and React Three Fiber skills, from scene setup to shaders, post-processing, performance and the glTF pipeline. |
+| **Motion Pack** (`astro-motion`) | Astro Pack, instructions | [gsap-skills](https://github.com/greensock/gsap-skills) (MIT, official) | 8 GSAP skills: core, timelines, ScrollTrigger, plugins, utilities, frameworks, performance. |
+| **21st.dev Magic** (`21st-magic`) | Remote MCP | [21st.dev](https://21st.dev/mcp) (ISC) | Generates and finds React + Tailwind components. Needs your own 21st.dev key (sent as `x-api-key`); the free plan has a small monthly allowance. |
+| **shadcn/ui** (`shadcn`) | Local MCP | [shadcn](https://ui.shadcn.com/docs/mcp) (MIT) | Browses and installs components from shadcn registries with the project's CLI (`npx shadcn mcp`). Needs 1.9.5, which allows a bare subcommand word in MCP arguments. |
+| **Magic UI** (`magic-ui`) | Local MCP | [magicuidesign/mcp](https://github.com/magicuidesign/mcp) (MIT) | Animated React + Tailwind components with their code. |
+| **Mobile (iOS and Android)** (`mobile-mcp`) | Local MCP | [mobile-next/mobile-mcp](https://github.com/mobile-next/mobile-mcp) (Apache-2.0) | Drives simulators, emulators and devices so the agent can check the app it built. Needs adb or Xcode. |
+
+Already in the catalog and used by the design director for the visual check: **Playwright Browser**, **Chrome DevTools** and **Figma Context**.
+
+How the UI/UX Pro Max port differs from the Python original (`packtools/design_uipro.inc`, tested by
+`packtools/tests/design_uipro.sh`, which mirrors the upstream tests): same BM25 ranking, tokenizer, domain detection, score
+floors, exact-identity lookups and design-system rules. Not included: `google-fonts.csv` (font questions are answered from the
+74 curated pairings), the font-licence and Phosphor icon dumps. The stack version check is simpler (an explicit "legacy" or
+"deprecated" asks for older guidance), `--format ascii` prints the same Markdown as `--format markdown`, and the
+`--design-system --json` layout is A.S.T.R.O AI's own.
+
+Not added: Expo's MCP server (OAuth sign-in only), Blender MCP (needs Python and `uvx`), and design galleries whose files
+have no clear licence.
+
+### Colibri (local models)
+
+[Colibri](https://github.com/JustVugg/colibri) (Apache-2.0) runs very large mixture-of-experts models on an ordinary
+computer by streaming the experts from disk. It is a model engine, not a Library item: install it with its own installer
+(`START-HERE.bat` on Windows, `./start-here.sh` on Linux and macOS; it needs at least 8 GB of RAM and about 22 GB of free
+disk), start it, and A.S.T.R.O AI finds it under Settings > Providers > **Colibri** at `http://127.0.0.1:8000/v1`. It
+answers slower than a cloud model. Set `COLIBRI_URL` if it listens elsewhere, and `COLI_API_KEY` only if you gave Colibri
+one. vLLM uses the same default port: each provider keeps only its own models (by `owned_by`), so they never double up.
+Colibri's own `coli mcp` server can be added by hand under Extensions > MCP.
 
 ## Installing
 
