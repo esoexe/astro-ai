@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.9.0.schema.json
+PackageIdentifier: esoexe.AstroAI
+PackageVersion: 1.9.6
+InstallerType: exe
+Scope: user
+InstallModes:
+  - interactive
+  - silent
+InstallerSwitches:
+  Silent: /S
+  SilentWithProgress: /S
+  InstallLocation: /D=<INSTALLPATH>
+UpgradeBehavior: install
+Commands:
+  - astro
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/esoexe/astro-ai/releases/download/v1.9.6/AstroAI-1.9.6-windows-x64-Setup-CLEAN.exe
+    InstallerSha256: 688D27B661312049F2D496A9FECC2469AD394C950048B8689D597D202CCAD478
+    ProductCode: AstroAIClean
+    AppsAndFeaturesEntries:
+      - DisplayName: A.S.T.R.O AI Clean
+        Publisher: A.S.T.R.O AI
+        DisplayVersion: 1.9.6
+        ProductCode: AstroAIClean
+  - Architecture: arm64
+    InstallerUrl: https://github.com/esoexe/astro-ai/releases/download/v1.9.6/AstroAI-1.9.6-windows-arm64-Setup-CLEAN.exe
+    InstallerSha256: E0366DD821D489DA70D09222D4F552DE6FB1437F60DB996D041C3958B7D9505B
+    ProductCode: AstroAIClean
+    AppsAndFeaturesEntries:
+      - DisplayName: A.S.T.R.O AI Clean
+        Publisher: A.S.T.R.O AI
+        DisplayVersion: 1.9.6
+        ProductCode: AstroAIClean
+ManifestType: installer
+ManifestVersion: 1.9.0

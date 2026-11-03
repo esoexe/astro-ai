@@ -9,8 +9,34 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
-    <article class="release latest reveal" id="v1-9-5">
-      <header><h2>1.9.5</h2><span class="badge">Latest</span><time datetime="2026-11-03">November 3, 2026</time></header>
+    <article class="release latest reveal" id="v1-9-6">
+      <header><h2>1.9.6</h2><span class="badge">Latest</span><time datetime="2026-11-03">November 3, 2026</time></header>
+      <p class="muted">StringTune for scroll and cursor effects, and a much bigger Library.</p>
+
+      <h3>Motion Pack</h3>
+      <ul class="ticks">
+        <li><b>StringTune</b> (Fiddle.Digital, MIT): a new <code>stringtune</code> skill. StringTune drives smooth scroll, parallax, progress, cursor, magnetic and split-text effects from <code>string</code> HTML attributes and CSS variables. It is its own library, not a GSAP plugin; the skill says when to use it and when GSAP fits better</li>
+      </ul>
+
+      <h3>Library: more sources</h3>
+      <ul class="ticks">
+        <li><b>npm</b>: MCP servers published on npm that start a command, pinned to their exact version, like registry servers. Packages the registry already lists are not added twice</li>
+        <li><b>Hugging Face Spaces</b> tagged <code>mcp-server</code>: Gradio Spaces connect as remote servers in one click; other Spaces are links</li>
+        <li><b>Docker's MCP catalog</b> (from its open git repo) and MCP projects found by GitHub topic search, as links</li>
+        <li><b>Open VSX</b>: editor extensions, themes and snippets. Install opens the Code tool's extension installer, which checks the checksum</li>
+        <li>GitHub topic search no longer stops at 1,000 results: it walks each topic by creation date and continues the next day where it stopped, so the skills and plugins count keeps growing</li>
+        <li>Entries whose names or descriptions point to sexual content, nudify tools or malware are left out; the Library page shows how many</li>
+        <li>The counts on the Library page are the real number of entries. Sites that ask not to be crawled, and PyPI's JSON API, are still not used</li>
+      </ul>
+
+      <h3>Android</h3>
+      <ul class="ticks">
+        <li>No change: the Android app stays at 1.9.2</li>
+      </ul>
+    </article>
+
+    <article class="release reveal" id="v1-9-5">
+      <header><h2>1.9.5</h2><time datetime="2026-11-03">November 3, 2026</time></header>
       <p class="muted">Design tools for websites, 3D sites, apps and software, and big local models with Colibri.</p>
 
       <h3>Library: three new Astro Packs</h3>
