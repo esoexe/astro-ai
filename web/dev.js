@@ -524,14 +524,24 @@
   async function slashItems(project) {
     const scan = await getScan(project);
     const seen = new Set(); const out = [];
-    const put = (cmd, desc, kind, from) => {
+    const put = (cmd, desc, kind, from, owner) => {
       const key = cmd.toLowerCase(); if (seen.has(key)) return; seen.add(key);
-      out.push({ cmd, desc: clip(String(desc || '').replace(/\s+/g, ' ').trim(), 140), kind, from: from || '' });
+      out.push({ cmd, desc: clip(String(desc || '').replace(/\s+/g, ' ').trim(), 140), kind, from: from || '', owner: owner || '' });
     };
     for (const [c, d] of BUILTIN) put(c, d, 'command');
     for (const c of [...(scan.commands || [])].sort((x, y) => String(x.name).localeCompare(String(y.name)))) put(`/${c.name}`, c.description, 'command', c.scope);
-    for (const k of [...(scan.skills || [])].sort((x, y) => String(x.name).localeCompare(String(y.name)))) put(`/${k.name}`, k.description, 'skill', k.owner || k.scope);
+    for (const k of [...(scan.skills || [])].sort((x, y) => String(x.name).localeCompare(String(y.name)))) put(`/${k.name}`, k.description, 'skill', k.owner || k.scope, k.owner);
     return out;
+  }
+  // Installed packs (plugins) that bring skills, for the Agent's empty screen: one chip per pack.
+  async function packChips(project) {
+    const scan = await getScan(project);
+    const count = {};
+    for (const k of scan.skills || []) if (k.owner) count[k.owner] = (count[k.owner] || 0) + 1;
+    const seen = new Set();
+    return (scan.plugins || []).filter((p) => p.enabled && count[p.name] && !seen.has(p.name) && seen.add(p.name))
+      .map((p) => ({ owner: p.name, label: String(p.manifest?.displayName || p.name), desc: clip(String(p.manifest?.description || ''), 220), count: count[p.name] }))
+      .sort((a, b) => a.label.localeCompare(b.label));
   }
   function expandArgs(body, args) {
     const list = args.match(/"[^"]*"|\S+/g) || [];
@@ -1621,6 +1631,6 @@
     init, tools, beforeTool, afterTool, riskyCommand, pluginPermissionNotice, onStop, brief, agentInput, mode: modeOf, setMode, side, projectChanged, editorReady, inlineEdit,
     openVscode: () => { D.extTab = 'vscode'; lsSet('ext-tab', 'vscode'); A().wsSide('ext'); renderExt(true); },
     openTools: () => { D.extTab = 'tools'; lsSet('ext-tab', 'tools'); A().wsSide('ext'); renderExt(true); }, toolsLoad,
-    openFolder, openLibrary, paletteItems, slashItems, checkProblems, agentManager, mcpRegistry, installPlugin, vsxInstall, openThemes, getScan, globRe, frontmatter, jsonc, unzipIndex, invalidate, applyLooks, renderExt,
+    openFolder, openLibrary, paletteItems, slashItems, packChips, checkProblems, agentManager, mcpRegistry, installPlugin, vsxInstall, openThemes, getScan, globRe, frontmatter, jsonc, unzipIndex, invalidate, applyLooks, renderExt,
   };
 })();

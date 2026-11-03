@@ -1,5 +1,5 @@
 // The "/" menu of the agent composers (Agent page and Workspace agent mode).
-// Needs an engine with the astro-seed pack installed (tests/agent_slash_e2e.sh does both) and Playwright.
+// Needs an engine with the astro-seed and astro-closer packs installed (tests/agent_slash_e2e.sh does both) and Playwright.
 //   node tests/agent_slash_e2e.js [http://127.0.0.1:4372]
 // Exit 0 = all checks passed (or Playwright is missing: SKIP), 1 = a check failed.
 let chromium;
@@ -23,14 +23,31 @@ const ok = (cond, name, extra) => { if (cond) { pass++; } else { fail++; console
   }, host);
   const waitOpen = (host) => p.waitForFunction((h) => { const x = document.querySelector(`${h} .ag-slash`); return x && !x.hidden && x.children.length; }, host, { timeout: 8000 }).then(() => true, () => false);
   const val = (sel) => p.$eval(sel, (t) => t.value);
+  let m;
 
   // ---- Agent page ----
   await p.click('#nav-agent');
   await p.waitForSelector('#ag-in');
   const ta = '#ag-in'; const host = '#ag-form';
+
+  // The empty screen lists the installed packs; a chip opens the menu with only that pack's skills.
+  const chips = (root) => p.waitForFunction((r) => { const x = document.querySelector(`${r} [data-agpacks]`); return x && !x.hidden && x.querySelectorAll('[data-agpack]').length; }, root, { timeout: 8000 })
+    .then(() => p.$$eval(`${root} [data-agpack]`, (x) => x.map((b) => ({ owner: b.dataset.agpack, label: b.querySelector('span').textContent, n: b.querySelector('i').textContent }))), () => []);
+  let cs = await chips('#ag-tl');
+  ok(cs.length === 2 && cs[0].label === 'Closer Pack' && cs[1].label === 'Seed Pack' && cs.every((c) => c.n === '11'), 'page: empty screen shows one chip per installed pack', cs);
+  await p.click('#ag-tl [data-agpack="astro-closer"]');
+  ok(await waitOpen(host), 'page: a pack chip opens the menu');
+  m = await menu(host);
+  ok(m.items.length === 11 && m.items.every((x) => x.kind === 'Skill') && m.items.some((x) => x.cmd === '/prospector') && !m.items.some((x) => x.cmd.startsWith('/seed-')), 'page: only that pack\'s skills', m.items.map((x) => x.cmd));
+  ok(await val(ta) === '/', 'page: the chip puts / in the composer', await val(ta));
+  await p.keyboard.type('pl');
+  await p.waitForFunction(() => [...document.querySelectorAll('#ag-form .ag-slash-item code')].some((c) => c.textContent === '/plan'), null, { timeout: 5000 }).catch(() => {});
+  m = await menu(host);
+  ok(m.items.some((x) => x.cmd === '/plan') && m.items.some((x) => x.cmd === '/seed-plan'), 'page: typing goes back to the full list', m.items.map((x) => x.cmd));
+  await p.keyboard.press('Escape'); await p.fill(ta, '');
   await p.click(ta); await p.keyboard.type('/');
   ok(await waitOpen(host), 'page: "/" opens the menu');
-  let m = await menu(host);
+  m = await menu(host);
   ok(m.items[0]?.cmd === '/help' && m.items[0].sel, 'page: built-ins first, first one selected', m.items[0]);
   ok(m.items.filter((x) => x.kind === 'Command').length >= 11, 'page: all 11 built-in commands listed', m.items.length);
   ok(m.items.filter((x) => x.kind === 'Skill' && x.cmd.startsWith('/seed-')).length === 11, 'page: the 11 seed pack skills listed', m.items.filter((x) => x.kind === 'Skill').map((x) => x.cmd));
@@ -98,6 +115,13 @@ const ok = (cond, name, extra) => { if (cond) { pass++; } else { fail++; console
   ok(!(await menu(whost))?.open, 'workspace: no menu in Team mode');
   await p.fill(wta, '');
   await p.click('[data-tmode="agent"]');
+  cs = await chips('#ws-team-msgs');
+  ok(cs.length === 2, 'workspace: Agent mode empty screen shows the pack chips', cs);
+  await p.click('#ws-team-msgs [data-agpack="astro-seed"]');
+  ok(await waitOpen(whost), 'workspace: a pack chip opens the menu');
+  m = await menu(whost);
+  ok(m.items.length === 11 && m.items.every((x) => x.cmd.startsWith('/seed-')), 'workspace: only the Seed skills', m.items.map((x) => x.cmd));
+  await p.keyboard.press('Escape'); await p.fill(wta, '');
   await p.click(wta); await p.keyboard.type('/seed-p');
   ok(await waitOpen(whost), 'workspace: menu opens in Agent mode');
   m = await menu(whost);

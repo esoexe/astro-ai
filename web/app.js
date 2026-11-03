@@ -7103,13 +7103,14 @@
     return `<div class="ag-foot">${s.status === 'interrupted' ? '<span>This run was interrupted (the page was closed or reloaded).</span>' : ''}${canCont ? `<button type="button" class="ws-chip" data-agcont>${icon('i-play')}Continue</button>` : ''}${undo ? `<button type="button" class="ws-chip ghost" data-agundo>${icon('i-undo')}Undo all changes</button>` : ''}</div>`;
   }
   function agEmptyHtml(where) {
+    setTimeout(agFillPacks, 0);
     const sugg = [
       ['Build a to-do web app with a Node/Express API and a polished page, then start it and test the API with curl', 'i-server'],
       ['Research the latest stable three.js release on the web, then build a rotating 3D galaxy page with it', 'i-globe'],
       ['Write a C++20 program that benchmarks 3 sorting algorithms on 1M ints and prints a table, compile with -O2 and run it', 'i-bolt'],
       ['Inspect this project, find bugs, fix them and verify by running it', 'i-check'],
     ];
-    return `<div class="ag-empty"><div class="tm-orb ag-orb orbit-mark" aria-hidden="true"><svg class="orbit-svg" viewBox="0 0 48 48"><g class="o-spin o-atom"><g class="o-back"><path class="o-ring" d="M44 24A20 7.2 0 0 0 4 24"/><path class="o-ring" d="M34 41.32A20 7.2 60 0 0 14 6.68"/><path class="o-ring" d="M34 6.68A20 7.2 -60 0 0 14 41.32"/></g></g><circle class="o-core" cx="24" cy="24" r="7.6"/><g class="o-spin o-atom"><path class="o-ring o-front" d="M4 24A20 7.2 0 0 0 44 24"/><path class="o-ring o-front" d="M14 6.68A20 7.2 60 0 0 34 41.32"/><path class="o-ring o-front" d="M14 41.32A20 7.2 -60 0 0 34 6.68"/><circle class="o-moon" cx="5.2" cy="26.5" r="1.9"/><circle class="o-moon" cx="35.8" cy="37.6" r="1.6"/><circle class="o-sat" cx="18.1" cy="41.0" r="1.5"/></g></svg></div><h3>A.S.T.R.O AI Agent</h3><p>Give it a job. The agent plans with your team of models, then works on its own: it runs commands, writes and edits files, searches the web, starts servers, checks the results and fixes its own errors until the job is done. Every step and every file it touches is shown here${where === 'ws' ? '' : ' and in the side panel'}.</p><div class="ag-sugg">${sugg.map(([t, i]) => `<button type="button" data-agsuggest="${esc(t)}">${icon(i)}<span>${esc(t)}</span></button>`).join('')}</div></div>`;
+    return `<div class="ag-empty"><div class="tm-orb ag-orb orbit-mark" aria-hidden="true"><svg class="orbit-svg" viewBox="0 0 48 48"><g class="o-spin o-atom"><g class="o-back"><path class="o-ring" d="M44 24A20 7.2 0 0 0 4 24"/><path class="o-ring" d="M34 41.32A20 7.2 60 0 0 14 6.68"/><path class="o-ring" d="M34 6.68A20 7.2 -60 0 0 14 41.32"/></g></g><circle class="o-core" cx="24" cy="24" r="7.6"/><g class="o-spin o-atom"><path class="o-ring o-front" d="M4 24A20 7.2 0 0 0 44 24"/><path class="o-ring o-front" d="M14 6.68A20 7.2 60 0 0 34 41.32"/><path class="o-ring o-front" d="M14 41.32A20 7.2 -60 0 0 34 6.68"/><circle class="o-moon" cx="5.2" cy="26.5" r="1.9"/><circle class="o-moon" cx="35.8" cy="37.6" r="1.6"/><circle class="o-sat" cx="18.1" cy="41.0" r="1.5"/></g></svg></div><h3>A.S.T.R.O AI Agent</h3><p>Give it a job. The agent plans with your team of models, then works on its own: it runs commands, writes and edits files, searches the web, starts servers, checks the results and fixes its own errors until the job is done. Every step and every file it touches is shown here${where === 'ws' ? '' : ' and in the side panel'}.</p><div class="ag-packs" data-agpacks hidden></div><div class="ag-sugg">${sugg.map(([t, i]) => `<button type="button" data-agsuggest="${esc(t)}">${icon(i)}<span>${esc(t)}</span></button>`).join('')}</div></div>`;
   }
   function agRenderTl(box, s) {
     if (!s || !s.items.length) { box.innerHTML = agEmptyHtml(box.id === 'ws-team-msgs' ? 'ws' : 'page'); box._sid = ''; box._nodes = null; return; }
@@ -7137,12 +7138,26 @@
     box.append(foot);
     if (near) box.scrollTop = box.scrollHeight;
   }
+  // Installed packs as chips on the Agent's empty screen; a chip opens the "/" menu with that pack's skills.
+  async function agFillPacks() {
+    for (const el of $$('[data-agpacks]:not([data-filled])')) {
+      el.dataset.filled = '1';
+      const project = el.closest('#ws-team-msgs') ? ws.project : AG.project;
+      let packs = [];
+      try { packs = (await window.AstroDev?.packChips?.(project)) || []; } catch (_e) { packs = []; }
+      if (!el.isConnected || !packs.length) continue;
+      el.innerHTML = `<div class="ag-packs-h">${icon('i-puzzle')}<span>From your packs</span><small>Pick a pack, then a skill</small></div><div class="ag-packs-row">${packs.map((p) => `<button type="button" class="ag-pack" data-agpack="${esc(p.owner)}" title="${esc(p.desc)}"><span>${esc(p.label)}</span><i>${p.count}</i></button>`).join('')}</div>`;
+      el.hidden = false;
+    }
+  }
   function agFindItem(s, id) { return s?.items.find((it) => it.id === id); }
   // Click handling shared by both hosts. `host` is 'page' or 'ws'.
   function agOnClick(e, host) {
     const s = host === 'page' ? AG.sessions.get(AG.cur) : AG.sessions.get(ls.get(agWsKey(ws.project)) || '');
     const sug = e.target.closest('[data-agsuggest]');
     if (sug) { if (host === 'page') agPageSend(sug.dataset.agsuggest); else agWsSend(sug.dataset.agsuggest); return true; }
+    const pk = e.target.closest('[data-agpack]');
+    if (pk) { $(host === 'page' ? '#ag-in' : '#ws-team-in')?._slash?.openScope(pk.dataset.agpack); return true; }
     if (!s) return false;
     const tg = e.target.closest('[data-agtoggle]');
     if (tg) { const it = agFindItem(s, tg.dataset.agtoggle); if (it) { it.open = !it.open; agPaint(s); } return true; }
@@ -7335,7 +7350,7 @@
     box.className = 'ag-slash'; box.hidden = true; box.setAttribute('role', 'listbox'); box.setAttribute('aria-label', 'Commands and skills');
     ta.before(box);
     ta.setAttribute('aria-haspopup', 'listbox'); ta.setAttribute('aria-expanded', 'false');
-    const st = { matches: [], sel: 0, seq: 0 };
+    const st = { matches: [], sel: 0, seq: 0, scope: '' };
     const close = () => { box.hidden = true; box.innerHTML = ''; st.matches = []; st.sel = 0; ta.setAttribute('aria-expanded', 'false'); };
     const paint = () => {
       box.innerHTML = st.matches.map((it, i) => `<button type="button" role="option" tabindex="-1" class="ag-slash-item${i === st.sel ? ' sel' : ''}" data-i="${i}" aria-selected="${i === st.sel}"${it.from ? ` title="${esc(it.from)}"` : ''}><code>${esc(it.cmd)}</code><span>${esc(it.desc)}</span><i class="ag-slash-kind ${it.kind}">${it.kind === 'skill' ? 'Skill' : 'Command'}</i></button>`).join('');
@@ -7350,6 +7365,7 @@
       try { items = (await window.AstroDev?.slashItems?.(opts.project())) || []; } catch (_e) { items = []; }
       if (seq !== st.seq || ta.value !== v || document.activeElement !== ta) return;
       const q = v.slice(1).toLowerCase(); const nm = (it) => it.cmd.slice(1).toLowerCase();
+      if (st.scope) items = items.filter((it) => it.owner === st.scope);
       st.matches = [...items.filter((it) => nm(it).startsWith(q)), ...items.filter((it) => !nm(it).startsWith(q) && (nm(it).includes(q) || it.desc.toLowerCase().includes(q)))].slice(0, 80);
       st.sel = 0; paint();
     };
@@ -7359,7 +7375,7 @@
       ta.setSelectionRange(ta.value.length, ta.value.length);
       ta.dispatchEvent(new Event('input'));
     };
-    ta.addEventListener('input', update);
+    ta.addEventListener('input', () => { st.scope = ''; update(); });
     ta.addEventListener('focus', update);
     ta.addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== ta) close(); }, 150));
     // Registered before the composer's own Enter-to-send handler, so a pick never sends half a command.
@@ -7376,7 +7392,10 @@
       } else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); }
     });
     box.addEventListener('mousedown', (e) => { const b = e.target.closest('[data-i]'); if (b) { e.preventDefault(); pick(Number(b.dataset.i)); } });
-    return { close };
+    // Opens the menu with only one pack's skills (typing anything goes back to the full list).
+    const openScope = (owner) => { st.scope = owner; ta.value = '/'; ta.focus(); ta.setSelectionRange(1, 1); update(); };
+    ta._slash = { close, openScope };
+    return ta._slash;
   }
   function agPageSend(text) {
     let s = agCurSession();

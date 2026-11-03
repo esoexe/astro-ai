@@ -336,6 +336,8 @@
     'Open this project in the Workspace editor': ['Ouvrir ce projet dans l’éditeur de l’espace de travail', 'افتح هذا المشروع في محرر مساحة العمل'],
     'Plan, build, or ask. / for commands': ['Planifiez, construisez ou demandez. / pour les commandes', 'خطّط أو ابنِ أو اسأل. / للأوامر'],
     'Give the agent a job: build, fix, research, test… / for commands': ['Confiez une tâche à l’agent : construire, corriger, rechercher, tester… / pour les commandes', 'كلّف الوكيل بمهمة: بناء أو إصلاح أو بحث أو اختبار… / للأوامر'],
+    'From your packs': ['Depuis vos packs', 'من حزمك'],
+    'Pick a pack, then a skill': ['Choisissez un pack, puis une compétence', 'اختر حزمة ثم مهارة'],
     'Commands and skills': ['Commandes et compétences', 'الأوامر والمهارات'],
     'Skill': ['Compétence', 'مهارة'],
     'Command': ['Commande', 'أمر'],

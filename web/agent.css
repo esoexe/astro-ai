@@ -176,3 +176,14 @@
   .ag .ag-tl { padding: 14px 14px 18px; }
   .ag .ag-comp { padding: 6px 10px 10px; }
 }
+/* "From your packs" on the Agent's empty screen: one chip per installed pack, opens the "/" menu with its skills */
+.ag-packs { width: 100%; margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.ag-packs[hidden] { display: none; }
+.ag-packs-h { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12.5px; color: var(--text-2); flex-wrap: wrap; }
+.ag-packs-h svg { width: 14px; height: 14px; color: var(--accent); }
+.ag-packs-h small { color: var(--text-3); font-size: 11.5px; }
+.ag-packs-h small::before { content: "·"; margin-inline-end: 6px; }
+.ag-packs-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.ag-pack { display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 6px 0 12px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font: inherit; font-size: 12.5px; cursor: pointer; transition: border-color .15s, background .15s; }
+.ag-pack:hover, .ag-pack:focus-visible { border-color: var(--accent); }
+.ag-pack i { font-style: normal; font-size: 11px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px; display: inline-flex; align-items: center; justify-content: center; background: var(--accent-soft); color: var(--accent); }
