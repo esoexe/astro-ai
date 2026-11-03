@@ -9,8 +9,42 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
-    <article class="release latest reveal" id="v1-9-4">
-      <header><h2>1.9.4</h2><span class="badge">Latest</span><time datetime="2026-11-03">November 3, 2026</time></header>
+    <article class="release latest reveal" id="v1-9-5">
+      <header><h2>1.9.5</h2><span class="badge">Latest</span><time datetime="2026-11-03">November 3, 2026</time></header>
+      <p class="muted">Design tools for websites, 3D sites, apps and software, and big local models with Colibri.</p>
+
+      <h3>Library: three new Astro Packs</h3>
+      <ul class="ticks">
+        <li><b>Design Pack</b>: <code>design-director</code> runs a design job the way a senior designer would: a written brief, the design system first, one clear visual direction, the right stack, real components, 3D and motion within a performance budget, then screenshots at phone, tablet and desktop sizes before it calls the work done</li>
+        <li><b>UI/UX Pro Max</b> (Next Level Builder, MIT) is in the Design Pack: 79 styles, 192 product palettes and rules, 74 font pairings, 119 UX guidelines and rules for 22 stacks. Its Python search is rewritten in C++ and built in, so it runs offline with nothing to install, and <code>--design-system --persist</code> saves your design system as <code>MASTER.md</code></li>
+        <li>Anthropic's <b>frontend-design</b> skill (Apache-2.0) for distinctive visuals that do not look like a template</li>
+        <li><b>3D Pack</b>: 13 three.js and React Three Fiber skills from CloudAI-X (MIT), from scene setup to shaders, post-processing, performance and the glTF pipeline</li>
+        <li><b>Motion Pack</b>: the 8 official GSAP skills from GreenSock (MIT): timelines, ScrollTrigger, plugins, React, Vue and performance</li>
+      </ul>
+
+      <h3>Library: new MCP servers</h3>
+      <ul class="ticks">
+        <li><b>21st.dev Magic</b>: generates and finds React and Tailwind components. Needs your own 21st.dev key; its free plan has a small monthly allowance</li>
+        <li><b>shadcn/ui</b>: browses and installs components from shadcn registries into your project</li>
+        <li><b>Magic UI</b>: animated React and Tailwind components</li>
+        <li><b>Mobile (iOS and Android)</b>: drives simulators, emulators and devices, so the agent can check the mobile app it built</li>
+        <li>Library entries can now start a server with a plain subcommand word (as in <code>npx shadcn mcp</code>); everything else stays pinned and checked</li>
+      </ul>
+
+      <h3>Models</h3>
+      <ul class="ticks">
+        <li><b>Colibri</b> (Apache-2.0) runs very large mixture-of-experts models on an ordinary computer by streaming them from disk. Install and start it with its own installer; A.S.T.R.O AI finds it under Settings &gt; Providers. It needs at least 8 GB of RAM and about 22 GB of disk, and answers slower than a cloud model</li>
+        <li>vLLM and Colibri share port 8000 by default: each now keeps only its own models, and A.S.T.R.O AI says so when another engine holds the port</li>
+      </ul>
+
+      <h3>Android</h3>
+      <ul class="ticks">
+        <li>No change: the Android app stays at 1.9.2</li>
+      </ul>
+    </article>
+
+    <article class="release reveal" id="v1-9-4">
+      <header><h2>1.9.4</h2><time datetime="2026-11-03">November 3, 2026</time></header>
       <p class="muted">Your packs on the Agent's first screen.</p>
 
       <h3>Agent</h3>

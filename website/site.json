@@ -2,28 +2,28 @@
   "name": "A.S.T.R.O AI",
   "url": "https://esoexe.github.io/astro-ai",
   "description": "A.S.T.R.O AI is a free desktop app for chat, code and agents, powered by a team of free AI models that answer as one. Windows, Linux and macOS.",
-  "version": "1.9.4",
+  "version": "1.9.5",
   "dateLabel": "November 3, 2026",
   "year": 2026,
   "repo": "https://github.com/esoexe/astro-ai",
   "highlights": [
-    "A new Agent session shows your installed packs as chips under From your packs",
-    "Click a pack to open the / menu with only that pack’s skills, then pick one and say what you want",
-    "Packs are grouped by the pack they came from, so packs whose skills share no common name work too",
-    "Includes 1.9.3: type / in the Agent to see every command and installed skill with what it does"
+    "Design Pack: a design director that runs the job from brief to a visual check, plus UI/UX Pro Max with its search built in",
+    "3D Pack with 13 three.js and React Three Fiber skills, and Motion Pack with the 8 official GSAP skills",
+    "New in the Library: 21st.dev Magic (with your key), shadcn/ui, Magic UI and a Mobile server for iOS and Android",
+    "Colibri support: run very large mixture-of-experts models on your own computer"
   ],
   "highlights_i18n": {
     "fr": [
-      "Une nouvelle session de l’Agent affiche vos packs installés sous forme de pastilles, sous Depuis vos packs",
-      "Cliquez sur un pack pour ouvrir le menu / avec seulement ses compétences, puis choisissez-en une et dites ce que vous voulez",
-      "Les compétences sont regroupées par pack d’origine : les packs dont les compétences n’ont pas de nom commun fonctionnent aussi",
-      "Inclut la 1.9.3 : tapez / dans l’Agent pour voir chaque commande et compétence installée avec ce qu’elle fait"
+      "Design Pack : un directeur artistique qui mène le travail du brief à la vérification visuelle, avec UI/UX Pro Max et sa recherche intégrée",
+      "3D Pack avec 13 compétences three.js et React Three Fiber, et Motion Pack avec les 8 compétences GSAP officielles",
+      "Nouveau dans la Bibliothèque : 21st.dev Magic (avec votre clé), shadcn/ui, Magic UI et un serveur Mobile pour iOS et Android",
+      "Prise en charge de Colibri : faites tourner de très grands modèles à mélange d’experts sur votre propre ordinateur"
     ],
     "ar": [
-      "تعرض جلسة الوكيل الجديدة حزمك المثبّتة كأزرار تحت «من حزمك»",
-      "انقر على حزمة لفتح قائمة / بمهارات تلك الحزمة فقط، ثم اختر مهارة وقل ما تريد",
-      "تُجمع المهارات حسب الحزمة التي جاءت منها، فتعمل أيضًا الحزم التي لا تشترك مهاراتها في اسم واحد",
-      "يتضمن 1.9.3: اكتب / في الوكيل لترى كل أمر وكل مهارة مثبّتة مع ما تفعله"
+      "حزمة التصميم: مدير تصميم يقود العمل من الموجز إلى الفحص البصري، مع UI/UX Pro Max وبحثه المدمج",
+      "حزمة ثلاثية الأبعاد بـ 13 مهارة three.js وReact Three Fiber، وحزمة الحركة بمهارات GSAP الرسمية الثماني",
+      "جديد في المكتبة: 21st.dev Magic (بمفتاحك)، وshadcn/ui، وMagic UI، وخادم للهاتف لـ iOS وAndroid",
+      "دعم Colibri: شغّل نماذج ضخمة من نوع مزيج الخبراء على حاسوبك"
     ]
   },
   "android": {
