@@ -17,6 +17,11 @@
 // Integrity: MCP packages are pinned to the exact version the registry lists; skills and plugins are pinned to a git
 // commit and every file has a SHA-256, so the desktop installer downloads exactly what was indexed. Hooks, binaries
 // and plugin UI scripts are never listed. If a source can't be reached, the last published data is reused.
+//
+// Schema 3 (--format v3, published at https://esoexe.github.io/astro-library/v3/ by that repository's workflow) stores
+// the same rows and details as gzip files in smaller shards, with a search index (q/<xx>.json.gz), so apps never
+// download the whole catalog. --extra adds GitHub code search for SKILL.md files (resumed from build to build).
+// --prev2 <v2 url> lets the first schema 3 build start from the schema 2 build. The reader is web/lib3core.js.
 'use strict';
 const fs = require('fs'), path = require('path'), crypto = require('crypto'), os = require('os');
 const { execFile } = require('child_process');
@@ -43,6 +48,8 @@ const CACHE = path.resolve(opt('cache', path.join(os.tmpdir(), 'astro-lib-git'))
 const CONC = Number(opt('jobs', 8));
 const UA = 'AstroAI-Library-Indexer/2 (+https://github.com/esoexe/astro-ai)';
 const SHARD = 5000;
+const FORMAT = opt('format', 'v2') === 'v3' ? 'v3' : 'v2';
+const EXTRA = argv.includes('--extra');
 
 const sha256 = (b) => crypto.createHash('sha256').update(b).digest('hex');
 const log = (...a) => console.log('[library]', ...a);
@@ -427,17 +434,16 @@ function reposFromMarkdown(md) {
 // Repos not seen by any sweep for 45 days (deleted, made private, topic removed) are dropped.
 const TOPICS = SOURCES.skill_topics || ['claude-skills', 'agent-skills', 'claude-code-plugin'];
 const MCP_TOPICS = SOURCES.mcp_topics || [];
-const GH = { items: {}, npm: {}, sweep: null, inc: null };   // state-gh.json
+const GH = { items: {}, npm: {}, sweep: null, inc: null, code: null, found: {} };   // state-gh.json (code/found: SKILL.md code search)
 const today = () => new Date().toISOString().slice(0, 10);
 async function loadGhState() {
   if (argv.includes('--fresh')) return;
-  const src = opt('prev', LIVE);
   let j = null;
   try {
-    if (/^https?:/.test(src)) j = await get(src + 'state-gh.json', { tries: 2, timeout: 120000 });
-    else if (fs.existsSync(path.join(src, 'state-gh.json'))) j = JSON.parse(fs.readFileSync(path.join(src, 'state-gh.json'), 'utf8'));
+    j = await readCatalogFile(opt('prev', LIVE), FORMAT === 'v3' ? 'state-gh.json.gz' : 'state-gh.json');
+    if (!j && FORMAT === 'v3' && opt('prev2')) { j = await readCatalogFile(opt('prev2'), 'state-gh.json'); if (j) log('GitHub state taken from the schema 2 build'); }
   } catch (e) { log('previous GitHub state unavailable: ' + e.message); }
-  if (j && j.schema === 1) { GH.items = j.items || {}; GH.npm = j.npm || {}; GH.sweep = j.sweep || null; GH.inc = j.inc || null; }
+  if (j && j.schema === 1) { GH.items = j.items || {}; GH.npm = j.npm || {}; GH.sweep = j.sweep || null; GH.inc = j.inc || null; GH.code = j.code || null; GH.found = j.found || {}; }
   log(`GitHub state: ${Object.keys(GH.items).length} repos, ${Object.keys(GH.npm).length} npm packages`);
 }
 function ghTake(it, group) {
@@ -515,22 +521,26 @@ async function searchTopics(token, searchEnd) {
 }
 
 // The previous build (published on the website): lets unchanged repos be reused instead of cloned again.
+// A schema 3 build can also start from a schema 2 build (--prev2 <url>), e.g. the first time it runs.
 async function loadPrevious() {
-  const src = opt('prev', LIVE);
-  const read = async (f) => {
-    if (/^https?:/.test(src)) return get(src + f, { json: true, tries: 2 }).catch(() => null);
-    const p = path.join(src, f); return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
-  };
-  const state = await read('state.json');
+  const first = await loadPreviousFrom(opt('prev', LIVE), FORMAT === 'v3');
+  if (first || FORMAT !== 'v3' || !opt('prev2')) return first;
+  return loadPreviousFrom(opt('prev2'), false);
+}
+async function loadPreviousFrom(src, v3) {
+  const read = (f) => readCatalogFile(src, f);
+  const state = await read(v3 ? 'state.json.gz' : 'state.json');
   const man = state && await read('manifest.json');
-  if (!state || !man || man.schema !== 2) return null;
+  if (!state || !man || man.schema !== (v3 ? 3 : 2)) return null;
   const rowsById = new Map(), det = new Map();
-  for (const kind of ['skill', 'plugin']) for (const f of (man.kinds[kind] || {}).shards || []) { const j = await read(f); for (const r of (j && j.rows) || []) rowsById.set(r[0], r); }
-  await pool(Array.from({ length: 256 }, (_, i) => 'detail/' + i.toString(16).padStart(2, '0') + '.json'), 8, async (f) => {
+  const shardFiles = (kind) => v3 ? Array.from({ length: (man.kinds[kind] || {}).shards || 0 }, (_, i) => `list/${kind}-${i}.json.gz`) : ((man.kinds[kind] || {}).shards || []);
+  await pool(['skill', 'plugin'].flatMap(shardFiles), 16, async (f) => { const j = await read(f); for (const r of (j && j.rows) || []) rowsById.set(r[0], r); });
+  const detFiles = v3 ? Array.from({ length: 4096 }, (_, i) => 'detail/' + hex(i, 3) + '.json.gz') : Array.from({ length: 256 }, (_, i) => 'detail/' + hex(i, 2) + '.json');
+  await pool(detFiles, 16, async (f) => {
     const j = await read(f); if (!j) return;
     for (const [id, d] of Object.entries(j)) if (d.k === 'skill' || d.k === 'plugin') det.set(id, d);
   });
-  log(`previous build: ${Object.keys(state.repos || {}).length} repos, ${det.size} skills and plugins (${state.generated})`);
+  log(`previous build (schema ${v3 ? 3 : 2}): ${Object.keys(state.repos || {}).length} repos, ${det.size} skills and plugins (${state.generated})`);
   return { state, rowsById, det };
 }
 
@@ -548,6 +558,7 @@ async function importRepos() {
     } catch (e) { log(`list ${l.repo} failed: ${e.message}`); }
   }
   for (const e of Object.values(GH.items)) if (e.g & 1) push(e.r, 2000, { stars: e.s, pushed: e.p });
+  for (const r of Object.values(GH.found || {})) push(r, 2600);   // repos with a SKILL.md from code search (--extra)
   const prev = argv.includes('--fresh') ? null : await loadPrevious();
   if (prev) {   // repos indexed before stay in the queue even if this build's sweep hasn't reached them yet
     const names = new Map();
@@ -913,8 +924,132 @@ function importGhMcp() {
   sourcesUsed.push({ kind: 'mcp', name: 'GitHub repositories with an MCP topic (links)', url: 'https://github.com/topics/mcp-server', count: n });
 }
 
+// Repositories that contain a SKILL.md, found with GitHub code search in file-size windows. The cursor is saved, so
+// every build continues where the last one stopped.
+let codeNext = 0;
+async function ghCode(token, q, page) {   // code search allows 10 requests a minute
+  const at = Math.max(Date.now(), codeNext); codeNext = at + 6600 * DELAY;
+  if (at > Date.now()) await sleep(at - Date.now());
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const r = await fetch(`${GHAPI}/search/code?q=${encodeURIComponent(q)}&per_page=100&page=${page}`, { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'User-Agent': UA, 'X-GitHub-Api-Version': '2022-11-28' }, signal: AbortSignal.timeout(30000) }).catch(() => ({ ok: false, status: 0, headers: null }));
+    if (r.ok) return r.json();
+    if (r.status === 403 || r.status === 429) {
+      const reset = Number((r.headers && r.headers.get('x-ratelimit-reset')) || 0) * 1000;
+      const wait = Math.max(10000, Math.min(70000, reset - Date.now() + 1000)) * DELAY;
+      codeNext = Date.now() + wait; await sleep(wait); continue;
+    }
+    if (r.status === 422) return { total_count: 0, items: [] };
+    await sleep(3000 * (attempt + 1) * DELAY);
+  }
+  throw new Error('code search failed: ' + q);
+}
+async function searchCodeSkills(token, budgetEnd) {
+  const prev = GH.code || {};
+  const cur = { s: prev.s || 0, w: prev.w || 64, pass: prev.pass || 0 };
+  const repos = GH.found || (GH.found = {});
+  let calls = 0; const before = Object.keys(repos).length;
+  const MAX = 200000;
+  while (Date.now() < budgetEnd) {
+    const q = `filename:SKILL.md size:${cur.s}..${cur.s + cur.w - 1}`;
+    let first;
+    try { first = await ghCode(token, q, 1); calls++; } catch (e) { log(`  code search: ${e.message}`); break; }
+    if (first.total_count > 1000 && cur.w > 1) { cur.w = Math.max(1, Math.floor(cur.w / 2)); continue; }
+    const take = (j) => { for (const it of j.items || []) { const r = it.repository; if (r && !r.fork && !r.private && r.full_name && safeText(r.full_name, r.description)) repos[r.full_name.toLowerCase()] = r.full_name; } };
+    take(first);
+    const pages = Math.min(10, Math.ceil(first.total_count / 100));
+    for (let p = 2; p <= pages && Date.now() < budgetEnd; p++) { try { take(await ghCode(token, q, p)); calls++; } catch { break; } }
+    cur.s += cur.w;
+    if (first.total_count < 300) cur.w = Math.min(4096, cur.w * 2);
+    if (cur.s > MAX) { cur.s = 0; cur.w = 64; cur.pass++; break; }   // one full pass per build at most
+  }
+  GH.code = cur;
+  log(`code search: ${calls} searches, ${Object.keys(repos).length - before} new repos with a SKILL.md (${Object.keys(repos).length} known), next size ${cur.s}`);
+}
+
+// ------------------------------------------------------------------ schema 3 (gzip files, search index)
+const zlib = require('zlib');
+const LIB3 = require(path.join(__dirname, '..', '..', 'web', 'lib3core.js'));
+const SHARD3 = Math.max(1, Number(opt('shard3', 2000)));
+async function getBuf(url, tries = 4) {
+  let last;
+  for (let i = 0; i < tries; i++) {
+    try {
+      const r = await fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(60000) });
+      if (r.status === 404) return null;
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return Buffer.from(await r.arrayBuffer());
+    } catch (e) { last = e; await sleep(800 * (i + 1)); }
+  }
+  throw new Error(`${url}: ${last && last.message}`);
+}
+// Reads a catalog file from a URL or a directory; .gz files are unpacked.
+async function readCatalogFile(src, f) {
+  let buf;
+  if (/^https?:/.test(src)) buf = await getBuf(src + f, 2).catch(() => null);
+  else { const p = path.join(src, f); buf = fs.existsSync(p) ? fs.readFileSync(p) : null; }
+  if (!buf) return null;
+  try { return JSON.parse((f.endsWith('.gz') ? zlib.gunzipSync(buf) : buf).toString('utf8')); } catch { return null; }
+}
+const hex = (i, w) => i.toString(16).padStart(w, '0');
+function writeV3() {
+  fs.rmSync(OUT, { recursive: true, force: true });
+  for (const d of ['list', 'detail', 'q']) fs.mkdirSync(path.join(OUT, d), { recursive: true });
+  const bytes = { list: 0, detail: 0, q: 0, state: 0 };
+  const gz = (f, obj, part) => { const b = zlib.gzipSync(JSON.stringify(obj), { level: 9 }); fs.writeFileSync(path.join(OUT, f), b); bytes[part] += b.length; };
+  const kinds = {}; let start = 0;
+  const post = new Map();
+  for (const kind of LIB3.KINDS) {
+    const list = rows[kind];
+    sortRows(list);
+    const shards = Math.max(1, Math.ceil(list.length / SHARD3));
+    for (let i = 0; i < shards; i++) gz(`list/${kind}-${i}.json.gz`, { kind, rows: list.slice(i * SHARD3, (i + 1) * SHARD3) }, 'list');
+    list.forEach((row, i) => { for (const t of LIB3.rowTokens(row)) { let a = post.get(t); if (!a) post.set(t, (a = [])); a.push(start + i); } });
+    kinds[kind] = { count: list.length, start, shards };
+    start += list.length;
+  }
+  const byPrefix = new Map();
+  for (const [t, a] of post) { const p = t.slice(0, 2); if (!byPrefix.has(p)) byPrefix.set(p, {}); byPrefix.get(p)[t] = LIB3.encodePostings(a); }
+  post.clear();
+  const prefixes = [...byPrefix.keys()].sort();
+  for (const p of prefixes) gz(`q/${p}.json.gz`, byPrefix.get(p), 'q');
+  const buckets = Array.from({ length: 4096 }, () => ({}));
+  for (const [id, d] of details) { if (d.d && d.d.length > 300) d.d = clip(d.d, 300); buckets[parseInt(sha256(id).slice(0, 3), 16)][id] = d; }
+  buckets.forEach((b, i) => gz(`detail/${hex(i, 3)}.json.gz`, b, 'detail'));
+  const man = {
+    schema: 3, generated: new Date().toISOString(), total: start, shard: SHARD3, order: LIB3.KINDS, kinds, sources: sourcesUsed,
+    row: ['id', 'name', 'summary', 'publisher', 'flags', 'tags', 'extra', 'stars'], flags: FLAGS,
+    detail: 'detail/{hhh}.json.gz where hhh is the first three hex characters of sha256(id)',
+    search: { files: 'q/{xx}.json.gz (xx = first two characters of a word)', tokenizer: 'web/lib3core.js', prefixes },
+    filtered: blocked,
+  };
+  gz('state.json.gz', { generated: man.generated, repos: STATE.repos, ids: STATE.ids }, 'state');
+  gz('state-gh.json.gz', { schema: 1, generated: man.generated, inc: GH.inc, sweep: GH.sweep, lastCycle: GH.lastCycle, items: GH.items, npm: GH.npm, code: GH.code, found: GH.found }, 'state');
+  man.bytes = bytes;
+  fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify(man, null, 1));
+  const total = Object.values(bytes).reduce((s, b) => s + b, 0);
+  log(`wrote ${start} items to ${OUT} (${Object.entries(kinds).map(([k, v]) => `${k} ${v.count}`).join(', ')}; ${(total / 1e6).toFixed(1)} MB: ${Object.entries(bytes).map(([k, v]) => `${k} ${(v / 1e6).toFixed(1)}`).join(', ')}; ${blocked} unsafe entries left out)`);
+  if (total > 980e6) throw new Error('the catalog is larger than a GitHub Pages site may be (1 GB)');
+}
+async function reusePublishedV3(reason, stale = true) {
+  log(`reusing the published catalog (${reason})`);
+  const man = await get(LIVE + 'manifest.json');
+  if (!man || man.schema !== 3) throw new Error('no published schema 3 catalog to fall back to');
+  fs.rmSync(OUT, { recursive: true, force: true });
+  for (const d of ['list', 'detail', 'q']) fs.mkdirSync(path.join(OUT, d), { recursive: true });
+  const files = [];
+  for (const [k, v] of Object.entries(man.kinds)) for (let i = 0; i < v.shards; i++) files.push(`list/${k}-${i}.json.gz`);
+  for (let i = 0; i < 4096; i++) files.push(`detail/${hex(i, 3)}.json.gz`);
+  for (const p of (man.search && man.search.prefixes) || []) files.push(`q/${p}.json.gz`);
+  let missing = 0;
+  await pool(files.concat('state.json.gz', 'state-gh.json.gz'), 16, async (f) => { const b = await getBuf(LIVE + f); if (b) fs.writeFileSync(path.join(OUT, f), b); else if (!/^state/.test(f)) missing++; });
+  if (missing) throw new Error(`${missing} published files are missing`);
+  if (stale) man.stale = reason;
+  fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify(man, null, 1));
+}
+
 // ------------------------------------------------------------------ fallback: reuse the last published catalog
 async function reusePublished(reason, stale = true) {
+  if (FORMAT === 'v3') return reusePublishedV3(reason, stale);
   log(`reusing the published catalog (${reason})`);
   const man = await get(LIVE + 'manifest.json');
   if (!man || man.schema !== 2) throw new Error('no published catalog to fall back to');
@@ -931,13 +1066,16 @@ async function reusePublished(reason, stale = true) {
 
 // ------------------------------------------------------------------ write
 const nameKey = (s) => String(s || '').replace(/^[^\p{L}\p{N}]+/u, '') || String(s || '');
+// reviewed first, then active before deprecated, installable before link-only, then by stars and name
+const sortRows = (list) => list.sort((a, b) => (b[4].includes('r') - a[4].includes('r')) || (a[4].includes('x') - b[4].includes('x')) || (a[4].includes('l') - b[4].includes('l')) || ((b[7] || 0) - (a[7] || 0)) || nameKey(a[1]).localeCompare(nameKey(b[1]), 'en', { sensitivity: 'base' }));
+const FLAGS = { r: 'reviewed by Astro AI', h: 'remote MCP (https)', e: 'remote MCP (SSE)', n: 'npm package', p: 'PyPI package', d: 'Docker image', g: 'files from GitHub (pinned commit)', c: 'includes scripts or installs a command', l: 'link only', v: 'Open VSX editor extension (installs in the Code tool)', s: 'needs a key or token', x: 'deprecated' };
 function write() {
+  if (FORMAT === 'v3') return writeV3();
   fs.rmSync(OUT, { recursive: true, force: true });
   fs.mkdirSync(path.join(OUT, 'list'), { recursive: true }); fs.mkdirSync(path.join(OUT, 'detail'), { recursive: true });
   const kinds = {};
   for (const [kind, list] of Object.entries(rows)) {
-    // reviewed first, then (for MCP) active before deprecated, then by name
-    list.sort((a, b) => (b[4].includes('r') - a[4].includes('r')) || (a[4].includes('x') - b[4].includes('x')) || (a[4].includes('l') - b[4].includes('l')) || ((b[7] || 0) - (a[7] || 0)) || nameKey(a[1]).localeCompare(nameKey(b[1]), 'en', { sensitivity: 'base' }));
+    sortRows(list);
     const shards = [];
     for (let i = 0; i * SHARD < list.length || i === 0; i++) {
       const f = `list/${kind}-${i}.json`;
@@ -955,13 +1093,13 @@ function write() {
   const man = {
     schema: 2, generated: new Date().toISOString(), total, kinds, sources: sourcesUsed,
     row: ['id', 'name', 'summary', 'publisher', 'flags', 'tags', 'extra', 'stars'],
-    flags: { r: 'reviewed by Astro AI', h: 'remote MCP (https)', e: 'remote MCP (SSE)', n: 'npm package', p: 'PyPI package', d: 'Docker image', g: 'files from GitHub (pinned commit)', c: 'includes scripts or installs a command', l: 'link only', v: 'Open VSX editor extension (installs in the Code tool)', s: 'needs a key or token', x: 'deprecated' },
+    flags: FLAGS,
     filtered: blocked,
     detail: 'detail/{hh}.json where hh is the first two hex characters of sha256(id)',
   };
   fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify(man, null, 1));
   fs.writeFileSync(path.join(OUT, 'state.json'), JSON.stringify({ generated: man.generated, repos: STATE.repos, ids: STATE.ids }));
-  fs.writeFileSync(path.join(OUT, 'state-gh.json'), JSON.stringify({ schema: 1, generated: man.generated, inc: GH.inc, sweep: GH.sweep, lastCycle: GH.lastCycle, items: GH.items, npm: GH.npm }));
+  fs.writeFileSync(path.join(OUT, 'state-gh.json'), JSON.stringify({ schema: 1, generated: man.generated, inc: GH.inc, sweep: GH.sweep, lastCycle: GH.lastCycle, items: GH.items, npm: GH.npm, code: GH.code, found: GH.found }));
   log(`wrote ${total} items to ${OUT} (${Object.entries(kinds).map(([k, v]) => `${k} ${v.count}`).join(', ')}; details ${(bytes / 1e6).toFixed(1)} MB; ${blocked} unsafe entries left out)`);
 }
 
@@ -971,13 +1109,20 @@ function write() {
     try { await reusePublished('reuse', false); log('reused the published catalog'); return; } catch (e) { log(`nothing to reuse (${e.message}); building it now`); }
   }
   addReviewed(opt('reviewed', ''));
+  if (opt('fixture')) {   // tests: rows and details from a JSON file instead of the network
+    const fx = JSON.parse(fs.readFileSync(opt('fixture'), 'utf8'));
+    for (const [kind, list] of Object.entries(fx.rows || {})) for (const row of list) { IDS.add(row[0]); add(kind, row, (fx.details || {})[row[0]] || { k: kind }); }
+    sourcesUsed.push({ kind: 'mcp', name: 'test fixture', url: 'https://example.com', count: Object.values(fx.rows || {}).reduce((n, l) => n + l.length, 0) });
+    write(); return;
+  }
   await loadGhState();
   const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || (opt('token-file') ? fs.readFileSync(opt('token-file'), 'utf8').trim() : '');
   const search = async () => {
     if (!token || argv.includes('--no-search')) { log('GitHub topic search skipped (no token); using the saved results'); return; }
     const mins = Math.min(Number(opt('search-min', 90)), Math.max(5, (BUDGET_END - Date.now()) / 60000 / 2));
     log(`GitHub topic search (up to ${Math.round(mins)} min)…`);
-    await searchTopics(token, Date.now() + mins * 60000);
+    const end = Date.now() + mins * 60000;
+    await Promise.all([searchTopics(token, end), EXTRA ? searchCodeSkills(token, end).catch((e) => log('code search failed: ' + e.message)) : null]);
   };
   const jobs = [];
   if (ONLY.has('tools')) jobs.push(['tools', importCli]);

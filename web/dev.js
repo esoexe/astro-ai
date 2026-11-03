@@ -705,10 +705,23 @@
   const LIB_KIND_LABEL = { mcp: 'MCP', skill: 'skill', plugin: 'plugin', tool: 'AI tool' };
   const LIB_PERMS = { network: 'Talks to an online service', 'local-process': 'Runs a program on this computer', filesystem: 'Reads and writes files in a folder you choose', browser: 'Opens and controls a browser', account: 'Uses your account with a token you give it', scripts: 'Has Node.js helper scripts the agent can run on this computer', files: 'Reads and writes files in your project when the agent uses it' };
   const L2 = { man: null, manErr: '', rows: { mcp: [], skill: [], plugin: [], tool: [] }, loaded: {}, loading: {} };
+  // Schema 3 (the big catalog on its own site): rows, details and a search index load in small pieces as needed.
+  // If it can't be reached, the website's schema 2 copy (above) is used instead.
+  const L3 = { reader: null, err: '', seq: 0 };
+  async function lib3Open(force) {
+    if (L3.reader && !force) return L3.reader;
+    if (!window.AstroLib3) return null;
+    try {
+      const r = new window.AstroLib3.Reader((file) => dev('library/v3', { file, refresh: Boolean(force && file === 'manifest.json') }));
+      await r.open(); L3.reader = r; L3.err = '';
+    } catch (err) { L3.reader = null; L3.err = err.message; }
+    return L3.reader;
+  }
   async function libLoad(force) {
     if (!force && D.lib?.data && Date.now() - D.lib.at < 60000) return D.lib.data;
     const data = await dev('library/index', { refresh: Boolean(force) });
     D.lib = { ...(D.lib || {}), data, at: Date.now() };
+    if (await lib3Open(force)) { L2.manErr = ''; return data; }
     if (!L2.man || force) { try { L2.man = await dev('library/v2', { file: 'manifest.json', refresh: Boolean(force) }); L2.manErr = ''; if (force) { L2.rows = { mcp: [], skill: [], plugin: [], tool: [] }; L2.loaded = {}; L2.loading = {}; } } catch (err) { L2.manErr = err.message; } }
     return data;
   }
@@ -768,8 +781,36 @@
       <p>${esc(clip(summary || '', 200))}</p>
       <div class="dev-it-a"><button type="button" class="ag-act" data-x="lib-open" data-id="${esc(id)}">${icon(link ? 'i-globe' : have ? 'i-eye' : 'i-download')}${link ? 'Open' : have ? 'Details' : 'Install'}</button>${have ? `<button type="button" class="ag-act" data-x="lib-remove" data-id="${esc(id)}">${icon('i-trash')}Remove</button>` : ''}<span class="grow"></span><small>${m.r[7] ? '★ ' + Number(m.r[7]).toLocaleString() + ' · ' : ''}${esc(publisher || '')}</small></div></div>`;
   }
+  // Schema 3 list: reviewed matches first (they are few and already loaded), then community rows from the reader.
+  async function lib3RenderList(box) {
+    const kind = lsGet('lib-kind', 'all'); const q = (D.lib?.q || '').toLowerCase().trim();
+    const inst = D.lib?.data?.installed || {};
+    const reviewed = libMatches(kind, q);   // L2 is empty in schema 3 mode, so this is the reviewed items only
+    const shown = D.lib?.shown || 60;
+    const st = document.getElementById('lib-status');
+    const seq = ++L3.seq;
+    if (kind === 'pack' || lsGet('lib-reviewed', '')) {
+      box.innerHTML = reviewed.slice(0, shown).map((m) => libCard(m, inst)).join('') || '<div class="git-empty">Nothing matches.</div>';
+      if (st) st.textContent = `${reviewed.length.toLocaleString()} match${reviewed.length === 1 ? '' : 'es'}`;
+      return;
+    }
+    if (st) st.textContent = q ? 'Searching…' : 'Loading…';
+    const ids = new Set((D.lib?.data?.items || []).map((x) => x.id));
+    const keep = (row) => !ids.has(row[0]);
+    const need = Math.max(0, shown - reviewed.length) + 1;
+    let res;
+    const hasWords = q && window.AstroLib3.tokenize(q).length > 0;
+    try { res = hasWords ? await L3.reader.search(q, kind, need, keep) : { total: L3.reader.count(kind), items: await L3.reader.browse(kind, need, keep) }; }
+    catch (err) { if (seq === L3.seq && st) st.textContent = 'The catalog could not be read: ' + err.message; return; }
+    if (seq !== L3.seq) return;   // a newer search started
+    const all = reviewed.concat(res.items.map((g) => ({ r: g.row, k: g.kind })));
+    const total = Math.max(res.total, all.length);   // reviewed items are in the index too
+    box.innerHTML = all.slice(0, shown).map((m) => libCard(m, inst)).join('') + (total > shown ? `<button type="button" class="ws-btn sm lib-more" data-x="lib-more">Show more (${(total - Math.min(shown, all.length)).toLocaleString()} left)</button>` : '') || '<div class="git-empty">Nothing matches.</div>';
+    if (st) st.textContent = `${total.toLocaleString()} match${total === 1 ? '' : 'es'}`;
+  }
   function libRenderList() {
     const box = document.getElementById('lib-list'); if (!box) return;
+    if (L3.reader) { lib3RenderList(box); return; }
     const kind = lsGet('lib-kind', 'all'); const q = (D.lib?.q || '').toLowerCase().trim();
     const inst = D.lib?.data?.installed || {};
     const all = libMatches(kind, q);
@@ -785,7 +826,7 @@
   let libPaintTimer = 0;
   const libPaintSoon = () => { if (libPaintTimer) return; libPaintTimer = setTimeout(() => { libPaintTimer = 0; libRenderList(); }, 350); };
   function libStartLoading() {
-    if (lsGet('lib-reviewed', '')) return;
+    if (lsGet('lib-reviewed', '') || L3.reader) return;
     for (const k of libKindsInView(lsGet('lib-kind', 'all'))) libLoadKind(k, libPaintSoon).then(libPaintSoon);
   }
   async function libBody(force) {
@@ -793,7 +834,7 @@
     try { data = await libLoad(force); } catch (err) { return `<div class="ws-note error">${esc(err.message)}</div>`; }
     const kind = lsGet('lib-kind', 'all');
     const items = data.items || [];
-    const count = (k) => (k === 'pack' ? items.filter((x) => x.pack).length : L2.man ? (k === 'all' ? L2.man.total : (L2.man.kinds[k] || {}).count || 0) : (k === 'all' ? items.length : items.filter((x) => x.kind === k).length));
+    const count = (k) => (k === 'pack' ? items.filter((x) => x.pack).length : L3.reader ? L3.reader.count(k) : L2.man ? (k === 'all' ? L2.man.total : (L2.man.kinds[k] || {}).count || 0) : (k === 'all' ? items.length : items.filter((x) => x.kind === k).length));
     setTimeout(() => { libRenderList(); libStartLoading(); }, 0);
     return `<div class="dev-inst lib-search"><input class="input" id="lib-q" placeholder="Search ${count('all').toLocaleString()} MCP servers, skills, plugins and AI tools" value="${esc(D.lib?.q || '')}" spellcheck="false" aria-label="Search the library"><button type="button" class="ws-btn sm" data-x="lib-refresh" title="Refresh">${icon('i-refresh')}</button></div>
       <div class="dev-acts lib-kinds">${LIB_KINDS.map(([k, l]) => `<button type="button" class="ws-btn sm${k === kind ? ' primary' : ''}" data-x="lib-kind" data-kind="${k}">${l} <small>${count(k).toLocaleString()}</small></button>`).join('')}<label class="lib-chk"><input type="checkbox" data-x="lib-reviewed" ${lsGet('lib-reviewed', '') ? 'checked' : ''}> Reviewed only</label></div>
@@ -856,7 +897,7 @@
     const src = SRC[d.src] || (k === 'mcp' ? 'Official MCP Registry' : d.repo ? `GitHub · ${d.repo}` : d.src ? `listed in ${d.src}` : (d.t === 'npm' ? 'npm' : 'PyPI'));
     const head = `<h2 id="modal-title">${esc(d.n || id)}</h2><p class="hint">${esc(d.d || '')}</p>
       <p class="hint">Community · ${esc(src)}${d.lic && d.lic !== 'see repo' ? ' · ' + esc(d.lic) : ''}${d.v ? ' · version ' + esc(d.v) : ''}${d.stars ? ' · ★ ' + Number(d.stars).toLocaleString() : ''}${links ? ' · ' + links : ''}</p>
-      <p class="hint">Indexed automatically, not reviewed by the A.S.T.R.O AI team. Read what it does before you install it.</p>`;
+      <p class="hint">Indexed automatically, not reviewed by the A.S.T.R.O AI team. Read what it does before you install it.</p>${d.note ? `<div class="ws-note">${esc(d.note)}</div>` : ''}`;
     const field = (name, label, req, secret, def) => `<label class="lib-in"><span>${esc(name)}${req ? ' *' : ''}${label && label !== name ? ` <small>${esc(label)}</small>` : ''}</span><input class="input" data-lib-in="${esc(name)}" type="${secret ? 'password' : 'text'}" autocomplete="off" spellcheck="false" value="${esc(def && !secret ? def : '')}" placeholder="${secret ? 'Paste here (stored only on this computer)' : req ? '' : 'optional'}"></label>`;
     if (k === 'tool' && d.t === 'link') {
       A().showModal(`${head}<div class="btn-row">${safe(d.url) ? `<a class="btn primary" href="${esc(d.url)}" target="_blank" rel="noopener noreferrer">Open ${esc(String(d.url).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a>` : ''}<button type="button" class="btn ghost" id="modal-close">Close</button></div>`);
@@ -882,13 +923,12 @@
         document.getElementById('modal-close').onclick = () => A().closeModal(); return;
       }
       if (!i) {
-        A().showModal(`${head}<div class="ws-note">This server has no one-click setup yet (its package type isn't supported). Use its website or source to set it up.</div><div class="btn-row"><button type="button" class="btn ghost" id="modal-close">Close</button></div>`);
+        A().showModal(`${head}${d.note ? '' : '<div class="ws-note">This server has no one-click setup yet (its package type isn\'t supported). Use its website or source to set it up.</div>'}<div class="btn-row"><button type="button" class="btn ghost" id="modal-close">Close</button></div>`);
         document.getElementById('modal-close').onclick = () => A().closeModal(); return;
       }
       what = `<div class="dev-sec">${i.t === 'stdio' ? 'Runs this command' : 'Connects to'}</div><code class="dev-cmd">${esc(i.t === 'stdio' ? [i.cmd, ...(i.args || [])].join(' ') : i.url)}</code>`;
       inputs = [...(d.in || []).map((x) => field(x.name, x.label, x.req, x.secret, x.def)), ...(i.env || []).map((x) => field(x.name, x.label, x.req, x.secret, x.def)), ...(i.headers || []).filter((x) => !x.value).map((x) => field(x.h, x.label, x.req, x.secret || /auth|key|token/i.test(x.h), ''))].join('');
       if (i.t === 'stdio') warn = `<p class="hint">This server runs on your computer with your user rights${i.cmd === 'docker' ? ' (inside Docker)' : ''}. Only install it if you trust the publisher.</p>`;
-      if (d.note) warn += `<p class="hint">${esc(d.note)}</p>`;
     } else if (k === 'skill' || k === 'plugin') {
       what = `<div class="dev-sec">Files it adds (${(d.f || []).length}) · pinned to commit ${esc(String(d.c || '').slice(0, 7))}</div><div class="lib-files">${(d.f || []).map((f) => `<div><code>${esc(f[0])}</code><small title="SHA-256 ${esc(f[1])}">${esc(f[1].slice(0, 12))}… · ${Number(f[2] || 0).toLocaleString()} B</small></div>`).join('')}</div>`;
       if ((d.f || []).some((f) => /\.(py|sh|js|mjs|ts|ps1|rb|bat|cmd)$/i.test(f[0]))) warn = '<p class="hint">It includes scripts. They are saved as text and only run if the agent runs them, under your permission mode.</p>';
@@ -908,8 +948,16 @@
   function libFromHash() {
     const m = String(location.hash || '').match(/^#library(?:=([a-z0-9-]{1,48}))?$/);
     if (!m) return;
-    history.replaceState(null, '', location.pathname + location.search);
-    setTimeout(() => openLibrary(m[1]).catch(() => {}), 400);
+    // The hash is cleared only once the library is open: a first-load sync can reload the page before that,
+    // and on a slow start the app can still switch to its first view after we open, so check and retry.
+    let tries = 0;
+    const go = () => openLibrary(m[1]).catch(() => {}).then(() => {
+      setTimeout(() => {
+        if (document.getElementById('lib-list')) { if (location.hash === m[0]) history.replaceState(null, '', location.pathname + location.search); }
+        else if (++tries < 4) go();
+      }, 1200);
+    });
+    setTimeout(go, 400);
   }
 
   // ---------- Extensions panel ----------

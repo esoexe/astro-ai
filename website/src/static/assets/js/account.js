@@ -946,7 +946,7 @@
     body.push(h('h3', { class: 'lib-h', text: 'Install' }), tabs, pane);
     modal({ title: it.name, desc: null, wide: true, body });
   };
-  /* community catalog (schema 2): every MCP server in the official registry, skills and plugins from public GitHub
+  /* community catalog (schema 2 fallback): every MCP server in the official registry, skills and plugins from public GitHub
      repos, AI command-line tools and an AI app directory. Rows load in shards as you browse; details load on click. */
   const V2 = ROOT + 'library/v2/';
   const safeUrl = (u) => (/^https?:\/\/[^\s"'<>]+$/i.test(String(u || '')) ? String(u) : '');
@@ -971,12 +971,34 @@
     })();
     return lib2.loading[kind];
   };
-  const sha2 = async (s) => { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, '0')).join('').slice(0, 2); };
+  /* schema 3: the big catalog on its own site, as small gzip files plus a search index (web/lib3core.js), so the
+     page downloads only what you look at. Falls back to the schema 2 copy on this site. */
+  const V3 = document.querySelector('meta[name="astro-library-v3"]')?.content || 'https://esoexe.github.io/astro-library/v3/';
+  const lib3 = { reader: null, seq: 0 };
+  const fetch3 = async (f) => {
+    const r = await fetch(V3 + f, { cache: 'default' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const buf = new Uint8Array(await r.arrayBuffer());
+    let text;
+    if (buf[0] === 0x1f && buf[1] === 0x8b) {
+      if (typeof DecompressionStream === 'undefined') throw new Error('this browser cannot unpack the catalog');
+      text = await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+    } else text = new TextDecoder().decode(buf);   // already unpacked by the server
+    return JSON.parse(text);
+  };
+  const openV3 = async () => {
+    if (lib3.reader) return lib3.reader;
+    if (!window.AstroLib3) return null;
+    const r = new window.AstroLib3.Reader(fetch3); await r.open(); lib3.reader = r; return r;
+  };
+  const shaHex = async (s, n) => { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, '0')).join('').slice(0, n); };
   const detailCache = {};
   const fetchDetail = async (id) => {
-    const hh = await sha2(id);
-    if (!detailCache[hh]) detailCache[hh] = fetchJSON(V2 + 'detail/' + hh + '.json');
-    const b = await detailCache[hh];
+    const v3 = Boolean(lib3.reader);
+    const hh = await shaHex(id, v3 ? 3 : 2);
+    const key = (v3 ? '3:' : '2:') + hh;
+    if (!detailCache[key]) detailCache[key] = v3 ? fetch3('detail/' + hh + '.json.gz') : fetchJSON(V2 + 'detail/' + hh + '.json');
+    const b = await detailCache[key];
     return b[id] || null;
   };
   const flagPill = (f, kind) => f.includes('v') ? h('span', { class: 'pill', text: 'Editor extension' }) : f.includes('h') ? h('span', { class: 'pill', text: 'Remote' }) : f.includes('e') ? h('span', { class: 'pill', text: 'Remote (SSE)' })
@@ -1033,7 +1055,8 @@
         d.repo && kind === 'mcp' && d.repo !== d.web ? extBtn('Source', d.repo, 'cx-btn-outline cx-btn-sm', 'code') : null,
         d.url ? extBtn('Open ' + (d.url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]), d.url, 'cx-btn-primary cx-btn-sm', 'ext') : null),
       h('p', { class: 'faint', style: { marginTop: '8px' } }, 'Source: ', src, '. Community items are indexed automatically and haven\u2019t been reviewed by the A.S.T.R.O AI team. Read what an item does before you install it.'),
-    ];
+      d.note ? banner('', 'info', d.note) : null,
+    ].filter(Boolean);
     const sections = [];
     if (kind === 'mcp') {
       const i = d.i;
@@ -1042,7 +1065,6 @@
         const need = [...(d.in || []).map((x) => [x.name, x.label, x.req]), ...(i.env || []).map((x) => [x.name, x.label, x.req]), ...(i.headers || []).filter((x) => !x.value).map((x) => [x.h, x.label, x.req])];
         if (need.length) body.push(h('h3', { class: 'lib-h', text: 'You will need' }), h('ul', { class: 'lib-perms' }, need.map(([n, l, r]) => h('li', {}, h('code', { text: n }), ' ', l && l !== n ? l : '', r ? '' : ' (optional)'))));
         sections.push(['astro', 'A.S.T.R.O AI desktop'], ['other', 'Other apps']);
-        if (d.note) body.push(h('p', { class: 'faint', text: d.note }));
       } else body.push(banner('', 'info', d.src ? 'Link only: this project has no one-click setup. Open its page and follow its instructions.' : 'This server has no one-click setup yet (its package type isn\u2019t supported). Use its website or source to set it up.'));
     } else if (kind === 'plugin' && d.t === 'vsx') {
       body.push(h('p', { class: 'muted' }, 'An editor extension. In A.S.T.R.O AI, open the Code tool, then Extensions → VS Code, and search for ', h('code', { text: d.vsx || '' }), '. It downloads from Open VSX and checks the checksum. It also works in VSCodium and other editors that use Open VSX.'));
@@ -1092,7 +1114,8 @@
           .map(([i, t, d]) => h('div', { class: 'lib-trust-i' }, ico(i), h('div', {}, h('b', { text: t }), h('p', { text: d }))))));
       const holder = h('section', { class: 'mt-16' }, h('div', { class: 'lib-grid' }, [1, 2, 3, 4, 5, 6].map(() => h('div', { class: 'skel', style: { height: '120px' } }))));
       v.append(holder);
-      Promise.all([fetchLibrary(), fetchManifest().catch(() => null)]).then(([lib, man]) => {
+      Promise.all([fetchLibrary(), openV3().catch(() => null)]).then(async ([lib, r3]) => {
+        const man = r3 ? r3.man : await fetchManifest().catch(() => null);
         if (!holder.isConnected) return;
         const reviewed = lib.items || [];
         const reviewedIds = new Set(reviewed.map((x) => x.id));
@@ -1143,7 +1166,34 @@
               r[7] ? h('span', { class: 'faint', text: '★ ' + nf(r[7]) }) : null, h('span', { class: 'spacer' }), h('span', { class: 'faint', text: r[3] || '' })));
         };
         let current = [];
+        // schema 3: reviewed matches, then community rows from the search index or in rank order
+        const paintGrid3 = async () => {
+          const seq = ++lib3.seq;
+          const rev = matches();
+          const keep = (row, k) => !reviewedIds.has(row[0]) && !(k === 'tool' && lib2.toolType === 'cli' && !row[4].includes('c')) && !(k === 'tool' && lib2.toolType === 'app' && !row[4].includes('l'));
+          let res = { total: 0, items: [] };
+          if (!lib2.reviewedOnly) {
+            status.textContent = libQuery.trim() ? 'Searching…' : 'Loading…';
+            const need = Math.max(0, lib2.shown - rev.length) + 1;
+            const words = window.AstroLib3.tokenize(libQuery).length > 0;
+            const toolFilter = libKind === 'tool' && lib2.toolType !== 'all';
+            try {
+              res = words ? await r3.search(libQuery, libKind, need, keep)
+                : { total: toolFilter ? NaN : r3.count(libKind), items: await r3.browse(libKind, need, keep) };   // the count includes the reviewed items
+            } catch (e) { if (seq === lib3.seq) status.textContent = 'The catalog could not be read: ' + e.message; return; }
+          }
+          if (seq !== lib3.seq || !holder.isConnected) return;
+          status.textContent = '';
+          current = rev.concat(res.items.map((g) => ({ row: g.row, kind: g.kind })));
+          const n = Number.isNaN(res.total) ? current.length : Math.max(res.total, current.length);   // reviewed items are in the index too
+          count.textContent = `${nf(n)} item${n === 1 ? '' : 's'}${Number.isNaN(res.total) && current.length > lib2.shown ? '+' : ''}`;
+          grid.replaceChildren(...current.slice(0, lib2.shown).map(card));
+          if (!current.length) grid.replaceChildren(empty('search', 'Nothing matches', 'Try another word or type.'));
+          const left = Number.isNaN(res.total) ? (current.length > lib2.shown ? 'more' : '') : n > lib2.shown ? nf(n - lib2.shown) + ' left' : '';
+          more.replaceChildren(...(left ? [btn(`Show more (${left})`, 'cx-btn-outline', () => { lib2.shown += 120; paintGrid(); })] : []));
+        };
         const paintGrid = () => {
+          if (r3) { paintGrid3(); return; }
           current = matches();
           const n = current.length;
           const loading = kindsToLoad().some((k) => !lib2.loaded[k]) && !lib2.reviewedOnly && man;
@@ -1165,7 +1215,7 @@
         const throttled = (() => { let t = 0; return () => { if (t) return; t = setTimeout(() => { t = 0; if (holder.isConnected) paintGrid(); }, 400); }; })();
         const paint = () => {
           paintFilters(); paintGrid();
-          if (man && !lib2.reviewedOnly) for (const k of kindsToLoad()) loadKind(k, throttled).then(() => holder.isConnected && paintGrid());
+          if (man && !r3 && !lib2.reviewedOnly) for (const k of kindsToLoad()) loadKind(k, throttled).then(() => holder.isConnected && paintGrid());
         };
         q.oninput = debounce(() => { libQuery = q.value; lib2.shown = 60; paintGrid(); }, 150);
         const srcs = man ? (man.sources || []).map((s) => `${s.name} (${nf(s.count)})`).join(' · ') : '';

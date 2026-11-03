@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A.S.T.R.O AI Library data</title>
+<style>body{font:16px/1.6 system-ui,sans-serif;max-width:720px;margin:48px auto;padding:0 20px;color:#2b2320;background:#fff8f3}a{color:#c2552f}code{background:#f6e7dc;padding:1px 5px;border-radius:4px}#n{font-weight:700}</style></head>
+<body>
+<h1>A.S.T.R.O AI Library data</h1>
+<p>This site hosts the community catalog used by <a href="https://esoexe.github.io/astro-ai/">A.S.T.R.O AI</a>: MCP servers, Agent Skills, plugins and AI tools from public sources. <span id="n"></span></p>
+<p>Browse and install it in the app (Extensions → Library) or in the <a href="https://esoexe.github.io/astro-ai/profile#library">website Console</a>. The data files are under <code>v3/</code>; the format is described in <a href="https://github.com/esoexe/astro-ai/blob/main/web/lib3core.js">web/lib3core.js</a>.</p>
+<p>Community entries are indexed automatically and are not reviewed: read what an item does before you install it. Third-party items belong to their publishers.</p>
+<script>fetch('v3/manifest.json').then(function(r){return r.json()}).then(function(m){var k=m.kinds;document.getElementById('n').textContent='Right now: '+m.total.toLocaleString()+' entries ('+['mcp','skill','plugin','tool'].map(function(x){return (k[x]?k[x].count:0).toLocaleString()+' '+({mcp:'MCP',skill:'skills',plugin:'plugins',tool:'tools'})[x]}).join(', ')+'), updated '+new Date(m.generated).toLocaleDateString()+'.'}).catch(function(){})</script>
+</body></html>

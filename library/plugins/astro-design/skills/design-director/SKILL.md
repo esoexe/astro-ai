@@ -67,6 +67,7 @@ Apply the frontend-design skill on top of the system:
 | Marketing site, landing page, portfolio | HTML + Tailwind, or Astro / Next.js | `--stack html-tailwind`, `astro`, `nextjs` |
 | 3D website or 3D hero | three.js, or React Three Fiber in React projects | 3D Pack skills, `--stack threejs` |
 | Scroll stories and rich motion | GSAP with ScrollTrigger | Motion Pack skills, `--domain gsap` |
+| CSS-first scroll, cursor and split-text effects | StringTune | Motion Pack `stringtune` skill |
 | Web app, dashboard, SaaS | React or Next.js + shadcn/ui | `--stack shadcn`, `--stack react`, `--domain chart` |
 | Mobile app | React Native (Expo) or Flutter; SwiftUI or Jetpack Compose for native | `--stack react-native`, `flutter`, `swiftui`, `jetpack-compose` |
 | Desktop program | WinUI or WPF on Windows, Avalonia or JavaFX cross-platform, or a web UI in a desktop shell | `--stack winui`, `wpf`, `avalonia`, `javafx` |

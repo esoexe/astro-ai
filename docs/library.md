@@ -123,6 +123,30 @@ Topic search is resumable: GitHub returns at most 1,000 results per query, so ea
 
 What the catalog does not include: other directories' private APIs, PyPI packages found by name only, closed marketplaces, and duplicates. The counts on the Library page are the real number of entries, not a target.
 
+### The big catalog (schema 3, 1.9.7)
+
+The website can hold only so much (GitHub Pages sites are limited to 1 GB), and loading every row into the app does
+not scale. Since 1.9.7 the full community catalog also has its own site, **https://esoexe.github.io/astro-library/v3/**,
+built once a day by the workflow in `library/site/` (published as the `esoexe/astro-library` repository):
+
+| File | What it holds |
+|---|---|
+| `manifest.json` | Counts and row ranges per kind, sources, the search-index prefixes |
+| `list/<kind>-<n>.json.gz` | The same rows as schema 2, 2,000 per file, in rank order |
+| `detail/<hhh>.json.gz` | Install details keyed by id; `hhh` is the first three hex characters of `sha256(id)` |
+| `q/<xx>.json.gz` | Search index: word → row numbers (base-36 gaps), one file per two-letter word start |
+| `state.json.gz`, `state-gh.json.gz` | Indexer state (commits, ids, topic and code search cursors, npm versions); not read by the app |
+
+The app and the Console only download the pieces you look at; `web/lib3core.js` is the reader and the tokenizer
+(the indexer uses the same file). If the library site can't be reached, they fall back to the schema 2 copy on the
+website, which keeps working for older versions of the app.
+
+The schema 3 build uses the same sources as schema 2, plus (`--extra`) **GitHub code search for `SKILL.md`
+files**, in file-size windows that continue where the last build stopped (code search allows 10 requests a minute,
+so a full pass takes many days). Its first run starts from the schema 2 build's state (`--prev2`), so repositories
+already indexed are reused instead of cloned again. Counts change every day; the manifest and the site's front page
+show the current numbers.
+
 ## Community install rules
 
 | Rule | Where it is enforced |
@@ -156,6 +180,6 @@ What the catalog does not include: other directories' private APIs, PyPI package
 
 The launcher accepts only `astroai://library/<id>` and turns it into `#library=<id>` for the web app. That opens the item's dialog; it never installs anything on its own.
 
-Set `ASTRO_LIBRARY_URL` to test with a different catalog, for example `http://127.0.0.1:3000/library/index.json` from `website/serve.js`. The community catalog is read from `v2/` next to it. `ASTRO_LIBRARY_RAW_BASE` replaces `https://raw.githubusercontent.com/` (tests only).
+Set `ASTRO_LIBRARY_URL` to test with a different catalog, for example `http://127.0.0.1:3000/library/index.json` from `website/serve.js`. The community catalog is read from `v2/` next to it, and the schema 3 catalog from `v3/` next to it (or from `ASTRO_LIBRARY_V3_URL`). `ASTRO_LIBRARY_RAW_BASE` replaces `https://raw.githubusercontent.com/` (tests only).
 
 To rebuild the community catalog yourself: `node library/import/index_all.js out/v2 --reviewed website/dist/library/index.json` (set `GITHUB_TOKEN` to include GitHub topic search). `--only mcp,npm,hf,docker,openvsx,tools,apps,skills,ghmcp` runs some sources only; `--prev <dir>` continues from an earlier build instead of the published one. `bash tests/indexer_sources_e2e.sh` tests the extra sources offline against fake services.

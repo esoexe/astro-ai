@@ -51,5 +51,11 @@ http.createServer((req, res) => {
     if (/topic:claude-skills /.test(q)) items = [repo('sk/skills-repo', { topics: ['claude-skills'] })];
     return send(res, 200, { total_count: items.length, items });
   }
+  if (u.pathname === '/ghapi/search/code') {   // schema 3 builds (--extra): repos with a SKILL.md
+    if (req.headers.authorization !== 'Bearer test-token') return send(res, 401, { message: 'Bad credentials' });
+    const q = u.searchParams.get('q') || '';
+    const items = /size:0\.\./.test(q) ? [{ name: 'SKILL.md', repository: { full_name: 'sk/code-skill-repo', fork: false, private: false } }, { name: 'SKILL.md', repository: { full_name: 'x/porn-skills', fork: false, private: false } }] : [];
+    return send(res, 200, { total_count: items.length, items });
+  }
   send(res, 404, { error: 'unknown ' + u.pathname });
 }).listen(port, '127.0.0.1', () => console.log('ready'));

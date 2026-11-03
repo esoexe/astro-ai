@@ -102,5 +102,32 @@ grep -q '^/npm/weather-mcp' "$TMP/hits.log" && bad "unchanged npm package fetche
 grep -q 'pushed%3A' "$TMP/hits.log" && ok "recent-push search used after the first build" || bad "no recent-push search"
 [ "$(row "$TMP/out2" tiny-mcp-zed)" = "$(row "$O" tiny-mcp-zed)" ] && ok "same row in both builds" || bad "rows differ between builds"
 
+# Schema 3 (the separate library site): the first build starts from the schema 2 build (--prev2), code search adds
+# SKILL.md repos, everything is gzip with a search index, and the next build resumes from its own state.
+run3() {   # $1 = out dir, $2 = previous schema 3 build
+  node library/import/index_all.js "$1" --format v3 --extra --shard3 2 --only mcp,npm,hf,docker,openvsx,ghmcp --registry-file "$TMP/registry.json" \
+    --prev "$2" --prev2 "$O" --token-file "$TMP/token" --search-min 1 --npm-queries 'keywords:mcp' --live "http://127.0.0.1:$PORT/none/" --cache "$TMP/cache" > "$1.log" 2>&1
+}
+: > "$TMP/hits.log"
+run3 "$TMP/v3a" "$TMP/empty"; rc=$?
+[ $rc = 0 ] && [ -f "$TMP/v3a/manifest.json" ] && ok "schema 3 build runs" || { bad "schema 3 exit $rc"; tail -20 "$TMP/v3a.log"; }
+grep -q 'GitHub state taken from the schema 2 build' "$TMP/v3a.log" && grep -q 'pushed%3A' "$TMP/hits.log" && ok "first schema 3 build continues from the schema 2 state" || bad "prev2 state not used"
+grep -q '^/npm/weather-mcp' "$TMP/hits.log" && bad "npm package fetched again on the first schema 3 build" || ok "npm cache carried over from schema 2"
+q3() { node -e '
+const fs=require("fs"),z=require("zlib"),L=require(process.cwd()+"/web/lib3core.js"),dir=process.argv[1];
+const r=new L.Reader(async(f)=>{const p=dir+"/"+f;if(!fs.existsSync(p))throw new Error("missing "+f);const b=fs.readFileSync(p);return JSON.parse(f.endsWith(".gz")?z.gunzipSync(b):b)});
+(async()=>{await r.open();const s=await r.search(process.argv[2],"all",50,()=>true);console.log(s.total+" "+s.items.map(g=>g.row[0]).join(","))})().catch(e=>{console.log("ERR "+e.message)})' "$1" "$2"; }
+m3=$(cat "$TMP/v3a/manifest.json")
+case "$m3" in *'"schema": 3'*'"filtered"'*) ok "schema 3 manifest";; *) bad "v3 manifest";; esac
+ls "$TMP/v3a/list/mcp-0.json.gz" "$TMP/v3a/detail/000.json.gz" "$TMP/v3a/state.json.gz" "$TMP/v3a/state-gh.json.gz" > /dev/null 2>&1 && ok "gzip shards, details and state" || bad "v3 files missing"
+r=$(q3 "$TMP/v3a" weather); case "$r" in *weather-mcp*weather-docker*|*weather-docker*weather-mcp*) ok "search index finds npm and Docker servers";; *) bad "v3 search weather: $r";; esac
+r=$(q3 "$TMP/v3a" "lint all"); case "$r" in *lint-all-acme-vsx*) ok "search finds the Open VSX extension";; *) bad "v3 search lint: $r";; esac
+node -e 'const z=require("zlib"),j=JSON.parse(z.gunzipSync(require("fs").readFileSync(process.argv[1])));process.exit(j.schema===1&&j.found["sk/code-skill-repo"]&&!Object.keys(j.found).some(k=>/porn/.test(k))&&j.code&&j.items["zed/tiny-mcp"]&&j.npm["weather-mcp"]?0:1)' "$TMP/v3a/state-gh.json.gz" && ok "code search found the SKILL.md repo (unsafe one left out) and the state is kept" || bad "v3 state-gh"
+grep -q 'search/code' "$TMP/hits.log" && ok "code search used with --extra" || bad "no code search"
+: > "$TMP/hits.log"
+run3 "$TMP/v3b" "$TMP/v3a"; rc=$?
+[ $rc = 0 ] && ! grep -q 'taken from the schema 2' "$TMP/v3b.log" && ok "second schema 3 build resumes from its own state" || bad "v3 second build ($rc)"
+[ "$(q3 "$TMP/v3b" tiny)" = "$(q3 "$TMP/v3a" tiny)" ] && ok "same results in both schema 3 builds" || bad "v3 builds differ"
+
 echo "indexer sources e2e: $pass passed, $fail failed"
 [ $fail = 0 ]

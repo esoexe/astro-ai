@@ -48,6 +48,8 @@ const keepDl = NO_DL && fs.existsSync(path.join(OUT, 'downloads'));
 if (keepDl) fs.renameSync(path.join(OUT, 'downloads'), path.join(ROOT, '.dl-keep'));
 rm(OUT);
 copyDir(path.join(SRC, 'static'), OUT);
+// the Library reader is shared with the desktop app (one copy in web/)
+fs.copyFileSync(path.join(ROOT, '..', 'web', 'lib3core.js'), path.join(OUT, 'assets', 'js', 'lib3core.js'));
 if (keepDl) fs.renameSync(path.join(ROOT, '.dl-keep'), path.join(OUT, 'downloads'));
 // terminal installers: stamp the current version in as a fallback (they prefer the latest GitHub release)
 for (const f of ['install.sh', 'install.ps1']) { const p = path.join(OUT, f); if (fs.existsSync(p)) fs.writeFileSync(p, fs.readFileSync(p, 'utf8').split('__ASTRO_VERSION__').join(SITE.version)); }

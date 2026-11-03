@@ -151,28 +151,88 @@ bool lib_v2_file_ok(const std::string& f) {
     static const std::regex re(R"(^(?:manifest\.json|list/(?:mcp|skill|plugin|tool)-\d{1,3}\.json|detail/[0-9a-f]{2}\.json)$)");
     return std::regex_match(f, re);
 }
+// Schema 3: the big community catalog on its own site (https://esoexe.github.io/astro-library/v3/) as small gzip
+// files plus a search index, so the app only downloads what you look at. Tests and local catalogs: when
+// ASTRO_LIBRARY_URL points somewhere else, v3/ next to it is used unless ASTRO_LIBRARY_V3_URL says otherwise.
+std::string library_v3_base() {
+    if (const char* u = std::getenv("ASTRO_LIBRARY_V3_URL"); u && *u) { bool local = false; if (library_url_ok(std::string(u) + "x", local)) return u; }
+    if (const char* u = std::getenv("ASTRO_LIBRARY_URL"); u && *u) return library_base_url() + "v3/";
+    return "https://esoexe.github.io/astro-library/v3/";
+}
+bool lib_v3_file_ok(const std::string& f) {
+    static const std::regex re(R"(^(?:manifest\.json|list/(?:mcp|skill|plugin|tool)-\d{1,4}\.json\.gz|detail/[0-9a-f]{3}\.json\.gz|q/[a-z0-9]{2}\.json\.gz)$)");
+    return std::regex_match(f, re);
+}
+// gzip -> bytes, refusing output larger than cap (a hostile file can't fill memory).
+bool lib_gunzip(const std::string& in, std::size_t cap, std::string& out) {
+    z_stream z{};
+    if (inflateInit2(&z, 16 + MAX_WBITS) != Z_OK) return false;
+    z.next_in = reinterpret_cast<Bytef*>(const_cast<char*>(in.data()));
+    z.avail_in = static_cast<uInt>(in.size());
+    out.clear();
+    char buf[65536];
+    int rc = Z_OK;
+    while (rc != Z_STREAM_END) {
+        z.next_out = reinterpret_cast<Bytef*>(buf); z.avail_out = sizeof buf;
+        rc = inflate(&z, Z_NO_FLUSH);
+        if (rc != Z_OK && rc != Z_STREAM_END) { inflateEnd(&z); return false; }
+        out.append(buf, sizeof buf - z.avail_out);
+        if (out.size() > cap) { inflateEnd(&z); return false; }
+        if (rc == Z_OK && z.avail_in == 0 && z.avail_out != 0) { inflateEnd(&z); return false; }   // truncated
+    }
+    inflateEnd(&z);
+    return true;
+}
 // Downloads a catalog file, keeping a copy on disk so browsing works offline and repeat visits are instant.
-std::string lib_v2_get(const std::string& file, bool force, std::string& error) {
-    if (!lib_v2_file_ok(file)) { error = "Unknown catalog file."; return {}; }
-    std::string flat = file; std::replace(flat.begin(), flat.end(), '/', '_');
+// schema 3 files ending in .gz are kept compressed on disk and returned unpacked.
+std::string lib_catalog_get(int schema, const std::string& file, bool force, std::string& error) {
+    if (schema == 3 ? !lib_v3_file_ok(file) : !lib_v2_file_ok(file)) { error = "Unknown catalog file."; return {}; }
+    std::string flat = (schema == 3 ? "v3_" : "") + file; std::replace(flat.begin(), flat.end(), '/', '_');
     const fs::path cached = lib_v2_cache_dir() / flat;
+    const bool packed = file.size() > 3 && file.compare(file.size() - 3, 3, ".gz") == 0;
+    auto unpack = [&](std::string body) -> std::string {
+        if (!packed || body.size() < 2 || static_cast<unsigned char>(body[0]) != 0x1f || static_cast<unsigned char>(body[1]) != 0x8b) return body;   // a server may unpack it already
+        std::string out;
+        if (!lib_gunzip(body, 64'000'000, out)) { error = "A catalog file is damaged."; return {}; }
+        return out;
+    };
     std::error_code ec;
     const long long max_age = file == "manifest.json" ? 60LL * 60 : 6LL * 60 * 60;
     if (!force && fs::exists(cached, ec)) {
         const auto age = std::chrono::duration_cast<std::chrono::seconds>(fs::file_time_type::clock::now() - fs::last_write_time(cached, ec)).count();
-        if (age >= 0 && age < max_age) if (auto t = read_small(cached, 40'000'000)) return *t;
+        if (age >= 0 && age < max_age) if (auto t = read_small(cached, 40'000'000)) { std::string u = unpack(*t); if (!u.empty()) return u; }
     }
-    std::string body = library_get(library_v2_base() + file, 40'000'000, error);
+    std::string body = library_get((schema == 3 ? library_v3_base() : library_v2_base()) + file, 40'000'000, error);
     if (body.empty()) {
-        if (auto t = read_small(cached, 40'000'000)) { error.clear(); return *t; }   // offline: use the last copy
+        if (auto t = read_small(cached, 40'000'000)) { error.clear(); return unpack(*t); }   // offline: use the last copy
         if (error.empty()) error = "The catalog file is empty.";
         return {};
     }
+    std::string out = unpack(body);
+    if (out.empty()) return {};
     fs::create_directories(lib_v2_cache_dir(), ec);
     write_file_private(cached.string(), body);
-    return body;
+    return out;
+}
+std::string lib_v2_get(const std::string& file, bool force, std::string& error) { return lib_catalog_get(2, file, force, error); }
+std::optional<Json> lib_v3_detail(const std::string& id, std::string& error) {
+    const std::string file = "detail/" + sha256_hex(id).substr(0, 3) + ".json.gz";
+    for (int attempt = 0; attempt < 2; ++attempt) {
+        std::string body = lib_catalog_get(3, file, attempt == 1, error);
+        if (body.empty()) return std::nullopt;
+        try {
+            Json j = JsonParser(body).parse();
+            if (const Json* it = j.get(id); it && it->object_ptr()) return *it;
+        } catch (const std::exception& e) { error = std::string("The catalog is not valid: ") + e.what(); }
+    }
+    if (error.empty()) error = "That item is not in the A.S.T.R.O AI Library (it may have been removed).";
+    return std::nullopt;
 }
 std::optional<Json> lib_v2_detail(const std::string& id, std::string& error) {
+    {   // the schema 3 catalog is the bigger one; the website's schema 2 copy is the fallback
+        std::string e3;
+        if (auto d = lib_v3_detail(id, e3)) return d;
+    }
     const std::string file = "detail/" + sha256_hex(id).substr(0, 2) + ".json";
     for (int attempt = 0; attempt < 2; ++attempt) {
         std::string body = lib_v2_get(file, attempt == 1, error);
@@ -762,6 +822,14 @@ void dev_library(int fd, const std::string& action, const Json& body) {
         std::string error;
         const std::string file = get_string(body, "file");
         std::string data = lib_v2_get(file, json_bool(body, "refresh", false), error);
+        if (data.empty()) { send_json(fd, 502, error_json(error)); return; }
+        send_response(fd, 200, "application/json; charset=utf-8", data);
+        return;
+    }
+    if (action == "v3") {   // schema 3 catalog files (unpacked), cached on this computer
+        std::string error;
+        const std::string file = get_string(body, "file");
+        std::string data = lib_catalog_get(3, file, json_bool(body, "refresh", false), error);
         if (data.empty()) { send_json(fd, 502, error_json(error)); return; }
         send_response(fd, 200, "application/json; charset=utf-8", data);
         return;

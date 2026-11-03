@@ -1,0 +1,65 @@
+# Builds the A.S.T.R.O AI community library (schema 3) once a day and publishes it with GitHub Pages.
+# The indexer lives in esoexe/astro-ai (library/import/index_all.js); this repository only hosts the result,
+# so the catalog has its own 1 GB Pages budget and its own 6-hour job.
+name: Index the library
+
+on:
+  schedule:
+    - cron: '41 4 * * *'
+  workflow_dispatch:
+    inputs:
+      fresh:
+        description: Ignore the previous build and index everything again
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: esoexe/astro-ai
+          path: astro-ai
+      - id: pages
+        uses: actions/configure-pages@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Reviewed items
+        run: node astro-ai/library/build_library.js reviewed
+      - name: Index
+        run: >
+          node --max-old-space-size=12288 astro-ai/library/import/index_all.js site/v3 --format v3 --extra
+          --reviewed reviewed/index.json --live "${{ steps.pages.outputs.base_url }}/v3/"
+          --prev2 https://esoexe.github.io/astro-ai/library/v2/
+          --max-repos 150000 --budget-min 290 --search-min 100 --jobs 24 --cache ${{ runner.temp }}/git
+          ${{ inputs.fresh && '--fresh' || '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Front page
+        run: cp index.html site/index.html && touch site/.nojekyll
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
