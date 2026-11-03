@@ -2,28 +2,28 @@
   "name": "A.S.T.R.O AI",
   "url": "https://esoexe.github.io/astro-ai",
   "description": "A.S.T.R.O AI is a free desktop app for chat, code and agents, powered by a team of free AI models that answer as one. Windows, Linux and macOS.",
-  "version": "1.9.2",
-  "dateLabel": "November 2, 2026",
+  "version": "1.9.3",
+  "dateLabel": "November 3, 2026",
   "year": 2026,
   "repo": "https://github.com/esoexe/astro-ai",
   "highlights": [
-    "Seed Pack: 11 skills for a startup raise, from competitor research and market size to investor matching, a plan, a model, a deck and investor updates",
-    "Its closer drafts one personal email per investor, schedules follow-ups on business days, sorts replies and writes the calendar invite, and nothing is sent without your yes for that batch",
-    "All 11 helpers are built into the app in C++, so the pack needs no Python",
-    "The Android app moves to 1.9.2 with the same engine"
+    "Type / in the Agent to see every command and every installed skill with what it does, so Astro Packs work without learning their names",
+    "Arrow keys move, Enter or Tab fills it in, Esc closes, and a finished command like /help still runs on Enter",
+    "It works on the Agent page and in Workspace Agent mode, in English, French and Arabic",
+    "The Agent composer buttons now wrap on narrow screens instead of spilling out of the box"
   ],
   "highlights_i18n": {
     "fr": [
-      "Seed Pack : 11 compétences pour une levée de fonds, de l’analyse des concurrents et de la taille du marché à la recherche d’investisseurs, au plan, au modèle financier, au pitch deck et aux nouvelles aux investisseurs",
-      "Son closer rédige un e-mail personnel par investisseur, planifie les relances en jours ouvrés, trie les réponses et écrit l’invitation d’agenda, et rien n’est envoyé sans votre oui pour ce lot",
-      "Les 11 outils sont intégrés à l’app en C++ : le pack n’a pas besoin de Python",
-      "L’app Android passe en 1.9.2 avec le même moteur"
+      "Tapez / dans l’Agent pour voir chaque commande et chaque compétence installée avec ce qu’elle fait : les Astro Packs s’utilisent sans connaître leurs noms",
+      "Les flèches déplacent la sélection, Entrée ou Tab la complète, Échap ferme, et une commande complète comme /help s’exécute toujours avec Entrée",
+      "Cela fonctionne sur la page Agent et en mode Agent de l’espace de travail, en français, en anglais et en arabe",
+      "Les boutons de la zone de saisie de l’Agent passent à la ligne sur les petits écrans au lieu de déborder"
     ],
     "ar": [
-      "Seed Pack: إحدى عشرة مهارة لجولة تمويل شركة ناشئة، من دراسة المنافسين وحجم السوق إلى إيجاد المستثمرين والخطة والنموذج المالي والعرض التقديمي وتحديثات المستثمرين",
-      "يكتب الـcloser رسالة شخصية لكل مستثمر، ويجدول المتابعات في أيام العمل، ويفرز الردود، ويكتب دعوة التقويم، ولا يُرسَل شيء دون موافقتك على تلك الدفعة",
-      "أدواتها الإحدى عشرة مدمجة في التطبيق بلغة C++، فلا تحتاج الحزمة إلى Python",
-      "ينتقل تطبيق Android إلى 1.9.2 بالمحرك نفسه"
+      "اكتب / في الوكيل لترى كل أمر وكل مهارة مثبّتة مع ما تفعله، فتعمل حزم Astro دون حفظ أسمائها",
+      "الأسهم للتنقل، وEnter أو Tab للإكمال، وEsc للإغلاق، ويبقى الأمر الكامل مثل /help يعمل بالضغط على Enter",
+      "يعمل في صفحة الوكيل وفي وضع الوكيل داخل مساحة العمل، بالعربية والفرنسية والإنجليزية",
+      "أزرار مربع كتابة الوكيل تنتقل إلى سطر جديد على الشاشات الضيقة بدل أن تخرج عن الإطار"
     ]
   },
   "android": {
