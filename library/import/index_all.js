@@ -27,6 +27,8 @@ const fs = require('fs'), path = require('path'), crypto = require('crypto'), os
 const { execFile } = require('child_process');
 
 const argv = process.argv.slice(2);
+// A broken pipe or reset connection to one child process or server must not throw away hours of indexing.
+process.on('uncaughtException', (e) => { if (e && /^(EPIPE|ECONNRESET)$/.test(e.code)) { console.log('[library] ignored ' + e.code + ' (' + (e.syscall || '') + ')'); return; } console.error(e); process.exit(1); });
 const opt = (name, def) => { const i = argv.indexOf('--' + name); return i >= 0 ? argv[i + 1] : def; };
 const OUT = argv[0] && !argv[0].startsWith('--') ? path.resolve(argv[0]) : path.resolve('library-v2');
 const SOURCES = JSON.parse(fs.readFileSync(path.join(__dirname, 'sources.json'), 'utf8'));
@@ -248,7 +250,8 @@ function fileAllowed(rel, size, kind) {
 function run(cmd, args, { cwd, input, timeout = 120000, maxBuffer = 256 * 1024 * 1024, encoding = 'utf8' } = {}) {
   return new Promise((resolve, reject) => {
     const p = execFile(cmd, args, { cwd, timeout, maxBuffer, encoding, env: { ...process.env, GIT_TERMINAL_PROMPT: '0', GIT_LFS_SKIP_SMUDGE: '1', GCM_INTERACTIVE: 'never' } }, (err, stdout, stderr) => err ? reject(new Error((stderr || err.message).toString().slice(0, 300))) : resolve(stdout));
-    if (input != null) { p.stdin.end(input); }
+    // git can exit (timeout, bad repo) before reading all of its input: that EPIPE must not end the whole build
+    if (input != null) { p.stdin.on('error', () => {}); p.stdin.end(input); }
   });
 }
 function frontmatter(text) {
