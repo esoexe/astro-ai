@@ -2,28 +2,28 @@
   "name": "A.S.T.R.O AI",
   "url": "https://esoexe.github.io/astro-ai",
   "description": "A.S.T.R.O AI is a free desktop app for chat, code and agents, powered by a team of free AI models that answer as one. Windows, Linux and macOS.",
-  "version": "1.9.3",
+  "version": "1.9.4",
   "dateLabel": "November 3, 2026",
   "year": 2026,
   "repo": "https://github.com/esoexe/astro-ai",
   "highlights": [
-    "Type / in the Agent to see every command and every installed skill with what it does, so Astro Packs work without learning their names",
-    "Arrow keys move, Enter or Tab fills it in, Esc closes, and a finished command like /help still runs on Enter",
-    "It works on the Agent page and in Workspace Agent mode, in English, French and Arabic",
-    "The Agent composer buttons now wrap on narrow screens instead of spilling out of the box"
+    "A new Agent session shows your installed packs as chips under From your packs",
+    "Click a pack to open the / menu with only that pack’s skills, then pick one and say what you want",
+    "Packs are grouped by the pack they came from, so packs whose skills share no common name work too",
+    "Includes 1.9.3: type / in the Agent to see every command and installed skill with what it does"
   ],
   "highlights_i18n": {
     "fr": [
-      "Tapez / dans l’Agent pour voir chaque commande et chaque compétence installée avec ce qu’elle fait : les Astro Packs s’utilisent sans connaître leurs noms",
-      "Les flèches déplacent la sélection, Entrée ou Tab la complète, Échap ferme, et une commande complète comme /help s’exécute toujours avec Entrée",
-      "Cela fonctionne sur la page Agent et en mode Agent de l’espace de travail, en français, en anglais et en arabe",
-      "Les boutons de la zone de saisie de l’Agent passent à la ligne sur les petits écrans au lieu de déborder"
+      "Une nouvelle session de l’Agent affiche vos packs installés sous forme de pastilles, sous Depuis vos packs",
+      "Cliquez sur un pack pour ouvrir le menu / avec seulement ses compétences, puis choisissez-en une et dites ce que vous voulez",
+      "Les compétences sont regroupées par pack d’origine : les packs dont les compétences n’ont pas de nom commun fonctionnent aussi",
+      "Inclut la 1.9.3 : tapez / dans l’Agent pour voir chaque commande et compétence installée avec ce qu’elle fait"
     ],
     "ar": [
-      "اكتب / في الوكيل لترى كل أمر وكل مهارة مثبّتة مع ما تفعله، فتعمل حزم Astro دون حفظ أسمائها",
-      "الأسهم للتنقل، وEnter أو Tab للإكمال، وEsc للإغلاق، ويبقى الأمر الكامل مثل /help يعمل بالضغط على Enter",
-      "يعمل في صفحة الوكيل وفي وضع الوكيل داخل مساحة العمل، بالعربية والفرنسية والإنجليزية",
-      "أزرار مربع كتابة الوكيل تنتقل إلى سطر جديد على الشاشات الضيقة بدل أن تخرج عن الإطار"
+      "تعرض جلسة الوكيل الجديدة حزمك المثبّتة كأزرار تحت «من حزمك»",
+      "انقر على حزمة لفتح قائمة / بمهارات تلك الحزمة فقط، ثم اختر مهارة وقل ما تريد",
+      "تُجمع المهارات حسب الحزمة التي جاءت منها، فتعمل أيضًا الحزم التي لا تشترك مهاراتها في اسم واحد",
+      "يتضمن 1.9.3: اكتب / في الوكيل لترى كل أمر وكل مهارة مثبّتة مع ما تفعله"
     ]
   },
   "android": {
