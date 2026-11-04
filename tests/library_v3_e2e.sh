@@ -115,5 +115,20 @@ r=$(call install '{"id":"spicy-thing"}');            has "$r" 'not in the A.S.T.
 r=$(call uninstall '{"id":"weather-now"}');          has "$r" '"ok":true' && ! grep -q 'weather-now' "$EXT/mcp.json" && ok "uninstalled" || bad "uninstall: $r"
 ls "$TMP/data/.astro_library_cache/" 2>/dev/null | grep -q '^v3_list_mcp-0.json.gz$' && ok "v3 files cached on disk" || bad "cache: $(ls "$TMP/data/.astro_library_cache/" 2>/dev/null | head)"
 
+# Offline copy bundled with the app (ASTRO_LIBRARY_V3_DIR): served with the catalog site unreachable, nothing cached.
+OFFPORT=4297
+cp -r "$V3" "$TMP/offline-v3"
+ASTRO_AUTH=off ASTRO_DATA_DIR="$TMP/data-off" PORT=$OFFPORT ASTRO_LIBRARY_URL="http://127.0.0.1:9/library/index.json" \
+  ASTRO_LIBRARY_V3_DIR="$TMP/offline-v3" "$ROOT/workspace_server" >"$TMP/server-off.log" 2>&1 & OFF=$!
+for i in $(seq 1 50); do curl -s -o /dev/null "http://127.0.0.1:$OFFPORT/" && break; sleep 0.2; done
+calloff() { curl -s -X POST -H 'Content-Type: application/json' -H 'X-Astro-Client: 1' "http://127.0.0.1:$OFFPORT/api/dev/library/$1" -d "$2"; }
+r=$(calloff v3 '{"file":"manifest.json"}');           has "$r" '"schema": *3' && ok "offline copy: manifest" || bad "offline manifest: $r"
+r=$(calloff v3 '{"file":"list/skill-2.json.gz"}');    has "$r" '"rows"' && ok "offline copy: gzip shard unpacked" || bad "offline shard: $(echo "$r" | head -c 200)"
+r=$(calloff detail '{"id":"weather-now"}');           has "$r" 'weather-now-mcp@1.0.0' && ok "offline copy: detail" || bad "offline detail: $r"
+r=$(calloff v3 '{"file":"q/zz.json.gz"}');            has "$r" 'missing from the offline Library copy' && ok "offline copy: missing file reported" || bad "offline missing: $(echo "$r" | head -c 200)"
+r=$(calloff v3 '{"file":"../manifest.json"}');        has "$r" 'Unknown catalog file' && ok "offline copy: no path tricks" || bad "offline path: $r"
+[ -z "$(ls "$TMP/data-off/.astro_library_cache/" 2>/dev/null)" ] && ok "offline copy: nothing cached" || bad "offline cache: $(ls "$TMP/data-off/.astro_library_cache/")"
+kill $OFF 2>/dev/null; wait $OFF 2>/dev/null
+
 echo "library v3 e2e: $pass passed, $fail failed"
 [ $fail -eq 0 ]

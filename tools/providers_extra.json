@@ -547,5 +547,27 @@
       "manual_only": true,
       "description": "Every model from your Astro account, for manual picking only (not used in One Brain or Team)."
     }
+  ],
+  "routers": [
+    {
+      "id": "freellmapi",
+      "name": "FreeLLMAPI on this computer",
+      "kind": "openai",
+      "base_url": "http://127.0.0.1:47631/v1",
+      "base_url_key": "FREELLMAPI_URL",
+      "key": "FREELLMAPI_API_KEY",
+      "models": [
+        "auto"
+      ],
+      "labels": {
+        "auto": "Auto-router"
+      },
+      "auto_models": 1,
+      "wait_seconds": 120,
+      "signup": "https://github.com/tashfeenahmed/freellmapi",
+      "hint": "Built into the personal edition. Elsewhere: run FreeLLMAPI, paste its unified key, and set FREELLMAPI_URL (desktop app: http://127.0.0.1:31415/v1)",
+      "limits": "Routes each request across your own free-tier keys with failover. It adds no quota: every provider keeps its own free limits",
+      "privacy": "The router runs on your computer; each prompt goes to the provider it picks"
+    }
   ]
 }

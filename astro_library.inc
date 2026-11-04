@@ -197,6 +197,18 @@ std::string lib_catalog_get(int schema, const std::string& file, bool force, std
         return out;
     };
     std::error_code ec;
+    // An offline copy shipped with the app (the desktop app sets ASTRO_LIBRARY_V3_DIR when library-v3/ is bundled):
+    // every schema 3 file then comes from that one snapshot, so the manifest and its shards always match.
+    if (schema == 3) {
+        if (const char* d = std::getenv("ASTRO_LIBRARY_V3_DIR"); d && *d) {
+            const fs::path local = fs::path(d) / fs::path(file);
+            if (fs::is_regular_file(fs::path(d) / "manifest.json", ec)) {
+                if (auto t = read_small(local, 40'000'000)) return unpack(*t);
+                error = "That file is missing from the offline Library copy.";
+                return {};
+            }
+        }
+    }
     const long long max_age = file == "manifest.json" ? 60LL * 60 : 6LL * 60 * 60;
     if (!force && fs::exists(cached, ec)) {
         const auto age = std::chrono::duration_cast<std::chrono::seconds>(fs::file_time_type::clock::now() - fs::last_write_time(cached, ec)).count();

@@ -117,6 +117,27 @@ make_payload() {  # $1 = edition (personal|clean), $2 = dir
     fi
 }
 
+# Personal edition extras, added only when they exist on this machine (never on CI, never in the clean edition):
+#   freellmapi/   the FreeLLMAPI router (MIT), started headless next to the engine  <- bash desktop/fetch_freellmapi.sh windows
+#   library-v3/   an offline copy of the whole community Library (schema 3)         <- PERSONAL_LIBRARY_V3=<folder with manifest.json>
+personal_extras() {  # $1 = app folder, $2 = windows|linux, $3 = README to extend
+    local d="$1" fl="$ROOT/.cache/freellmapi/$2/app" lib="${PERSONAL_LIBRARY_V3:-}"
+    if [ "${PERSONAL_FREELLMAPI:-1}" = 1 ] && [ -d "$fl" ]; then
+        mkdir -p "$d/freellmapi"; cp -r "$fl" "$d/freellmapi/app"; cp desktop/freellmapi/astro-freellmapi.mjs "$d/freellmapi/"
+        echo "    + FreeLLMAPI router ($(du -sh "$d/freellmapi" | cut -f1))"
+        { echo; echo "FreeLLMAPI (MIT, github.com/tashfeenahmed/freellmapi) is built in: it starts with the app on http://127.0.0.1:47631"
+          echo "(dashboard: open that address in a browser) and gets your saved provider keys automatically. In A.S.T.R.O AI it is the"
+          echo "provider \"FreeLLMAPI on this computer\". It only combines your own free tiers; it does not add quota. Log: logs\\freellmapi.log"; } >> "$3"
+    fi
+    if [ -n "$lib" ] && [ -f "$lib/manifest.json" ]; then
+        cp -r "$lib" "$d/library-v3"
+        local total; total="$(node -e 'console.log(require(process.argv[1]).total)' "$d/library-v3/manifest.json" 2>/dev/null || echo '?')"
+        echo "    + offline Library: $total items ($(du -sh "$d/library-v3" | cut -f1))"
+        { echo; echo "The whole community Library ($total MCP servers, skills, plugins and tools) is inside (library-v3), so browsing"
+          echo "and search work offline. Installing an item still downloads its files from the source."; } >> "$3"
+    fi
+}
+
 readme() {  # $1 = edition, $2 = platform, $3 = file
     local ed="$1" plat="$2" f="$3" title note
     if [ "$ed" = personal ]; then
@@ -171,6 +192,7 @@ for ed in $EDITIONS; do
     cp -r "$PAY/." "$WD/"
     cp "$WORK/bin/AstroAI.exe" "$WD/$EXE"; cp "$WORK/bin/astro-server.exe" "$WD/"; cp "$WORK/bin/astro.exe" "$WD/$CLI.exe"
     readme "$ed" "windows x64" "$WD/README.txt"
+    if [ "$ed" = personal ]; then personal_extras "$WD" windows "$WD/README.txt"; fi
     (cd "$WORK" && zip -qr9 "$DEST/AstroAI-$VER-windows-x64-portable-$TAG.zip" "$(basename "$WD")")
     desktop/setup/build_setup.sh "$WD" "$DEST/AstroAI-$VER-windows-x64-Setup-$TAG.exe" "$APP" "$ID" "$EXE" "$KEYS" "$WORK/setup-$ed" "$DISP"
     fi

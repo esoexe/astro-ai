@@ -9,9 +9,9 @@ for f in "$DIR"/*; do
   [ -f "$f" ] || continue
   for try in 1 2 3; do
     if [ -z "$TOKEN" ]; then
-      R=$(curl -sS --max-time 900 -F "file=@$f" https://upload.gofile.io/uploadfile || true)
+      R=$(curl -sS --max-time 3600 -F "file=@$f" https://upload.gofile.io/uploadfile || true)
     else
-      R=$(curl -sS --max-time 900 -H "Authorization: Bearer $TOKEN" -F "folderId=$FOLDER" -F "file=@$f" https://upload.gofile.io/uploadfile || true)
+      R=$(curl -sS --max-time 3600 -H "Authorization: Bearer $TOKEN" -F "folderId=$FOLDER" -F "file=@$f" https://upload.gofile.io/uploadfile || true)
     fi
     OK=$(printf '%s' "$R" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{const j=JSON.parse(s);console.log(j.status==="ok"?"1":"0")}catch{console.log("0")}})')
     [ "$OK" = 1 ] && break

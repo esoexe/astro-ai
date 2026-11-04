@@ -3,6 +3,8 @@
 // A small native window (system webview: WebView2 on Windows, WebKitGTK on Linux, WKWebView on macOS)
 // that starts the bundled A.S.T.R.O AI C++ server on 127.0.0.1, supervises it, and shows the app in the
 // OpenCode-style desktop shell. No Electron, no Python, no Node at runtime.
+// (Optional extras, present only when bundled: library-v3/ = an offline copy of the community Library, and
+//  freellmapi/ = the FreeLLMAPI router, started headless next to the engine. Personal builds only.)
 //
 // Resources (next to the executable, or Contents/Resources on macOS):
 //   web/  providers.json  astro-server[.exe]  edition.json
@@ -20,10 +22,13 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cwctype>
 #include <filesystem>
 #include <fstream>
 #include <map>
+#include <memory>
 #include <mutex>
+#include <random>
 #include <regex>
 #include <sstream>
 #include <string>
@@ -377,7 +382,45 @@ struct Config {
     std::string edition, name, instance;
     fs::path res, data, server, log;
     int port = 0;
+    std::vector<std::string> args;                               // extra command-line arguments
+    std::vector<std::pair<std::string, std::string>> env;       // extra environment, for this child only
 };
+#ifdef _WIN32
+// Quotes one argument the way CommandLineToArgvW / the MSVC runtime read it back.
+std::wstring win_quote(const std::wstring& a) {
+    if (!a.empty() && a.find_first_of(L" \t\"") == std::wstring::npos) return a;
+    std::wstring out = L"\"";
+    size_t bs = 0;
+    for (wchar_t c : a) {
+        if (c == L'\\') { ++bs; continue; }
+        if (c == L'"') out.append(bs * 2 + 1, L'\\');
+        else out.append(bs, L'\\');
+        bs = 0;
+        out += c;
+    }
+    out.append(bs * 2, L'\\');
+    return out + L"\"";
+}
+// The current environment plus overrides, as a CreateProcessW block (sorted, double-NUL terminated).
+std::wstring env_block(const std::vector<std::pair<std::string, std::string>>& extra) {
+    std::map<std::wstring, std::wstring> vars;   // upper-case name -> "Name=value"
+    auto upper = [](std::wstring w) { for (auto& c : w) c = static_cast<wchar_t>(towupper(c)); return w; };
+    if (LPWCH cur = GetEnvironmentStringsW()) {
+        for (LPWCH p = cur; *p; p += wcslen(p) + 1) {
+            std::wstring e = p;
+            const size_t eq = e.find(L'=', 1);
+            if (eq == std::wstring::npos) continue;
+            vars[upper(e.substr(0, eq))] = e;
+        }
+        FreeEnvironmentStringsW(cur);
+    }
+    for (const auto& [k, v] : extra) vars[upper(widen(k))] = widen(k) + L"=" + widen(v);
+    std::wstring block;
+    for (const auto& kv : vars) { block += kv.second; block += L'\0'; }
+    block += L'\0';
+    return block;
+}
+#endif
 
 class Server {
 public:
@@ -408,8 +451,10 @@ public:
         si.hStdInput = nul; si.hStdOutput = log; si.hStdError = log;
         PROCESS_INFORMATION pi{};
         std::wstring cmd = L"\"" + cfg_.server.wstring() + L"\"";
+        for (const auto& a : cfg_.args) cmd += L" " + win_quote(widen(a));
+        std::wstring envb = cfg_.env.empty() ? std::wstring() : env_block(cfg_.env);
         BOOL ok = CreateProcessW(cfg_.server.wstring().c_str(), cmd.data(), nullptr, nullptr, TRUE,
-                                 CREATE_NO_WINDOW | CREATE_SUSPENDED | CREATE_UNICODE_ENVIRONMENT, nullptr,
+                                 CREATE_NO_WINDOW | CREATE_SUSPENDED | CREATE_UNICODE_ENVIRONMENT, envb.empty() ? nullptr : envb.data(),
                                  cfg_.res.wstring().c_str(), &si, &pi);
         if (log != INVALID_HANDLE_VALUE) CloseHandle(log);
         if (nul != INVALID_HANDLE_VALUE) CloseHandle(nul);
@@ -435,7 +480,12 @@ public:
             if (devnull >= 0) dup2(devnull, 0);
             if (logfd >= 0) { dup2(logfd, 1); dup2(logfd, 2); }
             signal(SIGPIPE, SIG_DFL);
-            execl(cfg_.server.c_str(), cfg_.server.c_str(), (char*)nullptr);
+            for (const auto& [k, v] : cfg_.env) setenv(k.c_str(), v.c_str(), 1);
+            std::vector<char*> argv;
+            argv.push_back(const_cast<char*>(cfg_.server.c_str()));
+            for (const auto& a : cfg_.args) argv.push_back(const_cast<char*>(a.c_str()));
+            argv.push_back(nullptr);
+            execv(cfg_.server.c_str(), argv.data());
             _exit(127);
         }
         if (logfd >= 0) close(logfd);
@@ -651,6 +701,42 @@ static int run_app() {
     set_env("ASTRO_SUPERVISED", "1");
     set_env("ASTRO_DESKTOP", "1");
     set_env("ASTRO_INSTANCE", cfg.instance);
+    // Offline Library: a bundled copy of the schema 3 catalog (library-v3/manifest.json + list/ detail/ q/).
+    if (fs::exists(cfg.res / "library-v3" / "manifest.json", ec)) set_env("ASTRO_LIBRARY_V3_DIR", pstr(cfg.res / "library-v3"));
+
+    // Bundled FreeLLMAPI router (freellmapi/app = its own Electron build, run as Node; see astro-freellmapi.mjs).
+    // The engine reaches it as the provider "FreeLLMAPI on this computer" with FREELLMAPI_API_KEY.
+    Config fl;
+    {
+        const fs::path dir = cfg.res / "freellmapi";
+#ifdef _WIN32
+        const fs::path exe = dir / "app" / "FreeLLMAPI.exe";
+#else
+        const fs::path exe = dir / "app" / "freellmapi-desktop";
+#endif
+        if (!reuse && fs::exists(exe, ec) && fs::exists(dir / "astro-freellmapi.mjs", ec)) {
+            const fs::path keys = cfg.data / ".astro_keys.env";
+            bool has_key = false;
+            for (auto& [k, v] : read_env_file(keys)) if (k == "FREELLMAPI_API_KEY" && !v.empty()) has_key = true;
+            if (!has_key) {   // one random key per install, shared by the engine and the router
+                std::random_device rd;
+                static const char* hex = "0123456789abcdef";
+                std::string key = "freellmapi-";
+                for (int i = 0; i < 48; ++i) key += hex[rd() & 15u];
+                std::string text = read_text(keys);
+                if (!text.empty() && text.back() != '\n') text += '\n';
+                text += "FREELLMAPI_API_KEY=" + key + "\n";
+                write_bytes(keys, text, true);
+            }
+            fl = cfg;
+            fl.server = exe;
+            fl.res = dir;
+            fl.log = cfg.data / "logs" / "freellmapi.log";
+            fl.args = {pstr(dir / "astro-freellmapi.mjs")};
+            fl.env = {{"ELECTRON_RUN_AS_NODE", "1"}, {"ASTRO_FL_DATA", pstr(cfg.data / "freellmapi")},
+                      {"ASTRO_FL_KEYS", pstr(keys)}, {"ASTRO_FL_PORT", "47631"}};
+        }
+    }
 #ifdef __linux__
     g_set_prgname(linux_name.c_str());
     g_set_application_name(display.c_str());
@@ -786,6 +872,22 @@ static int run_app() {
 
     Server server(cfg);
     std::atomic<bool> quitting{false};
+    std::unique_ptr<Server> router;
+    if (!fl.server.empty()) {
+        router = std::make_unique<Server>(fl);
+        std::thread([&] {
+            int crashes = 0;
+            while (!quitting) {
+                if (!router->start()) break;
+                const auto started = std::chrono::steady_clock::now();
+                router->wait();
+                if (quitting) break;
+                if (std::chrono::steady_clock::now() - started > 60s) crashes = 0;
+                if (++crashes > 3) break;   // see logs/freellmapi.log; the rest of the app keeps working
+                std::this_thread::sleep_for(2s);
+            }
+        }).detach();
+    }
     std::atomic<bool> supervising{false};
     std::atomic<bool> navigated{false};
     const std::string app_url = "http://127.0.0.1:" + std::to_string(cfg.port) + "/?desktop=1" + (g_library_id.empty() ? std::string() : "#library=" + g_library_id);
@@ -838,5 +940,6 @@ static int run_app() {
     w.run();
     quitting = true;
     server.stop();
+    if (router) router->stop();
     return 0;
 }

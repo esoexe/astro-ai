@@ -147,6 +147,14 @@ so a full pass takes many days). Its first run starts from the schema 2 build's 
 already indexed are reused instead of cloned again. Counts change every day; the manifest and the site's front page
 show the current numbers.
 
+### Offline copy (personal builds)
+
+A desktop build can carry the whole schema 3 catalog in a `library-v3/` folder next to the app (the same files as the
+site: `manifest.json`, `list/`, `detail/`, `q/`). The desktop app then sets `ASTRO_LIBRARY_V3_DIR`, and the engine reads
+every schema 3 file from that one snapshot, so browsing and search work without a connection and the manifest always
+matches its shards. Installing an item still downloads its files from the source, with the usual SHA-256 checks.
+`desktop/package.sh` adds the folder only to the personal edition, when `PERSONAL_LIBRARY_V3=<folder>` is set.
+
 ## Community install rules
 
 | Rule | Where it is enforced |
