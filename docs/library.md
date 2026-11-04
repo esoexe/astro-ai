@@ -132,7 +132,7 @@ built once a day by the workflow in `library/site/` (published as the `esoexe/as
 | File | What it holds |
 |---|---|
 | `manifest.json` | Counts and row ranges per kind, sources, the search-index prefixes |
-| `list/<kind>-<n>.json.gz` | The same rows as schema 2, 2,000 per file, in rank order |
+| `list/<kind>-<n>.json.gz` | The same rows as schema 2, 500 per file, in rank order |
 | `detail/<hhh>.json.gz` | Install details keyed by id; `hhh` is the first three hex characters of `sha256(id)` |
 | `q/<xx>.json.gz` | Search index: word → row numbers (base-36 gaps), one file per two-letter word start |
 | `state.json.gz`, `state-gh.json.gz` | Indexer state (commits, ids, topic and code search cursors, npm versions); not read by the app |

@@ -972,7 +972,7 @@ async function searchCodeSkills(token, budgetEnd) {
 // ------------------------------------------------------------------ schema 3 (gzip files, search index)
 const zlib = require('zlib');
 const LIB3 = require(path.join(__dirname, '..', '..', 'web', 'lib3core.js'));
-const SHARD3 = Math.max(1, Number(opt('shard3', 2000)));
+const SHARD3 = Math.max(1, Number(opt('shard3', 500)));
 async function getBuf(url, tries = 4) {
   let last;
   for (let i = 0; i < tries; i++) {

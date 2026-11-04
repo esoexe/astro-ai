@@ -163,8 +163,10 @@
       total += mine.length;
       // load in pages so a filter can skip rows without fetching every shard
       let taken = 0;
-      for (let i = 0; i < mine.length && taken < limit; i += 400) {
-        const got = await this.rowsAt(mine.slice(i, i + 400));
+      // matches are spread over many list files, so fetch only about as many rows as are still needed
+      const page = Math.max(limit, 24);
+      for (let i = 0; i < mine.length && taken < limit; i += page) {
+        const got = await this.rowsAt(mine.slice(i, i + Math.max(page, limit - taken)));
         for (const g of got) { if (!filter || filter(g.row, g.kind)) { out.push(g); if (++taken >= limit) break; } }
         if (i >= 4000) break;
       }
