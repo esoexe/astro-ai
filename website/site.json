@@ -2,25 +2,25 @@
   "name": "A.S.T.R.O AI",
   "url": "https://esoexe.github.io/astro-ai",
   "description": "A.S.T.R.O AI is a free desktop app for chat, code and agents, powered by a team of free AI models that answer as one. Windows, Linux and macOS.",
-  "version": "1.9.7",
-  "dateLabel": "November 3, 2026",
+  "version": "1.9.8",
+  "dateLabel": "November 5, 2026",
   "year": 2026,
   "repo": "https://github.com/esoexe/astro-ai",
   "highlights": [
-    "The Library gets its own site, with room to grow far past what this website can hold",
-    "The app and the Console search it without downloading it: only small compressed pages and a search index",
-    "More skill repositories every day, found with GitHub code search for SKILL.md files"
+    "A Modder Pack: mod the PC games you own, from recon to a working mod and a showcase video",
+    "Its um tools are built in, rewritten in C++: scans, save backups, sprites, videos, fal, ComfyUI, Windows game control",
+    "The original rules stay: only games you own, backups first, no game files or cheats shared"
   ],
   "highlights_i18n": {
     "fr": [
-      "La Bibliothèque a son propre site, avec de la place pour grandir bien au-delà de ce que ce site peut contenir",
-      "L’app et la Console y cherchent sans la télécharger : seulement de petites pages compressées et un index de recherche",
-      "Chaque jour, plus de dépôts de compétences, trouvés par la recherche de code GitHub sur les fichiers SKILL.md"
+      "Un pack Modder : moddez les jeux PC que vous possédez, de l’analyse au mod qui marche et à la vidéo de démo",
+      "Ses outils um sont intégrés, réécrits en C++ : analyses, sauvegardes, sprites, vidéos, fal, ComfyUI, contrôle des jeux Windows",
+      "Les règles d’origine restent : seulement vos jeux, sauvegarde d’abord, ni fichiers du jeu ni triche partagés"
     ],
     "ar": [
-      "للمكتبة موقعها الخاص الآن، مع مساحة لتنمو أبعد بكثير مما يتسع له هذا الموقع",
-      "يبحث التطبيق والكونسول فيها دون تنزيلها: فقط صفحات صغيرة مضغوطة وفهرس بحث",
-      "المزيد من مستودعات المهارات كل يوم، يُعثر عليها بالبحث في شيفرة GitHub عن ملفات SKILL.md"
+      "حزمة Modder: عدّل ألعاب الحاسوب التي تملكها، من الاستطلاع إلى تعديل يعمل وفيديو عرض",
+      "أدوات um مدمجة ومُعاد كتابتها بلغة C++‏: فحص، نسخ احتياطي للحفظ، رسوم، فيديو، fal، ComfyUI، التحكم بألعاب ويندوز",
+      "تبقى القواعد الأصلية: ألعابك فقط، النسخ الاحتياطي أولاً، لا ملفات لعبة ولا غش في ما تشاركه"
     ]
   },
   "android": {
