@@ -3,8 +3,9 @@ name: reverse-engineering
 description: Read how a game actually works so a mod can hook it. Decompile .NET/Mono (ILSpy), IL2CPP (Cpp2IL, Il2CppDumper), Java (Vineflower) and native code (Ghidra, IDA, via MCP servers); dump data and asset formats; reverse-engineer a binary file format and prove it with a round trip; read live memory (Cheat Engine, Frida, x64dbg); find render passes (RenderDoc). Use when a mod needs game internals, e.g. "how does the boss AI work", "find the damage function", "what format is this .sld/.pak/.dat", "where is the player position in memory".
 ---
 
-> **A.S.T.R.O AI note:** this pack leaves out the Python helper `references/ue3-packages/unpack_upk.py` (Library packs are text-only).
-> They are in the upstream repository, https://github.com/rehan-remade/universal-modder, if the user wants them.
+> **A.S.T.R.O AI note:** upstream's Python helper `unpack_upk.py` is built in here as `${ASTRO_TOOL} um upk unpack` (and
+> `um upk clear-flags`), with its own LZO decompressor: no Python, no minilzo. The AoE2 `sld.py` and Source
+> `vpk.py` / `vtf.py` example tools are `um sld`, `um vpk` and `um vtf`.
 
 # Reverse engineering for mods
 
@@ -75,7 +76,7 @@ Use the community tool first:
 - Unreal: FModel, UAssetGUI
   - **Fully compressed UE3 `.upk`** (UELib shows `Exports=0`): unpack a copy with Gildor's `decompress`
     (from UE Viewer), or, for LZO packages, with
-    [`unpack_upk.py`](references/ue3-packages/README.md).
+    `${ASTRO_TOOL} um upk unpack` ([notes](references/ue3-packages/README.md)).
 - Bethesda: xEdit, BSArch
 - GameMaker: UndertaleModTool
 - Genie: genieutils
@@ -105,7 +106,7 @@ For an **undocumented format**:
 3. Write a reader that decodes to something viewable (PNGs, JSON) and **look at it**.
 4. Write the writer, and **prove it with a round trip**: decode → encode → decode, compared against the
    original. The AoE2 SLD sprite writer was accepted only when it round-tripped the stock knight at
-   0.9/255 mean error (`examples/aoe2-de-civ/sld.py`).
+   0.9/255 mean error (`examples/aoe2-de-civ/sld.py`; built in here as `${ASTRO_TOOL} um sld`, check yours with `${ASTRO_TOOL} um sld roundtrip`).
 5. Only then write new files. Test them in game with one asset before batch-converting.
 
 ## Make it an oracle

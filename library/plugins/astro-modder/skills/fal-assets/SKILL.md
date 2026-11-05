@@ -3,10 +3,10 @@ name: fal-assets
 description: Generate game assets with fal (fal.ai) through the fal MCP server, the `${ASTRO_TOOL} um fal` CLI (REST) or `fal api`. Covers sprites and icons with transparent backgrounds, consistent variants and animation frames, pixel art, seamless textures, PBR material maps, image-to-3D models, remeshing, auto-rigging, sound effects, music, voice lines, and trailer or cutscene video. Use whenever a mod needs new art, audio or 3D models, or the user mentions fal, generating sprites, textures, models, SFX or music for a game.
 ---
 
-> **A.S.T.R.O AI note:** `um render3d` is not built in. Upstream it scripts Blender in Python, and the
-> A.S.T.R.O AI port has no Python. To turn a GLB into sprite frames, render the frames in Blender yourself (or ask
-> the user to), then continue with `${ASTRO_TOOL} um sprite` (fit, pixelate, recolor, pack). Everything else in
-> this skill works as written.
+> **A.S.T.R.O AI note:** `um render3d` is built in as C++: a software renderer in place of Blender, with the same
+> presets, motions, flags and file names. `--samples` sets the anti-aliasing, `--engine` is accepted and ignored, and
+> the light is a sun plus ambient (simpler than Cycles), so look at the first frame. AoE2 DE frames pack into an
+> .sld with `${ASTRO_TOOL} um sld write`.
 
 
 # Game assets with fal

@@ -19,15 +19,16 @@ MW2) showed about scaling up.
 
 ## Your tools
 
-`um` is the toolkit CLI. In A.S.T.R.O AI it is built in (a C++ port of universal-modder's CLI, every group but
-`render3d`): run it as `${ASTRO_TOOL} um ...`. Nothing to install.
+`um` is the toolkit CLI. In A.S.T.R.O AI it is built in (a C++ port of universal-modder's CLI, every group,
+plus `b3d`, `upk`, `sld`, `vpk` and `vtf` in place of the Python helper scripts): run it as `${ASTRO_TOOL} um ...`.
+Nothing to install.
 Every group has `--help` with examples.
 
 | Need | Command |
 |---|---|
 | What games are installed, what engine, what anti-cheat, where saves live | `${ASTRO_TOOL} um scan --list`, `${ASTRO_TOOL} um scan "<game>"` |
 | Sprites, textures, PBR, 3D models, rigs, SFX, music, voice, video (fal) | `${ASTRO_TOOL} um fal <recipe>`, or the fal MCP (`search_models`, `run_model`) |
-| Cut out / fit / pixelate / pack sprites; 3D model → sprite frames | `${ASTRO_TOOL} um sprite ...` (render the 3D frames in Blender first: `render3d` is not in the A.S.T.R.O AI port) |
+| Cut out / fit / pixelate / pack sprites; 3D model → sprite frames | `${ASTRO_TOOL} um sprite ...`, `${ASTRO_TOOL} um render3d ...` |
 | Launch, screenshot, click/type, record a Windows game (also from WSL) | `${ASTRO_TOOL} um win ...` |
 | Snapshot saves before touching them; undo | `${ASTRO_TOOL} um backup create/diff/restore` |
 | Cut a showcase video | `${ASTRO_TOOL} um video contact/compile/mux` |

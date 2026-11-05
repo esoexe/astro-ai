@@ -9,8 +9,34 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
-    <article class="release latest reveal" id="v1-9-8">
-      <header><h2>1.9.8</h2><span class="badge">Latest</span><time datetime="2026-11-05">November 5, 2026</time></header>
+    <article class="release latest reveal" id="v2-0-0">
+      <header><h2>2.0.0</h2><span class="badge">Latest</span><time datetime="2026-11-05">November 5, 2026</time></header>
+      <p class="muted">No Python left: the Modder Pack's last tools are C++, and universal-modder gets a C++ edition of its own.</p>
+
+      <h3>Modder Pack: every tool built in</h3>
+      <ul class="ticks">
+        <li><code>um render3d</code> is built in. A software renderer takes the place of Blender: GLB and glTF models (skinned and animated too), the six game cameras (<code>aoe2</code>, <code>iso8</code>, <code>trueiso</code>, <code>topdown</code>, <code>side</code>, <code>turntable</code>), the motions, shadow passes and the same file names. Its light is simpler than Blender Cycles, so look at the first frame</li>
+        <li><code>um b3d</code> turns Blitz3D viewmodels into Roblox rigs: dump the model, write its keyframes as a Luau module, build a skinned glTF and render preview frames. It replaces four Python and Blender scripts</li>
+        <li><code>um upk</code> decompresses LZO-compressed Unreal Engine 3 packages for UELib, with its own LZO decompressor, so nothing to install</li>
+        <li><code>um sld</code> reads and writes Age of Empires II DE sprites, and packs <code>render3d</code> frames into an .sld. <code>um vpk</code> and <code>um vtf</code> list, extract and decode Valve archives and textures</li>
+        <li>The pack's skills call these commands where they used to run Python scripts (Modder Pack 1.1.0, which needs this version)</li>
+      </ul>
+
+      <h3>universal-modder-cpp</h3>
+      <ul class="ticks">
+        <li><a href="https://github.com/esoexe/universal-modder-cpp">esoexe/universal-modder-cpp</a> is Rehan's <a href="https://github.com/rehan-remade/universal-modder">universal-modder</a> with its <code>um</code> toolkit as one native program for Linux, macOS and Windows, alongside the original skills, agents and knowledge base. It is MIT, like the original, and credits its authors</li>
+        <li>Its PORTING.md lists every Python file in the original and what replaced it. The one-off scripts from single mods in the examples are not ported, and it says so</li>
+      </ul>
+
+      <h3>Also</h3>
+      <ul class="ticks">
+        <li><code>um kb check</code> no longer rejects front matter with an apostrophe inside a list, such as <code>[the core's library]</code></li>
+        <li>New test suites for the 3D tools and the file formats. They need no Python, even to check results</li>
+      </ul>
+    </article>
+
+    <article class="release reveal" id="v1-9-8">
+      <header><h2>1.9.8</h2><time datetime="2026-11-05">November 5, 2026</time></header>
       <p class="muted">A Modder Pack: mod the PC games you own, with the tools built in.</p>
 
       <h3>Modder Pack</h3>

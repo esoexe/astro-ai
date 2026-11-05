@@ -3,8 +3,9 @@ name: blitz3d-decomp
 description: Decompile a Blitz3D game to readable Blitz source with B3DDecomp and port what it does to another engine. Covers SCP - Containment Breach-era and other .bb games, B3DDecomp, Blitz3D runtime behaviour (fixed tick, Animate, CurveValue, Euler angles, quaternions, Rnd), animated .b3d models (viewmodels with bones and keyframes) into Roblox, and where to stop (builds protected against decompiling, games and assets the user has no rights to). Use when a Blitz3D game's code or animated models are needed.
 ---
 
-> **A.S.T.R.O AI note:** this pack leaves out the Python helpers in `scripts/roblox/` (b3d_skin.py, vm_anim_data.py, vm_build.py, vm_render.py) (Library packs are text-only).
-> They are in the upstream repository, https://github.com/rehan-remade/universal-modder, if the user wants them.
+> **A.S.T.R.O AI note:** upstream's Python helpers in `scripts/roblox/` are built in here as `${ASTRO_TOOL} um b3d`: `dump` (b3d_skin.py),
+> `anim` (vm_anim_data.py), `build` (vm_build.py) and `render` (vm_render.py), with no Python or Blender. `build` writes
+> glTF (`NAME.glb`, `NAME.preview.glb`) where upstream wrote FBX.
 
 # Blitz3D decompile and port
 
@@ -73,7 +74,7 @@ Done when every number the port will use is traced to the line that sets it and 
 Read [references/blitz-runtime.md](references/blitz-runtime.md) before writing port code: Blitz3D's clock,
 Animate, CurveValue, Euler angles, Rnd and entity calls behave in ways a straight transcription gets wrong.
 For animated `.b3d` models (viewmodels, rigs, keyframes) into Roblox, follow
-[references/b3d-to-roblox.md](references/b3d-to-roblox.md); its scripts are in `scripts/roblox/`.
+[references/b3d-to-roblox.md](references/b3d-to-roblox.md); its steps are the built-in `${ASTRO_TOOL} um b3d` commands (`dump`, `anim`, `build`, `render`).
 
 Port step for step: same order, same constants, same tick. Mark every deviation in a comment with the reason.
 The rights rule above covers the code as much as the models.

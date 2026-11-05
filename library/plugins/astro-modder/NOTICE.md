@@ -5,9 +5,11 @@ contributors (https://github.com/rehan-remade/universal-modder, commit 9811709d9
 
 Changes for A.S.T.R.O AI (made by tools/port_modder.cpp):
 - `um <group>` commands point at the built-in C++ port (`${ASTRO_TOOL} um <group>`); install paragraphs say so.
-- Left out: the Python helper scripts (blitz3d-decomp/scripts, unpack_upk.py), the hooks, the knowledge base (the
-  `um kb` tool syncs it from GitHub) and `um render3d` (it scripts Blender in Python).
-- A short A.S.T.R.O AI note at the top of the agents and of the skills that mention render3d or a left-out script.
+- The Python helper scripts are built-in C++ commands instead: blitz3d-decomp/scripts/roblox -> `um b3d`,
+  unpack_upk.py -> `um upk`, and the examples' sld.py / vpk.py / vtf.py -> `um sld` / `um vpk` / `um vtf`.
+  `um render3d` uses a built-in software renderer in place of Blender. The skills that ran a script say so.
+- Left out: the hooks and the knowledge base (the `um kb` tool syncs it from GitHub).
+- A short A.S.T.R.O AI note at the top of the agents and of the skills whose tools changed.
 - The guardrails are unchanged: mod only games the user owns, keep game files and decompiled code out of anything
   shared, no cheats against other players, back up saves first.
 

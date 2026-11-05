@@ -14,7 +14,7 @@
   (AGE, GUI).
 - **Graphics mod:** `resources/_common/drs/graphics/*.sld` sprites.
   - SLD is BC1/BC4 compressed layers: main, shadow, damage mask, player colour.
-  - Read/write with `examples/aoe2-de-civ/sld.py`, round-trip verified against stock sprites.
+  - Read/write with `${ASTRO_TOOL} um sld` (the port of `examples/aoe2-de-civ/sld.py`), round-trip verified against stock sprites.
   - Unit sprites have 16 headings (clockwise from east) and a canvas with a hotspot at the unit's ground
     point.
   - Render them from 3D with `${ASTRO_TOOL} um render3d --preset aoe2 --shadows`, and mask player colour with

@@ -51,8 +51,11 @@ inline bool is_mac() {
 #endif
 }
 inline bool is_wsl() {
-#if defined(__linux__)
+#ifndef _WIN32
+    // UM_FAKE_WSL=1: a test switch (tests/modder_win.sh) that makes any POSIX system take the WSL paths
     if (!env("UM_FAKE_WSL").empty()) return env("UM_FAKE_WSL") == "1";
+#endif
+#if defined(__linux__)
     struct utsname u{};
     if (uname(&u) == 0 && lower(u.release).find("microsoft") != std::string::npos) return true;
     std::error_code ec; return fs::exists("/proc/sys/fs/binfmt_misc/WSLInterop", ec);
@@ -499,7 +502,16 @@ struct Doc {
         if (flow_mode) {
             auto balanced = [](const std::string& s) {
                 int d = 0; char q = 0;
-                for (std::size_t k = 0; k < s.size(); ++k) { const char c = s[k]; if (q) { if (c == q) q = 0; else if (q == '"' && c == '\\') ++k; continue; } if (c == '"' || c == '\'') q = c; else if (c == '[' || c == '{') ++d; else if (c == ']' || c == '}') --d; }
+                // A quote opens a quoted scalar only where a node starts (after [ { , : ), as in strip_comment: the apostrophe
+                // in [the core's library] is part of a plain scalar. Inside single quotes '' is an escaped quote.
+                char prev = 0;   // the last character outside quotes that is not white space
+                for (std::size_t k = 0; k < s.size(); ++k) {
+                    const char c = s[k];
+                    if (q) { if (c == q) { if (q == '\'' && k + 1 < s.size() && s[k + 1] == '\'') { ++k; continue; } q = 0; prev = c; } else if (q == '"' && c == '\\') ++k; continue; }
+                    if ((c == '"' || c == '\'') && (prev == 0 || prev == '[' || prev == '{' || prev == ',' || prev == ':')) { q = c; continue; }
+                    if (c == '[' || c == '{') ++d; else if (c == ']' || c == '}') --d;
+                    if (c != ' ' && c != '\t' && c != '\n') prev = c;
+                }
                 return d <= 0;
             };
             std::string acc = first;

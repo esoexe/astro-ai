@@ -15,7 +15,7 @@ compressed chunks (LZO here). Tools that can't decompress them stop at the heade
 LZX for the games UE Viewer supports, and writes a clean package with the compression table removed. UE
 Viewer lists Dishonored as supported; the decompressor wasn't tried on it for this reference.
 
-`unpack_upk.py` is a small Python fallback for **LZO** packages (`CompressionFlags` 2; it refuses zlib and
+`${ASTRO_TOOL} um upk unpack` (the C++ port of upstream's `unpack_upk.py`) is a small fallback for **LZO** packages (`CompressionFlags` 2; it refuses zlib and
 LZX), written to get a package UELib can read. The same chunk layout, and what to do when LZO C extensions
 won't build, are in the field note `knowledge/techniques/reading-ue3-gearbox-games-offline.md`
 (`${ASTRO_TOOL} um kb search ue3`).
@@ -34,25 +34,24 @@ each chunk @CompressedOffset:
 ```
 
 The `CompressionFlags`/chunk-table offset **varies per package** (it depends on earlier summary
-fields), so the script auto-detects it by checking that chunks chain correctly.
+fields), so the tool auto-detects it by checking that chunks chain correctly.
 
 ## Use
 
 Work on copies outside the game folder.
 
 ```bash
-uv run --python 3.12 --with minilzo python unpack_upk.py <in.upk> <out.upk>
+${ASTRO_TOOL} um upk unpack <in.upk> <out.upk>
 ```
 
 Then, to read it with UELib, clear **only** the `CompressionFlags` dword (leave the chunk
 count/table in place) so `UnrealPackage.Deserialize` no longer returns early:
 
-```python
-import struct
-p = 'DishonoredGame.fixed.upk'; OFF = 0x79   # printed by the script
-d = bytearray(open(p, 'rb').read()); struct.pack_into('<I', d, OFF, 0)
-open(p, 'wb').write(d)
+```bash
+${ASTRO_TOOL} um upk clear-flags DishonoredGame.fixed.upk 0x79   # the offset unpack printed
 ```
+
+(or pass `--clear-flags` to `${ASTRO_TOOL} um upk unpack`).
 
 After that, `Exports` populates and you can dump classes and functions with UELib or browse them in UE
 Explorer. The output keeps the original summary and its chunk table, so treat it as input for UELib. For a
@@ -60,6 +59,6 @@ package other tools can load, use Gildor's decompressor.
 
 ## Notes
 
-- Depends on the PyPI `minilzo` package (GPL-2.0), which `uv` fetches at run time. It's a C extension
-  published only as source, so `uv` builds it and needs a C compiler (on Windows, the MSVC Build Tools).
+- Nothing to install: the LZO1X decompressor is written in C++ (the safe variant: every read and write is
+  bounds-checked). zlib and LZX packages are refused; use Gildor's decompressor for those.
 - Extracted assets/scripts are the user's own game data — do not redistribute.

@@ -47,7 +47,7 @@ using aj::Value;
 using aj::Object;
 using aj::Array;
 
-static const char* VERSION = "1.9.8";
+static const char* VERSION = "2.0.0";
 
 // ---------- terminal ----------
 static bool g_tty = false, g_color = false, g_err_tty = false;

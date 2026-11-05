@@ -70,6 +70,7 @@ r=$(call install '{"id":"astro-motion"}');               has "$r" '"ok":true' &&
 # Modder Pack (1.9.8): skills + agents + the fal MCP server; skills call the built-in um tool; no Python shipped.
 r=$(call install '{"id":"astro-modder"}');              has "$r" '"ok":true' && [ -f "$EXT/plugins/astro-modder/agents/mod-orchestrator.md" ] && [ -f "$EXT/plugins/astro-modder/skills/mod-any-game/references/safety.md" ] && grep -q 'mcp.fal.ai/mcp' "$EXT/plugins/astro-modder/.mcp.json" && ok "Modder Pack installed with agents and the fal MCP server" || bad "astro-modder: $r"
 grep -q 'ASTRO_TOOL} um scan' "$EXT/plugins/astro-modder/skills/game-recon/SKILL.md" && ! grep -rq 'uv tool install' "$EXT/plugins/astro-modder/skills" && [ -z "$(find "$EXT/plugins/astro-modder" -name '*.py')" ] && ok "Modder skills call the built-in um, no Python" || bad "modder skill text"
+grep -q "ASTRO_TOOL} um b3d dump" "$EXT/plugins/astro-modder/skills/blitz3d-decomp/references/b3d-to-roblox.md" && grep -q "ASTRO_TOOL} um upk unpack" "$EXT/plugins/astro-modder/skills/reverse-engineering/references/ue3-packages/README.md" && ! grep -rq "not in the A.S.T.R.O AI port" "$EXT/plugins/astro-modder" && ok "Modder skills use um render3d / b3d / upk (2.0.0)" || bad "modder 2.0.0 skill text"
 r=$(call installed '{}');                               has "$r" '"git-flow"' && ok "receipts listed" || bad "installed: $r"
 # Uninstall removes only our files.
 echo "my notes" > "$EXT/plugins/git-flow/NOTES.md"

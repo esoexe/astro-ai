@@ -1609,7 +1609,7 @@
       "id": "astro-modder",
       "kind": "plugin",
       "name": "Modder Pack (Astro Pack)",
-      "summary": "Mod PC games you own with an agent: recon (engine, anti-cheat, mod loaders, saves), a safe lab with save backups, reverse engineering, fal-generated sprites, textures, 3D and audio, sprite pipelines, Windows game control and recording, showcase videos, a publish lint and a shared knowledge base of field notes. 13 skills, 3 agents (orchestrator plus a game worker and an offline worker), the fal MCP server, and the um tool built in as C++.",
+      "summary": "Mod PC games you own with an agent: recon (engine, anti-cheat, mod loaders, saves), a safe lab with save backups, reverse engineering, fal-generated sprites, textures, 3D and audio, sprite pipelines, Windows game control and recording, showcase videos, a publish lint and a shared knowledge base of field notes. 13 skills, 3 agents (orchestrator plus a game worker and an offline worker), the fal MCP server, and the um tool built in as C++, including its 3D renderer and the former Python helpers (Blitz3D viewmodels to Roblox, UE3 LZO packages, AoE2 DE sprites, Source VPK and VTF).",
       "publisher": "Community: adapted from Rehan and universal-modder contributors (MIT)",
       "homepage": "https://github.com/rehan-remade/universal-modder",
       "license": "MIT",
@@ -1638,9 +1638,9 @@
         "commit": "9811709d950979f1b5012dddf10b7ec122d7e95e"
       },
       "scripts": "builtin",
-      "min_version": "1.9.8",
+      "min_version": "2.0.0",
       "network": true,
-      "caveats": "Only for games you own, offline or single-player: no cheats or advantages against other players, and stay away from games with anti-cheat online. Back up saves first (um backup). Never share game files, extracted assets or decompiled code; um publish check looks for them and for secrets. fal, Sprixen and Voidless are paid services that need your own keys; ComfyUI runs on your own GPU. um win works on Windows and WSL only, and um render3d (Blender) is not part of the A.S.T.R.O AI port. The knowledge base syncs from GitHub on first use. Not every game can be modded, and the agent can be wrong: check its work in the game."
+      "caveats": "Only for games you own, offline or single-player: no cheats or advantages against other players, and stay away from games with anti-cheat online. Back up saves first (um backup). Never share game files, extracted assets or decompiled code; um publish check looks for them and for secrets. fal, Sprixen and Voidless are paid services that need your own keys; ComfyUI runs on your own GPU. um win works on Windows and WSL only. um render3d is a built-in software renderer (simpler light than Blender Cycles). The knowledge base syncs from GitHub on first use. Not every game can be modded, and the agent can be wrong: check its work in the game."
     }
   ]
 }

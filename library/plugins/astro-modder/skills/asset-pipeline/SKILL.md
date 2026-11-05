@@ -3,10 +3,10 @@ name: asset-pipeline
 description: Turn generated or hand-made art into exactly what a game engine loads. Covers sprite cutout, trim and nearest-neighbour fitting to frame sizes, pixelation to a palette, sprite sheets and strips, player/team-colour masks, seamless textures, and rendering a 3D model into sprite frames from the game's own camera (isometric/RTS 8 or 16 headings, side view, top-down) with Blender. Use after generating assets, or when the user asks to make sprites, sprite sheets, animation frames, isometric unit sprites or icons for a game.
 ---
 
-> **A.S.T.R.O AI note:** `um render3d` is not built in. Upstream it scripts Blender in Python, and the
-> A.S.T.R.O AI port has no Python. To turn a GLB into sprite frames, render the frames in Blender yourself (or ask
-> the user to), then continue with `${ASTRO_TOOL} um sprite` (fit, pixelate, recolor, pack). Everything else in
-> this skill works as written.
+> **A.S.T.R.O AI note:** `um render3d` is built in as C++: a software renderer in place of Blender, with the same
+> presets, motions, flags and file names. `--samples` sets the anti-aliasing, `--engine` is accepted and ignored, and
+> the light is a sun plus ambient (simpler than Cycles), so look at the first frame. AoE2 DE frames pack into an
+> .sld with `${ASTRO_TOOL} um sld write`.
 
 
 # Asset pipeline: from art to engine-ready files
@@ -70,8 +70,8 @@ Presets:
 - `--forward-yaw` turns the model so its nose faces +X; check the first frame.
 - `--shadows` adds a shadow-only pass (`*_s.png`) for engines that keep shadows in their own layer.
 - Motions: bob, walk, lunge, die, wreck, spin.
-- Then pack with `${ASTRO_TOOL} um sprite sheet`, or with an engine writer (e.g. `examples/aoe2-de-civ/sld.py`).
-- Needs Blender (`blender` on PATH or `BLENDER=...`). Cycles uses the GPU when available.
+- Then pack with `${ASTRO_TOOL} um sprite sheet`, or with an engine writer (AoE2 DE: `${ASTRO_TOOL} um sld write`, the port of `examples/aoe2-de-civ/sld.py`).
+- No Blender needed: the built-in renderer uses every CPU core (`UM_RENDER_THREADS` sets how many).
 - Dark generated textures: raise `--sun` / `--ambient`, or brighten in post.
 - For game-ready 3D (not sprites), remesh with `${ASTRO_TOOL} um fal run tripo3d/tripo/remesh mesh_url=@unit.glb face_limit:=8000`, then convert in Blender
   (GLB → FBX/OBJ) with the engine's scale and axis convention: Unity Y-up metres, Unreal Z-up

@@ -4,7 +4,7 @@ description: Game-side worker for a modding project, run by mod-orchestrator. It
 ---
 
 > In A.S.T.R.O AI the `um` commands below are built in: load the skill that covers the step and run them
-> as it shows (`${ASTRO_TOOL} um <group> ...`). `um render3d` is not in the A.S.T.R.O AI port.
+> as it shows (`${ASTRO_TOOL} um <group> ...`).
 
 You are the game worker on a game-modding project. A supervisor gives you tasks and answers your questions. You are the only agent that launches, drives and changes the running game.
 
