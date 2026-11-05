@@ -48,6 +48,7 @@ test: $(TARGET) astro
 	bash tests/macos_macros.sh
 	bash tests/i18n_e2e.sh
 	bash tests/agent_slash_e2e.sh
+	bash tests/seed_tools_e2e.sh
 	node bench/run.js --self-test
 
 clean:

@@ -499,6 +499,57 @@ std::string tools_find_npm_cli(std::vector<std::string>& prefix_args) {
     return "";
 }
 
+// Tools bundled with the personal desktop build (seed-tools/<id>/ with the same layout an install leaves, plus
+// seed-tools/seed.json = {"tools":{"<id>":{"version","source","verified"}}}). The desktop app points
+// ASTRO_SEED_TOOLS_DIR at it. On start each one is copied into the data folder and recorded as installed, so it works
+// offline and can be removed in Settings like any other tool. Each id is seeded once (tools/.seeded): a tool the user
+// removes stays removed, and a tool the user already installed is left alone.
+void tools_seed_bundled() {
+#ifdef _WIN32
+    const std::string sd = winp::getenv_s8("ASTRO_SEED_TOOLS_DIR");
+#else
+    const char* sde = std::getenv("ASTRO_SEED_TOOLS_DIR"); const std::string sd = sde ? sde : "";
+#endif
+    if (sd.empty()) return;
+    const fs::path src = tpath(sd);
+    const auto st = read_small(src / "seed.json", 200'000); if (!st) return;
+    Json seed; try { seed = JsonParser(*st).parse(); } catch (...) { return; }
+    const Json* tl = seed.get("tools"); const auto* list = tl ? tl->object_ptr() : nullptr; if (!list) return;
+    bool added = false;
+    {
+        std::lock_guard<std::mutex> lk(g_tools_mu);
+        const fs::path mark = tools_root() / ".seeded";
+        std::string done = read_small(mark, 100'000).value_or("");
+        Json m = tools_manifest_locked(); auto* o = std::get_if<Json::Object>(&m.value); if (!o) return;
+        for (const auto& [id, info] : *list) {
+            if (("\n" + done).find("\n" + id + "\n") != std::string::npos) continue;
+            const Json* spec = tool_spec(id); std::error_code ec;
+            const fs::path from = src / tpath(id), base = tools_root() / tpath(id), stage = tools_root() / tpath(".stage-" + id);
+            if (!spec || !fs::is_directory(from, ec)) continue;
+            done += id + "\n";
+            if (o->count(id) || fs::exists(base, ec)) continue;
+            fs::remove_all(stage, ec);
+            fs::copy(from, stage, fs::copy_options::recursive, ec);
+            if (!ec) fs::rename(stage, base, ec);
+            if (ec) { std::error_code e2; fs::remove_all(stage, e2); std::cerr << "bundled tool " << id << ": " << ec.message() << '\n'; continue; }
+            const auto bins = json_strings(spec->get("bins"));
+            std::vector<std::string> bindirs;
+            for (const auto& p : json_strings(spec->get("bindirs"))) for (const auto& d : tools_glob_dirs(base, p))
+                if (tools_dir_has_bin(d, bins)) { const std::string s = d.string(); if (std::find(bindirs.begin(), bindirs.end(), s) == bindirs.end()) bindirs.push_back(s); }
+            if (!bins.empty() && bindirs.empty()) { fs::remove_all(base, ec); std::cerr << "bundled tool " << id << ": its programs are missing\n"; continue; }
+            auto str = [&](const char* k, const std::string& d) { const Json* v = info.get(k); return v ? v->string_or(d) : d; };
+            Json::Array bd; for (const auto& d : bindirs) bd.push_back(Json(d));
+            Json::Object e; e["version"] = Json(str("version", "bundled")); e["dir"] = Json(base.string()); e["bindirs"] = Json(std::move(bd));
+            e["verified"] = Json(str("verified", "sha256")); e["source"] = Json(str("source", "bundled")); e["bundled"] = Json(true);
+            e["at"] = Json(static_cast<double>(std::time(nullptr)));
+            (*o)[id] = Json(std::move(e)); added = true;
+        }
+        if (added) tools_manifest_save_locked(m);
+        write_file_private(mark.string(), done);
+    }
+    if (added) tools_refresh_path();
+}
+
 // Installs one tool. Runs on its own thread; progress goes to g_tool_jobs[id].
 void tools_install_run(const std::string id) {
     const Json* spec = tool_spec(id);

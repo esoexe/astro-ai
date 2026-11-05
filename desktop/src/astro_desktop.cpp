@@ -10,6 +10,7 @@
 //   web/  providers.json  astro-server[.exe]  edition.json
 //   gateway.env      (personal edition only: LLM_* gateway settings, exported to the server)
 //   seed-keys.env    (personal edition only: provider keys, copied to the data folder on first run)
+//   seed-tools/      (personal edition only: bundled tools such as the natural voice, installed once by the engine)
 // Each edition has its own data folder, local port and webview profile, so the clean edition never
 // sees the personal edition's keys or chats.
 
@@ -703,6 +704,8 @@ static int run_app() {
     set_env("ASTRO_INSTANCE", cfg.instance);
     // Offline Library: a bundled copy of the schema 3 catalog (library-v3/manifest.json + list/ detail/ q/).
     if (fs::exists(cfg.res / "library-v3" / "manifest.json", ec)) set_env("ASTRO_LIBRARY_V3_DIR", pstr(cfg.res / "library-v3"));
+    // Bundled tools (personal build: the natural voice): the engine copies them into its tools folder once.
+    if (fs::exists(cfg.res / "seed-tools" / "seed.json", ec)) set_env("ASTRO_SEED_TOOLS_DIR", pstr(cfg.res / "seed-tools"));
 
     // Bundled FreeLLMAPI router (freellmapi/app = its own Electron build, run as Node; see astro-freellmapi.mjs).
     // The engine reaches it as the provider "FreeLLMAPI on this computer" with FREELLMAPI_API_KEY.

@@ -2676,6 +2676,7 @@ int main(int argc, char** argv) {
     build_registry();
     dead_load();                // models found gone earlier stay skipped (24 h)
     std::thread(model_health_loop).detach();
+    tools_seed_bundled();       // tools bundled with the personal desktop build (the natural voice), once
     lib_tools_path_refresh();   // command-line tools installed from the Library
     const int port = parse_port();
     const int server = static_cast<int>(socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0));

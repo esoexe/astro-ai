@@ -120,8 +120,10 @@ make_payload() {  # $1 = edition (personal|clean), $2 = dir
 # Personal edition extras, added only when they exist on this machine (never on CI, never in the clean edition):
 #   freellmapi/   the FreeLLMAPI router (MIT), started headless next to the engine  <- bash desktop/fetch_freellmapi.sh windows
 #   library-v3/   an offline copy of the whole community Library (schema 3)         <- PERSONAL_LIBRARY_V3=<folder with manifest.json>
+#   seed-tools/   tools installed on first start, e.g. the natural voice (Windows)    <- PERSONAL_SEED_TOOLS=<folder with seed.json>
+#                 node tools/fetch_seed_tools.js win-x64 .cache/seed-tools/win-x64 piper piper-voice-fr piper-voice-ar
 personal_extras() {  # $1 = app folder, $2 = windows|linux, $3 = README to extend
-    local d="$1" fl="$ROOT/.cache/freellmapi/$2/app" lib="${PERSONAL_LIBRARY_V3:-}"
+    local d="$1" fl="$ROOT/.cache/freellmapi/$2/app" lib="${PERSONAL_LIBRARY_V3:-}" seedt="${PERSONAL_SEED_TOOLS:-}"
     if [ "${PERSONAL_FREELLMAPI:-1}" = 1 ] && [ -d "$fl" ]; then
         mkdir -p "$d/freellmapi"; cp -r "$fl" "$d/freellmapi/app"; cp desktop/freellmapi/astro-freellmapi.mjs "$d/freellmapi/"
         echo "    + FreeLLMAPI router ($(du -sh "$d/freellmapi" | cut -f1))"
@@ -135,6 +137,15 @@ personal_extras() {  # $1 = app folder, $2 = windows|linux, $3 = README to exten
         echo "    + offline Library: $total items ($(du -sh "$d/library-v3" | cut -f1))"
         { echo; echo "The whole community Library ($total MCP servers, skills, plugins and tools) is inside (library-v3), so browsing"
           echo "and search work offline. Installing an item still downloads its files from the source."; } >> "$3"
+    fi
+    # The seed is built for one system (piper.exe for Windows): only the Windows app gets it.
+    if [ -n "$seedt" ] && [ -f "$seedt/seed.json" ] && [ "$2" = windows ]; then
+        cp -r "$seedt" "$d/seed-tools"
+        local ids; ids="$(node -e 'console.log(Object.keys(require(process.argv[1]).tools).join(", "))' "$d/seed-tools/seed.json")"
+        echo "    + bundled tools: $ids ($(du -sh "$d/seed-tools" | cut -f1))"
+        { echo; echo "The natural voice is installed on first start ($ids: Settings > Voice): replies in English, French and"
+          echo "Arabic are read by Piper on this computer, offline. Piper is MIT; the English voice is public domain, the French"
+          echo "one CC BY 4.0, and the Arabic one states no license (personal use only). Remove them in Settings > Tools."; } >> "$3"
     fi
 }
 
