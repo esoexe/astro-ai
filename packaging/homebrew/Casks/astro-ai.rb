@@ -1,6 +1,6 @@
 cask "astro-ai" do
-  version "1.9.8"
-  sha256 "a3932b3c4e983f899e733d4a31bd90b17d3bd1ca5e521421f514b5a38e52fd22"
+  version "2.0.0"
+  sha256 "7db901c60184f803791cef39fdd11bac99cc9131c1b7d0bd94f3eb53a1cebc27"
 
   url "https://github.com/esoexe/astro-ai/releases/download/v#{version}/AstroAI-#{version}-macos-universal-CLEAN.dmg"
   name "A.S.T.R.O AI"

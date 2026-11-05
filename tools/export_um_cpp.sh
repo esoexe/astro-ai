@@ -277,6 +277,7 @@ jobs:
           - { os: macos-latest, name: um-macos-arm64 }
           - { os: ubuntu-latest, name: um-windows-x64.exe, cross: true }
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - if: runner.os == 'Linux' && !matrix.cross
@@ -292,6 +293,7 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/download-artifact@v8
         with:

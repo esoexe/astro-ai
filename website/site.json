@@ -2,25 +2,25 @@
   "name": "A.S.T.R.O AI",
   "url": "https://esoexe.github.io/astro-ai",
   "description": "A.S.T.R.O AI is a free desktop app for chat, code and agents, powered by a team of free AI models that answer as one. Windows, Linux and macOS.",
-  "version": "1.9.8",
+  "version": "2.0.0",
   "dateLabel": "November 5, 2026",
   "year": 2026,
   "repo": "https://github.com/esoexe/astro-ai",
   "highlights": [
-    "A Modder Pack: mod the PC games you own, from recon to a working mod and a showcase video",
-    "Its um tools are built in, rewritten in C++: scans, save backups, sprites, videos, fal, ComfyUI, Windows game control",
-    "The original rules stay: only games you own, backups first, no game files or cheats shared"
+    "No Python left: the Modder Pack’s 3D renderer and its last helper scripts are now C++",
+    "New built-in tools: game sprites from 3D models, Roblox viewmodels, Unreal Engine 3 packages, Age of Empires II and Valve files",
+    "universal-modder-cpp: the modding toolkit as one native program for Linux, macOS and Windows"
   ],
   "highlights_i18n": {
     "fr": [
-      "Un pack Modder : moddez les jeux PC que vous possédez, de l’analyse au mod qui marche et à la vidéo de démo",
-      "Ses outils um sont intégrés, réécrits en C++ : analyses, sauvegardes, sprites, vidéos, fal, ComfyUI, contrôle des jeux Windows",
-      "Les règles d’origine restent : seulement vos jeux, sauvegarde d’abord, ni fichiers du jeu ni triche partagés"
+      "Plus de Python : le moteur de rendu 3D du pack Modder et ses derniers scripts sont en C++",
+      "Nouveaux outils intégrés : sprites de jeu depuis des modèles 3D, viewmodels Roblox, paquets Unreal Engine 3, fichiers Age of Empires II et Valve",
+      "universal-modder-cpp : la boîte à outils de modding en un seul programme natif pour Linux, macOS et Windows"
     ],
     "ar": [
-      "حزمة Modder: عدّل ألعاب الحاسوب التي تملكها، من الاستطلاع إلى تعديل يعمل وفيديو عرض",
-      "أدوات um مدمجة ومُعاد كتابتها بلغة C++‏: فحص، نسخ احتياطي للحفظ، رسوم، فيديو، fal، ComfyUI، التحكم بألعاب ويندوز",
-      "تبقى القواعد الأصلية: ألعابك فقط، النسخ الاحتياطي أولاً، لا ملفات لعبة ولا غش في ما تشاركه"
+      "لا مزيد من بايثون: محرّك العرض ثلاثي الأبعاد في حزمة Modder وآخر سكربتاتها أصبحت بلغة C++‎",
+      "أدوات مدمجة جديدة: رسوم ألعاب من نماذج ثلاثية الأبعاد، ونماذج Roblox، وحزم Unreal Engine 3، وملفات Age of Empires II وValve",
+      "universal-modder-cpp: أدوات التعديل في برنامج أصلي واحد لأنظمة Linux وmacOS وWindows"
     ]
   },
   "android": {
