@@ -41,6 +41,7 @@
 //   1 = the dispatcher + trader, day-trader, hunter    2 = master-skills virality/build    3 = master-skills edit
 //   4 = console    5 = social and founder packs (duel, founder, replica)    6 = arena
 //   7 = closer (sales)    8 = seed (startup fundraising)    9 = design (UI/UX Pro Max search)
+//   10 = modder (universal-modder's um CLI: scan, kb, backup, publish, sprites, video, fal, CoD formats)
 #ifndef PACKTOOLS_GROUP
 #define PACKTOOLS_GROUP 0
 #endif
@@ -175,8 +176,10 @@ inline ExecResult run_cmd(const std::vector<std::string>& args, int timeout_s = 
 #include "social_x.inc"
 #include "social_x2.inc"
 #endif
-#if PACKTOOLS_IN(3)
+#if PACKTOOLS_IN(3) || PACKTOOLS_IN(10)   /* subprocess layer: shared by the edit tools and the modder tools */
 #include "master_mediakit_sys.inc"
+#endif
+#if PACKTOOLS_IN(3)
 #include "master_mediakit.inc"
 #include "master_probe.inc"
 #include "master_deadspace.inc"
@@ -227,6 +230,26 @@ inline ExecResult run_cmd(const std::vector<std::string>& args, int timeout_s = 
 #endif
 #if PACKTOOLS_IN(9)
 #include "design_uipro.inc"
+#endif
+#if PACKTOOLS_IN(10)
+#include "modder_common.inc"
+#include "modder_scan.inc"
+#include "modder_publish.inc"
+#include "modder_kb.inc"
+#include "modder_backup.inc"
+#include "modder_cod.inc"
+#include "modder_img.inc"
+#include "modder_sprite.inc"
+#include "modder_font.inc"
+#include "modder_video_fonts.inc"
+#include "modder_video.inc"
+#include "modder_fal.inc"
+#include "modder_comfy.inc"
+#include "modder_sprixen.inc"
+#include "modder_voidless.inc"
+#include "modder_win_ps1.inc"
+#include "modder_win.inc"
+#include "modder_um.inc"
 #endif
 #if PACKTOOLS_IN(8)
 #include "bigdec.h"

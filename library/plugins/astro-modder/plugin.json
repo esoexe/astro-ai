@@ -1,0 +1,36 @@
+{
+  "name": "astro-modder",
+  "displayName": "Modder Pack",
+  "version": "1.0.0",
+  "description": "Mod PC games you own with an agent: recon (engine, anti-cheat, loaders), a safe lab with save backups, reverse engineering, fal-generated art, 3D and audio, in-game testing on Windows, showcase videos, a publish lint and a shared knowledge base of field notes. Skills and agents from universal-modder; its um CLI is built into A.S.T.R.O AI as C++.",
+  "author": {
+    "name": "The Astro AI team"
+  },
+  "license": "MIT",
+  "source": {
+    "repo": "https://github.com/rehan-remade/universal-modder",
+    "author": "Rehan and universal-modder contributors",
+    "license": "MIT",
+    "commit": "9811709d950979f1b5012dddf10b7ec122d7e95e"
+  },
+  "skills": [
+    "asset-pipeline",
+    "blitz3d-decomp",
+    "fal-assets",
+    "game-automation",
+    "game-recon",
+    "game-research-websearch",
+    "mashup-mods",
+    "mod-any-game",
+    "port-a-mod",
+    "publish-mod",
+    "reverse-engineering",
+    "share-field-notes",
+    "showcase-video"
+  ],
+  "agents": [
+    "mod-game-worker",
+    "mod-offline-worker",
+    "mod-orchestrator"
+  ]
+}

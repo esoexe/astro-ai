@@ -3652,6 +3652,7 @@
         <small>${esc(p.status || '')}${p.models ? ` · ${p.models} model(s)` : ''}</small><small>${esc(p.limits || '')}</small>${p.privacy ? `<small>${esc(p.privacy)}</small>` : ''}${meter}
         ${keyLine}${extra}${baseLine}${optin}<small class="test-out" id="test-${esc(p.id)}"></small></li>`;
     }).join('');
+    const toolKeys = (keysCache.tools || []).map((s) => `<div class="key-line"><code>${esc(s.key)}</code><input class="input" type="password" autocomplete="off" data-key-name="${esc(s.key)}" placeholder="${s.key_set ? '•••••• saved' : 'Optional'}"><button type="button" class="btn small" data-key-save="${esc(s.key)}">Save</button></div>`).join('');
     const search = (keysCache.search || []).map((s) => `<div class="key-line"><code>${esc(s.key)}</code><input class="input" type="password" autocomplete="off" data-key-name="${esc(s.key)}" placeholder="${s.key_set ? '•••••• saved' : 'Optional'}"><button type="button" class="btn small" data-key-save="${esc(s.key)}">Save</button></div>`).join('');
     const ap = (keysCache.providers || []).find((p) => p.id === 'astro');
     const astroCard = ap ? `<div class="box astro-key-card"><div class="prov-head">${icon('i-spark')}<h3>A.S.T.R.O API key</h3>${ap.connected ? '<span class="pbadge on">connected</span>' : '<span class="pbadge off">not set</span>'}<span class="grow"></span>${ap.connected ? '<button type="button" class="btn small" data-prov-test="astro">' + icon('i-bolt') + 'Test</button>' : ''}</div>
@@ -3662,6 +3663,7 @@
       <div class="prov-kinds" role="tablist">${[['all', 'All'], ['free', 'Free'], ['paid', 'Paid'], ['local', 'Local']].map(([k, l]) => `<button type="button" class="chip${provKind === k ? ' on' : ''}" data-prov-kind="${k}">${l} <small>${(keysCache.providers || []).filter((p) => k === 'all' || (k === 'paid' ? p.paid : k === 'local' ? p.local : !p.paid && !p.local)).length}</small></button>`).join('')}</div>
       <ul class="prov-list">${rows || '<li class="hint">No provider matches.</li>'}</ul>
       <div class="box"><h3>Web search keys (optional)</h3><p class="hint">Without keys A.S.T.R.O AI uses Brave's public results page, DuckDuckGo and Wikipedia. A free Tavily or Brave Search API key gives steadier results.</p>${search}</div>
+      ${toolKeys ? `<div class="box"><h3>Tool keys (optional)</h3><p class="hint">Used only by MCP servers that ask for them: <code>FAL_KEY</code> is for the fal server in the Modder pack (fal is a paid service with its own pricing). The <code>um fal</code> tool keeps its own key: <code>um fal key set</code>.</p>${toolKeys}</div>` : ''}
       <p class="hint">Keys are saved only on your A.S.T.R.O AI server (file <code>.astro_keys.env</code>, readable only by the server) and are never sent back to a browser. Saving a key restarts the server for a few seconds. Use keys from <b>your own</b> free accounts; free limits change often and are never unlimited.</p>`;
   }
   async function waitForServer(ms = 25000) {

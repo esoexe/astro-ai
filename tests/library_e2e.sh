@@ -67,6 +67,9 @@ r=$(call install '{"id":"astro-design"}');               has "$r" '"ok":true' &&
 grep -q 'ASTRO_TOOL} ui-ux-pro-max/search' "$EXT/plugins/astro-design/skills/ui-ux-pro-max/SKILL.md" && ! grep -q 'python' "$EXT/plugins/astro-design/skills/ui-ux-pro-max/SKILL.md" && ok "UUPM skill calls the built-in search, no Python" || bad "uupm skill text"
 r=$(call install '{"id":"astro-3d"}');                   has "$r" '"ok":true' && [ -f "$EXT/plugins/astro-3d/skills/threejs-shaders/SKILL.md" ] && ok "3D Pack installed" || bad "astro-3d: $r"
 r=$(call install '{"id":"astro-motion"}');               has "$r" '"ok":true' && [ -f "$EXT/plugins/astro-motion/skills/stringtune/SKILL.md" ] && [ -f "$EXT/plugins/astro-motion/skills/stringtune/references/modules.md" ] && grep -q 'not GSAP' "$EXT/plugins/astro-motion/skills/stringtune/SKILL.md" && ok "Motion Pack installed with the StringTune skill" || bad "astro-motion: $r"
+# Modder Pack (1.9.8): skills + agents + the fal MCP server; skills call the built-in um tool; no Python shipped.
+r=$(call install '{"id":"astro-modder"}');              has "$r" '"ok":true' && [ -f "$EXT/plugins/astro-modder/agents/mod-orchestrator.md" ] && [ -f "$EXT/plugins/astro-modder/skills/mod-any-game/references/safety.md" ] && grep -q 'mcp.fal.ai/mcp' "$EXT/plugins/astro-modder/.mcp.json" && ok "Modder Pack installed with agents and the fal MCP server" || bad "astro-modder: $r"
+grep -q 'ASTRO_TOOL} um scan' "$EXT/plugins/astro-modder/skills/game-recon/SKILL.md" && ! grep -rq 'uv tool install' "$EXT/plugins/astro-modder/skills" && [ -z "$(find "$EXT/plugins/astro-modder" -name '*.py')" ] && ok "Modder skills call the built-in um, no Python" || bad "modder skill text"
 r=$(call installed '{}');                               has "$r" '"git-flow"' && ok "receipts listed" || bad "installed: $r"
 # Uninstall removes only our files.
 echo "my notes" > "$EXT/plugins/git-flow/NOTES.md"

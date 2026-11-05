@@ -408,6 +408,29 @@ void mcp_start(McpConn& c) {
 struct McpSpec { std::string name, scope, source, type, command, url; std::vector<std::string> args; std::vector<std::pair<std::string, std::string>> env, headers; bool disabled = false; };
 std::vector<std::string> json_str_list(const Json* j) { std::vector<std::string> v; if (j && j->array_ptr()) for (const auto& x : *j->array_ptr()) if (x.string_ptr()) v.push_back(*x.string_ptr()); return v; }
 std::vector<std::pair<std::string, std::string>> json_str_map(const Json* j) { std::vector<std::pair<std::string, std::string>> v; if (j && j->object_ptr()) for (const auto& [k, x] : *j->object_ptr()) if (x.string_ptr()) v.emplace_back(k, *x.string_ptr()); return v; }
+inline bool mcp_url_private_ok(const std::string& url) {
+    if (url.rfind("https://", 0) == 0) return true;
+    for (const char* p : {"http://127.0.0.1:", "http://127.0.0.1/", "http://localhost:", "http://localhost/", "http://[::1]:"}) if (url.rfind(p, 0) == 0) return true;
+    return false;
+}
+inline std::string mcp_expand_vars(const std::string& v) {
+    std::string out;
+    for (std::size_t i = 0; i < v.size();) {
+        const std::size_t e = v.compare(i, 2, "${") == 0 ? v.find('}', i + 2) : std::string::npos;
+        if (e == std::string::npos) { out += v[i++]; continue; }
+        std::string name = v.substr(i + 2, e - i - 2), dflt;
+        if (const auto d = name.find(":-"); d != std::string::npos) { dflt = name.substr(d + 2); name = name.substr(0, d); }
+        bool ok = !name.empty() && name.size() <= 64;
+        for (char c : name) if (!(std::isalnum(static_cast<unsigned char>(c)) || c == '_')) ok = false;
+        if (!ok) { out += v[i++]; continue; }
+        std::string val;
+        if (auto it = g_keys.find(name); it != g_keys.end()) val = it->second;
+        else if (const char* ev = std::getenv(name.c_str())) val = ev;
+        out += val.empty() ? dflt : val;
+        i = e + 1;
+    }
+    return out;
+}
 void mcp_parse_config(const std::string& text, const std::string& scope, const std::string& source, std::vector<McpSpec>& out) {
     Json root; try { root = JsonParser(text).parse(); } catch (...) { return; }
     const Json* servers = root.get("mcpServers"); if (!servers) servers = root.get("servers"); if (!servers) servers = root.get("mcp");
@@ -423,6 +446,10 @@ void mcp_parse_config(const std::string& text, const std::string& scope, const s
         m.env = json_str_map(s.get("env")); for (auto& e : json_str_map(s.get("environment"))) m.env.push_back(e);
         m.url = get_string(s, "url"); if (m.url.empty()) m.url = get_string(s, "serverUrl");
         m.headers = json_str_map(s.get("headers"));
+        // ${NAME} / ${NAME:-default} in header values, as in Claude Code's .mcp.json (e.g. the fal server's
+        // "Authorization": "Bearer ${FAL_KEY}"). The value comes from a key saved in the app or the environment, and is
+        // only filled in for https servers (or this computer), so a key is never sent in clear text.
+        if (mcp_url_private_ok(m.url)) for (auto& h : m.headers) h.second = mcp_expand_vars(h.second);
         m.disabled = json_bool(s, "disabled", false) || (s.get("enabled") && !json_bool(s, "enabled", true));
         m.type = (!m.url.empty() || type == "http" || type == "remote" || type == "sse" || type == "streamable-http") ? "http" : "stdio";
         if (m.type == "stdio" && m.command.empty()) continue;

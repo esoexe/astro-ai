@@ -9,8 +9,27 @@
 
 <section class="section-tight" style="padding-top:16px">
   <div class="timeline">
-    <article class="release latest reveal" id="v1-9-7">
-      <header><h2>1.9.7</h2><span class="badge">Latest</span><time datetime="2026-11-03">November 3, 2026</time></header>
+    <article class="release latest reveal" id="v1-9-8">
+      <header><h2>1.9.8</h2><span class="badge">Latest</span><time datetime="2026-11-05">November 5, 2026</time></header>
+      <p class="muted">A Modder Pack: mod the PC games you own, with the tools built in.</p>
+
+      <h3>Modder Pack</h3>
+      <ul class="ticks">
+        <li>A new Library pack adapted from <a href="https://github.com/rehan-remade/universal-modder">universal-modder</a> (MIT): 13 skills (recon, reverse engineering, fal assets, the sprite pipeline, game automation, showcase videos, mashups, porting, publishing, field notes) and 3 agents, an orchestrator with a game worker and an offline worker</li>
+        <li>Its <code>um</code> command line is built into A.S.T.R.O AI, rewritten in C++, so there is no Python to install: <code>scan</code>, <code>backup</code>, <code>publish</code>, <code>kb</code>, <code>sprite</code>, <code>video</code>, <code>fal</code>, <code>comfy</code>, <code>sprixen</code>, <code>voidless</code>, <code>win</code>, and the Call of Duty 4 / World at War helpers <code>fastfile</code>, <code>iwi</code> and <code>weapon</code></li>
+        <li><code>um render3d</code> is not included: it scripts Blender in Python. Render frames in Blender, then use <code>um sprite</code></li>
+        <li>The pack's fal MCP server reads your own key: save it as <code>FAL_KEY</code> under Settings &gt; Providers &gt; Tool keys. fal, Sprixen and Voidless are paid services; ComfyUI runs on your own GPU. <code>um win</code> works on Windows and WSL</li>
+        <li>The upstream rules stay: only games you own, back up saves first, never share game files or decompiled code (<code>um publish check</code> looks for them and for secrets), and no cheats against other players</li>
+      </ul>
+
+      <h3>Also</h3>
+      <ul class="ticks">
+        <li>MCP servers: <code>${NAME}</code> in a header value is filled in from a key saved in the app or the environment, only for https servers or this computer</li>
+      </ul>
+    </article>
+
+    <article class="release reveal" id="v1-9-7">
+      <header><h2>1.9.7</h2><time datetime="2026-11-03">November 3, 2026</time></header>
       <p class="muted">The Library gets its own site, so it can keep growing.</p>
 
       <h3>Library: its own site</h3>

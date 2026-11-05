@@ -275,7 +275,7 @@ void load_app_keys() {
     if (!g_app_keys.empty()) std::cout << "Loaded " << g_app_keys.size() << " provider key(s) saved in the app." << std::endl;
 }
 std::vector<std::string> known_key_names() {
-    std::vector<std::string> names = {"TAVILY_API_KEY", "BRAVE_API_KEY", "ASTRO_PAID_PROVIDERS"};
+    std::vector<std::string> names = {"TAVILY_API_KEY", "BRAVE_API_KEY", "ASTRO_PAID_PROVIDERS", "FAL_KEY"};   // FAL_KEY: the Modder pack's fal MCP server (${FAL_KEY})
     const char* path_env = std::getenv("PROVIDERS_FILE");
     const auto txt = read_file_text(path_env && *path_env ? path_env : "providers.json");
     if (!txt) return names;
@@ -818,7 +818,9 @@ void send_keys_list(int fd) {
     }
     Json::Array search;
     for (const char* k : {"TAVILY_API_KEY", "BRAVE_API_KEY"}) { Json::Object o; o["key"] = Json(std::string(k)); o["key_set"] = Json(!secret_value(k).empty()); search.emplace_back(std::move(o)); }
-    Json::Object obj; obj["providers"] = Json(std::move(list)); obj["search"] = Json(std::move(search));
+    Json::Array tool_keys;   // keys for tools and MCP servers (FAL_KEY: the Modder pack's fal server)
+    for (const char* k : {"FAL_KEY"}) { Json::Object o; o["key"] = Json(std::string(k)); o["key_set"] = Json(!secret_value(k).empty()); tool_keys.emplace_back(std::move(o)); }
+    Json::Object obj; obj["providers"] = Json(std::move(list)); obj["search"] = Json(std::move(search)); obj["tools"] = Json(std::move(tool_keys));
     send_json(fd, 200, Json(std::move(obj)));
 }
 

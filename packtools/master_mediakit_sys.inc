@@ -178,7 +178,10 @@ inline std::string which(const std::string& name) {   // shutil.which
 #if defined(_WIN32)
     std::vector<std::string> exts{""};
     { std::string pe = env("PATHEXT"); if (pe.empty()) pe = ".COM;.EXE;.BAT;.CMD"; for (const auto& e : split(pe, ";")) if (!e.empty()) exts.push_back(lower(e)); }
-    const bool has_ext = !master::splitext(name).second.empty();
+    // os.path.splitext(name)[1] != "" (no master:: dependency: the modder tools share this layer)
+    const std::string leaf = name.substr(name.find_last_of("/\\") == std::string::npos ? 0 : name.find_last_of("/\\") + 1);
+    const auto dot = leaf.rfind('.');
+    const bool has_ext = dot != std::string::npos && leaf.find_first_not_of('.') < dot;
     auto try_one = [&](const std::string& base) -> std::string {
         if (has_ext && runnable(base)) return base;
         for (std::size_t k = 1; k < exts.size(); ++k) if (runnable(base + exts[k])) return base + exts[k];
