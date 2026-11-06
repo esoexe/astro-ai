@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" width="100%" height="460">
+  <defs>
+    <!-- Background Atmospheric Aura Matching the Website -->
+    <radialGradient id="siteAura" cx="80%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.28"/>
+      <stop offset="35%" stop-color="#7000ff" stop-opacity="0.18"/>
+      <stop offset="70%" stop-color="#060913" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#03050a" stop-opacity="1"/>
+    </radialGradient>
+
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f0ff"/>
+      <stop offset="50%" stop-color="#7000ff"/>
+      <stop offset="100%" stop-color="#ff007a"/>
+    </linearGradient>
+
+    <!-- Technical Grid Pattern -->
+    <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(255, 255, 255, 0.04)" stroke-width="1"/>
+    </pattern>
+
+    <style>
+      .mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; }
+      .sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+      .serif { font-family: 'Georgia', serif; font-style: italic; }
+      
+      .spin-outer { transform-origin: 920px 230px; animation: spinClockwise 24s linear infinite; }
+      .spin-inner { transform-origin: 920px 230px; animation: spinCounter 16s linear infinite; }
+      .core-pulse { animation: corePulse 3s ease-in-out infinite; }
+      .data-stream { stroke-dasharray: 8 16; animation: streamFlow 2s linear infinite; }
+      .status-blink { animation: blink 1.2s ease-in-out infinite alternate; }
+
+      @keyframes spinClockwise { 100% { transform: rotate(360deg); } }
+      @keyframes spinCounter { 100% { transform: rotate(-360deg); } }
+      @keyframes corePulse { 0%, 100% { r: 52px; opacity: 0.4; } 50% { r: 66px; opacity: 0.95; } }
+      @keyframes streamFlow { to { stroke-dashoffset: -48; } }
+      @keyframes blink { from { opacity: 0.3; } to { opacity: 1; } }
+    </style>
+  </defs>
+
+  <!-- Canvas Surface -->
+  <rect width="1200" height="460" fill="#03050a" rx="14"/>
+  <rect width="1200" height="460" fill="url(#siteAura)" rx="14"/>
+  <rect width="1200" height="460" fill="url(#grid)" rx="14"/>
+  <rect width="1200" height="460" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1" rx="14"/>
+
+  <!-- Left: Authentic Website Typography & Acronym -->
+  <g transform="translate(80, 75)">
+    <!-- New in 2.0 Chip -->
+    <rect x="0" y="0" width="320" height="28" rx="14" fill="rgba(0, 240, 255, 0.08)" stroke="rgba(0, 240, 255, 0.3)" stroke-width="1"/>
+    <circle cx="16" cy="14" r="4.5" fill="#00f0ff" class="status-blink"/>
+    <text x="32" y="18" fill="#00f0ff" font-size="11" font-weight="600" class="mono" letter-spacing="1">VERSION 2.0.0 // ONE BRAIN ACTIVE</text>
+
+    <!-- Main Title with Serif AI -->
+    <text x="0" y="90" fill="#ffffff" font-size="54" font-weight="900" class="sans" letter-spacing="-1.5">A.S.T.R.O <tspan fill="#00f0ff" class="serif">AI</tspan></text>
+    
+    <!-- Acronym Expansion -->
+    <text x="0" y="126" fill="#00f0ff" font-size="14" font-weight="700" class="mono" letter-spacing="1.5">ALL SYSTEMS THINKING, REASONING AS ONE.</text>
+
+    <!-- Lead Body Copy directly from the Website -->
+    <text x="0" y="168" fill="#94a3b8" font-size="15" class="sans">A free AI workspace where many free models work as one team.</text>
+    <text x="0" y="194" fill="#94a3b8" font-size="15" class="sans">Ask anything, build software with an autonomous agent, or hand it jobs from your shell.</text>
+
+    <!-- Value Badges from the Website Header -->
+    <g transform="translate(0, 245)">
+      <rect width="80" height="28" rx="6" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.12)"/>
+      <text x="40" y="18" fill="#f8fafc" font-size="11" font-weight="600" text-anchor="middle" class="mono">100% Free</text>
+
+      <rect x="90" width="135" height="28" rx="6" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.12)"/>
+      <text x="157" y="18" fill="#00f0ff" font-size="11" font-weight="600" text-anchor="middle" class="mono">No Account Needed</text>
+
+      <rect x="235" width="145" height="28" rx="6" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.12)"/>
+      <text x="307" y="18" fill="#38ef7d" font-size="11" font-weight="600" text-anchor="middle" class="mono">Zero Telemetry</text>
+    </g>
+  </g>
+
+  <!-- Right: 3D Animated Orbital Quantum Core -->
+  <g>
+    <circle cx="920" cy="230" r="170" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1"/>
+    
+    <!-- Outer Orbit Ring -->
+    <g class="spin-outer">
+      <ellipse cx="920" cy="230" rx="145" ry="95" fill="none" stroke="url(#ringGrad)" stroke-width="2.5" stroke-dasharray="160 50 80 40" transform="rotate(-30 920 230)"/>
+      <circle cx="1045" cy="180" r="6" fill="#00f0ff"/>
+      <circle cx="795" cy="280" r="5" fill="#ff007a"/>
+    </g>
+
+    <!-- Inner Counter-Rotating Ring -->
+    <g class="spin-inner">
+      <ellipse cx="920" cy="230" rx="105" ry="65" fill="none" stroke="#00f0ff" stroke-width="1.8" stroke-dasharray="60 30 20 20" transform="rotate(35 920 230)"/>
+      <circle cx="920" cy="165" r="4" fill="#38ef7d"/>
+    </g>
+
+    <!-- Center Radiant Core -->
+    <circle cx="920" cy="230" r="52" fill="rgba(0, 240, 255, 0.15)" stroke="#00f0ff" stroke-width="1.5" class="core-pulse"/>
+    <circle cx="920" cy="230" r="18" fill="#ffffff" filter="drop-shadow(0 0 12px #00f0ff)"/>
+
+    <!-- Tangent Data Transmission Streams -->
+    <line x1="920" y1="230" x2="680" y2="230" stroke="#00f0ff" stroke-width="2" class="data-stream" opacity="0.75"/>
+  </g>
+</svg>
