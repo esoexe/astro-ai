@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 320" width="100%" height="320">
+  <defs>
+    <style>
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .term-step1 { animation: stepFade1 10s infinite; }
+      .term-step2 { animation: stepFade2 10s infinite; }
+      .term-step3 { animation: stepFade3 10s infinite; }
+      .term-step4 { animation: stepFade4 10s infinite; }
+      @keyframes stepFade1 { 0%, 100% { opacity: 0.15; } 10%, 80% { opacity: 1; } }
+      @keyframes stepFade2 { 0%, 22% { opacity: 0.15; } 32%, 80% { opacity: 1; } }
+      @keyframes stepFade3 { 0%, 45% { opacity: 0.15; } 55%, 80% { opacity: 1; } }
+      @keyframes stepFade4 { 0%, 68% { opacity: 0.15; } 78%, 95% { opacity: 1; } }
+      .blink-cursor { animation: blinkCur 1s infinite; }
+      @keyframes blinkCur { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+    </style>
+  </defs>
+  <rect width="1000" height="320" rx="10" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+  <path d="M 0 10 C 0 4.5 4.5 0 10 0 L 990 0 C 995.5 0 1000 4.5 1000 10 L 1000 40 L 0 40 Z" fill="#161b22"/>
+  <circle cx="24" cy="20" r="6" fill="#ff5f56"/>
+  <circle cx="44" cy="20" r="6" fill="#ffbd2e"/>
+  <circle cx="64" cy="20" r="6" fill="#27c93f"/>
+  <text x="500" y="25" fill="#8b949e" font-size="12" font-weight="600" text-anchor="middle" class="mono">astro-agent // test-driven-autonomous-loop (C++20)</text>
+  <g transform="translate(36, 75)" class="term-step1">
+    <text x="0" y="0" fill="#00f0ff" font-size="14" font-weight="600" class="mono">$ astro run "Refactor database connection pool and run unit tests"</text>
+    <text x="0" y="24" fill="#8b949e" font-size="12" class="mono">&#x2192; Tree-sitter indexed 142 AST symbols across 28 files in 4.2ms</text>
+  </g>
+  <g transform="translate(36, 140)" class="term-step2">
+    <text x="0" y="0" fill="#d2a8ff" font-size="13" font-weight="600" class="mono">&#x26A1; Consensus Matrix: 638 models evaluated across 28 providers</text>
+    <text x="0" y="24" fill="#8b949e" font-size="12" class="mono">&#x2192; Lock acquired: Zero-copy connection pooling with RAII safety</text>
+  </g>
+  <g transform="translate(36, 205)" class="term-step3">
+    <text x="0" y="0" fill="#f85149" font-size="13" font-weight="600" class="mono">&#x2716; Isolated Worktree Build: test_pool.cpp:84: assertion failed: max_idle &gt; 0</text>
+    <text x="0" y="24" fill="#8b949e" font-size="12" class="mono">&#x2192; AST self-healer triggered: patching config struct parameter in memory...</text>
+  </g>
+  <g transform="translate(36, 270)" class="term-step4">
+    <text x="0" y="0" fill="#3fb950" font-size="13" font-weight="700" class="mono">&#x2714; Verification Passed: 32/32 tests passed (0 failures). Diff applied cleanly.</text>
+    <rect x="730" y="-12" width="10" height="16" fill="#00f0ff" class="blink-cursor"/>
+  </g>
+</svg>
