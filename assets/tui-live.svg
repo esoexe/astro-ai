@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400" width="100%" height="400">
+  <defs>
+    <style>
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .tui1 { animation: t1 9s infinite; }
+      .tui2 { animation: t2 9s infinite; }
+      .tui3 { animation: t3 9s infinite; }
+      .tui4 { animation: t4 9s infinite; }
+
+      @keyframes t1 { 0%, 100% { opacity: 0; } 10%, 85% { opacity: 1; } }
+      @keyframes t2 { 0%, 25% { opacity: 0; } 35%, 85% { opacity: 1; } }
+      @keyframes t3 { 0%, 50% { opacity: 0; } 60%, 85% { opacity: 1; } }
+      @keyframes t4 { 0%, 75% { opacity: 0; } 85%, 95% { opacity: 1; } }
+
+      .cur { animation: curBlink 1s infinite; }
+      @keyframes curBlink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+    </style>
+  </defs>
+
+  <rect width="1000" height="400" rx="8" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+  <path d="M 0 8 C 0 3.5 3.5 0 8 0 L 992 0 C 996.5 0 1000 3.5 1000 8 L 1000 36 L 0 36 Z" fill="#161b22"/>
+  <circle cx="20" cy="18" r="5" fill="#ff5f56"/><circle cx="36" cy="18" r="5" fill="#ffbd2e"/><circle cx="52" cy="18" r="5" fill="#27c93f"/>
+  <text x="500" y="22" fill="#8b949e" font-size="12" text-anchor="middle" class="mono">astro — ~/projects/todo-api (Ask Mode)</text>
+
+  <!-- Step 1: Prompt Input -->
+  <g transform="translate(32, 70)" class="tui1">
+    <text x="0" y="0" fill="#00f0ff" font-size="14" font-weight="600" class="mono">› astro "Add rate limiting to express API and verify"</text>
+    <text x="0" y="26" fill="#8b949e" font-size="12" class="mono">✓ Read src/server.js</text>
+  </g>
+
+  <!-- Step 2: The Agent Asks for Approval -->
+  <g transform="translate(32, 135)" class="tui2">
+    <rect x="0" y="-18" width="580" height="42" rx="4" fill="#1f293d" stroke="#f1e05a" stroke-width="1"/>
+    <text x="16" y="8" fill="#f1e05a" font-size="13" font-weight="700" class="mono">? Write src/middleware/rateLimit.js (24 lines). Allow this?</text>
+    <text x="16" y="44" fill="#8b949e" font-size="12" class="mono">Options: [y] allow once   [a] allow all this run   [n] deny</text>
+  </g>
+
+  <!-- Step 3: User approves with 'y' -->
+  <g transform="translate(32, 220)" class="tui3">
+    <text x="0" y="0" fill="#ffffff" font-size="13" class="mono">&gt; y</text>
+    <text x="0" y="24" fill="#3fb950" font-size="13" class="mono">✓ Wrote src/middleware/rateLimit.js</text>
+    <text x="0" y="48" fill="#3fb950" font-size="13" class="mono">✓ Modified src/server.js (+2 lines)</text>
+  </g>
+
+  <!-- Step 4: Verification and Diff -->
+  <g transform="translate(32, 310)" class="tui4">
+    <text x="0" y="0" fill="#3fb950" font-size="14" font-weight="700" class="mono">✓ Finished in 2.4s · All tests passed · Type /undo to revert</text>
+    <rect x="520" y="-12" width="8" height="15" fill="#00f0ff" class="cur"/>
+  </g>
+</svg>
