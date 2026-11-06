@@ -44,15 +44,15 @@ One app for the things people use AI for every day, with a whole team of free mo
 
 The name is the method. Every question and every coding job goes through the same five steps:
 
-1. **A — All models:** Every free model you have access to joins in, including the slow ones. Free tiers have limits; when one provider is busy, the rest carry on.
-2. **S — Systems:** The team can use real tools: your files, a terminal, web search, a code runner, MCP servers and skills.
-3. **T — Thinking:** Each model works on its own draft or plan, at the same time, so you see different approaches, not one guess.
-4. **R — Reasoning:** The drafts are compared and reviewed. A mistake one model makes is usually caught by another.
-5. **O — One answer:** You get one clear answer, or one finished change with a diff. Press **Answer now** if you don't want to wait.
+1. **A: All models.** Every free model you have access to joins in, including the slow ones. Free tiers have limits; when one provider is busy, the rest carry on.
+2. **S: Systems.** The team can use real tools: your files, a terminal, web search, a code runner, MCP servers and skills.
+3. **T: Thinking.** Each model works on its own draft or plan, at the same time, so you see different approaches, not one guess.
+4. **R: Reasoning.** The drafts are compared and reviewed. A mistake one model makes is usually caught by another.
+5. **O: One answer.** You get one clear answer, or one finished change with a diff. Press **Answer now** if you do not want to wait.
 
 ---
 
-## 03 / New in 1.5 · Terminal App
+## 03 / New in 1.5: Terminal App
 
 Type `astro` in any folder and a full-screen app opens, in the spirit of Claude Code and OpenCode: a calm conversation view, a side panel you can toggle, approvals right in the terminal, a model picker and parallel agents.
 
@@ -102,7 +102,7 @@ Windows (PowerShell):
 PowerShell
 
 irm https://esoexe.github.io/astro-ai/install.ps1 | iex
-04 / New in 1.5 · Desktop: A Calmer Agent Page
+04 / New in 1.5: Desktop: A Calmer Agent Page
 The desktop Agent page is redesigned around three columns: your sessions on the left, the run in the middle, and a Session panel on the right that answers the questions you used to click around for.
 
 Sessions with live status, time, files changed and mode
@@ -120,7 +120,7 @@ Trust a project's MCP server once, then switch it on or off for the agent:
 
 <div align="center"> <img src="https://esoexe.github.io/astro-ai/assets/img/shots/v15-agent-mcp.webp" alt="MCP server switches" width="100%"> </div>
 05 / Parallel Agents
-Three jobs, three copies, one project. Each agent gets its own git worktree, or a copy if the folder isn't a git repo. They work side by side and can't break each other's work:
+Three jobs, three copies, one project. Each agent gets its own git worktree, or a copy if the folder is not a git repo. They work side by side and cannot break each other's work:
 
 Up to 8 agents at once, from the terminal or the Parallel panel
 Edits to different parts of the same file are combined automatically
@@ -130,7 +130,7 @@ Every merge saves a checkpoint, so astro undo takes it back
 Every folder you open has a permission mode. Change it any time from the composer or with /mode. A checkpoint is saved before each run, so you can undo the whole job.
 
 Mode	Summary	What Happens
-Plan	Look, don't touch.	Read-only. The agent explores, searches and runs safe commands, then hands you a plan to approve.
+Plan	Look, do not touch.	Read-only. The agent explores, searches and runs safe commands, then hands you a plan to approve.
 Ask	Ask before changes. (Default)	Reading is free. Writing files and running commands waits for your OK, once or for the whole run.
 Auto	Full speed.	The agent works on its own, logs every step and keeps a checkpoint, so one click undoes everything.
 07 / The Real Thing: Version 2.0.0
@@ -150,11 +150,11 @@ One Brain Multi-Model Consensus Chat
 The models run in the cloud, so A.S.T.R.O AI stays light on your RAM, CPU and GPU.
 
 Windows (10 & 11, 64-bit)
-Installer (.exe) 20.1 MB · Recommended
-Portable (.zip) 16.0 MB · No install
+Installer (.exe) 20.1 MB: Recommended
+Portable (.zip) 16.0 MB: No install
 Linux (Ubuntu 22.04+, Debian 12+, Fedora 36+)
 Debian / Ubuntu (.deb) 9.3 MB
-Portable (.tar.gz) 12.6 MB · Any distro
+Portable (.tar.gz) 12.6 MB: Any distro
 macOS (11+, Apple Silicon & Intel)
 Universal Disk Image (.dmg) 30.7 MB
 09 / Good to Know (FAQ)
@@ -164,4 +164,4 @@ Yes. The app is free, and so are the models it uses out of the box. They come fr
 What does A.S.T.R.O stand for?
 All Systems Thinking, Reasoning as One. All models, using real tools (systems), each think the problem through, reason over each other's work, and come back with one answer.
 
-<p align="center"> <sub>© 2026 A.S.T.R.O AI · Distributed under the <a href="LICENSE">MIT License</a> · <a href="https://esoexe.github.io/astro-ai/">Official Website</a></sub> </p> ```
+<p align="center"> <sub>© 2026 A.S.T.R.O AI · Distributed under the <a href="LICENSE">MIT License</a> · <a href="https://esoexe.github.io/astro-ai/">Official Website</a></sub> </p> 
