@@ -681,6 +681,11 @@ static int run_app() {
     // and export the gateway settings on every launch.
     if (fs::exists(cfg.res / "seed-keys.env") && !fs::exists(cfg.data / ".astro_keys.env"))
         write_bytes(cfg.data / ".astro_keys.env", read_text(cfg.res / "seed-keys.env"), true);
+    if (fs::exists(cfg.res / "seed-ext") && !fs::exists(cfg.data / "ext" / "library.json")) {
+        std::error_code ec;
+        fs::create_directories(cfg.data / "ext", ec);
+        fs::copy(cfg.res / "seed-ext", cfg.data / "ext", fs::copy_options::recursive | fs::copy_options::overwrite_existing, ec);
+    }
     for (auto& [k, v] : read_env_file(cfg.res / "gateway.env"))
         if (k.rfind("LLM_", 0) == 0) set_env(k, v);
 

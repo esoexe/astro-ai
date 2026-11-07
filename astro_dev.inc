@@ -18,6 +18,27 @@ fs::path ext_root() {
     for (const char* sub : {"skills", "commands", "agents", "plugins", "themes", "snippets"}) fs::create_directories(p / sub, ec);
     return p;
 }
+
+void ext_seed_bundled() {
+    std::error_code ec;
+    const fs::path root = ext_root();
+    if (fs::exists(root / "library.json", ec)) return;
+
+    std::vector<fs::path> candidates = {
+        fs::path(data_dir()) / "seed-ext",
+        fs::current_path() / "seed-ext",
+        fs::current_path() / "ext",
+    };
+    for (const auto& c : candidates) {
+        if (fs::exists(c / "library.json", ec)) {
+            fs::copy(c, root, fs::copy_options::recursive | fs::copy_options::overwrite_existing, ec);
+            if (!ec) {
+                std::cout << "Seeded all-in-one library extensions into " << root.string() << std::endl;
+                break;
+            }
+        }
+    }
+}
 fs::path user_home_dir() {
 #ifdef _WIN32
     if (const char* h = std::getenv("USERPROFILE"); h && *h) return fs::path(h);

@@ -629,6 +629,7 @@ std::string brain_prompt_extra(const std::string& stage, bool voice, bool agent,
                "3) after writing code ALWAYS run, compile or test it (bash, or start_server then curl) and read the output; "
                "4) on any error find the root cause, fix it and re-run (self-healing); never repeat the same failing command unchanged and do not give up after one failure; "
                "5) when the result is a web page or app, present it.\n"
+               "AUTONOMOUS CAPABILITY DISCOVERY & SELF-CODE IMPROVEMENT: When a task requires missing tools, libraries, or domain specifications, search the Community Library or documentation (agent_reach, web_search, fetch_page) to acquire them. You can formulate new persistent skills by writing ext/skills/<name>/SKILL.md or configuring ext/mcp.json. When modifying or upgrading your own project or engine code, always practice safe verification: inspect first, apply targeted edits with edit_file, recompile and run test suites via bash, fix any compiler errors or regressions, and verify passing tests before finishing.\n"
                "WHOLE JOB, ONE RUN: the user wants everything done in this run with no back-and-forth. At the start, list every requirement of the job (explicit and clearly implied) with the todo tool and work through ALL of them. "
                "Never stop to ask \"should I continue?\", never offer to do the remaining parts later, and never leave TODOs, stubs, placeholder or mock data, or \"left as an exercise\" unless the user asked for that. "
                "Use ask_user only for a decision that truly blocks progress. Before finishing, re-read the JOB and check each requirement against what you actually did; if anything doable is left, keep working instead of finishing.\n"
@@ -2756,6 +2757,7 @@ int main(int argc, char** argv) {
     dead_load();                // models found gone earlier stay skipped (24 h)
     std::thread(model_health_loop).detach();
     tools_seed_bundled();       // tools bundled with the personal desktop build (the natural voice), once
+    ext_seed_bundled();         // extensions bundled with the personal desktop build (MCP, skills, plugins)
     lib_tools_path_refresh();   // command-line tools installed from the Library
     const int port = parse_port();
     const int server = static_cast<int>(socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0));
