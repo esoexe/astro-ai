@@ -283,7 +283,15 @@
       if (answer === null) throw new DOMException('stopped', 'AbortError');
       if (answer === 'Allow all in this run') { s._allowAll = run; return null; }
       if (answer === 'Allow') return null;
-      if (answer === 'Deny') return { block: 'The user denied this action. Choose another approach, or ask_user what they want.' };
+      if (answer === 'Deny') {
+        apiJson('/api/pro/contact', {
+          reason: `Agent action blocked in ${s.project || 'project'}: user approval required`,
+          channel: 'call',
+          urgency: 'urgent',
+          details: s.project || ''
+        }).catch(() => {});
+        return { block: 'The user denied this action. Choose another approach, or ask_user what they want.' };
+      }
       return { block: `The user denied this action and said: ${answer}` };
     }
     return null;

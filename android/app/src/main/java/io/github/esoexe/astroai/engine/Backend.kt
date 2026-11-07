@@ -129,7 +129,7 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
         pcHeartbeatJob = scope.launch(Dispatchers.IO) {
             var failCount = 0
             while (isActive && isPc && !isFailoverActive) {
-                delay(8000)
+                delay(3500)
                 try {
                     val t0 = System.currentTimeMillis()
                     val st = Api.post("/api/pro/heartbeat", jsonOf("device_id" to deviceName(), "name" to deviceName(), "client_type" to "android"), 5000)
@@ -153,7 +153,7 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
                     }
                 } catch (_: Exception) {
                     failCount++
-                    if (failCount >= 2 && prefs.autoFailover) {
+                    if (failCount >= 3 && prefs.autoFailover) {
                         pcOnline = false
                         activateFailover("PC disconnected; auto-failover to local engine active.")
                         break
@@ -164,19 +164,52 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
     }
 
     fun executeAgentCallOnAndroid(reason: String, channel: String = "call", priority: String = "urgent") {
-        io.github.esoexe.astroai.AstroApp.instance.work.notifyProAlert("A.S.T.R.O Agent Call", reason, "chat")
+        val app = io.github.esoexe.astroai.AstroApp.instance
+        app.work.notifyProAlert("A.S.T.R.O Agent Call", reason, "chat")
 
-        val speech = io.github.esoexe.astroai.AstroApp.instance.speech
+        // 1. Audible Ringtone
+        try {
+            val ringtoneUri = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_RINGTONE)
+                ?: android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
+            val r = android.media.RingtoneManager.getRingtone(app, ringtoneUri)
+            r?.play()
+            scope.launch(Dispatchers.Default) {
+                delay(6000)
+                try { r?.stop() } catch (_: Exception) {}
+            }
+        } catch (_: Exception) {}
+
+        // 2. Vibration
+        try {
+            val vibrator = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                val vm = app.getSystemService(android.content.Context.VIBRATOR_MANAGER_SERVICE) as? android.os.VibratorManager
+                vm?.defaultVibrator
+            } else {
+                @Suppress("DEPRECATION")
+                app.getSystemService(android.content.Context.VIBRATOR_SERVICE) as? android.os.Vibrator
+            }
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                vibrator?.vibrate(android.os.VibrationEffect.createWaveform(longArrayOf(0, 600, 300, 600, 300, 600), -1))
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator?.vibrate(longArrayOf(0, 600, 300, 600, 300, 600), -1)
+            }
+        } catch (_: Exception) {}
+
+        // 3. Speech Announcement
+        val speech = app.speech
         if (speech.ready) {
             speech.speak("Agent call: $reason")
         }
 
+        // 4. Phone Dialer
         val phone = prefs.contactPhone
-        if (channel == "call" && phone.isNotEmpty()) {
+        if (channel == "call") {
             try {
-                val intent = android.content.Intent(android.content.Intent.ACTION_DIAL, android.net.Uri.parse("tel:$phone"))
+                val dialUri = if (phone.isNotEmpty()) android.net.Uri.parse("tel:$phone") else android.net.Uri.parse("tel:")
+                val intent = android.content.Intent(android.content.Intent.ACTION_DIAL, dialUri)
                     .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                io.github.esoexe.astroai.AstroApp.instance.startActivity(intent)
+                app.startActivity(intent)
             } catch (_: Exception) {}
         }
     }
@@ -249,8 +282,8 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
     suspend fun probe(url: String): JSONObject {
         val raw = url.trim().trimEnd('/')
         if (raw.isEmpty()) throw ApiError(0, "Type the computer's address")
-        // No port typed: the desktop app's phone port first (4174), then the self-hosted server (4173).
-        val candidates = if (Regex("^(https?://)?[^/:]+$").matches(raw)) listOf("$raw:4174", "$raw:4173") else listOf(raw)
+        // No port typed: the desktop app's phone port first (4174), then desktop app (47611), then server (4173, 47612).
+        val candidates = if (Regex("^(https?://)?[^/:]+$").matches(raw)) listOf("$raw:4174", "$raw:47611", "$raw:4173", "$raw:47612") else listOf(raw)
         var last: Exception? = null
         for (cand in candidates) {
             val u = normalizeUrl(cand)

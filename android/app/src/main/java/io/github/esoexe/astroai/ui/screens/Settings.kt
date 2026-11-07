@@ -72,7 +72,7 @@ import org.json.JSONObject
 
 const val SITE = "https://esoexe.github.io/astro-ai"
 
-private val TABS = listOf("general" to "General", "chat" to "Chat", "brain" to "One Brain", "voice" to "Voice", "providers" to "Providers", "connection" to "Connection", "data" to "Data", "about" to "About")
+private val TABS = listOf("general" to "General", "pro" to "Astro Pro", "chat" to "Chat", "brain" to "One Brain", "voice" to "Voice", "providers" to "Providers", "connection" to "Connection", "data" to "Data", "about" to "About")
 
 @Composable
 fun SettingsScreen(onMenu: () -> Unit) {
@@ -91,6 +91,7 @@ fun SettingsScreen(onMenu: () -> Unit) {
             LazyColumn(Modifier.weight(1f).imePadding(), contentPadding = PaddingValues(16.dp)) {
                 item {
                     when (ui.settingsTab) {
+                        "pro" -> ProTab()
                         "chat" -> ChatTab()
                         "brain" -> BrainTab()
                         "voice" -> VoiceTab()
@@ -127,6 +128,79 @@ private fun GeneralTab() {
     Choice(T("Theme"), listOf("system" to T("Phone setting"), "light" to T("Light"), "dark" to T("Dark")), p.theme) { p.theme = it }
     Choice(T("Text size"), listOf("compact" to T("Compact"), "normal" to T("Normal"), "large" to T("Large")), p.density) { p.density = it }
     ToggleRow(T("Animations"), T("The live logo, brain panel and transitions"), p.motion, { p.motion = it })
+}
+
+@Composable
+private fun ProTab() {
+    val p = app.prefs
+    val b = app.backend
+    var phoneInput by remember { mutableStateOf(p.contactPhone) }
+    var testCalling by remember { mutableStateOf(false) }
+
+    SectionTitle(T("A.S.T.R.O AI Pro & Dual Presence"))
+    ToggleRow(
+        T("A.S.T.R.O AI Pro"),
+        T("Executive mission control, sentinel watcher, dual presence and physical agent calls"),
+        p.proMode,
+        { p.proMode = it }
+    )
+    ToggleRow(
+        T("Auto-Failover"),
+        T("Switch seamlessly to phone built-in engine if PC connection drops"),
+        p.autoFailover,
+        { p.autoFailover = it }
+    )
+    ToggleRow(
+        T("Call when agent finishes"),
+        T("Automatically triggers physical agent phone call when work completes on PC or phone"),
+        p.contactOnFinish,
+        { p.contactOnFinish = it }
+    )
+    ToggleRow(
+        T("Autonomous Sentinel"),
+        T("Monitor build integrity, test runners, and task stalls in projects"),
+        p.watcherEnabled,
+        { p.watcherEnabled = it }
+    )
+
+    Spacer(Modifier.height(14.dp))
+    SectionTitle(T("Physical Agent Calling"))
+    Text(
+        T("Physical agent calls execute ONLY on this Android phone. The phone rings with system ringtone, vibrates, speaks the reason, and dials."),
+        style = MaterialTheme.typography.bodySmall,
+        color = c.muted
+    )
+    Spacer(Modifier.height(10.dp))
+    Field(
+        phoneInput,
+        { phoneInput = it; p.contactPhone = it },
+        T("Emergency Phone Number"),
+        placeholder = "+1 202 555 0199"
+    )
+    Spacer(Modifier.height(10.dp))
+    Choice(
+        T("Contact Channel"),
+        listOf("call" to "Voice Call (Physical)", "alert" to "High-Priority Alert", "auto" to "Auto (Urgent = Call)"),
+        p.contactChannel,
+        { p.contactChannel = it }
+    )
+
+    Spacer(Modifier.height(16.dp))
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Primary(
+            if (testCalling) T("Ringing & Dialing…") else T("Test Agent Call"),
+            {
+                testCalling = true
+                b.executeAgentCallOnAndroid("Test physical agent call verification", p.contactChannel, "urgent")
+                app.chat.scope.launch {
+                    kotlinx.coroutines.delay(3000)
+                    testCalling = false
+                }
+            },
+            enabled = !testCalling,
+            icon = AppIcons.phone
+        )
+    }
 }
 
 @Composable

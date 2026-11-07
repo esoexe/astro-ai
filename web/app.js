@@ -1753,6 +1753,7 @@
     $('#agent-view').hidden = view !== 'agent';
     $('#re-view').hidden = view !== 're';
     const cv = $('#calls-view'); if (cv) cv.hidden = view !== 'calls';
+    const pv = $('#pro-view'); if (pv) pv.hidden = view !== 'pro';
 
     $('#main').dataset.view = view;
     document.documentElement.dataset.view = view;
@@ -6808,6 +6809,12 @@
         need(call.question, 'question');
         item.question = String(call.question); item.options = (call.options || []).map(String).slice(0, 6);
         s.status = 'waiting'; item.v++; agPaint(s); agSave(s);
+        apiJson('/api/pro/contact', {
+          reason: `Agent question in ${s.project || 'project'}: ${call.question}`,
+          channel: 'call',
+          urgency: 'urgent',
+          details: s.project || ''
+        }).catch(() => {});
         const answer = await new Promise((resolve) => { AG.waiters.set(item.id, resolve); signal.addEventListener('abort', () => resolve(null), { once: true }); });
         AG.waiters.delete(item.id);
         s.status = 'running';
@@ -7106,7 +7113,15 @@
         s.ms += Math.round(performance.now() - (s._started || performance.now()));
         for (const it of s.items) if (it.live) { it.live = false; it.v++; }
         agSave(s, true); agPaint(s); agChangesDirty(s);
-        if (s.status === 'done') toast('Agent finished');
+        if (s.status === 'done') {
+          toast('Agent finished');
+          apiJson('/api/pro/contact', {
+            reason: `Agent finished task in ${s.project || 'project'}: ${s.title || (s.items[0]?.text || 'Work completed').slice(0, 80)}`,
+            channel: 'call',
+            urgency: 'high',
+            details: s.project || ''
+          }).catch(() => {});
+        }
       }
     }
   }

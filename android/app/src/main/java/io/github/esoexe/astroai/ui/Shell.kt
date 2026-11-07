@@ -71,6 +71,7 @@ import io.github.esoexe.astroai.ui.screens.KnowledgeScreen
 import io.github.esoexe.astroai.ui.screens.LabScreen
 import io.github.esoexe.astroai.ui.screens.LiveVoice
 import io.github.esoexe.astroai.ui.screens.NotesScreen
+import io.github.esoexe.astroai.ui.screens.ProScreen
 import io.github.esoexe.astroai.ui.screens.ReaderScreen
 import io.github.esoexe.astroai.ui.screens.SettingsScreen
 import io.github.esoexe.astroai.ui.screens.TasksScreen
@@ -82,6 +83,7 @@ class NavItem(val route: String, val label: String, val icon: ImageVector)
 
 val NAV = listOf(
     NavItem("chat", "Chat", AppIcons.chat),
+    NavItem("pro", "Astro Pro", AppIcons.pro),
     NavItem("workspace", "Workspace", AppIcons.code),
     NavItem("agent", "Agent", AppIcons.agent),
     NavItem("notes", "Notes", AppIcons.note),
@@ -192,6 +194,7 @@ private fun MainShell() {
                         "lab" -> LabScreen(menu)
                         "agent" -> AgentScreen(menu)
                         "workspace" -> WorkspaceScreen(menu)
+                        "pro" -> ProScreen(menu)
                         "settings" -> SettingsScreen(menu)
                         "feedback" -> FeedbackScreen(menu)
                         "connect" -> ConnectScreen(fromError = false, onBack = { ui.go("settings:connection") })
@@ -249,13 +252,13 @@ private fun DrawerContent(onClose: () -> Unit) {
             }
             IconBtn(AppIcons.mic, T("Live voice"), { ui.go("live") }, tint = c.accent)
         }
-        Surface(color = c.surface2, shape = RoundedCornerShape(10.dp), modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)) {
+        Surface(color = c.surface2, shape = RoundedCornerShape(10.dp), modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp).clickable { ui.go("pro") }) {
             Row(Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(8.dp).clip(CircleShape).background(if (app.backend.isFailoverActive) c.warn else if (app.backend.isPc) c.ok else c.accent))
                 Spacer(Modifier.width(8.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(if (app.backend.isPc) "Dual Presence: Studio Active" else if (app.backend.isFailoverActive) "Auto-Failover: Local Engine" else "Local Engine Primary", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold), color = c.text)
-                    Text("Contact Skill & Watcher: Ready", style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = c.muted)
+                    Text(if (app.backend.isPc) "A.S.T.R.O Pro: Studio Active" else if (app.backend.isFailoverActive) "Auto-Failover: Local Engine" else "A.S.T.R.O Pro · Local Engine", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold), color = c.text)
+                    Text("Physical Agent Call & Sentinel: Ready", style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = c.muted)
                 }
             }
         }

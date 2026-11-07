@@ -196,11 +196,12 @@ bool login_throttled_locked() {
 void handle_auth(int fd, const HttpRequest& request) {
     if (request.path == "/api/auth/state") {
         Json::Object obj;
-        if (!app_token().empty()) { obj["enabled"] = Json(false); obj["setup"] = Json(false); obj["ok"] = Json(app_token_ok(request)); send_json(fd, 200, Json(std::move(obj))); return; }
-        if (auth_disabled()) { obj["enabled"] = Json(false); obj["setup"] = Json(false); obj["ok"] = Json(true); send_json(fd, 200, Json(std::move(obj))); return; }
+        if (!app_token().empty()) { obj["enabled"] = Json(false); obj["setup"] = Json(false); obj["ok"] = Json(app_token_ok(request)); obj["pairing"] = Json(true); send_json(fd, 200, Json(std::move(obj))); return; }
+        if (auth_disabled()) { obj["enabled"] = Json(false); obj["setup"] = Json(false); obj["ok"] = Json(true); obj["pairing"] = Json(true); send_json(fd, 200, Json(std::move(obj))); return; }
         bool setup = false;
         { std::lock_guard<std::mutex> lock(g_auth_mutex); auth_load_locked(); setup = g_auth.hash.empty(); }
         obj["enabled"] = Json(true); obj["setup"] = Json(setup); obj["ok"] = Json(!setup && auth_ok(request));
+        obj["pairing"] = Json(true);
         send_json(fd, 200, Json(std::move(obj)));
         return;
     }
