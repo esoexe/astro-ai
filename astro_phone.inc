@@ -122,6 +122,8 @@ void phone_save_locked() {
     o["devices"] = Json(std::move(devs));
     write_file_private(data_path(".astro_phone.json"), dump_json(Json(std::move(o))) + "\n");
 }
+int parse_port();
+
 void phone_load_locked() {
     if (g_phone.loaded) return;
     g_phone.loaded = true;
@@ -130,12 +132,16 @@ void phone_load_locked() {
     }
     if (const char* p = std::getenv("ASTRO_PHONE_PORT"); p && *p) { try { const int v = std::stoi(p); if (v > 1023 && v < 65536) g_phone.port = v; } catch (...) {} }
     const auto txt = read_file_text(data_path(".astro_phone.json"));
-    if (!txt) return;
+    if (!txt) {
+        if (g_phone.port == parse_port()) g_phone.port = 8080;
+        return;
+    }
     try {
         const Json j = JsonParser(*txt).parse();
         g_phone.enabled = json_bool(j, "enabled", true);
         const int port = json_int(j, "port", g_phone.port);
         if (port > 1023 && port < 65536) g_phone.port = port;
+        if (g_phone.port == parse_port()) g_phone.port = 8080;
         if (const Json* arr = j.get("devices"); arr && arr->array_ptr())
             for (const auto& x : *arr->array_ptr()) {
                 PhoneDevice d;
@@ -513,6 +519,7 @@ bool handle_phone_api(int fd, const HttpRequest& request) {
         g_phone.enabled = json_bool(*body, "enabled", false);
         const int port = json_int(*body, "port", g_phone.port);
         if (port <= 1023 || port >= 65536) { send_json(fd, 400, error_json("Choose a port between 1024 and 65535.")); return true; }
+        if (port == parse_port()) { send_json(fd, 400, error_json("Port " + std::to_string(port) + " is used by the main desktop interface. Choose a separate port such as 8080 or 4174.")); return true; }
         g_phone.port = port;
         phone_save_locked();
         phone_apply_locked();

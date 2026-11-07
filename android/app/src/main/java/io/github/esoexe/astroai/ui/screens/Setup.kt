@@ -230,7 +230,7 @@ fun ConnectScreen(fromError: Boolean, onBack: (() -> Unit)? = null) {
                 Spacer(Modifier.height(6.dp))
                 Text(T("3. Scan the QR code with this phone's camera, or type the address and the 8-digit code below. Both devices must be on the same Wi-Fi, or on a private network like Tailscale."), style = MaterialTheme.typography.bodyMedium, color = c.text)
                 Spacer(Modifier.height(16.dp))
-                Field(url, { url = it; state = null }, T("Computer address"), keyboard = KeyboardType.Uri, onDone = { check() }, placeholder = "192.168.1.20:8080")
+                Field(url, { url = it; state = null }, T("Computer address"), keyboard = KeyboardType.Uri, onDone = { check() }, placeholder = "192.168.1.20:4174")
                 Spacer(Modifier.height(10.dp))
                 val st = state
                 if (st == null) Primary(if (busy) T("Checking…") else T("Check"), { check() }, enabled = url.isNotBlank() && !busy, icon = AppIcons.search)
