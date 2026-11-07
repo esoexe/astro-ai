@@ -3318,50 +3318,78 @@
         if (level > 0.32) { if (!live.loudSince) live.loudSince = now; else if (now - live.loudSince > 320) { live.loudSince = 0; liveInterrupt(); } } else live.loudSince = 0;
       }
       let target = 0.05;
-      if (live.state === 'listening') target = 0.06 + level * 0.8;
-      else if (live.state === 'speaking') { live.pulse *= 0.93; target = 0.16 + live.pulse * 0.3 + Math.abs(Math.sin(t * 6.1)) * 0.1; }
-      else if (live.state === 'thinking') target = 0.1 + Math.sin(t * 3) * 0.03;
+      if (live.state === 'listening') target = 0.08 + level * 0.85;
+      else if (live.state === 'speaking') { live.pulse *= 0.94; target = 0.18 + live.pulse * 0.35 + Math.abs(Math.sin(t * 6.2)) * 0.12; }
+      else if (live.state === 'thinking') target = 0.12 + Math.sin(t * 3.4) * 0.04;
       amp += (target - amp) * 0.14;
       ctx.clearRect(0, 0, w, h);
       const cx = w / 2; const cy = h / 2; const R = Math.min(w, h) * 0.25;
+
+      // Audio-reactive outer sound wave ripples
+      const rippleCount = 3;
+      for (let rp = 1; rp <= rippleCount; rp++) {
+        const rpPhase = (t * 0.8 + rp * 0.33) % 1.0;
+        const rpR = R * (1.1 + rpPhase * 0.9 + amp * 0.4);
+        const rpAlpha = Math.max(0, (1 - rpPhase) * (0.12 + amp * 0.25));
+        ctx.beginPath();
+        ctx.arc(cx, cy, rpR, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(155, 114, 203, ${rpAlpha.toFixed(3)})`;
+        ctx.lineWidth = Math.max(1, 2 * (1 - rpPhase));
+        ctx.stroke();
+      }
+
       ctx.globalCompositeOperation = 'lighter';
       for (let k = 0; k < 4; k++) {
         const c = colors[k];
         const rot = t * (0.22 + k * 0.1) * (k % 2 ? -1 : 1) + (live.state === 'thinking' ? t * 1.4 : 0);
         ctx.beginPath();
-        const N = 72;
+        const N = 80;
         for (let i = 0; i <= N; i++) {
           const a = (i / N) * Math.PI * 2;
           const wob = Math.sin(a * 3 + rot * 2 + k) * 0.5 + Math.sin(a * 5 - rot * 1.6 + k * 2) * 0.3 + Math.sin(a * 2 + t * 0.8) * 0.2;
-          const r = R * (0.84 + k * 0.035) * (1 + amp * 0.6 * wob + amp * 0.3);
+          const r = R * (0.84 + k * 0.035) * (1 + amp * 0.65 * wob + amp * 0.3);
           const x = cx + Math.cos(a + rot * 0.3) * r * (1 + 0.04 * k);
           const y = cy + Math.sin(a + rot * 0.3) * r;
           if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y);
         }
         ctx.closePath();
-        const g = ctx.createRadialGradient(cx + Math.cos(rot) * R * 0.35, cy + Math.sin(rot) * R * 0.35, R * 0.05, cx, cy, R * 1.45);
-        g.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},0.5)`);
-        g.addColorStop(0.55, `rgba(${c[0]},${c[1]},${c[2]},0.28)`);
+        const g = ctx.createRadialGradient(cx + Math.cos(rot) * R * 0.35, cy + Math.sin(rot) * R * 0.35, R * 0.05, cx, cy, R * 1.48);
+        g.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},0.55)`);
+        g.addColorStop(0.55, `rgba(${c[0]},${c[1]},${c[2]},0.30)`);
         g.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
         ctx.fillStyle = g;
         ctx.fill();
       }
+
+      // Orbital rings & satellites
+      ctx.save();
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, R * 1.32, R * 0.52, t * 0.15, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, R * 1.42, R * 0.56, -t * 0.22, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
       if (live.state === 'thinking') {
         const n = Math.max(3, live.minds || 3);
         for (let i = 0; i < n; i++) {
           const a = t * 1.7 + (i * Math.PI * 2) / n;
           ctx.beginPath();
-          ctx.arc(cx + Math.cos(a) * R * 1.5, cy + Math.sin(a) * R * 1.5, R * 0.045, 0, Math.PI * 2);
+          ctx.arc(cx + Math.cos(a) * R * 1.5, cy + Math.sin(a) * R * 1.5, R * 0.048, 0, Math.PI * 2);
           ctx.fillStyle = `rgba(${colors[i % 4].join(',')},0.95)`;
           ctx.fill();
         }
       }
       ctx.globalCompositeOperation = 'source-over';
-      const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * (0.8 + amp));
-      core.addColorStop(0, 'rgba(255,255,255,0.10)');
+      const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * (0.82 + amp));
+      core.addColorStop(0, 'rgba(255,255,255,0.18)');
+      core.addColorStop(0.4, 'rgba(255,255,255,0.06)');
       core.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = core;
-      ctx.beginPath(); ctx.arc(cx, cy, R * (0.8 + amp), 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, R * (0.82 + amp), 0, Math.PI * 2); ctx.fill();
       if (now - live.lastUi > 250) { live.lastUi = now; updateLiveMinds(); }
     };
     live.raf = requestAnimationFrame(frame);

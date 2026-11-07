@@ -47,6 +47,7 @@ async function download(url, sha, dest) {
       console.log(`${id}: ${name} (${(n / 1048576).toFixed(1)} MB, SHA-256 OK)`);
     } else if (s.src.type !== 'files') throw new Error(`${id}: source type ${s.src.type} cannot be bundled`);
     for (const e of s.extras || []) {
+      if (e.platforms && !e.platforms.includes(plat)) continue;
       if (!e.path || e.path.startsWith('/') || e.path.includes('..')) throw new Error(`${id}: bad extra path`);
       const n = await download(e.url, e.sha256, path.join(dir, e.path));
       if (!source) source = e.url;
