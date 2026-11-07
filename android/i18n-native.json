@@ -2179,5 +2179,133 @@
  "This phone is not paired with this computer, or it was removed. Pair it again.": [
   "Ce téléphone n'est pas associé à cet ordinateur, ou il a été retiré. Associez-le à nouveau.",
   "هذا الهاتف غير مقترن بهذا الحاسوب، أو أُزيل. أقرنه من جديد."
+ ],
+ "Astro Pro": [
+  "Astro Pro",
+  "أسترو برو"
+ ],
+ "Executive HUD & Dual-Presence Bridge": [
+  "Affichage tête haute exécutif et pont de double présence",
+  "شاشة التحكم التنفيذية وجسر الحضور المزدوج"
+ ],
+ "LIVE": [
+  "EN DIRECT",
+  "مباشر"
+ ],
+ "Executive Mission Control & Sentinel HUD": [
+  "Centre de contrôle exécutif et HUD Sentinelle",
+  "مركز القيادة التنفيذي وشاشة الحارس"
+ ],
+ "Real-time dual-presence telemetry between your PC Studio and Android device, zero-drop failover handover, and autonomous sentinel watcher.": [
+  "Télémétrie de double présence en temps réel entre votre PC Studio et votre appareil Android, basculement sans coupure et surveillance autonome.",
+  "قياس عن بُعد للحضور المزدوج في الوقت الفعلي بين استوديو الحاسوب وجهاز أندرويد، وتحويل فوري دون انقطاع، ومراقبة ذاتية."
+ ],
+ "Dual-Presence Bridge": [
+  "Pont de double présence",
+  "جسر الحضور المزدوج"
+ ],
+ "Connected to PC Studio Hub": [
+  "Connecté au hub PC Studio",
+  "متصل بمركز استوديو الحاسوب"
+ ],
+ "Running on Phone Local Engine": [
+  "Fonctionne sur le moteur local du téléphone",
+  "يعمل على المحرك المحلي للهاتف"
+ ],
+ "Self-hosted standalone engine (Port 4173/local)": [
+  "Moteur autonome auto-hébergé (Port 4173/local)",
+  "محرك مستقل مستضاف ذاتيًا (المنفذ 4173/محلي)"
+ ],
+ "SYNCED": [
+  "SYNCHRONISÉ",
+  "متزامن"
+ ],
+ "LOCAL": [
+  "LOCAL",
+  "محلي"
+ ],
+ "Failover Handover Policy": [
+  "Politique de basculement",
+  "سياسة التحويل عند العطل"
+ ],
+ "Instant Zero-Drop": [
+  "Instantané sans perte",
+  "فوري بدون فقد"
+ ],
+ "Active Model Minds": [
+  "Esprits de modèles actifs",
+  "عقول النماذج النشطة"
+ ],
+ "Use Phone Engine": [
+  "Utiliser le moteur du téléphone",
+  "استخدام محرك الهاتف"
+ ],
+ "Forget PC": [
+  "Oublier le PC",
+  "نسيان الحاسوب"
+ ],
+ "Pair PC Studio": [
+  "Associer PC Studio",
+  "اقتران باستوديو الحاسوب"
+ ],
+ "Autonomous Sentinel Watcher": [
+  "Surveillance autonome Sentinelle",
+  "المراقب الذاتي الحارس"
+ ],
+ "Autonomous Sentinel Active": [
+  "Sentinelle autonome active",
+  "الحارس الذاتي نشط"
+ ],
+ "Continuously supervises build integrity, test runners, milestone checkpoints, and security permissions.": [
+  "Supervise en continu l'intégrité du build, les tests, les jalons et les autorisations de sécurité.",
+  "يشرف باستمرار على سلامة البناء واختبارات التشغيل ونقاط التفتيش وأذونات الأمان."
+ ],
+ "Bare-Metal Native Enforcement": [
+  "Exécution native bare-metal stricte",
+  "فرض التشغيل الأصلي على العتاد المباشر"
+ ],
+ "Strictly avoids Python and Docker; executes modern C, C++, POSIX Shell, and bare-metal compiled code.": [
+  "Évite strictement Python et Docker ; exécute du C moderne, C++, Shell POSIX et du code compilé natif.",
+  "يتجنب بايتون ودوكر تمامًا؛ وينفذ كود C و ++C الحديث وغلاف POSIX والكود الأصلي المترجم."
+ ],
+ "Architecture & Execution Standard": [
+  "Norme d'architecture et d'exécution",
+  "معيار البنية والتنفيذ"
+ ],
+ "Native C/C++ Bare-Metal Architecture": [
+  "Architecture bare-metal C/C++ native",
+  "بنية C و ++C الأصلية على العتاد المباشر"
+ ],
+ "A.S.T.R.O AI operates under zero-overhead engineering principles: bare-metal compilation with modern C++20/C, instant POSIX shell execution, and pure TypeScript/Node.js tooling. Python scripts and Docker containers are prohibited from agent runs.": [
+  "A.S.T.R.O AI fonctionne selon des principes d'ingénierie à surcoût zéro : compilation native en C++20/C, exécution shell instantanée et outils TypeScript/Node.js. Les scripts Python et conteneurs Docker sont strictement interdits.",
+  "يعمل A.S.T.R.O AI بمبادئ هندسية خالية من العبء الإضافي: ترجمة مباشرة بـ C و ++C20 الحديثين، وتنفيذ فوري عبر غلاف POSIX، وأدوات TypeScript/Node.js نقية. يحظر تمامًا استخدام بايتون ودوكر."
+ ],
+ "Pro License & Features": [
+  "Licence et fonctionnalités Pro",
+  "ترخيص وميزات برو"
+ ],
+ "Activate Pro License": [
+  "Activer la licence Pro",
+  "تفعيل ترخيص برو"
+ ],
+ "Your license unlocks Executive Mission Control, custom model prioritization, and persistent multi-device session mirroring.": [
+  "Votre licence déverrouille le centre de contrôle exécutif, la priorité personnalisée des modèles et la réplication de session multi-appareils.",
+  "يفتح ترخيصك مركز القيادة التنفيذي وأولويات النماذج المخصصة ومزامنة الجلسات الدائمة عبر أجهزة متعددة."
+ ],
+ "Activating…": [
+  "Activation…",
+  "جارٍ التفعيل…"
+ ],
+ "A.S.T.R.O Pro": [
+  "A.S.T.R.O Pro",
+  "أسترو برو"
+ ],
+ "Executive Mission Control, Dual-Presence HUD & Sentinel Watcher": [
+  "Contrôle exécutif, HUD de double présence et surveillance Sentinelle",
+  "مركز التحكم التنفيذي وشاشة الحضور المزدوج والمراقب الحارس"
+ ],
+ "Open Astro Pro HUD": [
+  "Ouvrir l'Astro Pro HUD",
+  "فتح شاشة أسترو برو"
  ]
 }

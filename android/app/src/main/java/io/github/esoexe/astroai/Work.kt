@@ -57,41 +57,16 @@ class Work(private val app: AstroApp) {
         app.getSystemService(NotificationManager::class.java).notify(2, n)
     }
 
-    fun notifyProAlert(title: String, text: String, actionTarget: String = "chat") {
-        if (!canNotify(app)) return
-        val openIntent = Intent(app, MainActivity::class.java)
-            .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            .putExtra("astro_route", actionTarget)
-        val pending = PendingIntent.getActivity(app, 101, openIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        val n = NotificationCompat.Builder(app, CH_PRO_ALERT).setSmallIcon(R.drawable.ic_stat_astro)
-            .setContentTitle(title.ifEmpty { "A.S.T.R.O AI Pro Alert" })
-            .setContentText(text.replace(Regex("[#*`_>]+"), "").take(200))
-            .setPriority(NotificationCompat.PRIORITY_MAX)
-            .setCategory(NotificationCompat.CATEGORY_CALL)
-            .setContentIntent(pending)
-            .setVibrate(longArrayOf(0, 300, 200, 300))
-            .setAutoCancel(true)
-            .build()
-        app.getSystemService(NotificationManager::class.java).notify(101, n)
-    }
-
     companion object {
         const val CH_WORK = "work"
         const val CH_DONE = "done"
         const val CH_REMIND = "reminders"
-        const val CH_PRO_ALERT = "pro_alerts"
 
         fun channels(ctx: Context) {
             val nm = ctx.getSystemService(NotificationManager::class.java)
             nm.createNotificationChannel(NotificationChannel(CH_WORK, ctx.getString(R.string.channel_work), NotificationManager.IMPORTANCE_LOW))
             nm.createNotificationChannel(NotificationChannel(CH_DONE, tr("Answer ready"), NotificationManager.IMPORTANCE_DEFAULT))
             nm.createNotificationChannel(NotificationChannel(CH_REMIND, ctx.getString(R.string.channel_reminders), NotificationManager.IMPORTANCE_HIGH))
-            val proChan = NotificationChannel(CH_PRO_ALERT, tr("Pro alerts & calls"), NotificationManager.IMPORTANCE_HIGH).apply {
-                description = "High-priority contact alerts from autonomous agent or project watcher"
-                enableVibration(true)
-                vibrationPattern = longArrayOf(0, 300, 200, 300)
-            }
-            nm.createNotificationChannel(proChan)
         }
 
         fun canNotify(ctx: Context) = Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED

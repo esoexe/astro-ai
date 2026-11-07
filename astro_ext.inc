@@ -161,6 +161,8 @@ thread_local bool t_internal_call = false;
 // the rest of the sign-in settings say.
 thread_local bool t_remote = false;
 bool phone_token_ok(const HttpRequest& r);
+std::string phone_computer_name();
+int phone_active_port();
 // App-token mode (the Android app): the shell that starts the engine generates a random secret per launch and
 // hands it only to its own WebView (as the session cookie). Every other program on the device - including other
 // apps, which can all reach 127.0.0.1 - is refused, even though there is no password.
@@ -176,6 +178,7 @@ bool app_token_ok(const HttpRequest& r) {
 bool auth_ok(const HttpRequest& r) {
     if (t_internal_call) return true;
     if (t_remote) return phone_token_ok(r);
+    if (phone_token_ok(r)) return true;
     if (!app_token().empty()) return app_token_ok(r);
     if (auth_disabled()) return true;
     std::lock_guard<std::mutex> lock(g_auth_mutex);
@@ -196,12 +199,14 @@ bool login_throttled_locked() {
 void handle_auth(int fd, const HttpRequest& request) {
     if (request.path == "/api/auth/state") {
         Json::Object obj;
-        if (!app_token().empty()) { obj["enabled"] = Json(false); obj["setup"] = Json(false); obj["ok"] = Json(app_token_ok(request)); obj["pairing"] = Json(true); send_json(fd, 200, Json(std::move(obj))); return; }
-        if (auth_disabled()) { obj["enabled"] = Json(false); obj["setup"] = Json(false); obj["ok"] = Json(true); obj["pairing"] = Json(true); send_json(fd, 200, Json(std::move(obj))); return; }
+        obj["pairing"] = Json(true);
+        obj["computer"] = Json(phone_computer_name());
+        obj["phone_port"] = Json(phone_active_port());
+        if (!app_token().empty()) { obj["enabled"] = Json(false); obj["setup"] = Json(false); obj["ok"] = Json(app_token_ok(request) || phone_token_ok(request)); send_json(fd, 200, Json(std::move(obj))); return; }
+        if (auth_disabled()) { obj["enabled"] = Json(false); obj["setup"] = Json(false); obj["ok"] = Json(true); send_json(fd, 200, Json(std::move(obj))); return; }
         bool setup = false;
         { std::lock_guard<std::mutex> lock(g_auth_mutex); auth_load_locked(); setup = g_auth.hash.empty(); }
         obj["enabled"] = Json(true); obj["setup"] = Json(setup); obj["ok"] = Json(!setup && auth_ok(request));
-        obj["pairing"] = Json(true);
         send_json(fd, 200, Json(std::move(obj)));
         return;
     }

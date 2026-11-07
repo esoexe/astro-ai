@@ -47,35 +47,19 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
     var health: JSONObject = JSONObject()
         private set
 
-    // A.S.T.R.O AI Pro Dual Presence & Auto-Failover State
-    var isFailoverActive by mutableStateOf(false)
-        private set
-    var failoverReason by mutableStateOf("")
-        private set
-    var pcOnline by mutableStateOf(false)
-        private set
-    var pcLatencyMs by mutableLongStateOf(0L)
-        private set
-
     private var watch: Job? = null
     private var poll: Job? = null
-    private var pcHeartbeatJob: Job? = null
-    private var pcReconnectorJob: Job? = null
 
     val isPc: Boolean get() = prefs.connMode == "pc"
 
     fun start() {
         watch?.cancel()
-        pcHeartbeatJob?.cancel()
-        pcReconnectorJob?.cancel()
         phase = Phase.Starting; problem = ""
         if (isPc) {
             engine.stop()
             Api.configure(prefs.pcUrl, prefs.pcToken)
             watch = scope.launch { checkPc() }
         } else {
-            isFailoverActive = false
-            failoverReason = ""
             engine.start()
             watch = scope.launch {
                 engine.state.collectLatest { s ->
@@ -94,184 +78,17 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
     private suspend fun checkPc() {
         if (prefs.pcUrl.isBlank()) { phase = Phase.Unreachable; problem = "No computer address yet"; return }
         try {
-            val t0 = System.currentTimeMillis()
             val st = Api.get("/api/auth/state", 8000)
-            pcLatencyMs = System.currentTimeMillis() - t0
-            pcOnline = true
             pairing = st.bool("pairing")
             if (pairing && !st.bool("ok") && prefs.pcPaired) problem = REMOVED
             when {
                 st.bool("enabled") && st.bool("setup") -> phase = Phase.NeedsSetup
                 st.bool("enabled") && !st.bool("ok") -> phase = Phase.NeedsLogin
-                else -> {
-                    isFailoverActive = false
-                    failoverReason = ""
-                    phase = Phase.Ready
-                    problem = ""
-                    refreshStatus()
-                    startPolling()
-                    startPcHeartbeat()
-                }
+                else -> { phase = Phase.Ready; problem = ""; refreshStatus(); startPolling() }
             }
         } catch (e: Exception) {
-            pcOnline = false
-            if (prefs.autoFailover) {
-                activateFailover(e.message ?: "PC offline; switched to local engine.")
-            } else {
-                phase = Phase.Unreachable
-                problem = e.message ?: "Could not reach the computer"
-            }
-        }
-    }
-
-    private fun startPcHeartbeat() {
-        pcHeartbeatJob?.cancel()
-        pcHeartbeatJob = scope.launch(Dispatchers.IO) {
-            var failCount = 0
-            while (isActive && isPc && !isFailoverActive) {
-                delay(3500)
-                try {
-                    val t0 = System.currentTimeMillis()
-                    val st = Api.post("/api/pro/heartbeat", jsonOf("device_id" to deviceName(), "name" to deviceName(), "client_type" to "android"), 5000)
-                    pcLatencyMs = System.currentTimeMillis() - t0
-                    if (st.has("ok") || st.has("server_status")) {
-                        pcOnline = true
-                        failCount = 0
-
-                        // Check for pending calls dispatched from desktop agent
-                        val pending = st.arr("pending_calls").objects()
-                        for (call in pending) {
-                            val cid = call.str("id")
-                            val reason = call.str("reason").ifEmpty { "Agent has completed task on PC" }
-                            val chan = call.str("channel").ifEmpty { "call" }
-                            val priority = call.str("priority").ifEmpty { "urgent" }
-                            scope.launch(Dispatchers.Main) {
-                                executeAgentCallOnAndroid(reason, chan, priority)
-                            }
-                            try { Api.post("/api/pro/call_ack", jsonOf("id" to cid), 4000) } catch (_: Exception) {}
-                        }
-                    }
-                } catch (_: Exception) {
-                    failCount++
-                    if (failCount >= 3 && prefs.autoFailover) {
-                        pcOnline = false
-                        activateFailover("PC disconnected; auto-failover to local engine active.")
-                        break
-                    }
-                }
-            }
-        }
-    }
-
-    fun executeAgentCallOnAndroid(reason: String, channel: String = "call", priority: String = "urgent") {
-        val app = io.github.esoexe.astroai.AstroApp.instance
-        app.work.notifyProAlert("A.S.T.R.O Agent Call", reason, "chat")
-
-        // 1. Audible Ringtone
-        try {
-            val ringtoneUri = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_RINGTONE)
-                ?: android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
-            val r = android.media.RingtoneManager.getRingtone(app, ringtoneUri)
-            r?.play()
-            scope.launch(Dispatchers.Default) {
-                delay(6000)
-                try { r?.stop() } catch (_: Exception) {}
-            }
-        } catch (_: Exception) {}
-
-        // 2. Vibration
-        try {
-            val vibrator = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                val vm = app.getSystemService(android.content.Context.VIBRATOR_MANAGER_SERVICE) as? android.os.VibratorManager
-                vm?.defaultVibrator
-            } else {
-                @Suppress("DEPRECATION")
-                app.getSystemService(android.content.Context.VIBRATOR_SERVICE) as? android.os.Vibrator
-            }
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                vibrator?.vibrate(android.os.VibrationEffect.createWaveform(longArrayOf(0, 600, 300, 600, 300, 600), -1))
-            } else {
-                @Suppress("DEPRECATION")
-                vibrator?.vibrate(longArrayOf(0, 600, 300, 600, 300, 600), -1)
-            }
-        } catch (_: Exception) {}
-
-        // 3. Speech Announcement
-        val speech = app.speech
-        if (speech.ready) {
-            speech.speak("Agent call: $reason")
-        }
-
-        // 4. Phone Dialer
-        val phone = prefs.contactPhone
-        if (channel == "call") {
-            try {
-                val dialUri = if (phone.isNotEmpty()) android.net.Uri.parse("tel:$phone") else android.net.Uri.parse("tel:")
-                val intent = android.content.Intent(android.content.Intent.ACTION_DIAL, dialUri)
-                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                app.startActivity(intent)
-            } catch (_: Exception) {}
-        }
-    }
-
-    private fun activateFailover(reason: String) {
-        scope.launch {
-            isFailoverActive = true
-            failoverReason = reason
-            pcHeartbeatJob?.cancel()
-            engine.start()
-            watch?.cancel()
-            watch = scope.launch {
-                engine.state.collectLatest { s ->
-                    when (s) {
-                        is LocalEngine.State.Ready -> {
-                            Api.configure(s.base, s.token)
-                            phase = Phase.Ready
-                            problem = ""
-                            refreshStatus()
-                            startPolling()
-                        }
-                        is LocalEngine.State.Failed -> {
-                            phase = Phase.Failed
-                            problem = s.message
-                            log = s.log
-                        }
-                        LocalEngine.State.Starting, LocalEngine.State.Stopped -> {}
-                    }
-                }
-            }
-            startPcReconnector()
-        }
-    }
-
-    private fun startPcReconnector() {
-        pcReconnectorJob?.cancel()
-        pcReconnectorJob = scope.launch(Dispatchers.IO) {
-            while (isActive && isPc && isFailoverActive) {
-                delay(6000)
-                try {
-                    val t0 = System.currentTimeMillis()
-                    val u = normalizeUrl(prefs.pcUrl)
-                    val st = Api.requestBlocking("GET", "$u/api/auth/state", null, 4000, mapOf("X-Astro-Token" to prefs.pcToken))
-                    if (st.has("enabled") && (!st.bool("enabled") || st.bool("ok") || !st.bool("setup"))) {
-                        pcLatencyMs = System.currentTimeMillis() - t0
-                        pcOnline = true
-                        scope.launch(Dispatchers.Main) {
-                            isFailoverActive = false
-                            failoverReason = ""
-                            Api.configure(prefs.pcUrl, prefs.pcToken)
-                            phase = Phase.Ready
-                            problem = ""
-                            refreshStatus()
-                            startPolling()
-                            startPcHeartbeat()
-                        }
-                        break
-                    }
-                } catch (_: Exception) {
-                    pcOnline = false
-                }
-            }
+            phase = Phase.Unreachable
+            problem = e.message ?: "Could not reach the computer"
         }
     }
 
@@ -282,8 +99,8 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
     suspend fun probe(url: String): JSONObject {
         val raw = url.trim().trimEnd('/')
         if (raw.isEmpty()) throw ApiError(0, "Type the computer's address")
-        // No port typed: the desktop app's phone port first (4174), then desktop app (47611), then server (4173, 47612).
-        val candidates = if (Regex("^(https?://)?[^/:]+$").matches(raw)) listOf("$raw:4174", "$raw:47611", "$raw:4173", "$raw:47612") else listOf(raw)
+        // No port typed: the desktop app's phone port first (4174), then the self-hosted server (4173).
+        val candidates = if (Regex("^(https?://)?[^/:]+$").matches(raw)) listOf("$raw:4174", "$raw:4173") else listOf(raw)
         var last: Exception? = null
         for (cand in candidates) {
             val u = normalizeUrl(cand)

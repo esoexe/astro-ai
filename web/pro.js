@@ -219,9 +219,6 @@
   function renderProView() {
     const el = document.getElementById('pro-view');
     if (!el) return;
-    el.hidden = false;
-    el.removeAttribute('hidden');
-    el.style.display = 'block';
 
     fetchProStatus().then(() => {
       buildProHtml(el);

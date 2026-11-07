@@ -328,9 +328,6 @@ class ChatController(private val app: AstroApp) {
         if (onDone != null) onDone(d)
         else if (d.status == "done" && !msg.compare && prefs.autoSpeak) app.speech.speak(msg.text)
         if (d.status == "done" && !app.foreground) app.work.notifyDone(d.content)
-        if (d.status == "done" && prefs.proMode && prefs.contactOnFinish) {
-            app.backend.executeAgentCallOnAndroid("Agent completed task: " + d.content.take(120), "call", "urgent")
-        }
     }
 
     // ---------------- web pages, photos ----------------

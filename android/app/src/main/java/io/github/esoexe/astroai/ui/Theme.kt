@@ -55,15 +55,7 @@ data class AstroColors(
 )
 
 val Peach = Color(0xFFF3A679)
-val ProGold = Color(0xFFF59E0B)
-val ProCyan = Color(0xFF06B6D4)
 
-internal val ProAstro = AstroColors(
-    dark = true, bg = Color(0xFF07080A), surface = Color(0xFF0D1117), surface2 = Color(0xFF161B22),
-    border = Color(0xFF212836), text = Color(0xFFF8FAFC), muted = Color(0xFF94A3B8), faint = Color(0xFF64748B),
-    accent = ProGold, accentSoft = Color(0x33F59E0B), onAccent = Color(0xFF07080A), ok = Color(0xFF10B981),
-    warn = Color(0xFFF59E0B), danger = Color(0xFFEF4444), codeBg = Color(0xFF0A0D14), userBubble = Color(0xFF1A1F2C),
-)
 internal val DarkAstro = AstroColors(
     dark = true, bg = Color(0xFF0A0A0C), surface = Color(0xFF131316), surface2 = Color(0xFF1B1B1F),
     border = Color(0xFF2A2A30), text = Color(0xFFF3F4F3), muted = Color(0xFFA3A3AA), faint = Color(0xFF6B6B73),
@@ -77,7 +69,7 @@ private val LightAstro = AstroColors(
     warn = Color(0xFFB7791F), danger = Color(0xFFC94A4A), codeBg = Color(0xFFF6F4F1), userBubble = Color(0xFFF3ECE6),
 )
 
-val LocalAstro = staticCompositionLocalOf { ProAstro }
+val LocalAstro = staticCompositionLocalOf { DarkAstro }
 
 private fun scheme(c: AstroColors): ColorScheme = if (c.dark) darkColorScheme(
     primary = c.accent, onPrimary = c.onAccent, primaryContainer = c.accentSoft, onPrimaryContainer = c.text,
@@ -115,13 +107,8 @@ private fun typography(scale: Float): Typography {
 
 @Composable
 fun AstroTheme(theme: String, density: String, content: @Composable () -> Unit) {
-    val dark = when (theme) { "light" -> false; "dark", "pro", "obsidian_gold" -> true; else -> isSystemInDarkTheme() }
-    val c = when (theme) {
-        "light" -> LightAstro
-        "dark" -> DarkAstro
-        "pro", "obsidian_gold" -> ProAstro
-        else -> if (dark) ProAstro else LightAstro
-    }
+    val dark = when (theme) { "light" -> false; "dark" -> true; else -> isSystemInDarkTheme() }
+    val c = if (dark) DarkAstro else LightAstro
     val scale = when (density) { "compact" -> 0.93f; "large" -> 1.1f; else -> 1f }
     CompositionLocalProvider(LocalAstro provides c) {
         MaterialTheme(

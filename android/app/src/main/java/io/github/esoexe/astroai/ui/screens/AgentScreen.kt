@@ -99,7 +99,6 @@ private object AgentState {
 private suspend fun agentCall(action: String, body: JSONObject): JSONObject = Api.post("/api/agent/$action", body, 60_000)
 
 private fun applyView(v: JSONObject) {
-    val prevStatus = AgentState.meta.str("status")
     AgentState.meta = v
     AgentState.running = v.bool("running")
     v.optJSONArray("todos")?.let { AgentState.todos = it.objects() }
@@ -109,15 +108,6 @@ private fun applyView(v: JSONObject) {
         if (seq <= AgentState.since) continue
         AgentState.since = seq
         AgentState.events.add(e)
-        if ((e.str("type") == "done" || e.str("status") == "done") && app.prefs.contactOnFinish) {
-            val report = e.str("report").ifEmpty { e.str("text") }.ifEmpty { "Agent completed task" }
-            app.backend.executeAgentCallOnAndroid(report, "call", "urgent")
-        }
-    }
-    val newStatus = v.str("status")
-    if (prevStatus == "running" && (newStatus == "done" || newStatus == "finished") && app.prefs.contactOnFinish) {
-        val title = v.str("title").ifEmpty { "Agent task" }
-        app.backend.executeAgentCallOnAndroid("Agent finished task: $title", "call", "urgent")
     }
     while (AgentState.events.size > 1500) AgentState.events.removeAt(0)
 }

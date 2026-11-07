@@ -1741,7 +1741,7 @@
   // Views
   // ===========================================================================================
   function switchView(view) {
-    if (!['assistant', 'notes', 'tasks', 'lab', 'reader', 'workspace', 'agent', 're', 'calls'].includes(view)) return;
+    if (!['assistant', 'notes', 'tasks', 'lab', 'reader', 'workspace', 'agent', 're', 'calls', 'pro'].includes(view)) return;
     if (state.view === 'notes' && view !== 'notes') { clearTimeout(noteSaveTimer); saveActiveNote(); }
     state.view = view;
     el.chatView.hidden = view !== 'assistant';
@@ -6809,12 +6809,6 @@
         need(call.question, 'question');
         item.question = String(call.question); item.options = (call.options || []).map(String).slice(0, 6);
         s.status = 'waiting'; item.v++; agPaint(s); agSave(s);
-        apiJson('/api/pro/contact', {
-          reason: `Agent question in ${s.project || 'project'}: ${call.question}`,
-          channel: 'call',
-          urgency: 'urgent',
-          details: s.project || ''
-        }).catch(() => {});
         const answer = await new Promise((resolve) => { AG.waiters.set(item.id, resolve); signal.addEventListener('abort', () => resolve(null), { once: true }); });
         AG.waiters.delete(item.id);
         s.status = 'running';
@@ -6875,7 +6869,8 @@
     const mem = await agReadOrNull(s, '.workspace/memory.md');
     const list = files.slice(0, 120).map((f) => `${f.path} (${fmtBytes(f.size || 0)})`).join('\n');
     let dev = ''; try { dev = (await window.AstroDev?.brief?.(s)) || ''; } catch (_e) { /* extensions unavailable */ }
-    return { count: files.length, text: `PROJECT "${s.project}" — ${files.length ? `${files.length} files${files.length > 120 ? ' (first 120)' : ''}:\n${list}` : 'empty folder'}${mem ? `\n\nPROJECT MEMORY (obey):\n${agClip(mem, 3000)}` : ''}${dev ? `\n\n${dev}` : ''}` };
+    const strictConstraint = '\n\nEXECUTION CONSTRAINTS (STRICT & ZERO-EXCEPTION):\n- NEVER use Python (.py, pip, python3) or Docker (Dockerfile, docker-compose).\n- Use modern C, C++ (C++20), POSIX Shell/Bash, or Node.js/TypeScript. Write native C/C++ or standard shell/Node tools for any helper scripts, testing harnesses, or builds.';
+    return { count: files.length, text: `PROJECT "${s.project}" — ${files.length ? `${files.length} files${files.length > 120 ? ' (first 120)' : ''}:\n${list}` : 'empty folder'}${mem ? `\n\nPROJECT MEMORY (obey):\n${agClip(mem, 3000)}` : ''}${dev ? `\n\n${dev}` : ''}${strictConstraint}` };
   }
   async function agTeamDraft(s, item, content, signal) {
     const d = { id: makeId(), content: '', thinking: '', notice: '', status: 'streaming', requested: 'auto', started: performance.now() };
@@ -7113,15 +7108,7 @@
         s.ms += Math.round(performance.now() - (s._started || performance.now()));
         for (const it of s.items) if (it.live) { it.live = false; it.v++; }
         agSave(s, true); agPaint(s); agChangesDirty(s);
-        if (s.status === 'done') {
-          toast('Agent finished');
-          apiJson('/api/pro/contact', {
-            reason: `Agent finished task in ${s.project || 'project'}: ${s.title || (s.items[0]?.text || 'Work completed').slice(0, 80)}`,
-            channel: 'call',
-            urgency: 'high',
-            details: s.project || ''
-          }).catch(() => {});
-        }
+        if (s.status === 'done') toast('Agent finished');
       }
     }
   }

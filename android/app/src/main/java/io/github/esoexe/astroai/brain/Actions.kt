@@ -214,42 +214,6 @@ class Actions(private val app: AstroApp, private val chat: ChatController) {
             app.ui.readerUrl = u; app.ui.goSoon("reader")
             Result(tr("Opened in Reader"), u)
         }
-        "contact_user", "call_me" -> {
-            val reason = clip(s(a, "reason", "task", "message", "text"), 500).ifEmpty { "Autonomous agent intervention requested" }
-            val chan = lower(s(a, "channel", "mode")).ifEmpty { prefs.contactChannel }.ifEmpty { "auto" }
-            val urgency = lower(s(a, "urgency", "priority")).ifEmpty { "high" }
-            val phone = s(a, "phone", "number").ifEmpty { prefs.contactPhone }
-            val details = clip(s(a, "details", "info"), 2000)
-
-            // Physical agent call executes exclusively on Android phone
-            app.backend.executeAgentCallOnAndroid(reason, if (chan == "auto") "call" else chan, urgency)
-
-            // Log event to PC bridge if online
-            var subMsg = "Physical agent call triggered on Android phone"
-            try {
-                val r = Api.post("/api/pro/contact", jsonOf("reason" to reason, "channel" to chan, "urgency" to urgency, "phone" to phone, "details" to details), 10_000)
-                subMsg = "Agent call executed on Android (${r.str("status")})"
-            } catch (_: Exception) {}
-
-            Result(
-                text = tr("Agent Call Executed: #", reason),
-                sub = subMsg,
-                result = "[A.S.T.R.O Agent Call: reason=\"$reason\", channel=\"$chan\", urgency=\"$urgency\", status=\"executed_on_android\", phone=\"$phone\"]"
-            )
-        }
-        "pro_watch_project" -> {
-            val proj = clip(s(a, "project", "name"), 120).ifEmpty { "current_project" }
-            val onFail = a.optBoolean("trigger_on_failure", true)
-            val onMilestone = a.optBoolean("trigger_on_milestone", true)
-            try {
-                Api.post("/api/pro/watch", jsonOf("project" to proj, "event_type" to "watch_armed", "details" to "Monitored for failures & milestones", "auto_contact" to false), 10_000)
-            } catch (_: Exception) {}
-            Result(
-                text = tr("Project Watcher Armed: #", proj),
-                sub = "Continuous sentinel active (auto-contact on stall/failure)",
-                result = "[Project Watcher active for \"$proj\": auto_contact_on_failure=$onFail, auto_contact_on_milestone=$onMilestone]"
-            )
-        }
         else -> throw IllegalStateException(tr("Unknown action “#”", tool))
     }
 

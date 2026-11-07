@@ -125,7 +125,9 @@ void phone_save_locked() {
 void phone_load_locked() {
     if (g_phone.loaded) return;
     g_phone.loaded = true;
-    g_phone.enabled = true;   // Default to true so phone connection listener (port 4174) starts automatically
+    if (!phone_feature_off()) {
+        g_phone.enabled = true; // Enabled by default so pairing port is ready out of the box
+    }
     if (const char* p = std::getenv("ASTRO_PHONE_PORT"); p && *p) { try { const int v = std::stoi(p); if (v > 1023 && v < 65536) g_phone.port = v; } catch (...) {} }
     const auto txt = read_file_text(data_path(".astro_phone.json"));
     if (!txt) return;
@@ -144,11 +146,16 @@ void phone_load_locked() {
     } catch (...) {}
 }
 
+int phone_active_port() {
+    std::lock_guard lk(g_phone_mu);
+    return g_phone.port;
+}
+
 // ---- addresses
 bool phone_private_v4(uint32_t ip /* host order */) {
     const auto in = [&](uint32_t net, int bits) { return (ip >> (32 - bits)) == (net >> (32 - bits)); };
     return in(0x0A000000u, 8) || in(0xAC100000u, 12) || in(0xC0A80000u, 16) || in(0x64400000u, 10) ||
-           in(0xA9FE0000u, 16) || in(0x7F000000u, 8);
+           in(0xA9FE0000u, 16) || in(0x7F000000u, 8) || in(0xC0000000u, 24) || in(0xC6120000u, 15);
 }
 std::string phone_ip_text(uint32_t ip) {
     return std::to_string(ip >> 24) + "." + std::to_string((ip >> 16) & 255) + "." + std::to_string((ip >> 8) & 255) + "." + std::to_string(ip & 255);
@@ -176,29 +183,18 @@ std::vector<std::string> phone_addresses() {
         if (std::find(ips.begin(), ips.end(), ip) == ips.end()) ips.push_back(ip);
     };
     if (auto ip = phone_route_ip("8.8.8.8")) add(*ip);
-    if (auto ip = phone_route_ip("192.168.1.1")) add(*ip);     // a home network without internet access
-    if (auto ip = phone_route_ip("192.168.0.1")) add(*ip);
-    if (auto ip = phone_route_ip("10.0.0.1")) add(*ip);
     if (auto ip = phone_route_ip("100.100.100.100")) add(*ip); // Tailscale
-#ifdef _WIN32
-    ULONG bufLen = 15000;
-    std::vector<BYTE> buf(bufLen);
-    PIP_ADAPTER_ADDRESSES pAddresses = reinterpret_cast<IP_ADAPTER_ADDRESSES*>(buf.data());
-    DWORD dwRet = GetAdaptersAddresses(AF_INET, GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_DNS_SERVER, NULL, pAddresses, &bufLen);
-    if (dwRet == ERROR_BUFFER_OVERFLOW) {
-        buf.resize(bufLen);
-        pAddresses = reinterpret_cast<IP_ADAPTER_ADDRESSES*>(buf.data());
-        dwRet = GetAdaptersAddresses(AF_INET, GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_DNS_SERVER, NULL, pAddresses, &bufLen);
-    }
-    if (dwRet == NO_ERROR) {
-        for (PIP_ADAPTER_ADDRESSES pCurr = pAddresses; pCurr; pCurr = pCurr->Next) {
-            if (pCurr->OperStatus != IfOperStatusUp) continue;
-            for (PIP_ADAPTER_UNICAST_ADDRESS pUni = pCurr->FirstUnicastAddress; pUni; pUni = pUni->Next) {
-                if (pUni->Address.lpSockaddr && pUni->Address.lpSockaddr->sa_family == AF_INET) {
-                    sockaddr_in* sa = reinterpret_cast<sockaddr_in*>(pUni->Address.lpSockaddr);
-                    add(ntohl(sa->sin_addr.s_addr));
-                }
+#if defined(_WIN32)
+    char host[256] = {0};
+    if (gethostname(host, sizeof(host) - 1) == 0) {
+        addrinfo hints{}, *res = nullptr;
+        hints.ai_family = AF_INET;
+        if (getaddrinfo(host, nullptr, &hints, &res) == 0) {
+            for (addrinfo* p = res; p; p = p->ai_next) {
+                if (p->ai_addr && p->ai_family == AF_INET)
+                    add(ntohl(reinterpret_cast<sockaddr_in*>(p->ai_addr)->sin_addr.s_addr));
             }
+            freeaddrinfo(res);
         }
     }
 #else
@@ -382,11 +378,9 @@ Json phone_state_json_locked() {
     return Json(std::move(o));
 }
 
-// ---- requests from phones (either through the phone listener or with phone credentials/pairing).
+// ---- requests that came in through the phone listener. Returns true when the request was answered here.
 bool phone_remote_gate(int fd, const HttpRequest& request) {
     const std::string& path = request.path;
-    const bool is_phone_req = t_remote || path == "/api/phone/pair" || phone_token_ok(request);
-    if (!is_phone_req && !t_remote) return false;
     if (path == "/api/phone/pair") {
         if (request.method != "POST") { send_json(fd, 405, error_json("Use POST.")); return true; }
         const auto body = parse_request_json(request, fd);
@@ -421,6 +415,7 @@ bool phone_remote_gate(int fd, const HttpRequest& request) {
         send_json(fd, 200, Json(std::move(o)));
         return true;
     }
+    if (!t_remote) return false;
     if (path == "/api/auth/state") {
         Json::Object o; o["enabled"] = Json(true); o["setup"] = Json(false); o["pairing"] = Json(true);
         o["ok"] = Json(phone_token_ok(request)); o["computer"] = Json(phone_computer_name());
@@ -534,7 +529,18 @@ bool handle_phone_api(int fd, const HttpRequest& request) {
         return true;
     }
     if (path == "/api/phone/pairing") {
-        if (!g_phone.enabled || !g_phone.listening) { send_json(fd, 409, error_json("Turn on \"Let my phone connect\" first.")); return true; }
+        if (!g_phone.enabled || !g_phone.listening) {
+            g_phone.enabled = true;
+            phone_save_locked();
+            phone_apply_locked();
+            lk.unlock();
+            for (int i = 0; i < 20; ++i) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                std::lock_guard l2(g_phone_mu);
+                if (g_phone.listening || !g_phone.error.empty()) break;
+            }
+            lk.lock();
+        }
         unsigned char b[8];
         if (!astro_rand_bytes(b, sizeof b)) { send_json(fd, 500, error_json("No secure random numbers available.")); return true; }
         unsigned long long v = 0;

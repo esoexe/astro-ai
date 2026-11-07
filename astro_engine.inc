@@ -1328,6 +1328,7 @@ std::string project_brief(Session& s) {
     if (s.isolated) mline += " You work in an isolated copy of the project (a parallel agent); the user reviews and merges your changes afterwards, so finish the job completely here.";
     if (!s.interactive) mline += " The user is not watching this run: never wait for answers; make sensible choices and report them.";
     parts.push_back(mline);
+    parts.push_back("EXECUTION CONSTRAINTS (STRICT & ZERO-EXCEPTION):\n- NEVER use Python (.py, pip, python3) or Docker (Dockerfile, docker-compose).\n- Use modern C, C++ (C++20), POSIX Shell/Bash, or Node.js/TypeScript. Write native C/C++ or standard shell/Node tools for any helper scripts, testing harnesses, or builds.");
     const Scan sc = scan_project(s.project);
     std::string rules; int budget = 12000;
     for (const char* scope : {"project", "global", "user"})

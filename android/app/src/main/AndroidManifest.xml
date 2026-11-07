@@ -6,8 +6,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Voice input and Live voice (asked the first time you tap the microphone; never in the background). -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <!-- High-priority Pro contact alerts and phone notifications. -->
-    <uses-permission android:name="android.permission.VIBRATE" />
     <!-- Reminders you set: a notification at the time you chose, also after a restart of the phone. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
@@ -21,8 +19,6 @@
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
     <queries>
-        <intent><action android:name="android.intent.action.DIAL" /></intent>
-        <intent><action android:name="android.intent.action.SENDTO" /><data android:scheme="smsto" /></intent>
         <intent><action android:name="android.speech.RecognitionService" /></intent>
         <intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>
         <intent>
