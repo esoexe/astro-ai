@@ -63,7 +63,8 @@ const char* TOOLS_CATALOG = R"JSON([
  {"id":"linkedin-agent","name":"LinkedIn Growth Agent","group":"Productivity","kind":"skill","bins":[],"desc":"11 LinkedIn skills with 21 hook formulas, 100-point profile scoring rubric, and AI humanizer based on Jakeschincariol/linkedin-agent-skill.","src":{"type":"system"}},
  {"id":"cardboard","name":"Cardboard Canvas Editor","group":"Design & UI","kind":"designer","bins":[],"desc":"Agent-native visual design editor with real HTML/CSS layers and timeline animation adjustments based on goerll/cardboard.","src":{"type":"system"}},
  {"id":"market-researcher","name":"Market Researcher","group":"Finance & Research","kind":"analyzer","bins":[],"desc":"Deep equity and market research over SEC EDGAR 10-K/10-Q filings, XBRL financials, and FRED macro series based on market-research-mcp.","src":{"type":"system"}},
- {"id":"apple-design-audit","name":"Apple Design Audit","group":"Design & UI","kind":"analyzer","bins":[],"desc":"Apple Human Interface Guidelines (HIG) and WCAG 2.2 AA design reviewer for iOS, macOS, visionOS, and Web based on dickwu/apple-design-skill.","src":{"type":"system"}}
+ {"id":"apple-design-audit","name":"Apple Design Audit","group":"Design & UI","kind":"analyzer","bins":[],"desc":"Apple Human Interface Guidelines (HIG) and WCAG 2.2 AA design reviewer for iOS, macOS, visionOS, and Web based on dickwu/apple-design-skill.","src":{"type":"system"}},
+ {"id":"anime-animation","name":"Anime.js Animation Engine","group":"Creative & 3D","kind":"skill","bins":[],"desc":"High-performance JavaScript animation engine for CSS transforms, SVG morphing, path tracing, and staggered timelines based on juliangarnier/anime.","src":{"type":"system"}}
 ])JSON";
 
 // language -> server. tool = catalog id that provides it, bin = executable, exts = file extensions it handles.

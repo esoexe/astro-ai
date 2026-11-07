@@ -913,6 +913,27 @@
       ]
     },
     {
+      "id": "anime-animation",
+      "kind": "skill",
+      "name": "Anime.js Animation Engine",
+      "summary": "High-performance JavaScript animation engine skill for CSS transforms, SVG morphing, path tracing, and staggered timelines (juliangarnier/anime).",
+      "publisher": "Julian Garnier / The Astro AI team",
+      "homepage": "https://github.com/juliangarnier/anime",
+      "license": "MIT",
+      "tags": [
+        "animation",
+        "javascript",
+        "svg",
+        "motion",
+        "css"
+      ],
+      "source": {
+        "repo": "https://github.com/juliangarnier/anime",
+        "license": "MIT",
+        "author": "Julian Garnier"
+      }
+    },
+    {
       "id": "dev-essentials",
       "kind": "plugin",
       "name": "Dev Essentials",

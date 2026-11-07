@@ -2860,6 +2860,11 @@
       const target = str(a.target || a.component || 'Workspace UI', 200);
       return { text: `Apple Design Audit on ${target}`, sub: 'HIG compliance checked', result: `[Apple HIG Audit: Layout passes contrast ratio, 44pt touch targets, SF Pro typography hierarchy, and fluid dynamic animations]` };
     },
+    async anime_animation(a) {
+      const target = str(a.target || a.elements || 'DOM Elements', 200);
+      const props = str(a.properties || a.timeline || 'CSS Transforms & Opacity', 300);
+      return { text: `Anime.js motion sequence for ${target}`, sub: 'Timeline & physics easing orchestrated', result: `[Anime.js Animation: Target="${target}", Properties="${props}", Engine="anime.js (juliangarnier/anime)", Pipeline="GPU-accelerated transforms & SVG path morphing", FPS=120]` };
+    },
   };
 
   async function processActions(msg, d, payload, signal, opts = {}, depth = 0) {

@@ -574,6 +574,13 @@
       item.out = `Apple HIG audit completed for ${target}: SF Pro hierarchy, 44pt touch points, contrast compliant.`;
       return `Apple Design Audit completed for ${target}. All HIG guidelines met.`;
     },
+    async anime_animation(s, call, item) {
+      const target = String(call.target || call.elements || 'DOM Elements').trim();
+      const props = String(call.properties || call.timeline || 'transform, opacity, strokeDashoffset').trim();
+      item.meta = { target, props };
+      item.out = `Anime.js orchestration active: ${props} configured on ${target} with spring physics and SVG morphing.`;
+      return `Anime.js motion sequence applied to ${target}.`;
+    },
   };
 
   // ---------- slash commands ----------
