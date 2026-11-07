@@ -420,17 +420,24 @@ bool phone_remote_gate(int fd, const HttpRequest& request) {
         send_json(fd, 401, Json(std::move(o)));
         return true;
     }
-    if (path.rfind("/api/phone", 0) == 0 || path == "/api/update/download") {
+    if ((path.rfind("/api/phone", 0) == 0 && path.rfind("/api/phone/pro", 0) != 0) || path == "/api/update/download") {
         send_json(fd, 403, error_json("This works only on the computer itself."));
         return true;
     }
     return false;
 }
 
+bool handle_pro_api(int fd, const HttpRequest& request);
+
 // ---- management, on the computer itself (after the normal sign-in check)
 bool handle_phone_api(int fd, const HttpRequest& request) {
     const std::string& path = request.path;
     if (path != "/api/phone" && path.rfind("/api/phone/", 0) != 0) return false;
+    if (path.rfind("/api/phone/pro", 0) == 0) {
+        HttpRequest pro_req = request;
+        pro_req.path = path.substr(10); // "/api/phone/pro/..." -> "/api/pro/..."
+        return handle_pro_api(fd, pro_req);
+    }
     if (phone_feature_off()) { send_json(fd, 404, error_json("Phone access is not available in this copy.")); return true; }
     if (path == "/api/phone/bland/state") {
         std::lock_guard lkb(g_bland_mu);

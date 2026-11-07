@@ -235,10 +235,29 @@ private fun DrawerContent(onClose: () -> Unit) {
             OrbitLogo(30.dp)
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
-                Text("A.S.T.R.O AI", style = MaterialTheme.typography.titleMedium, color = c.text)
-                Text(if (app.backend.isPc) T("Connected to your computer") else T("Running on this phone"), style = MaterialTheme.typography.labelSmall, color = c.muted)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("A.S.T.R.O AI", style = MaterialTheme.typography.titleMedium, color = c.text)
+                    Spacer(Modifier.width(6.dp))
+                    Text("PRO", Modifier.clip(RoundedCornerShape(4.dp)).background(c.accent).padding(horizontal = 4.dp, vertical = 1.dp), style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold), color = c.onAccent)
+                }
+                val bridgeText = when {
+                    app.backend.isFailoverActive -> "Failover Active (Local Engine)"
+                    app.backend.isPc -> "PC Studio Synced (${app.backend.pcLatencyMs}ms)"
+                    else -> "Autonomous Engine"
+                }
+                Text(bridgeText, style = MaterialTheme.typography.labelSmall, color = if (app.backend.isFailoverActive) c.warn else c.muted)
             }
             IconBtn(AppIcons.mic, T("Live voice"), { ui.go("live") }, tint = c.accent)
+        }
+        Surface(color = c.surface2, shape = RoundedCornerShape(10.dp), modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)) {
+            Row(Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(8.dp).clip(CircleShape).background(if (app.backend.isFailoverActive) c.warn else if (app.backend.isPc) c.ok else c.accent))
+                Spacer(Modifier.width(8.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(if (app.backend.isPc) "Dual Presence: Studio Active" else if (app.backend.isFailoverActive) "Auto-Failover: Local Engine" else "Local Engine Primary", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold), color = c.text)
+                    Text("Contact Skill & Watcher: Ready", style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = c.muted)
+                }
+            }
         }
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp).clip(RoundedCornerShape(12.dp)).background(c.accent).clickable { chat.newChat(); ui.go("chat") }.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically) {

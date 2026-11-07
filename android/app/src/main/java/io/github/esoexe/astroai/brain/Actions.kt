@@ -214,6 +214,73 @@ class Actions(private val app: AstroApp, private val chat: ChatController) {
             app.ui.readerUrl = u; app.ui.goSoon("reader")
             Result(tr("Opened in Reader"), u)
         }
+        "contact_user", "call_me" -> {
+            val reason = clip(s(a, "reason", "task", "message", "text"), 500).ifEmpty { "Autonomous agent intervention requested" }
+            val chan = lower(s(a, "channel", "mode")).ifEmpty { prefs.contactChannel }.ifEmpty { "auto" }
+            val urgency = lower(s(a, "urgency", "priority")).ifEmpty { "high" }
+            val phone = s(a, "phone", "number").ifEmpty { prefs.contactPhone }
+            val details = clip(s(a, "details", "info"), 2000)
+
+            // Audio Alert
+            if (!voice && app.speech.ready) {
+                app.speech.speak("A.S.T.R.O Pro alert: $reason")
+            }
+
+            // High-priority Heads-Up Notification on Phone
+            app.work.notifyProAlert("A.S.T.R.O Pro Contact Alert", "$reason${if (details.isNotEmpty()) "\n$details" else ""}")
+
+            // Channel dispatch
+            var subMsg = "High-priority notification posted on device"
+            if (chan == "call" || (chan == "auto" && (urgency == "urgent" || urgency == "critical"))) {
+                try {
+                    val r = Api.post("/api/pro/contact", jsonOf("reason" to reason, "channel" to "call", "urgency" to urgency, "phone" to phone, "details" to details), 15_000)
+                    subMsg = "Voice call dispatched via Bland bridge (${r.str("recipient")})"
+                } catch (_: Exception) {
+                    if (phone.isNotEmpty()) {
+                        try {
+                            val intent = android.content.Intent(android.content.Intent.ACTION_DIAL, android.net.Uri.parse("tel:$phone"))
+                                .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                            app.startActivity(intent)
+                            subMsg = "Opened phone dialer for $phone"
+                        } catch (_: Exception) {}
+                    }
+                }
+            } else if (chan == "sms") {
+                try {
+                    Api.post("/api/pro/contact", jsonOf("reason" to reason, "channel" to "sms", "urgency" to urgency, "phone" to phone, "details" to details), 15_000)
+                    subMsg = "SMS alert dispatched to $phone"
+                } catch (_: Exception) {
+                    if (phone.isNotEmpty()) {
+                        try {
+                            val intent = android.content.Intent(android.content.Intent.ACTION_SENDTO, android.net.Uri.parse("smsto:$phone"))
+                                .putExtra("sms_body", "A.S.T.R.O AI Pro: $reason")
+                                .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                            app.startActivity(intent)
+                            subMsg = "Opened SMS composer for $phone"
+                        } catch (_: Exception) {}
+                    }
+                }
+            }
+
+            Result(
+                text = tr("Pro Contact Triggered: #", reason),
+                sub = subMsg,
+                result = "[A.S.T.R.O Pro Contact: reason=\"$reason\", channel=\"$chan\", urgency=\"$urgency\", status=\"dispatched\", phone=\"$phone\"]"
+            )
+        }
+        "pro_watch_project" -> {
+            val proj = clip(s(a, "project", "name"), 120).ifEmpty { "current_project" }
+            val onFail = a.optBoolean("trigger_on_failure", true)
+            val onMilestone = a.optBoolean("trigger_on_milestone", true)
+            try {
+                Api.post("/api/pro/watch", jsonOf("project" to proj, "event_type" to "watch_armed", "details" to "Monitored for failures & milestones", "auto_contact" to false), 10_000)
+            } catch (_: Exception) {}
+            Result(
+                text = tr("Project Watcher Armed: #", proj),
+                sub = "Continuous sentinel active (auto-contact on stall/failure)",
+                result = "[Project Watcher active for \"$proj\": auto_contact_on_failure=$onFail, auto_contact_on_milestone=$onMilestone]"
+            )
+        }
         else -> throw IllegalStateException(tr("Unknown action “#”", tool))
     }
 

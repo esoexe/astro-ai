@@ -510,6 +510,27 @@
       item.out = `Concept: ${prompt}\nRender pipeline: 2D/3D & Gaussian Splatting engine synced.\nAssets generated.`;
       return `ArtCraft Studio render complete: "${prompt.slice(0, 50)}"\nAssets generated into project assets cache.`;
     },
+    async contact_user(s, call, item) {
+      const reason = String(call.reason || call.task || call.message || 'Intervention needed').trim();
+      const channel = String(call.channel || 'auto').trim();
+      const urgency = String(call.urgency || call.priority || 'high').trim();
+      const phone = String(call.phone || call.phone_number || '').trim();
+      const r = await A().apiJson('/api/pro/contact', { reason, channel, urgency, phone, details: call.details || '' });
+      item.meta = { channel: r.channel, recipient: r.recipient, contact_id: r.contact_id };
+      item.out = JSON.stringify(r, null, 2);
+      window.AstroPro?.playHudChime?.('alert');
+      return `Proactive contact dispatched: ${r.channel} to ${r.recipient} (Status: ${r.status}).`;
+    },
+    async call_me(s, call, item) {
+      return this.contact_user(s, { ...call, channel: 'call' }, item);
+    },
+    async pro_watch_project(s, call, item) {
+      const project = String(call.project || 'current_project').trim();
+      const r = await A().apiJson('/api/pro/watch', { project, event_type: 'watch_armed', details: 'Continuous sentinel watcher armed', auto_contact: false });
+      item.meta = { project };
+      item.out = JSON.stringify(r, null, 2);
+      return `Project Watcher armed for "${project}". Autonomous sentinel active.`;
+    },
     async bland_call(s, call, item) {
       const phone = String(call.phone_number || call.phone || '+12025550199').trim();
       const prompt = String(call.task || call.prompt || 'Permission verification call').trim();

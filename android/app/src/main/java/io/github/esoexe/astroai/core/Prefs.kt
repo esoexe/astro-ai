@@ -146,4 +146,20 @@ class Prefs(ctx: Context) {
     var exactAlarmAsked: Boolean get() = _exactAsked.get(); set(v) = _exactAsked.set(v)
     private val _editorWrap = Bool("ws_wrap", true)
     var editorWrap: Boolean get() = _editorWrap.get(); set(v) = _editorWrap.set(v)
+
+    // ----- A.S.T.R.O AI Pro & Dual Presence -----
+    private val _proMode = Bool("astro_pro_mode", true)
+    var proMode: Boolean get() = _proMode.get(); set(v) = _proMode.set(v)
+    private val _autoFailover = Bool("astro_pro_failover", true)
+    var autoFailover: Boolean get() = _autoFailover.get(); set(v) = _autoFailover.set(v)
+    private val _proTheme = Str("astro_pro_theme", "obsidian_gold", setOf("obsidian_gold", "cyber_pro", "standard"))
+    var proTheme: String get() = _proTheme.get(); set(v) = _proTheme.set(v)
+    private val _contactSkill = Bool("astro_pro_contact_skill", true)
+    var contactSkillEnabled: Boolean get() = _contactSkill.get(); set(v) = _contactSkill.set(v)
+    private val _contactPhone = Str("astro_pro_contact_phone", "")
+    var contactPhone: String get() = _contactPhone.get(); set(v) = _contactPhone.set(clip(v.trim(), 40))
+    private val _contactChannel = Str("astro_pro_contact_chan", "auto", setOf("auto", "call", "sms", "alert"))
+    var contactChannel: String get() = _contactChannel.get(); set(v) = _contactChannel.set(v)
+    private val _watcher = Bool("astro_pro_watcher", true)
+    var watcherEnabled: Boolean get() = _watcher.get(); set(v) = _watcher.set(v)
 }

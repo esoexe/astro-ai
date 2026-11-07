@@ -47,19 +47,35 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
     var health: JSONObject = JSONObject()
         private set
 
+    // A.S.T.R.O AI Pro Dual Presence & Auto-Failover State
+    var isFailoverActive by mutableStateOf(false)
+        private set
+    var failoverReason by mutableStateOf("")
+        private set
+    var pcOnline by mutableStateOf(false)
+        private set
+    var pcLatencyMs by mutableLongStateOf(0L)
+        private set
+
     private var watch: Job? = null
     private var poll: Job? = null
+    private var pcHeartbeatJob: Job? = null
+    private var pcReconnectorJob: Job? = null
 
     val isPc: Boolean get() = prefs.connMode == "pc"
 
     fun start() {
         watch?.cancel()
+        pcHeartbeatJob?.cancel()
+        pcReconnectorJob?.cancel()
         phase = Phase.Starting; problem = ""
         if (isPc) {
             engine.stop()
             Api.configure(prefs.pcUrl, prefs.pcToken)
             watch = scope.launch { checkPc() }
         } else {
+            isFailoverActive = false
+            failoverReason = ""
             engine.start()
             watch = scope.launch {
                 engine.state.collectLatest { s ->
@@ -78,17 +94,120 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
     private suspend fun checkPc() {
         if (prefs.pcUrl.isBlank()) { phase = Phase.Unreachable; problem = "No computer address yet"; return }
         try {
+            val t0 = System.currentTimeMillis()
             val st = Api.get("/api/auth/state", 8000)
+            pcLatencyMs = System.currentTimeMillis() - t0
+            pcOnline = true
             pairing = st.bool("pairing")
             if (pairing && !st.bool("ok") && prefs.pcPaired) problem = REMOVED
             when {
                 st.bool("enabled") && st.bool("setup") -> phase = Phase.NeedsSetup
                 st.bool("enabled") && !st.bool("ok") -> phase = Phase.NeedsLogin
-                else -> { phase = Phase.Ready; problem = ""; refreshStatus(); startPolling() }
+                else -> {
+                    isFailoverActive = false
+                    failoverReason = ""
+                    phase = Phase.Ready
+                    problem = ""
+                    refreshStatus()
+                    startPolling()
+                    startPcHeartbeat()
+                }
             }
         } catch (e: Exception) {
-            phase = Phase.Unreachable
-            problem = e.message ?: "Could not reach the computer"
+            pcOnline = false
+            if (prefs.autoFailover) {
+                activateFailover(e.message ?: "PC offline; switched to local engine.")
+            } else {
+                phase = Phase.Unreachable
+                problem = e.message ?: "Could not reach the computer"
+            }
+        }
+    }
+
+    private fun startPcHeartbeat() {
+        pcHeartbeatJob?.cancel()
+        pcHeartbeatJob = scope.launch(Dispatchers.IO) {
+            var failCount = 0
+            while (isActive && isPc && !isFailoverActive) {
+                delay(12_000)
+                try {
+                    val t0 = System.currentTimeMillis()
+                    val st = Api.get("/api/auth/state", 5000)
+                    pcLatencyMs = System.currentTimeMillis() - t0
+                    if (st.has("enabled")) {
+                        pcOnline = true
+                        failCount = 0
+                    }
+                } catch (_: Exception) {
+                    failCount++
+                    if (failCount >= 2 && prefs.autoFailover) {
+                        pcOnline = false
+                        activateFailover("PC disconnected; auto-failover to local engine active.")
+                        break
+                    }
+                }
+            }
+        }
+    }
+
+    private fun activateFailover(reason: String) {
+        scope.launch {
+            isFailoverActive = true
+            failoverReason = reason
+            pcHeartbeatJob?.cancel()
+            engine.start()
+            watch?.cancel()
+            watch = scope.launch {
+                engine.state.collectLatest { s ->
+                    when (s) {
+                        is LocalEngine.State.Ready -> {
+                            Api.configure(s.base, s.token)
+                            phase = Phase.Ready
+                            problem = ""
+                            refreshStatus()
+                            startPolling()
+                        }
+                        is LocalEngine.State.Failed -> {
+                            phase = Phase.Failed
+                            problem = s.message
+                            log = s.log
+                        }
+                        LocalEngine.State.Starting, LocalEngine.State.Stopped -> {}
+                    }
+                }
+            }
+            startPcReconnector()
+        }
+    }
+
+    private fun startPcReconnector() {
+        pcReconnectorJob?.cancel()
+        pcReconnectorJob = scope.launch(Dispatchers.IO) {
+            while (isActive && isPc && isFailoverActive) {
+                delay(6000)
+                try {
+                    val t0 = System.currentTimeMillis()
+                    val u = normalizeUrl(prefs.pcUrl)
+                    val st = Api.requestBlocking("GET", "$u/api/auth/state", null, 4000, mapOf("X-Astro-Token" to prefs.pcToken))
+                    if (st.has("enabled") && (!st.bool("enabled") || st.bool("ok") || !st.bool("setup"))) {
+                        pcLatencyMs = System.currentTimeMillis() - t0
+                        pcOnline = true
+                        scope.launch(Dispatchers.Main) {
+                            isFailoverActive = false
+                            failoverReason = ""
+                            Api.configure(prefs.pcUrl, prefs.pcToken)
+                            phase = Phase.Ready
+                            problem = ""
+                            refreshStatus()
+                            startPolling()
+                            startPcHeartbeat()
+                        }
+                        break
+                    }
+                } catch (_: Exception) {
+                    pcOnline = false
+                }
+            }
         }
     }
 

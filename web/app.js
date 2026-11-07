@@ -1758,7 +1758,7 @@
     document.documentElement.dataset.view = view;
     $('.title-group').hidden = view !== 'assistant';
     $('#current-view-label').hidden = view === 'assistant';
-    $('#current-view-label').textContent = { notes: 'Notes', tasks: 'Tasks', lab: 'Model Lab', reader: 'Reader', workspace: 'Workspace', agent: 'Agent', re: 'Reverse', calls: 'Voice Calls (Bland AI)' }[view] || '';
+    $('#current-view-label').textContent = { notes: 'Notes', tasks: 'Tasks', lab: 'Model Lab', reader: 'Reader', workspace: 'Workspace', agent: 'Agent', re: 'Reverse', calls: 'Voice Calls (Bland AI)', pro: 'A.S.T.R.O AI Pro' }[view] || '';
     $('#export-chat').hidden = view !== 'assistant' || !state.messages.length;
     $('#nav-assistant').classList.toggle('active', view === 'assistant');
 
@@ -1770,10 +1770,12 @@
     $('#nav-agent').classList.toggle('active', view === 'agent');
     $('#nav-reverse')?.classList.toggle('active', view === 're');
     $('#nav-calls')?.classList.toggle('active', view === 'calls');
+    $('#nav-pro')?.classList.toggle('active', view === 'pro');
     if (view === 'workspace') wsShow();
     if (view === 'agent') agShow();
     if (view === 're') window.AstroRE?.show($('#re-view'), { api: apiJson, icon, esc, toast, openTools: () => window.AstroDev?.openTools?.(), ask: reAskAgent });
     if (view === 'calls') window.AstroBland?.renderCallsView?.();
+    if (view === 'pro') window.AstroPro?.renderProView?.();
 
     if (view === 'lab') renderLab();
     if (view === 'reader') renderReaderView();
@@ -1782,6 +1784,7 @@
     closeRailOnMobile();
     astroEmit();
   }
+  window.astroSwitchView = switchView;
   // Desktop shell bridge: desktop.js listens for this to keep its session tabs in sync.
   function astroEmit() { try { document.dispatchEvent(new CustomEvent('astro:change', { detail: { view: state.view, activeId: state.activeId } })); } catch { /* ignore */ } }
 
@@ -2811,6 +2814,31 @@
     },
     list_notes() {
       return { text: 'Checked your notes', sub: `${state.notes.length} note(s)`, result: state.notes.slice(0, 40).map((n) => `- ${n.title || 'Untitled'} (${n.body.length} chars, updated ${new Date(n.updatedAt).toLocaleDateString()})`).join('\n') || 'No notes.' };
+    },
+    async contact_user(a) {
+      const reason = str(a.reason || a.task || a.message || 'System notification requiring user review', 500);
+      const channel = str(a.channel || 'auto', 20);
+      const urgency = str(a.urgency || a.priority || 'high', 20);
+      const phone = str(a.phone_number || a.phone || '', 40);
+      const res = await apiJson('/api/pro/contact', { reason, channel, urgency, phone, details: a.details || '' });
+      window.AstroPro?.playHudChime?.('alert');
+      return {
+        text: `Proactive Contact Executed: ${reason.slice(0, 60)}`,
+        sub: `Channel: ${res.channel?.toUpperCase()} · Destination: ${res.recipient} · Status: ${res.status}`,
+        result: JSON.stringify(res)
+      };
+    },
+    async call_me(a) {
+      return this.contact_user({ ...a, channel: 'call' });
+    },
+    async pro_watch_project(a) {
+      const project = str(a.project || 'current_project', 100);
+      const res = await apiJson('/api/pro/watch', { project, event_type: 'watch_armed', details: 'Continuous sentinel watcher armed', auto_contact: false });
+      return {
+        text: `Project Watcher Armed: ${project}`,
+        sub: `Autonomous monitoring active (auto-contact on stall or failure)`,
+        result: JSON.stringify(res)
+      };
     },
     async bland_call(a) {
       const phone = str(a.phone_number || a.phone || '+12025550199', 40);
@@ -4166,7 +4194,9 @@
   $('#nav-reader').addEventListener('click', () => switchView('reader'));
   $('#nav-reverse')?.addEventListener('click', () => switchView('re'));
   $('#nav-calls')?.addEventListener('click', () => switchView('calls'));
+  $('#nav-pro')?.addEventListener('click', () => switchView('pro'));
 
+  $('#top-pro-pill')?.addEventListener('click', () => switchView('pro'));
   $('#top-call-pill')?.addEventListener('click', () => switchView('calls'));
   $('#top-folder-pill')?.addEventListener('click', () => {
     if (window.AstroDev?.promptOpenFolder) {

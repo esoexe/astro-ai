@@ -107,4 +107,7 @@ object AppIcons {
     val graph: ImageVector by lazy { icon("graph", 0 to "M4 4h3a1.5 1.5 0 0 1 1.5 1.5v2a1.5 1.5 0 0 1 -1.5 1.5h-3a1.5 1.5 0 0 1 -1.5 -1.5v-2a1.5 1.5 0 0 1 1.5 -1.5Z", 0 to "M17 3h3a1.5 1.5 0 0 1 1.5 1.5v2a1.5 1.5 0 0 1 -1.5 1.5h-3a1.5 1.5 0 0 1 -1.5 -1.5v-2a1.5 1.5 0 0 1 1.5 -1.5Z", 0 to "M17 16h3a1.5 1.5 0 0 1 1.5 1.5v2a1.5 1.5 0 0 1 -1.5 1.5h-3a1.5 1.5 0 0 1 -1.5 -1.5v-2a1.5 1.5 0 0 1 1.5 -1.5Z", 0 to "M8.5 6.5h3.5c1.5 0 2 .5 3.5-1M8.5 7.5c3 0 2.5 11 7 11") }
     val wrap: ImageVector by lazy { icon("wrap", 0 to "M4 6h16M4 12h13a3 3 0 0 1 0 6h-4M15 16l-2 2 2 2M4 18h5") }
     val launch: ImageVector by lazy { icon("launch", 0 to "M7 17 17 7M9 7h8v8") }
+    val phone: ImageVector by lazy { icon("phone", 0 to "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z") }
+    val pro: ImageVector by lazy { icon("pro", 2 to "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z") }
+    val signal: ImageVector by lazy { icon("signal", 0 to "M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 20V4") }
 }
