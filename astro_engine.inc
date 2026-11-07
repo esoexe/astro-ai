@@ -1833,6 +1833,7 @@ void run(std::shared_ptr<Session> sp, std::string prompt) {
                 else if (unverified && !changes.empty()) note(s, std::regex_search(report, claims) ? "Heads up: the report says the work was checked, but nothing was run after the last change. Treat it as untested." : "Nothing was run after the last change, so this result is not tested yet.");
                 if (s.isolated && !changes.empty()) note(s, "This agent worked in an isolated copy. Review with `astro diff " + s.id + "`, then merge or discard.");
                 set_status(s, "done");
+                pro_enqueue_call("Agent completed work in " + s.project + (report.empty() ? "" : ": " + clip(one_line(report), 120)), "urgent", s.project);
             }
             // follow-up prompts sent while this run was busy
             std::lock_guard<std::mutex> lk(s.mu);

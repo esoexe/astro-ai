@@ -160,6 +160,8 @@ class Prefs(ctx: Context) {
     var contactPhone: String get() = _contactPhone.get(); set(v) = _contactPhone.set(clip(v.trim(), 40))
     private val _contactChannel = Str("astro_pro_contact_chan", "auto", setOf("auto", "call", "sms", "alert"))
     var contactChannel: String get() = _contactChannel.get(); set(v) = _contactChannel.set(v)
+    private val _contactOnFinish = Bool("astro_pro_contact_on_finish", true)
+    var contactOnFinish: Boolean get() = _contactOnFinish.get(); set(v) = _contactOnFinish.set(v)
     private val _watcher = Bool("astro_pro_watcher", true)
     var watcherEnabled: Boolean get() = _watcher.get(); set(v) = _watcher.set(v)
 }

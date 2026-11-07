@@ -550,7 +550,7 @@
             playHudChime('confirm');
             if (feedback) {
               feedback.className = 'pro-feedback success';
-              feedback.textContent = `Successfully initiated ${json.channel.toUpperCase()} to ${json.recipient} (Contact ID: ${json.contact_id})`;
+              feedback.textContent = `Agent call routed to Android client: ${json.message || 'Queued for Android execution'}`;
             }
             fetchProStatus().then(() => {
               const table = document.getElementById('pro-log-table');

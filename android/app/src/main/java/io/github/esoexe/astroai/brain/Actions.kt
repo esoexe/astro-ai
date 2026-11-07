@@ -221,51 +221,20 @@ class Actions(private val app: AstroApp, private val chat: ChatController) {
             val phone = s(a, "phone", "number").ifEmpty { prefs.contactPhone }
             val details = clip(s(a, "details", "info"), 2000)
 
-            // Audio Alert
-            if (!voice && app.speech.ready) {
-                app.speech.speak("A.S.T.R.O Pro alert: $reason")
-            }
+            // Physical agent call executes exclusively on Android phone
+            app.backend.executeAgentCallOnAndroid(reason, if (chan == "auto") "call" else chan, urgency)
 
-            // High-priority Heads-Up Notification on Phone
-            app.work.notifyProAlert("A.S.T.R.O Pro Contact Alert", "$reason${if (details.isNotEmpty()) "\n$details" else ""}")
-
-            // Channel dispatch
-            var subMsg = "High-priority notification posted on device"
-            if (chan == "call" || (chan == "auto" && (urgency == "urgent" || urgency == "critical"))) {
-                try {
-                    val r = Api.post("/api/pro/contact", jsonOf("reason" to reason, "channel" to "call", "urgency" to urgency, "phone" to phone, "details" to details), 15_000)
-                    subMsg = "Voice call dispatched via Bland bridge (${r.str("recipient")})"
-                } catch (_: Exception) {
-                    if (phone.isNotEmpty()) {
-                        try {
-                            val intent = android.content.Intent(android.content.Intent.ACTION_DIAL, android.net.Uri.parse("tel:$phone"))
-                                .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                            app.startActivity(intent)
-                            subMsg = "Opened phone dialer for $phone"
-                        } catch (_: Exception) {}
-                    }
-                }
-            } else if (chan == "sms") {
-                try {
-                    Api.post("/api/pro/contact", jsonOf("reason" to reason, "channel" to "sms", "urgency" to urgency, "phone" to phone, "details" to details), 15_000)
-                    subMsg = "SMS alert dispatched to $phone"
-                } catch (_: Exception) {
-                    if (phone.isNotEmpty()) {
-                        try {
-                            val intent = android.content.Intent(android.content.Intent.ACTION_SENDTO, android.net.Uri.parse("smsto:$phone"))
-                                .putExtra("sms_body", "A.S.T.R.O AI Pro: $reason")
-                                .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                            app.startActivity(intent)
-                            subMsg = "Opened SMS composer for $phone"
-                        } catch (_: Exception) {}
-                    }
-                }
-            }
+            // Log event to PC bridge if online
+            var subMsg = "Physical agent call triggered on Android phone"
+            try {
+                val r = Api.post("/api/pro/contact", jsonOf("reason" to reason, "channel" to chan, "urgency" to urgency, "phone" to phone, "details" to details), 10_000)
+                subMsg = "Agent call executed on Android (${r.str("status")})"
+            } catch (_: Exception) {}
 
             Result(
-                text = tr("Pro Contact Triggered: #", reason),
+                text = tr("Agent Call Executed: #", reason),
                 sub = subMsg,
-                result = "[A.S.T.R.O Pro Contact: reason=\"$reason\", channel=\"$chan\", urgency=\"$urgency\", status=\"dispatched\", phone=\"$phone\"]"
+                result = "[A.S.T.R.O Agent Call: reason=\"$reason\", channel=\"$chan\", urgency=\"$urgency\", status=\"executed_on_android\", phone=\"$phone\"]"
             )
         }
         "pro_watch_project" -> {

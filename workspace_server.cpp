@@ -598,7 +598,7 @@ std::string brain_prompt_extra(const std::string& stage, bool voice, bool agent,
                "One server per project; starting again replaces it. Verify it with bash: curl -s http://127.0.0.1:<port>/...\n"
                "- server_logs {}: recent output of the running server.\n"
                "- stop_server {}\n"
-               "- contact_user {reason, channel?, urgency?, details?, phone?}: proactively call, SMS, or dispatch an urgent alert to the user's phone or desktop when an autonomous task needs critical approval, encounters a fatal blocker, or finishes a milestone.\n"
+               "- contact_user {reason, channel?, urgency?, details?, phone?}: trigger an agent call or alert on the user's Android phone when finishing work or whenever you need authorization, are blocked, or want to contact the user.\n"
                "- bland_call_user {task, phone?, pathway?, action?}: initiate a voice permission phone call or in-browser ring to the user to request authorization for sensitive actions.\n"
                "- send_sms_verification {phone}: dispatch a 6-digit verification code to the user's phone.\n"
                "- verify_sms_code {code, phone?}: verify the SMS code and bind the phone number.\n"
@@ -2410,13 +2410,13 @@ void load_runtime_credentials() {
 
 #include "astro_ext.inc"
 #include "astro_phone.inc"
+#include "astro_pro.inc"     // A.S.T.R.O AI Pro: Executive HUD, Sentinel, Dual-Presence & Contact Bridge
 #include "workspace_code.inc"
 #include "workspace_ide.inc"
 #include "astro_quality.inc"
 #include "astro_engine.inc"
 #include "astro_update.inc"
 #include "astro_re.inc"      // Astro RE: reverse engineering (static analysis + optional providers)
-#include "astro_pro.inc"     // A.S.T.R.O AI Pro: Executive HUD, Sentinel, Dual-Presence & Contact Bridge
 
 void handle_api(int fd, const HttpRequest& request) {
     if (phone_remote_gate(fd, request)) return;   // requests from a phone: pairing and device tokens

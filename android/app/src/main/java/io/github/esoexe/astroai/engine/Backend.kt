@@ -129,14 +129,27 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
         pcHeartbeatJob = scope.launch(Dispatchers.IO) {
             var failCount = 0
             while (isActive && isPc && !isFailoverActive) {
-                delay(12_000)
+                delay(8000)
                 try {
                     val t0 = System.currentTimeMillis()
-                    val st = Api.get("/api/auth/state", 5000)
+                    val st = Api.post("/api/pro/heartbeat", jsonOf("device_id" to deviceName(), "name" to deviceName(), "client_type" to "android"), 5000)
                     pcLatencyMs = System.currentTimeMillis() - t0
-                    if (st.has("enabled")) {
+                    if (st.has("ok") || st.has("server_status")) {
                         pcOnline = true
                         failCount = 0
+
+                        // Check for pending calls dispatched from desktop agent
+                        val pending = st.arr("pending_calls").objects()
+                        for (call in pending) {
+                            val cid = call.str("id")
+                            val reason = call.str("reason").ifEmpty { "Agent has completed task on PC" }
+                            val chan = call.str("channel").ifEmpty { "call" }
+                            val priority = call.str("priority").ifEmpty { "urgent" }
+                            scope.launch(Dispatchers.Main) {
+                                executeAgentCallOnAndroid(reason, chan, priority)
+                            }
+                            try { Api.post("/api/pro/call_ack", jsonOf("id" to cid), 4000) } catch (_: Exception) {}
+                        }
                     }
                 } catch (_: Exception) {
                     failCount++
@@ -147,6 +160,24 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
                     }
                 }
             }
+        }
+    }
+
+    fun executeAgentCallOnAndroid(reason: String, channel: String = "call", priority: String = "urgent") {
+        io.github.esoexe.astroai.AstroApp.instance.work.notifyProAlert("A.S.T.R.O Agent Call", reason, "chat")
+
+        val speech = io.github.esoexe.astroai.AstroApp.instance.speech
+        if (speech.ready) {
+            speech.speak("Agent call: $reason")
+        }
+
+        val phone = prefs.contactPhone
+        if (channel == "call" && phone.isNotEmpty()) {
+            try {
+                val intent = android.content.Intent(android.content.Intent.ACTION_DIAL, android.net.Uri.parse("tel:$phone"))
+                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                io.github.esoexe.astroai.AstroApp.instance.startActivity(intent)
+            } catch (_: Exception) {}
         }
     }
 
