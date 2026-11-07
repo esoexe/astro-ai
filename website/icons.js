@@ -39,6 +39,7 @@ const P = {
   macos: '<rect x="3" y="4" width="18" height="13" rx="2.5"/><path d="M8 21h8M12 17v4"/><path d="M9.5 9.5c.8.9 1.6 1.3 2.5 1.3s1.7-.4 2.5-1.3"/>',
   phone: '<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  cpu: '<rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/>',
 };
 module.exports = (name, cls = '') => {
   if (!P[name]) throw new Error('Unknown icon: ' + name);

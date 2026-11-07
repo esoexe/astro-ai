@@ -46,6 +46,9 @@
   <script src="/agents.js" defer></script>
   <script src="/re.js" defer></script>
   <script src="/app.js" defer></script>
+  <script src="/bland_calls.js" defer></script>
+
+  <script src="/coder_suite.js" defer></script>
   <script src="/desktop.js" defer></script>
 </head>
 <body>
@@ -69,6 +72,7 @@
       <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
       <symbol id="i-stop" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor" stroke="none"/></symbol>
       <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></symbol>
+      <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
       <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6.5A2.5 2.5 0 0 0 13.5 4h-7A2.5 2.5 0 0 0 4 6.5v7A2.5 2.5 0 0 0 6.5 16H8"/></symbol>
       <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
       <symbol id="i-redo" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5"/></symbol>
@@ -147,9 +151,11 @@
 
       <nav class="rail-nav" aria-label="A.S.T.R.O AI">
         <button class="rail-item active" type="button" id="nav-assistant" title="Chat"><svg><use href="#i-chat"/></svg><span class="rail-label">Chat</span></button>
+
         <button class="rail-item" type="button" id="nav-workspace" title="Workspace: files, code, run and preview"><svg><use href="#i-code"/></svg><span class="rail-label">Workspace</span></button>
         <button class="rail-item" type="button" id="nav-agent" title="Agent: works on its own with tools until the job is done"><svg><use href="#i-agent"/></svg><span class="rail-label">Agent</span></button>
         <button class="rail-item" type="button" id="nav-reverse" title="Reverse: see how any app or file works (Astro RE)"><svg><use href="#i-wrench"/></svg><span class="rail-label">Reverse</span><span class="rail-badge">New</span></button>
+        <button class="rail-item" type="button" id="nav-calls" title="Voice Calls: Bland AI voice permission calling & SMS"><svg><use href="#i-phone"/></svg><span class="rail-label">Voice Calls</span><span class="rail-badge">Bland AI</span></button>
         <button class="rail-item" type="button" id="nav-notes" title="Notes"><svg><use href="#i-note"/></svg><span class="rail-label">Notes</span><span class="rail-count" id="notes-count">0</span></button>
         <button class="rail-item" type="button" id="nav-tasks" title="Tasks"><svg><use href="#i-task"/></svg><span class="rail-label">Tasks</span><span class="rail-count" id="tasks-count">0</span></button>
         <button class="rail-item" type="button" id="nav-reader" title="Reader: read any page or file"><svg><use href="#i-read"/></svg><span class="rail-label">Reader</span></button>
@@ -186,10 +192,19 @@
           <button class="model-switch" id="model-switch" type="button" aria-haspopup="menu" title="Choose a model">
             <span id="model-switch-label">Auto</span><svg><use href="#i-chev"/></svg>
           </button>
+          <button class="folder-pill" id="top-folder-pill" type="button" title="Working folder (OpenCode style) — click to change">
+            <svg><use href="#i-folder-open"/></svg>
+            <span id="top-folder-name">my-project</span>
+          </button>
         </div>
         <div class="view-title" id="current-view-label" hidden></div>
         <button class="cmdk" id="top-search" type="button" title="Search chats, notes, tasks and commands"><svg><use href="#i-search"/></svg><span>Search or jump to…</span><kbd>Ctrl K</kbd></button>
         <div class="top-actions">
+          <button class="call-pill" id="top-call-pill" type="button" title="Bland AI Voice Call & Permission Gate">
+            <svg><use href="#i-phone"/></svg>
+            <span class="call-pill-dot"></span>
+            <span>Voice Agent</span>
+          </button>
           <button class="live-pill" id="live-top" type="button" title="Start a live voice conversation"><span class="live-pill-dot"></span><svg><use href="#i-wave"/></svg><span>Live</span></button>
           <button class="icon-btn" id="export-chat" type="button" title="Export chat as Markdown" aria-label="Export chat"><svg><use href="#i-export"/></svg></button>
           <button class="icon-btn" id="theme-toggle" type="button" title="Switch theme" aria-label="Switch theme"><svg><use href="#i-moon"/></svg></button>
@@ -301,7 +316,34 @@
       <section class="page astro-page" id="lab-view" hidden></section>
       <section class="page astro-page" id="reader-view" hidden></section>
       <section class="page astro-page" id="re-view" hidden></section>
+      <section class="page astro-page" id="calls-view" hidden></section>
+
     </main>
+  </div>
+
+  <!-- Bland AI Voice Permission Calling Overlay -->
+  <div class="call-modal-overlay" id="call-modal-overlay" hidden>
+    <div class="call-card" id="call-card">
+      <div class="call-ring-waves"><div class="wave w1"></div><div class="wave w2"></div><div class="wave w3"></div></div>
+      <div class="call-avatar"><svg><use href="#i-phone"/></svg></div>
+      <div class="call-name">A.S.T.R.O AI Voice Agent</div>
+      <div class="call-sub" id="call-status-text">Permission Call Incoming…</div>
+      <div class="call-task" id="call-task-text">Running operation</div>
+      <div class="call-waveform" id="call-waveform">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="call-actions">
+        <button class="call-btn btn-decline" id="call-decline-btn" type="button" title="Decline call / Deny permission">
+          <svg><use href="#i-phone"/></svg>
+          <span>Deny</span>
+        </button>
+        <button class="call-btn btn-accept" id="call-accept-btn" type="button" title="Answer call / Approve permission">
+          <svg><use href="#i-phone"/></svg>
+          <span>Approve</span>
+        </button>
+      </div>
+      <div class="call-transcript" id="call-transcript" hidden></div>
+    </div>
   </div>
 
   <div class="menu" id="menu" role="menu" hidden></div>

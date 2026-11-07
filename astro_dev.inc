@@ -117,12 +117,10 @@ void dev_open_folder(int fd, const Json& body) {
     if (p.empty() || !dir.is_absolute() || !fs::is_directory(dir, ec)) { send_json(fd, 400, error_json("Choose an existing folder (a full path).")); return; }
     dir = fs::weakly_canonical(dir, ec);
     const std::string d = dir.generic_string();
-    const auto inside = [&](const fs::path& other) {
-        std::error_code e2; const std::string o = fs::weakly_canonical(other, e2).generic_string();
-        return !o.empty() && (d == o || d.rfind(o + "/", 0) == 0 || o.rfind(d + "/", 0) == 0);
-    };
-    if (!dir.has_relative_path() || dir == user_home_dir()) { send_json(fd, 400, error_json("Pick a project folder, not the whole drive or your home folder.")); return; }
-    if (inside(fs::path(data_dir()))) { send_json(fd, 400, error_json("That folder is A.S.T.R.O AI's own data folder.")); return; }
+    // Allow any folder (OpenCode style), including home directory and arbitrary custom paths
+    if (!dir.has_relative_path() && dir != user_home_dir() && dir != fs::path("/")) {
+        send_json(fd, 400, error_json("Pick a valid folder.")); return;
+    }
     // Already open? Reuse the same project.
     for (const auto& e : fs::directory_iterator(projects_root(), ec)) {
         const std::string n = e.path().filename().string();
@@ -130,7 +128,10 @@ void dev_open_folder(int fd, const Json& body) {
         if (!t.empty()) { std::error_code e2; if (fs::weakly_canonical(fs::path(t), e2) == dir) { Json::Object o; o["ok"] = Json(true); o["name"] = Json(n); o["existing"] = Json(true); send_json(fd, 200, Json(std::move(o))); return; } }
     }
     std::string want = get_string(body, "name");
-    if (want.empty()) want = dir.filename().string();
+    if (want.empty()) {
+        want = dir.filename().string();
+        if (want.empty() || want == "/" || want == ".") want = (dir == user_home_dir() ? "home" : "workspace");
+    }
     const std::string name = unique_project_name(want);
     std::string error;
     if (!make_dir_link(dir, fs::path(projects_root()) / name, error)) { send_json(fd, 500, error_json(error)); return; }
@@ -896,6 +897,7 @@ void dev_diagnostics(int fd, const Json& body) {
 
 #include "astro_library.inc"
 #include "astro_tools.inc"
+#include "astro_coder.inc"
 
 bool handle_dev_api(int fd, const HttpRequest& request) {
     const std::string& path = request.path;
@@ -907,6 +909,10 @@ bool handle_dev_api(int fd, const HttpRequest& request) {
     const Json& body = *body_opt;
     const std::string action = path.substr(9);
     try {
+        if (action == "http/exec") { dev_handle_http_client(fd, body); return true; }
+        if (action == "db/query") { dev_handle_db_query(fd, body); return true; }
+        if (action == "db/tables") { dev_handle_db_tables(fd, body); return true; }
+        if (action == "ports/list") { dev_handle_port_scan(fd); return true; }
         if (action == "fs/browse") { dev_browse(fd, body); return true; }
         if (action == "fs/open") { dev_open_folder(fd, body); return true; }
         if (action.rfind("mcp/", 0) == 0) { dev_mcp(fd, action.substr(4), body); return true; }

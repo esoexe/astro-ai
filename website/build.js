@@ -144,6 +144,7 @@ function supportHtml() {
 // ------------------------------------------------------------------ layout
 const NAV = [
   ['features', 'Features', 'features.html'],
+   
   ['download', 'Download', 'download.html'],
   ['docs', 'Docs', 'docs.html'],
   ['api', 'API', 'api.html'],
