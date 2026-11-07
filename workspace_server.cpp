@@ -2814,7 +2814,7 @@ int main(int argc, char** argv) {
         read_timeout.tv_sec = 30; // drop clients that connect but never send a full request
         setsockopt(client, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof(read_timeout));
 #endif
-        std::thread(handle_client, client).detach();
+        std::thread([client]() { handle_client(client); }).detach();
     }
     sock_close(server);
     curl_global_cleanup();

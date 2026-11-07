@@ -1,7 +1,12 @@
 // astro_coder.inc - Developer suite: HTTP/API Client scratchpad, Database inspector (SQLite), Multi-port previews
 #pragma once
 
+#if __has_include(<sqlite3.h>)
 #include <sqlite3.h>
+#define ASTRO_HAS_SQLITE 1
+#else
+#define ASTRO_HAS_SQLITE 0
+#endif
 
 struct HttpScratchpadReq {
     std::string method;
@@ -104,6 +109,7 @@ inline void dev_handle_db_query(int fd, const Json& body) {
     fs::path base = project.empty() ? fs::current_path() : fs::path(projects_root()) / project;
     fs::path full_path = base / db_file;
 
+#if ASTRO_HAS_SQLITE
     sqlite3* db = nullptr;
     if (sqlite3_open_v2(full_path.string().c_str(), &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr) != SQLITE_OK) {
         std::string err = db ? sqlite3_errmsg(db) : "Failed to open SQLite database.";
@@ -160,6 +166,11 @@ inline void dev_handle_db_query(int fd, const Json& body) {
     out["changes"] = Json(static_cast<double>(changes));
     out["ok"] = Json(true);
     send_json(fd, 200, Json(std::move(out)));
+#else
+    Json::Object out;
+    out["error"] = Json("SQLite inspect is only available on native Linux/macOS builds.");
+    send_json(fd, 400, Json(std::move(out)));
+#endif
 }
 
 inline void dev_handle_db_tables(int fd, const Json& body) {
@@ -169,6 +180,7 @@ inline void dev_handle_db_tables(int fd, const Json& body) {
     fs::path base = project.empty() ? fs::current_path() : fs::path(projects_root()) / project;
     fs::path full_path = base / db_file;
 
+#if ASTRO_HAS_SQLITE
     sqlite3* db = nullptr;
     if (sqlite3_open_v2(full_path.string().c_str(), &db, SQLITE_OPEN_READONLY, nullptr) != SQLITE_OK) {
         if (db) sqlite3_close(db);
@@ -197,6 +209,11 @@ inline void dev_handle_db_tables(int fd, const Json& body) {
     Json::Object out;
     out["tables"] = Json(std::move(tables));
     send_json(fd, 200, Json(std::move(out)));
+#else
+    Json::Object empty;
+    empty["tables"] = Json(Json::Array{});
+    send_json(fd, 200, Json(std::move(empty)));
+#endif
 }
 
 inline void dev_handle_port_scan(int fd) {

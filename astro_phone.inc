@@ -17,7 +17,7 @@ void handle_client(int fd);
 struct PhoneDevice { std::string id, name, hash; long long created = 0, last_seen = 0; };
 struct PhoneState {
     bool loaded = false, enabled = false, listening = false;
-    int port = 4174;
+    int port = 8080;
     std::string error;
     std::vector<PhoneDevice> devices;
     std::string code;              // current pairing code (empty = none)
@@ -228,8 +228,8 @@ void phone_listen(int gen, int port) {
     };
     if (server < 0) { fail("Could not open a network socket."); return; }
 #ifdef _WIN32
-    BOOL exclusive = TRUE;
-    setsockopt(static_cast<SOCKET>(server), SOL_SOCKET, SO_EXCLUSIVEADDRUSE, reinterpret_cast<const char*>(&exclusive), sizeof(exclusive));
+    int reuse = 1;
+    setsockopt(static_cast<SOCKET>(server), SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&reuse), sizeof(reuse));
 #else
     int reuse = 1;
     setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));

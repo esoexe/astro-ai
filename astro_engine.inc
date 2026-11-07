@@ -182,7 +182,7 @@ std::vector<Route> candidates(const std::string& preferred) {
     std::stable_sort(ranked.begin(), ranked.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
     std::vector<Route> rest;
     for (auto& [_, r] : ranked) rest.push_back(r);
-    model_stats_reorder(rest, 0);
+    model_stats_reorder(rest, std::size_t{0});
     for (auto& r : rest) { if (out.size() >= 6) break; out.push_back(r); }
     return out;
 }

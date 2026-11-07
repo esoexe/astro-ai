@@ -99,8 +99,8 @@ class Backend(private val prefs: Prefs, private val engine: LocalEngine, private
     suspend fun probe(url: String): JSONObject {
         val raw = url.trim().trimEnd('/')
         if (raw.isEmpty()) throw ApiError(0, "Type the computer's address")
-        // No port typed: the desktop app's phone port first (4174), then the self-hosted server (4173).
-        val candidates = if (Regex("^(https?://)?[^/:]+$").matches(raw)) listOf("$raw:4174", "$raw:4173") else listOf(raw)
+        // No port typed: try standard 8080 first, then 4174, 47611, 8000, 3000, 4173.
+        val candidates = if (Regex("^(https?://)?[^/:]+$").matches(raw)) listOf("$raw:8080", "$raw:4174", "$raw:47611", "$raw:8000", "$raw:3000", "$raw:4173") else listOf(raw)
         var last: Exception? = null
         for (cand in candidates) {
             val u = normalizeUrl(cand)

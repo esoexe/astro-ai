@@ -3895,10 +3895,16 @@
       const list = devs.length ? `<ul class="provider-list">${devs.map((d) => `<li class="provider-row on"><span class="dot"></span><div><b>${esc(d.name)}</b><small><span>Paired</span> ${esc(when(d.created))} · <span>Last used</span> ${esc(when(d.last_seen))}</small></div><button type="button" class="btn danger" data-phone-remove="${esc(d.id)}">Remove</button></li>`).join('')}</ul>`
         : '<p class="hint">No phones paired yet.</p>';
       root.innerHTML = `<div class="set-row"><div class="lbl"><b>Let my phone connect</b><small>Use this computer's models, keys, chats and projects from the A.S.T.R.O AI Android app, on the same Wi-Fi or a private network such as Tailscale. Works while A.S.T.R.O AI is open on this computer. Off by default.</small></div><label class="switch"><input type="checkbox" id="phone-on"${st.enabled ? ' checked' : ''}><span></span></label></div>
+        <div class="set-row"><div class="lbl"><b>Connection Port</b><small>Port used for phone access and pairing (default 8080 or 4174). You can change this if your router or firewall blocks certain ports.</small></div><div class="key-line" style="margin:0"><input class="input" type="number" id="phone-port" value="${st.port || 8080}" min="1024" max="65535" style="width:110px"><button type="button" class="btn small" id="phone-port-save">Set Port</button></div></div>
         ${status}${pairing}
         <h3 style="margin:18px 0 8px;font-weight:500;font-size:15px">Paired phones</h3>${list}
         <p class="hint">Only devices on a private network can connect, and only after pairing once with a code from this screen. Each phone gets its own key, which you can remove here at any time. A paired phone can do what this app can do here, including running code and agent tasks in your projects, so pair only your own phones. Connections stay inside your network without encryption, so use this on networks you trust (home Wi-Fi, Tailscale), not on public Wi-Fi. The first time, your firewall may ask whether A.S.T.R.O AI may accept connections: allow it on private networks.</p>`;
       $('#phone-on', root).addEventListener('change', (e) => act('/api/phone/enable', { enabled: e.target.checked }));
+      $('#phone-port-save', root)?.addEventListener('click', () => {
+        const p = parseInt($('#phone-port', root)?.value, 10);
+        if (p >= 1024 && p <= 65535) act('/api/phone/enable', { enabled: true, port: p });
+        else toast('Choose a port between 1024 and 65535', 'error');
+      });
       $('#phone-pair', root)?.addEventListener('click', () => act('/api/phone/pairing', {}));
       $('#phone-cancel', root)?.addEventListener('click', () => act('/api/phone/pairing/cancel', {}));
       $$('[data-phone-remove]', root).forEach((b) => b.addEventListener('click', () => act('/api/phone/devices/remove', { id: b.dataset.phoneRemove })));

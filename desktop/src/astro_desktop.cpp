@@ -700,7 +700,7 @@ static int run_app() {
     }
 
     set_env("PORT", std::to_string(cfg.port));
-    set_env("ASTRO_BIND", "127.0.0.1");
+    set_env("ASTRO_BIND", "0.0.0.0");
     set_env("ASTRO_DATA_DIR", pstr(cfg.data));
     set_env("ASTRO_AUTH", "off");
     set_env("ASTRO_SYNC_MIRROR", "off");
