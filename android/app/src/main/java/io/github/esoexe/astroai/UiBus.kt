@@ -93,46 +93,22 @@ class UiBus(private val app: AstroApp) {
     }
 }
 
-/** astroai://pair?c=12345678&n=computer&u=http://192.168.1.20:8080 (from the computer's QR code, via the site's pair page or in-app QR scanner). */
+/** astroai://pair?c=12345678&n=computer&u=http://192.168.1.20:4174 (from the computer's QR code, via the site's pair page). */
 data class PairLink(val urls: List<String>, val code: String, val name: String) {
     companion object {
-        private val URL_RE = Regex("^https?://(\\d{1,3}(?:\\.\\d{1,3}){3}):(\\d{2,5})$")
-
-        fun parse(rawText: String): PairLink? {
-            val text = rawText.trim()
-            if (text.isEmpty()) return null
-            // Extract query string or URL fragment (#c=... or ?c=...)
-            val query = when {
-                text.contains('#') -> text.substringAfter('#')
-                text.contains('?') -> text.substringAfter('?')
-                else -> text
-            }
-            val map = mutableMapOf<String, MutableList<String>>()
-            for (part in query.split('&')) {
-                val eq = part.indexOf('=')
-                if (eq > 0) {
-                    val k = try { java.net.URLDecoder.decode(part.substring(0, eq), "UTF-8") } catch (_: Exception) { part.substring(0, eq) }
-                    val v = try { java.net.URLDecoder.decode(part.substring(eq + 1), "UTF-8") } catch (_: Exception) { part.substring(eq + 1) }
-                    map.getOrPut(k) { mutableListOf() }.add(v)
-                }
-            }
-            val code = map["c"]?.firstOrNull()?.trim().orEmpty()
+        private val URL_RE = Regex("^http://(\\d{1,3}(?:\\.\\d{1,3}){3}):(\\d{2,5})$")
+        fun parse(uri: android.net.Uri): PairLink? {
+            if (uri.scheme != "astroai" || uri.host != "pair") return null
+            val code = uri.getQueryParameter("c")?.trim().orEmpty()
             if (!Regex("^\\d{8}$").matches(code)) return null
-
-            val rawUrls = map["u"] ?: emptyList()
-            val urls = rawUrls.mapNotNull { u ->
-                val trimmed = u.trim().trimEnd('/')
-                val m = URL_RE.matchEntire(trimmed) ?: return@mapNotNull null
-                try {
-                    if (io.github.esoexe.astroai.net.Api.isPrivate(java.net.InetAddress.getByName(m.groupValues[1])) && m.groupValues[2].toInt() in 1..65535) trimmed else null
-                } catch (_: Exception) { null }
+            // literal private IPv4 addresses only (no DNS lookup happens for a literal address)
+            val urls = uri.getQueryParameters("u").filter { u ->
+                val m = URL_RE.matchEntire(u) ?: return@filter false
+                try { io.github.esoexe.astroai.net.Api.isPrivate(java.net.InetAddress.getByName(m.groupValues[1])) && m.groupValues[2].toInt() in 1..65535 } catch (_: Exception) { false }
             }.take(3)
-
             if (urls.isEmpty()) return null
-            val name = map["n"]?.firstOrNull().orEmpty().filter { it >= ' ' }.take(60)
+            val name = uri.getQueryParameter("n").orEmpty().filter { it >= ' ' }.take(60)
             return PairLink(urls, code, name)
         }
-
-        fun parse(uri: android.net.Uri): PairLink? = parse(uri.toString())
     }
 }

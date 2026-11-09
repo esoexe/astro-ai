@@ -53,6 +53,8 @@ android {
                 storePassword = System.getenv('ASTRO_ANDROID_KEYSTORE_PASSWORD') ?: ksProps.getProperty('storePassword')
                 keyAlias = System.getenv('ASTRO_ANDROID_KEY_ALIAS') ?: ksProps.getProperty('keyAlias', 'astro')
                 keyPassword = System.getenv('ASTRO_ANDROID_KEY_PASSWORD') ?: ksProps.getProperty('keyPassword') ?: storePassword
+                v1SigningEnabled = true
+                v2SigningEnabled = true
             }
         }
     }
