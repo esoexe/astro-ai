@@ -2307,5 +2307,37 @@
  "Open Astro Pro HUD": [
   "Ouvrir l'Astro Pro HUD",
   "فتح شاشة أسترو برو"
+ ],
+ "Unrecognized QR code. Point at the QR code shown in A.S.T.R.O AI Settings > Phone.": [
+  "Code QR non reconnu. Visez le code QR affiché dans A.S.T.R.O AI Paramètres > Téléphone.",
+  "رمز QR غير معروف. وجّه الكاميرا نحو رمز QR المعروض في إعدادات A.S.T.R.O AI > الهاتف."
+ ],
+ "Scan PC QR Code to Pair": [
+  "Scanner le code QR du PC pour associer",
+  "امسح رمز QR للحاسوب للاقتران"
+ ],
+ "1. On your PC, open A.S.T.R.O AI and go to Settings > Phone.": [
+  "1. Sur votre PC, ouvrez A.S.T.R.O AI et allez dans Paramètres > Téléphone.",
+  "1. على حاسوبك، افتح A.S.T.R.O AI واذهب إلى الإعدادات > الهاتف."
+ ],
+ "3. Tap below to scan the QR code on your PC screen.": [
+  "3. Appuyez ci-dessous pour scanner le code QR sur l'écran de votre PC.",
+  "3. اضغط أدناه لمسح رمز QR الظاهر على شاشة حاسوبك."
+ ],
+ "Scan QR Code": [
+  "Scanner le code QR",
+  "مسح رمز QR"
+ ],
+ "Point camera at the QR code on your PC screen": [
+  "Pointez la caméra vers le code QR sur l'écran de votre PC",
+  "وجّه الكاميرا نحو رمز QR على شاشة حاسوبك"
+ ],
+ "Hide manual address entry": [
+  "Masquer la saisie manuelle de l'adresse",
+  "إخفاء الإدخال اليدوي للعنوان"
+ ],
+ "Or enter address manually": [
+  "Ou entrer l'adresse manuellement",
+  "أو أدخل العنوان يدويًا"
  ]
 }

@@ -376,9 +376,10 @@ Json phone_state_json_locked() {
         std::string frag = "c=" + g_phone.code + "&n=" + url_escape(phone_computer_name());
         for (std::size_t i = 0; i < addrs.size() && i < 3; ++i) frag += "&u=" + url_escape("http://" + addrs[i] + ":" + std::to_string(g_phone.port));
         const std::string link = "https://esoexe.github.io/astro-ai/pair.html#" + frag;
+        const std::string app_link = "astroai://pair?" + frag;
         p["link"] = Json(link);
-        p["app_link"] = Json("astroai://pair?" + frag);
-        p["qr"] = phone_qr_json(link);
+        p["app_link"] = Json(app_link);
+        p["qr"] = phone_qr_json(app_link);
         o["pairing"] = Json(std::move(p));
     }
     return Json(std::move(o));

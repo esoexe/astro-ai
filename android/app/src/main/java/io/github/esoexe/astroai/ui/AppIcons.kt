@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.geometry.Offset
 
-/** The A.S.T.R.O AI icon set: 78 icons, 24x24 strokes that take the content colour (Icon tint). */
+/** The A.S.T.R.O AI icon set: 81 icons, 24x24 strokes that take the content colour (Icon tint). */
 object AppIcons {
     private val brand = Brush.linearGradient(listOf(Color(0xFFF7C59F), Color(0xFFF3A679), Color(0xFFE07A4F)), Offset(0f, 0f), Offset(24f, 24f))
 
@@ -44,6 +44,7 @@ object AppIcons {
     val send: ImageVector by lazy { icon("send", 0 to "M12 19V5M6 11l6-6 6 6") }
     val stop: ImageVector by lazy { icon("stop", 1 to "M9 7h6a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2Z") }
     val mic: ImageVector by lazy { icon("mic", 0 to "M12 3h0a3 3 0 0 1 3 3v6a3 3 0 0 1 -3 3h0a3 3 0 0 1 -3 -3v-6a3 3 0 0 1 3 -3Z", 0 to "M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21") }
+    val phone: ImageVector by lazy { icon("phone", 0 to "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z") }
     val copy: ImageVector by lazy { icon("copy", 0 to "M10.5 8h7a2.5 2.5 0 0 1 2.5 2.5v7a2.5 2.5 0 0 1 -2.5 2.5h-7a2.5 2.5 0 0 1 -2.5 -2.5v-7a2.5 2.5 0 0 1 2.5 -2.5Z", 0 to "M16 8V6.5A2.5 2.5 0 0 0 13.5 4h-7A2.5 2.5 0 0 0 4 6.5v7A2.5 2.5 0 0 0 6.5 16H8") }
     val check: ImageVector by lazy { icon("check", 0 to "m5 12.5 4.5 4.5L19 7.5") }
     val redo: ImageVector by lazy { icon("redo", 0 to "M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5") }
@@ -95,6 +96,8 @@ object AppIcons {
     val micOff: ImageVector by lazy { icon("mic-off", 0 to "M9 9v2a3 3 0 0 0 5.1 2.1M15 10.5V6a3 3 0 0 0-5.7-1.3M5.5 11a6.5 6.5 0 0 0 10.9 4.8M18.5 11c0 .9-.2 1.8-.5 2.6M12 17.5V21M4 4l16 16") }
     val agent: ImageVector by lazy { icon("agent", 0 to "M7.5 7.5h9a3.5 3.5 0 0 1 3.5 3.5v5a3.5 3.5 0 0 1 -3.5 3.5h-9a3.5 3.5 0 0 1 -3.5 -3.5v-5a3.5 3.5 0 0 1 3.5 -3.5Z", 0 to "M12 3.5v4M9 12.5v1.5M15 12.5v1.5M9.5 16.8h5M2 12.5v3M22 12.5v3", 0 to "M11.4 3a0.6 0.6 0 1 0 1.2 0a0.6 0.6 0 1 0 -1.2 0Z") }
     val bolt: ImageVector by lazy { icon("bolt", 0 to "M13 2.5 4.5 13.5H11l-1 8 8.5-11H12l1-8Z") }
+    val proBadge: ImageVector by lazy { icon("pro-badge", 2 to "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z") }
+    val radar: ImageVector by lazy { icon("radar", 0 to "M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0Z", 0 to "M7 12a5 5 0 1 0 10 0a5 5 0 1 0 -10 0Z", 1 to "M10.5 12a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0Z", 0 to "M12 3v18M3 12h18M12 12l6.36-6.36") }
     val hand: ImageVector by lazy { icon("hand", 0 to "M8 11V5.5a1.5 1.5 0 0 1 3 0V10m0-5.5a1.5 1.5 0 0 1 3 0V10m0-4a1.5 1.5 0 0 1 3 0v6.5a7 7 0 0 1-7 7h-.5a6 6 0 0 1-5-2.7L3.2 13a1.5 1.5 0 0 1 2.4-1.8L8 13.5") }
     val memory: ImageVector by lazy { icon("memory", 0 to "M12 3.5 14 8l5 .5-3.8 3.3 1.1 4.9L12 14.2l-4.3 2.5 1.1-4.9L5 8.5l5-.5 2-4.5Z") }
     val history: ImageVector by lazy { icon("history", 0 to "M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2") }

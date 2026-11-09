@@ -4,6 +4,7 @@
     <!-- Models are reached over the internet; the built-in engine listens only on 127.0.0.1 inside the phone. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
     <!-- Voice input and Live voice (asked the first time you tap the microphone; never in the background). -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Reminders you set: a notification at the time you chose, also after a restart of the phone. -->

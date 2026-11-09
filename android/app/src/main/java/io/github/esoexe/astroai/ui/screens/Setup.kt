@@ -1,5 +1,6 @@
 package io.github.esoexe.astroai.ui.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -171,6 +172,25 @@ fun ConnectScreen(fromError: Boolean, onBack: (() -> Unit)? = null) {
     var state by remember { mutableStateOf<org.json.JSONObject?>(null) }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf(if (fromError) tr(b.problem) else "") }
+    var showManual by remember { mutableStateOf(false) }
+
+    val scanLauncher = rememberLauncherForActivityResult(com.journeyapps.barcodescanner.ScanContract()) { res ->
+        val raw = res.contents
+        if (!raw.isNullOrBlank()) {
+            val pLink = PairLink.parse(raw)
+            if (pLink != null) {
+                ui.pendingPair = pLink
+                run {
+                    b.pair(pLink.urls, pLink.code)
+                    p.welcomeDone = true
+                    ui.pendingPair = null
+                }
+            } else {
+                error = tr("Unrecognized QR code. Point at the QR code shown in A.S.T.R.O AI Settings > Phone.")
+            }
+        }
+    }
+
     // Coming back from an error with a known address: ask for what the computer needs.
     if (fromError && state == null && b.phase == Backend.Phase.NeedsLogin) state = org.json.JSONObject().put("enabled", true).put("setup", false).put("pairing", b.pairing).put("_url", p.pcUrl)
     if (fromError && state == null && b.phase == Backend.Phase.NeedsSetup) state = org.json.JSONObject().put("enabled", true).put("setup", true).put("_url", p.pcUrl)
@@ -224,40 +244,76 @@ fun ConnectScreen(fromError: Boolean, onBack: (() -> Unit)? = null) {
                     }
                     Spacer(Modifier.height(18.dp))
                 }
-                Text(T("1. On your computer, open A.S.T.R.O AI (version 1.8.1 or later) and go to Settings > Phone."), style = MaterialTheme.typography.bodyMedium, color = c.text)
-                Spacer(Modifier.height(6.dp))
-                Text(T("2. Turn on Let my phone connect and click Pair a phone."), style = MaterialTheme.typography.bodyMedium, color = c.text)
-                Spacer(Modifier.height(6.dp))
-                Text(T("3. Scan the QR code with this phone's camera, or type the address and the 8-digit code below. Both devices must be on the same Wi-Fi, or on a private network like Tailscale."), style = MaterialTheme.typography.bodyMedium, color = c.text)
-                Spacer(Modifier.height(16.dp))
-                Field(url, { url = it; state = null }, T("Computer address"), keyboard = KeyboardType.Uri, onDone = { check() }, placeholder = "192.168.1.20:4174")
-                Spacer(Modifier.height(10.dp))
-                val st = state
-                if (st == null) Primary(if (busy) T("Checking…") else T("Check"), { check() }, enabled = url.isNotBlank() && !busy, icon = AppIcons.search)
-                else {
-                    Row(verticalAlignment = Alignment.CenterVertically) { Ic(AppIcons.check, null, tint = c.ok, size = 18.dp); Spacer(Modifier.width(8.dp)); Text(T("Found A.S.T.R.O AI at #", st.str("_url").ifEmpty { b.normalizeUrl(url) }), color = c.text) }
-                    Spacer(Modifier.height(10.dp))
-                    when {
-                        st.bool("pairing") -> Field(code, { v -> code = v.filter { it.isDigit() }.take(8) }, T("Pairing code (8 digits)"), keyboard = KeyboardType.NumberPassword, onDone = { if (code.length == 8) run { b.pair(listOf(st.str("_url")), code); code = "" } })
-                        !st.bool("enabled") -> Text(T("This computer has no password. Only connect on a network you trust."), style = MaterialTheme.typography.bodySmall, color = c.warn)
-                        st.bool("setup") -> Field(password, { password = it }, T("Create the computer's password (8+ characters)"), password = true, onDone = { })
-                        else -> Field(password, { password = it }, T("The computer's password"), password = true, onDone = { })
-                    }
-                    Spacer(Modifier.height(10.dp))
-                    val ready = when {
-                        st.bool("pairing") -> code.length == 8
-                        !st.bool("enabled") -> true
-                        else -> password.length >= (if (st.bool("setup")) 8 else 1)
-                    }
-                    Primary(if (busy) T("Connecting…") else T("Connect"), {
-                        run {
-                            val u = st.str("_url").ifEmpty { url }
-                            when {
-                                st.bool("pairing") -> { b.pair(listOf(u), code); code = "" }
-                                !st.bool("enabled") -> b.useOpenPc(u)
-                                else -> { b.signIn(u, password, create = st.bool("setup")); password = "" }
-                            }
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(Modifier.size(56.dp).background(c.accentSoft, CircleShape), contentAlignment = Alignment.Center) {
+                            Ic(AppIcons.qr, null, tint = c.accent, size = 32.dp)
                         }
+                        Spacer(Modifier.height(14.dp))
+                        Text(T("Scan PC QR Code to Pair"), style = MaterialTheme.typography.titleMedium, color = c.text)
+                        Spacer(Modifier.height(6.dp))
+                        Text(T("1. On your PC, open A.S.T.R.O AI and go to Settings > Phone."), style = MaterialTheme.typography.bodyMedium, color = c.muted)
+                        Spacer(Modifier.height(4.dp))
+                        Text(T("2. Turn on Let my phone connect and click Pair a phone."), style = MaterialTheme.typography.bodyMedium, color = c.muted)
+                        Spacer(Modifier.height(4.dp))
+                        Text(T("3. Tap below to scan the QR code on your PC screen."), style = MaterialTheme.typography.bodyMedium, color = c.muted)
+                        Spacer(Modifier.height(18.dp))
+                        Primary(
+                            if (busy) T("Connecting…") else T("Scan QR Code"),
+                            {
+                                val opts = com.journeyapps.barcodescanner.ScanOptions().apply {
+                                    setDesiredBarcodeFormats(com.journeyapps.barcodescanner.ScanOptions.QR_CODE)
+                                    setPrompt(tr("Point camera at the QR code on your PC screen"))
+                                    setBeepEnabled(false)
+                                    setOrientationLocked(false)
+                                }
+                                scanLauncher.launch(opts)
+                            },
+                            enabled = !busy,
+                            icon = AppIcons.qr
+                        )
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    androidx.compose.material3.TextButton({ showManual = !showManual }) {
+                        Text(if (showManual) T("Hide manual address entry") else T("Or enter address manually"), color = c.faint, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                if (showManual) {
+                    Spacer(Modifier.height(8.dp))
+                    Field(url, { url = it; state = null }, T("Computer address"), keyboard = KeyboardType.Uri, onDone = { check() }, placeholder = "192.168.1.13:8080")
+                    Spacer(Modifier.height(10.dp))
+                    val st = state
+                    if (st == null) Primary(if (busy) T("Checking…") else T("Check"), { check() }, enabled = url.isNotBlank() && !busy, icon = AppIcons.search)
+                    else {
+                        Row(verticalAlignment = Alignment.CenterVertically) { Ic(AppIcons.check, null, tint = c.ok, size = 18.dp); Spacer(Modifier.width(8.dp)); Text(T("Found A.S.T.R.O AI at #", st.str("_url").ifEmpty { b.normalizeUrl(url) }), color = c.text) }
+                        Spacer(Modifier.height(10.dp))
+                        when {
+                            st.bool("pairing") -> Field(code, { v -> code = v.filter { it.isDigit() }.take(8) }, T("Pairing code (8 digits)"), keyboard = KeyboardType.NumberPassword, onDone = { if (code.length == 8) run { b.pair(listOf(st.str("_url")), code); code = "" } })
+                            !st.bool("enabled") -> Text(T("This computer has no password. Only connect on a network you trust."), style = MaterialTheme.typography.bodySmall, color = c.warn)
+                            st.bool("setup") -> Field(password, { password = it }, T("Create the computer's password (8+ characters)"), password = true, onDone = { })
+                            else -> Field(password, { password = it }, T("The computer's password"), password = true, onDone = { })
+                        }
+                        Spacer(Modifier.height(10.dp))
+                        val ready = when {
+                            st.bool("pairing") -> code.length == 8
+                            !st.bool("enabled") -> true
+                            else -> password.length >= (if (st.bool("setup")) 8 else 1)
+                        }
+                        Primary(if (busy) T("Connecting…") else T("Connect"), {
+                            run {
+                                val u = st.str("_url").ifEmpty { url }
+                                when {
+                                    st.bool("pairing") -> { b.pair(listOf(u), code); code = "" }
+                                    !st.bool("enabled") -> b.useOpenPc(u)
+                                    else -> { b.signIn(u, password, create = st.bool("setup")); password = "" }
+                                }
+                            }
+                        }, enabled = !busy && ready, icon = AppIcons.server)
+                    }
+                }
+            }
                     }, enabled = !busy && ready, icon = AppIcons.server)
                 }
             }
