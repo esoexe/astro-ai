@@ -368,6 +368,16 @@ Json phone_state_json_locked() {
     }
     o["devices"] = Json(std::move(devs));
     const long long now = now_ms();
+    {
+        extern int g_desk_battery;
+        extern bool g_desk_charging;
+        extern std::string g_desk_device_model;
+        extern long long g_desk_last_ping;
+        if (g_desk_battery >= 0) o["battery"] = Json(static_cast<double>(g_desk_battery));
+        o["charging"] = Json(g_desk_charging);
+        if (!g_desk_device_model.empty()) o["device_model"] = Json(g_desk_device_model);
+        o["phone_online"] = Json(g_desk_last_ping > 0 && (now - g_desk_last_ping) < 35000);
+    }
     if (!g_phone.code.empty() && g_phone.code_expires > now && g_phone.listening) {
         Json::Object p;
         p["code"] = Json(g_phone.code);
@@ -383,6 +393,124 @@ Json phone_state_json_locked() {
         o["pairing"] = Json(std::move(p));
     }
     return Json(std::move(o));
+}
+
+struct PhoneDeskEvent {
+    std::string id;
+    std::string kind;
+    std::string app;
+    std::string title;
+    std::string text;
+    std::string number;
+    std::string contact_name;
+    int battery = -1;
+    bool charging = false;
+    std::string wifi;
+    long long created = 0;
+};
+struct PhoneRemoteAction {
+    std::string id;
+    std::string action;
+    Json args;
+    long long created = 0;
+};
+
+std::mutex g_desk_mu;
+std::vector<PhoneDeskEvent> g_desk_events;
+std::vector<PhoneRemoteAction> g_desk_actions;
+int g_desk_battery = -1;
+bool g_desk_charging = false;
+std::string g_desk_device_model;
+long long g_desk_last_ping = 0;
+
+void phone_record_event(const Json& body) {
+    std::lock_guard<std::mutex> lk(g_desk_mu);
+    PhoneDeskEvent ev;
+    ev.id = random_hex(8);
+    ev.kind = get_string(body, "kind");
+    ev.app = get_string(body, "app");
+    ev.title = get_string(body, "title");
+    ev.text = get_string(body, "text");
+    ev.number = get_string(body, "number");
+    ev.contact_name = get_string(body, "contact_name");
+    ev.created = now_ms();
+
+    if (body.get("battery")) {
+        ev.battery = static_cast<int>(phone_num(body.get("battery")));
+        g_desk_battery = ev.battery;
+    }
+    if (const Json* ch = body.get("charging")) {
+        if (const bool* b = std::get_if<bool>(&ch->value)) {
+            ev.charging = *b;
+            g_desk_charging = *b;
+        }
+    }
+    if (const Json* m = body.get("model")) {
+        if (m->string_ptr()) g_desk_device_model = *m->string_ptr();
+    }
+    g_desk_last_ping = ev.created;
+
+    g_desk_events.push_back(std::move(ev));
+    if (g_desk_events.size() > 50) {
+        g_desk_events.erase(g_desk_events.begin(), g_desk_events.begin() + (g_desk_events.size() - 50));
+    }
+}
+
+Json phone_pop_actions() {
+    std::lock_guard<std::mutex> lk(g_desk_mu);
+    g_desk_last_ping = now_ms();
+    Json::Array arr;
+    for (const auto& a : g_desk_actions) {
+        Json::Object o;
+        o["id"] = Json(a.id);
+        o["action"] = Json(a.action);
+        o["args"] = a.args;
+        arr.push_back(Json(std::move(o)));
+    }
+    g_desk_actions.clear();
+    Json::Object resp;
+    resp["ok"] = Json(true);
+    resp["actions"] = Json(std::move(arr));
+    return Json(std::move(resp));
+}
+
+std::string phone_enqueue_action(const std::string& action, const Json& args) {
+    std::lock_guard<std::mutex> lk(g_desk_mu);
+    PhoneRemoteAction a;
+    a.id = random_hex(8);
+    a.action = action;
+    a.args = args;
+    a.created = now_ms();
+    g_desk_actions.push_back(std::move(a));
+    return a.id;
+}
+
+Json phone_desk_events_json() {
+    std::lock_guard<std::mutex> lk(g_desk_mu);
+    const long long now = now_ms();
+    Json::Array arr;
+    for (const auto& e : g_desk_events) {
+        Json::Object o;
+        o["id"] = Json(e.id);
+        o["kind"] = Json(e.kind);
+        o["app"] = Json(e.app);
+        o["title"] = Json(e.title);
+        o["text"] = Json(e.text);
+        o["number"] = Json(e.number);
+        o["contact_name"] = Json(e.contact_name);
+        o["created"] = Json(static_cast<double>(e.created));
+        if (e.battery >= 0) o["battery"] = Json(static_cast<double>(e.battery));
+        arr.push_back(Json(std::move(o)));
+    }
+    Json::Object resp;
+    resp["ok"] = Json(true);
+    resp["events"] = Json(std::move(arr));
+    resp["battery"] = Json(static_cast<double>(g_desk_battery));
+    resp["charging"] = Json(g_desk_charging);
+    resp["model"] = Json(g_desk_device_model);
+    resp["online"] = Json((now - g_desk_last_ping) < 35000);
+    resp["last_ping_ago_s"] = Json(g_desk_last_ping > 0 ? static_cast<double>((now - g_desk_last_ping) / 1000) : -1.0);
+    return Json(std::move(resp));
 }
 
 // ---- requests that came in through the phone listener. Returns true when the request was answered here.
@@ -447,6 +575,27 @@ bool phone_remote_gate(int fd, const HttpRequest& request) {
         send_json(fd, 401, Json(std::move(o)));
         return true;
     }
+    if (path == "/api/phone/event") {
+        const auto body_opt = parse_request_json(request, fd);
+        if (!body_opt) return true;
+        phone_record_event(*body_opt);
+        send_json(fd, 200, Json(Json::Object{{"ok", Json(true)}}));
+        return true;
+    }
+    if (path == "/api/phone/poll") {
+        send_json(fd, 200, phone_pop_actions());
+        return true;
+    }
+    if (path == "/api/phone/action_result") {
+        send_json(fd, 200, Json(Json::Object{{"ok", Json(true)}}));
+        return true;
+    }
+    if (path == "/api/phone/status") {
+        std::lock_guard lk(g_phone_mu);
+        phone_load_locked();
+        send_json(fd, 200, phone_state_json_locked());
+        return true;
+    }
     if ((path.rfind("/api/phone", 0) == 0 && path.rfind("/api/phone/pro", 0) != 0) || path == "/api/update/download") {
         send_json(fd, 403, error_json("This works only on the computer itself."));
         return true;
@@ -460,6 +609,34 @@ bool handle_pro_api(int fd, const HttpRequest& request);
 bool handle_phone_api(int fd, const HttpRequest& request) {
     const std::string& path = request.path;
     if (path != "/api/phone" && path.rfind("/api/phone/", 0) != 0) return false;
+    if (path == "/api/phone/events" && request.method == "GET") {
+        send_json(fd, 200, phone_desk_events_json());
+        return true;
+    }
+    if (path == "/api/phone/event" && request.method == "POST") {
+        const auto body_opt = parse_request_json(request, fd);
+        if (!body_opt) return true;
+        phone_record_event(*body_opt);
+        send_json(fd, 200, Json(Json::Object{{"ok", Json(true)}}));
+        return true;
+    }
+    if (path == "/api/phone/poll") {
+        send_json(fd, 200, phone_pop_actions());
+        return true;
+    }
+    if (path == "/api/phone/action" && request.method == "POST") {
+        const auto body_opt = parse_request_json(request, fd);
+        if (!body_opt) return true;
+        const std::string action = get_string(*body_opt, "action");
+        if (action.empty()) { send_json(fd, 400, error_json("Need action")); return true; }
+        const Json* args = body_opt->get("args");
+        const std::string act_id = phone_enqueue_action(action, args ? *args : Json(Json::Object{}));
+        Json::Object resp;
+        resp["ok"] = Json(true);
+        resp["action_id"] = Json(act_id);
+        send_json(fd, 200, Json(std::move(resp)));
+        return true;
+    }
     if (path.rfind("/api/phone/pro", 0) == 0) {
         HttpRequest pro_req = request;
         pro_req.path = path.substr(10); // "/api/phone/pro/..." -> "/api/pro/..."

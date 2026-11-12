@@ -4,8 +4,6 @@
     <!-- Models are reached over the internet; the built-in engine listens only on 127.0.0.1 inside the phone. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- Camera for scanning pairing QR code directly inside the app. -->
-    <uses-permission android:name="android.permission.CAMERA" />
     <!-- Voice input and Live voice (asked the first time you tap the microphone; never in the background). -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Reminders you set: a notification at the time you chose, also after a restart of the phone. -->
@@ -19,7 +17,6 @@
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <queries>
         <intent><action android:name="android.speech.RecognitionService" /></intent>

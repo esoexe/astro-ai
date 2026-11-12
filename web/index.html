@@ -36,6 +36,8 @@
   <link rel="stylesheet" href="/re.css">
   <link rel="stylesheet" href="/desktop.css">
   <link rel="stylesheet" href="/agent.css">
+  <link rel="stylesheet" href="/hud.css">
+  <script src="/astro_voice.js" defer></script>
   <script src="/i18n.js" defer></script>
   <script src="/agent_audit.js" defer></script>
   <script src="/lib3core.js" defer></script>
@@ -204,7 +206,21 @@
         <div class="view-title" id="current-view-label" hidden></div>
         <button class="cmdk" id="top-search" type="button" title="Search chats, notes, tasks and commands"><svg><use href="#i-search"/></svg><span>Search or jump to…</span><kbd>Ctrl K</kbd></button>
         <div class="top-actions">
-          <button class="pro-pill" id="top-pro-pill" type="button" title="A.S.T.R.O AI Pro: Executive HUD, Dual-Presence & Contact Gate">
+          <button class="hud-pill" id="tb-voice-wave-pill" type="button" title="Voice Output Telemetry">
+            <span class="hud-voice-wave" id="astro-voice-wave">
+              <span></span><span></span><span></span><span></span><span></span>
+            </span>
+            <span id="voice-status-text">Neural Voice</span>
+          </button>
+          <button class="icon-btn" id="tb-voice-mute" type="button" title="Voice Mute on/off" aria-label="Toggle Voice Mute">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+          </button>
+          <button class="hud-pill" id="top-phone-pill" type="button" title="Phone Companion &amp; Desk">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="15" height="15"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+            <span class="dot" id="phone-dot"></span>
+            <span id="phone-pill-text">Phone</span>
+          </button>
+          <button class="pro-pill" id="top-pro-pill" type="button" title="A.S.T.R.O AI Pro: Executive HUD, Dual-Presence &amp; Contact Gate">
             <svg><use href="#i-pro-badge"/></svg>
             <span class="pro-pill-orb"></span>
             <span id="top-pro-bridge-text">A.S.T.R.O Pro</span>

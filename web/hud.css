@@ -1,0 +1,279 @@
+/* =============================================================================================
+   A.S.T.R.O AI - Futuristic Cybernetic HUD & Telemetry Stylesheet
+   Integrated from E.D.I.T.H visual design system.
+   ============================================================================================= */
+
+:root {
+  --hud-cyan: #38e8ff;
+  --hud-cyan-rgb: 56, 232, 255;
+  --hud-amber: #ffb347;
+  --hud-amber-rgb: 255, 179, 71;
+  --hud-green: #4dff9a;
+  --hud-green-rgb: 77, 255, 154;
+  --hud-violet: #b48cff;
+  --hud-violet-rgb: 180, 140, 255;
+  --hud-red: #ff4d5e;
+  --hud-red-rgb: 255, 77, 94;
+
+  --accent: var(--hud-cyan);
+  --accent-rgb: var(--hud-cyan-rgb);
+  --hud-bg: #03080f;
+  --hud-bg-elevated: #061220;
+  --hud-panel: rgba(8, 20, 34, 0.78);
+  --hud-line: rgba(var(--accent-rgb), 0.18);
+  --hud-line-strong: rgba(var(--accent-rgb), 0.42);
+  --hud-glow: 0 0 16px rgba(var(--accent-rgb), 0.25);
+  --hud-mono: "Cascadia Code", "Consolas", "JetBrains Mono", monospace;
+}
+
+[data-theme="amber"] {
+  --accent: var(--hud-amber);
+  --accent-rgb: var(--hud-amber-rgb);
+}
+[data-theme="green"] {
+  --accent: var(--hud-green);
+  --accent-rgb: var(--hud-green-rgb);
+}
+[data-theme="violet"] {
+  --accent: var(--hud-violet);
+  --accent-rgb: var(--hud-violet-rgb);
+}
+[data-theme="red"] {
+  --accent: var(--hud-red);
+  --accent-rgb: var(--hud-red-rgb);
+}
+
+/* Subtle holographic background texture */
+html[data-shell="desktop"], body {
+  background-color: var(--hud-bg);
+  background-image:
+    radial-gradient(1200px 700px at 30% 30%, rgba(var(--accent-rgb), 0.08), transparent 60%),
+    radial-gradient(800px 500px at 85% 85%, rgba(var(--accent-rgb), 0.05), transparent 60%),
+    linear-gradient(rgba(var(--accent-rgb), 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb), 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+}
+
+/* HUD Telemetry Top Bar */
+.hud-telemetry-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--hud-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--color-text-weak, #7f9db3);
+}
+
+.hud-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--hud-line);
+  background: rgba(var(--accent-rgb), 0.06);
+  color: var(--accent);
+  transition: all 0.2s ease;
+  font-family: var(--hud-mono);
+  font-size: 11px;
+}
+
+.hud-pill:hover {
+  background: rgba(var(--accent-rgb), 0.12);
+  border-color: var(--hud-line-strong);
+}
+
+.hud-pill .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+.hud-pill .dot.live {
+  animation: hudPulse 1.8s infinite;
+}
+
+@keyframes hudPulse {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 10px var(--accent); }
+  100% { transform: scale(0.9); opacity: 0.6; }
+}
+
+/* Audio Waveform Animation in Top Bar */
+.hud-voice-wave {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 14px;
+  padding: 0 4px;
+}
+
+.hud-voice-wave span {
+  display: block;
+  width: 2px;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 1px;
+  transition: height 0.15s ease;
+}
+
+.hud-voice-wave.active span {
+  animation: hudWave 0.8s ease-in-out infinite alternate;
+}
+
+.hud-voice-wave.active span:nth-child(1) { animation-delay: 0.0s; }
+.hud-voice-wave.active span:nth-child(2) { animation-delay: 0.15s; }
+.hud-voice-wave.active span:nth-child(3) { animation-delay: 0.3s; }
+.hud-voice-wave.active span:nth-child(4) { animation-delay: 0.45s; }
+.hud-voice-wave.active span:nth-child(5) { animation-delay: 0.6s; }
+
+@keyframes hudWave {
+  0% { height: 3px; opacity: 0.4; }
+  100% { height: 14px; opacity: 1; box-shadow: 0 0 4px var(--accent); }
+}
+
+/* Voice Dictation Pulse on Mic Button */
+#voice-input-btn.listening {
+  color: var(--hud-red) !important;
+  border-color: var(--hud-red) !important;
+  box-shadow: 0 0 12px rgba(255, 77, 94, 0.4) !important;
+  animation: hudMicPulse 1s infinite alternate;
+}
+
+@keyframes hudMicPulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.12); }
+}
+
+/* Custom Providers Card Layout */
+.custom-provider-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--hud-line);
+  background: rgba(8, 20, 34, 0.55);
+  backdrop-filter: blur(8px);
+  margin-bottom: 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.custom-provider-card:hover {
+  border-color: var(--hud-line-strong);
+  box-shadow: 0 2px 12px rgba(var(--accent-rgb), 0.1);
+}
+
+.custom-provider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.custom-provider-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-text-strong, #fff);
+}
+
+.custom-provider-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--hud-mono);
+  font-size: 11px;
+  color: var(--color-text-weak, #7f9db3);
+}
+
+.custom-provider-meta code {
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.08);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.custom-provider-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.test-badge {
+  font-family: var(--hud-mono);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.test-badge.ok {
+  background: rgba(77, 255, 154, 0.15);
+  color: var(--hud-green);
+  border: 1px solid rgba(77, 255, 154, 0.3);
+}
+
+.test-badge.bad {
+  background: rgba(255, 77, 94, 0.15);
+  color: var(--hud-red);
+  border: 1px solid rgba(255, 77, 94, 0.3);
+}
+
+/* Phone Companion Status Telemetry */
+.phone-desk-status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--hud-line);
+  background: rgba(8, 20, 34, 0.65);
+  margin: 12px 0;
+}
+
+.phone-desk-battery {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--hud-mono);
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.phone-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+/* Sleek Cybernetic Dialog adjustments */
+.modal-box {
+  background: rgba(6, 15, 26, 0.96) !important;
+  border: 1px solid var(--hud-line-strong) !important;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.75), 0 0 24px rgba(var(--accent-rgb), 0.18) !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+.modal-box .tabs .tab.active {
+  color: var(--accent) !important;
+  border-bottom-color: var(--accent) !important;
+  text-shadow: 0 0 8px rgba(var(--accent-rgb), 0.5) !important;
+}
+
+.btn.primary {
+  background: var(--accent) !important;
+  color: #03080f !important;
+  font-weight: 600 !important;
+  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.35) !important;
+}
+
+.btn.primary:hover {
+  box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.6) !important;
+}

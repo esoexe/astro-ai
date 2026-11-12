@@ -1112,6 +1112,9 @@ void send_response(int fd, int status, std::string_view content_type, const std:
            << "Content-Type: " << content_type << "\r\n"
            << "Content-Length: " << body.size() << "\r\n"
            << "Connection: close\r\n"
+           << "Access-Control-Allow-Origin: *\r\n"
+           << "Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS\r\n"
+           << "Access-Control-Allow-Headers: *\r\n"
            << "X-Content-Type-Options: nosniff\r\n"
            << "Cache-Control: no-store\r\n";
     if (static_file) header << "Referrer-Policy: no-referrer\r\n";
@@ -1874,6 +1877,8 @@ std::string short_model_name(const std::string& model) {
     return name.empty() ? model : name;
 }
 
+void custom_providers_load_locked();
+
 void build_registry() {
     g_routes.clear();
     g_providers.clear();
@@ -2042,6 +2047,9 @@ void build_registry() {
             g_routes.insert(g_routes.begin(), std::move(r));
         }
     }
+    // Load dynamically added Custom Providers from astro_data/custom_providers.json
+    custom_providers_load_locked();
+
     int connected = 0;
     for (const auto& p : g_providers) connected += p.connected ? 1 : 0;
     std::cout << "A.S.T.R.O AI brain: " << g_routes.size() << " models from " << connected << " connected provider(s)";
@@ -2413,6 +2421,7 @@ void load_runtime_credentials() {
 
 #include "astro_ext.inc"
 #include "astro_phone.inc"
+#include "astro_custom_providers.inc"
 #include "astro_pro.inc"     // A.S.T.R.O AI Pro: Executive HUD, Sentinel, Dual-Presence & Contact Bridge
 #include "workspace_code.inc"
 #include "workspace_ide.inc"
@@ -2430,6 +2439,7 @@ void handle_api(int fd, const HttpRequest& request) {
         return;
     }
     if (handle_phone_api(fd, request)) return;
+    if (handle_custom_providers_api(fd, request)) return;
     if (handle_pro_api(fd, request)) return;
     if (handle_workspace_api(fd, request)) return;
     if (handle_ide_api(fd, request)) return;
@@ -2572,6 +2582,11 @@ void handle_client(int fd) {
     std::string error_message;
     if (!read_request(fd, request, error_status, error_message)) {
         send_json(fd, error_status, error_json(error_message));
+        sock_close(fd);
+        return;
+    }
+    if (request.method == "OPTIONS") {
+        send_response(fd, 204, "text/plain; charset=utf-8", "");
         sock_close(fd);
         return;
     }

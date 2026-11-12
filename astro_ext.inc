@@ -122,8 +122,10 @@ std::string new_session_locked() {
     save_sessions_locked();
     return token;
 }
-// The session token can arrive three ways. Preview proxies may replace or strip Authorization,
-// so every candidate is checked: x-astro-token header, Authorization: Bearer, astro_session cookie.
+std::string url_unescape(const std::string& text);
+
+// The session token can arrive multiple ways: x-astro-token header, Authorization: Bearer,
+// astro_session cookie, or ?t= / ?token= query parameter (matching mobile companion Net.java).
 std::vector<std::string> request_tokens(const HttpRequest& r) {
     std::vector<std::string> out;
     if (auto it = r.headers.find("x-astro-token"); it != r.headers.end()) out.push_back(trim(it->second));
@@ -135,6 +137,26 @@ std::vector<std::string> request_tokens(const HttpRequest& r) {
             const std::size_t start = p + 14, end = c.find(';', start);
             out.push_back(trim(c.substr(start, end == std::string::npos ? std::string::npos : end - start)));
         }
+    }
+    if (auto qpos = r.path.find('?'); qpos != std::string::npos) {
+        const std::string q = r.path.substr(qpos + 1);
+        auto extract_param = [&](const std::string& k) {
+            std::size_t pos = 0;
+            while (pos < q.size()) {
+                if (q.compare(pos, k.size() + 1, k + "=") == 0) {
+                    const std::size_t val_start = pos + k.size() + 1;
+                    const std::size_t amp = q.find('&', val_start);
+                    std::string raw = q.substr(val_start, amp == std::string::npos ? std::string::npos : amp - val_start);
+                    out.push_back(trim(url_unescape(raw)));
+                    break;
+                }
+                const std::size_t next_amp = q.find('&', pos);
+                if (next_amp == std::string::npos) break;
+                pos = next_amp + 1;
+            }
+        };
+        extract_param("t");
+        extract_param("token");
     }
     std::erase_if(out, [](const std::string& t) { return t.size() < 32 || t.size() > 200; });
     return out;

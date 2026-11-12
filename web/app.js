@@ -1075,6 +1075,9 @@
 
   async function streamDraft(d, payload, signal, sopts = {}) {
     const paint = sopts.onUpdate || (() => schedulePaint(d));
+    const splitter = (window.AstroVoice && state.voice?.autoSpeak && !window.AstroVoice?.muted && window.SentenceSplitter)
+      ? new window.SentenceSplitter((s) => window.AstroVoice.speakChunk(s))
+      : null;
     try {
       const response = await fetch('/api/chat/stream', {
         method: 'POST', signal, headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
@@ -1104,6 +1107,7 @@
               d.content += ev.delta;
               if (d.content.length > LIMITS.draftChars) d.content = d.content.slice(0, LIMITS.draftChars);
               paint();
+              if (splitter) splitter.push(ev.delta);
             } else if (ev.thinking !== undefined) {
               if (typeof ev.thinking === 'string' && d.thinking.length < LIMITS.thinkingChars) d.thinking += ev.thinking;
               else if (!d.thinking) d.thinking = ' ';
@@ -1120,6 +1124,7 @@
           }
         }
       }
+      if (splitter) splitter.flush();
       if (streamError && !d.content) throw new Error(streamError);
       if (!d.content) throw new Error('The model returned an empty answer.');
       if (streamError) d.content += `\n\n_(Interrupted: ${streamError})_`;
@@ -1846,14 +1851,18 @@
     if (tab === 'account') return accountTabHtml();
     if (tab === 'phone') return '<div id="phone-tab"><p class="hint">Loading…</p></div>';
     if (tab === 'voice') {
+      const edgeOpts = (window.EDGE_VOICES || []).map((v) => `<option value="${esc(v.id)}"${(state.voice.edgeVoice || 'en-GB-SoniaNeural') === v.id ? ' selected' : ''}>${esc(v.name)} (${esc(v.gender)}) · ${esc(v.id.split('-')[0])}</option>`).join('');
       const voices = 'speechSynthesis' in window ? speechSynthesis.getVoices() : [];
       const opts = voices.slice().sort((a, b) => a.lang.localeCompare(b.lang) || a.name.localeCompare(b.name)).map((v) => `<option value="${esc(v.name)}"${state.voice.name === v.name ? ' selected' : ''}>${esc(v.name)} · ${esc(v.lang)}</option>`).join('');
-      return `<div class="set-row"><div class="lbl"><b>Voice</b><small>Voices come from your browser and device. Names with “Natural” or “Online” usually sound best.</small></div><select class="input" id="set-voice"><option value="">Automatic (best for each language)</option>${opts}</select></div>
-        <div class="set-row"><div class="lbl"><b>Natural voice (offline)</b><small id="nv-state">A neural voice that runs on this computer (Piper). Sounds much more natural than most system voices, and works offline. Checking…</small><div class="btn-row nv-btns" id="nv-btns" style="margin:8px 0 0"></div></div><select class="input" id="set-voice-engine" style="flex:none;width:auto;min-width:170px;max-width:230px"><option value="auto"${state.voice.engine !== 'system' ? ' selected' : ''}>Use when installed</option><option value="system"${state.voice.engine === 'system' ? ' selected' : ''}>System voices only</option></select></div>
+      const isEdge = (state.voice.engine || 'edge') !== 'system';
+      return `<div class="set-row"><div class="lbl"><b>Speech Engine</b><small>Microsoft Edge Neural Voice provides high-definition streaming speech directly in the browser.</small></div><select class="input" id="set-voice-engine" style="flex:none;width:auto;min-width:200px"><option value="edge"${isEdge ? ' selected' : ''}>Microsoft Edge Neural (HD Streaming)</option><option value="system"${!isEdge ? ' selected' : ''}>System Browser Speech</option></select></div>
+        <div class="set-row" id="row-edge-voice" style="${isEdge ? '' : 'display:none'}"><div class="lbl"><b>Neural Voice</b><small>Ultra-realistic natural cadence with clean markdown filtering.</small></div><select class="input" id="set-edge-voice">${edgeOpts}</select></div>
+        <div class="set-row" id="row-sys-voice" style="${isEdge ? 'display:none' : ''}"><div class="lbl"><b>System Voice</b><small>Local voices installed on this device.</small></div><select class="input" id="set-voice"><option value="">Automatic (best for each language)</option>${opts}</select></div>
         <div class="set-row"><div class="lbl"><b>Speaking speed</b><small id="rate-val">${state.voice.rate.toFixed(2)}×</small></div><input type="range" class="range" id="set-rate" min="0.6" max="1.6" step="0.05" value="${state.voice.rate}"></div>
+        <div class="set-row"><div class="lbl"><b>Sentence-level streaming speech</b><small>Audio synthesis begins as soon as the first sentence is generated.</small></div><label class="switch"><input type="checkbox" id="set-sentence-stream" checked disabled><span></span></label></div>
         <div class="set-row"><div class="lbl"><b>Read every reply aloud</b><small>Replies are also read aloud automatically after you dictate a message</small></div><label class="switch"><input type="checkbox" id="set-autospeak"${state.voice.autoSpeak ? ' checked' : ''}><span></span></label></div>
         <div class="btn-row"><button type="button" class="btn" id="test-voice">${icon('i-speaker')}Test voice</button><button type="button" class="btn primary" id="settings-live">${icon('i-wave')}Start Live</button></div>
-        <p class="hint">Live listens with your browser's speech recognition. Chrome and Edge send the audio to their own speech service. It answers with the voices installed on your device. If the microphone is blocked inside the preview, open A.S.T.R.O AI in its own tab. Tap the orb or the button to interrupt.</p>`;
+        <p class="hint">A.S.T.R.O Voice Desk uses WebSocket streaming from Edge Neural TTS. Markdown, emojis, and code are stripped before speech so replies sound natural. Tap the speaker icon in the top HUD to mute at any time.</p>`;
     }
     if (tab === 'memory') {
       return `<p class="sub" style="margin-top:0">A.S.T.R.O AI uses these facts to personalize answers. You can add them here, by saying “remember that…” or with /remember. They are stored only in this browser and sent with your messages to the model that answers.</p>
@@ -1934,13 +1943,44 @@
     if (tab === 'phone') { bindPhoneTab(); return; }
     if (tab === 'voice') {
       const saveVoice = () => ls.set(KEYS.voice, JSON.stringify(state.voice));
-      $('#set-voice').addEventListener('change', (e) => { state.voice.name = e.target.value; saveVoice(); });
-      $('#set-rate').addEventListener('input', (e) => { state.voice.rate = Number(e.target.value); $('#rate-val').textContent = `${state.voice.rate.toFixed(2)}×`; saveVoice(); });
-      $('#set-autospeak').addEventListener('change', (e) => { state.voice.autoSpeak = e.target.checked; saveVoice(); });
-      $('#set-voice-engine')?.addEventListener('change', (e) => { state.voice.engine = e.target.value; NV.broken = false; saveVoice(); });
-      paintNaturalVoice();
-      $('#test-voice').addEventListener('click', () => { TTS.cancel(); speakText(state.language === 'French' ? 'Bonjour ! Je suis A.S.T.R.O AI, votre cerveau collectif.' : state.language === 'Arabic' ? 'مرحبا! أنا أسترو، عقل واحد من عقول كثيرة. كيف أساعدك؟' : 'Hi! I am A.S.T.R.O AI, one brain made of many minds. How can I help?'); });
-      $('#settings-live').addEventListener('click', () => { closeModal(); openLive(); });
+      $('#set-voice')?.addEventListener('change', (e) => { state.voice.name = e.target.value; saveVoice(); });
+      $('#set-edge-voice')?.addEventListener('change', (e) => {
+        state.voice.edgeVoice = e.target.value;
+        window.AstroVoice?.setVoice(e.target.value);
+        saveVoice();
+      });
+      $('#set-rate')?.addEventListener('input', (e) => {
+        state.voice.rate = Number(e.target.value);
+        $('#rate-val').textContent = `${state.voice.rate.toFixed(2)}×`;
+        window.AstroVoice?.setRate(state.voice.rate);
+        saveVoice();
+      });
+      $('#set-autospeak')?.addEventListener('change', (e) => {
+        state.voice.autoSpeak = e.target.checked;
+        window.AstroVoice?.setAutoSpeak(e.target.checked);
+        saveVoice();
+      });
+      $('#set-voice-engine')?.addEventListener('change', (e) => {
+        state.voice.engine = e.target.value;
+        window.AstroVoice?.setEngine(e.target.value);
+        saveVoice();
+        const rowEdge = $('#row-edge-voice');
+        const rowSys = $('#row-sys-voice');
+        if (rowEdge && rowSys) {
+          rowEdge.style.display = e.target.value === 'system' ? 'none' : '';
+          rowSys.style.display = e.target.value === 'system' ? '' : 'none';
+        }
+      });
+      $('#test-voice')?.addEventListener('click', () => {
+        if (window.AstroVoice && (state.voice.engine || 'edge') !== 'system') {
+          window.AstroVoice.stop();
+          window.AstroVoice.speakChunk('Greetings! I am A.S.T.R.O AI, your collective intelligence assistant. All systems operational.');
+        } else {
+          TTS.cancel();
+          speakText(state.language === 'French' ? 'Bonjour ! Je suis A.S.T.R.O AI, votre cerveau collectif.' : state.language === 'Arabic' ? 'مرحبا! أنا أسترو، عقل واحد من عقول كثيرة. كيف أساعدك؟' : 'Hi! I am A.S.T.R.O AI, one brain made of many minds. How can I help?');
+        }
+      });
+      $('#settings-live')?.addEventListener('click', () => { closeModal(); openLive(); });
     }
     if (tab === 'memory') {
       $('#memory-form').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#memory-input').value.trim(); if (!v) return; TOOLS.remember({ fact: v }); openSettings('memory'); setTimeout(() => $('#memory-input')?.focus(), 30); });
@@ -3090,6 +3130,10 @@
     return out;
   }
   function speakText(text) {
+    if (window.AstroVoice && !window.AstroVoice.muted) {
+      window.AstroVoice.speakChunk(text);
+      return;
+    }
     if (!canSpeak()) return;
     for (const chunk of speechChunks(text)) TTS.speak(makeUtterance(chunk));
   }
@@ -3690,12 +3734,151 @@
     $('#runner-save').addEventListener('click', () => download('astro-run.html', doc, 'text/html;charset=utf-8'));
   }
 
+  // ---------- Custom AI Providers (Settings) ----------
+  async function loadCustomProviders() {
+    const listEl = $('#custom-prov-list', el.modal);
+    if (!listEl) return;
+    try {
+      const res = await apiJson('/api/custom_providers', null, 'GET');
+      const provs = res.providers || [];
+      if (!provs.length) {
+        listEl.innerHTML = '<p class="hint" style="margin:6px 0">No custom providers configured yet. Tap Add Custom Provider above to connect any local Ollama, LM Studio, or custom OpenAI endpoint.</p>';
+        return;
+      }
+      listEl.innerHTML = provs.map((p) => `
+        <div class="custom-provider-card" data-cp-id="${esc(p.id)}">
+          <div class="custom-provider-header">
+            <div class="custom-provider-title">
+              <span class="dot ${p.enabled ? 'on' : 'off'}"></span>
+              <b>${esc(p.name)}</b>
+              <span class="pbadge ${p.enabled ? 'on' : 'off'}">${p.enabled ? 'active' : 'disabled'}</span>
+            </div>
+            <div class="custom-provider-actions">
+              <button type="button" class="btn small" data-cp-test="${esc(p.id)}">${icon('i-bolt')}Test</button>
+              <label class="switch" style="margin:0"><input type="checkbox" data-cp-toggle="${esc(p.id)}"${p.enabled ? ' checked' : ''}><span></span></label>
+              <button type="button" class="btn danger small" data-cp-del="${esc(p.id)}">${icon('i-trash')}</button>
+            </div>
+          </div>
+          <div class="custom-provider-meta">
+            <span>Model: <code>${esc(p.model)}</code></span>
+            <span>URL: <code>${esc(p.base_url)}</code></span>
+            <span>Type: ${esc(p.kind)}</span>
+            ${p.has_key ? '<span>Key: Configured</span>' : '<span>Key: None</span>'}
+          </div>
+          <div class="test-badge" id="cp-badge-${esc(p.id)}" style="display:none;margin-top:6px"></div>
+        </div>
+      `).join('');
+
+      $$('[data-cp-del]', listEl).forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.cpDel;
+          if (confirm('Delete this custom provider?')) {
+            try {
+              await apiJson(`/api/custom_providers?id=${encodeURIComponent(id)}`, null, 'DELETE');
+              toast('Custom provider deleted');
+              await refreshStatus();
+              loadCustomProviders();
+            } catch (err) { toast(err.message, 'error'); }
+          }
+        });
+      });
+
+      $$('[data-cp-toggle]', listEl).forEach((toggle) => {
+        toggle.addEventListener('change', async (e) => {
+          const id = toggle.dataset.cpToggle;
+          const match = provs.find((x) => x.id === id);
+          if (match) {
+            try {
+              await apiJson('/api/custom_providers', { ...match, enabled: e.target.checked });
+              toast(e.target.checked ? 'Provider activated' : 'Provider disabled');
+              await refreshStatus();
+              loadCustomProviders();
+            } catch (err) { toast(err.message, 'error'); }
+          }
+        });
+      });
+
+      $$('[data-cp-test]', listEl).forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.cpTest;
+          const match = provs.find((x) => x.id === id);
+          const badge = $(`#cp-badge-${CSS.escape(id)}`, listEl);
+          if (!match || !badge) return;
+          btn.disabled = true;
+          badge.style.display = 'block';
+          badge.className = 'test-badge';
+          badge.textContent = 'Testing connection…';
+          try {
+            const res = await apiJson('/api/custom_providers/test', {
+              id: match.id,
+              base_url: match.base_url,
+              api_key: match.api_key,
+              model: match.model,
+              kind: match.kind
+            });
+            if (res.ok) {
+              badge.className = 'test-badge ok';
+              badge.textContent = `✓ Connected in ${Math.round(res.ms)} ms: ${res.model} replied "${res.reply || 'OK'}"`;
+            } else {
+              badge.className = 'test-badge bad';
+              badge.textContent = `✗ Failed: ${res.error}`;
+            }
+          } catch (err) {
+            badge.className = 'test-badge bad';
+            badge.textContent = `✗ Error: ${err.message}`;
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      });
+    } catch (e) {
+      listEl.innerHTML = `<p class="hint" style="color:var(--hud-red)">Failed to load custom providers: ${esc(e.message)}</p>`;
+    }
+  }
+
   // ---------- Providers & keys (Settings) ----------
   let keysCache = null; let usageCache = null;
   function providersTabHtml() {
     const box = '<div id="prov-box"><p class="hint">Loading providers…</p></div>';
-    setTimeout(loadProvidersTab, 0);
-    return `<div class="set-row"><div class="lbl"><b>Allow providers that may train on prompts</b><small>Some free tiers (mostly keyless ones) may log or use prompts for training. Turn off to keep them out of One Brain.</small></div><label class="switch"><input type="checkbox" id="set-train"${state.brain.allowTrain !== false ? ' checked' : ''}><span></span></label></div>
+    setTimeout(() => {
+      loadCustomProviders();
+      loadProvidersTab();
+    }, 0);
+    return `
+      <div class="custom-providers-section" style="margin-bottom:20px;padding:16px;border-radius:10px;background:rgba(var(--accent-rgb),0.04);border:1px solid var(--hud-line-strong)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px">
+          <div>
+            <b style="font-size:15px;color:var(--color-text-strong)">Custom AI Providers</b>
+            <p class="hint" style="margin:2px 0 0">Connect local or cloud endpoints (Ollama, LM Studio, vLLM, DeepSeek, custom proxies).</p>
+          </div>
+          <button type="button" class="btn primary" id="btn-add-custom-prov">${icon('i-plus')}Add Custom Provider</button>
+        </div>
+        <div id="custom-prov-form-container" hidden style="margin-bottom:16px;padding:14px;border-radius:8px;background:var(--hud-bg-elevated);border:1px solid var(--hud-line)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div><label class="lbl" style="font-size:12px">Provider Name</label><input class="input" id="cp-name" placeholder="e.g. Local Ollama or DeepSeek API"></div>
+            <div><label class="lbl" style="font-size:12px">Endpoint Type</label><select class="input" id="cp-kind"><option value="openai">OpenAI Compatible (/v1/chat/completions)</option><option value="ollama">Ollama Native / v1</option></select></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:10px;margin-bottom:10px">
+            <div><label class="lbl" style="font-size:12px">Base URL</label><input class="input" id="cp-url" placeholder="http://127.0.0.1:11434/v1 or https://api.deepseek.com/v1"></div>
+            <div><label class="lbl" style="font-size:12px">Model ID</label><input class="input" id="cp-model" placeholder="e.g. llama3.2, deepseek-chat"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div><label class="lbl" style="font-size:12px">API Key (optional if local)</label><input class="input" type="password" id="cp-key" placeholder="Bearer token or leave empty"></div>
+            <div><label class="lbl" style="font-size:12px">Vision Model ID (optional)</label><input class="input" id="cp-vision" placeholder="e.g. llava, qwen-vl"></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div id="cp-test-status" class="test-badge" style="display:none"></div>
+            <div class="btn-row" style="margin:0;gap:8px">
+              <button type="button" class="btn" id="cp-btn-test">${icon('i-bolt')}Test Connection</button>
+              <button type="button" class="btn primary" id="cp-btn-save">Save &amp; Activate</button>
+              <button type="button" class="btn ghost" id="cp-btn-cancel">Cancel</button>
+            </div>
+          </div>
+        </div>
+        <div id="custom-prov-list"><p class="hint">Loading custom providers…</p></div>
+      </div>
+
+      <div class="set-row"><div class="lbl"><b>Allow providers that may train on prompts</b><small>Some free tiers (mostly keyless ones) may log or use prompts for training. Turn off to keep them out of One Brain.</small></div><label class="switch"><input type="checkbox" id="set-train"${state.brain.allowTrain !== false ? ' checked' : ''}><span></span></label></div>
       <label class="field-search prov-search">${icon('i-search')}<input id="prov-filter" type="search" placeholder="Find a provider (Atria, Groq, Gemini…)" aria-label="Find a provider"></label>
       ${box}`;
   }
@@ -3823,6 +4006,84 @@
   function bindProvidersTab() {
     $('#set-train').addEventListener('change', (e) => { state.brain.allowTrain = e.target.checked; ls.set(KEYS.brain, JSON.stringify(state.brain)); updateStatus({}); });
     $('#prov-filter').addEventListener('input', paintProviders);
+
+    const btnAdd = $('#btn-add-custom-prov', el.modal);
+    const formBox = $('#custom-prov-form-container', el.modal);
+    const btnCancel = $('#cp-btn-cancel', el.modal);
+    const btnTest = $('#cp-btn-test', el.modal);
+    const btnSave = $('#cp-btn-save', el.modal);
+    const testStatus = $('#cp-test-status', el.modal);
+
+    btnAdd?.addEventListener('click', () => {
+      formBox.hidden = false;
+      $('#cp-name', el.modal)?.focus();
+    });
+    btnCancel?.addEventListener('click', () => {
+      formBox.hidden = true;
+    });
+
+    btnTest?.addEventListener('click', async () => {
+      const base_url = $('#cp-url', el.modal)?.value.trim();
+      const model = $('#cp-model', el.modal)?.value.trim();
+      const api_key = $('#cp-key', el.modal)?.value.trim();
+      const kind = $('#cp-kind', el.modal)?.value || 'openai';
+      if (!base_url || !model) {
+        toast('Enter both Base URL and Model ID to test', 'error');
+        return;
+      }
+      btnTest.disabled = true;
+      testStatus.style.display = 'block';
+      testStatus.className = 'test-badge';
+      testStatus.textContent = 'Testing connection…';
+      try {
+        const res = await apiJson('/api/custom_providers/test', { base_url, model, api_key, kind });
+        if (res.ok) {
+          testStatus.className = 'test-badge ok';
+          testStatus.textContent = `✓ Connected in ${Math.round(res.ms)} ms: ${res.model} replied "${res.reply || 'OK'}"`;
+        } else {
+          testStatus.className = 'test-badge bad';
+          testStatus.textContent = `✗ Test failed: ${res.error}`;
+        }
+      } catch (err) {
+        testStatus.className = 'test-badge bad';
+        testStatus.textContent = `✗ Error: ${err.message}`;
+      } finally {
+        btnTest.disabled = false;
+      }
+    });
+
+    btnSave?.addEventListener('click', async () => {
+      const name = $('#cp-name', el.modal)?.value.trim();
+      const base_url = $('#cp-url', el.modal)?.value.trim();
+      const model = $('#cp-model', el.modal)?.value.trim();
+      const api_key = $('#cp-key', el.modal)?.value.trim();
+      const vision_model = $('#cp-vision', el.modal)?.value.trim();
+      const kind = $('#cp-kind', el.modal)?.value || 'openai';
+      if (!base_url || !model) {
+        toast('Enter both Base URL and Model ID', 'error');
+        return;
+      }
+      btnSave.disabled = true;
+      try {
+        await apiJson('/api/custom_providers', {
+          name: name || `Custom ${model}`,
+          base_url,
+          model,
+          api_key,
+          vision_model,
+          kind,
+          enabled: true
+        });
+        toast(`Custom provider "${name || model}" added and activated!`);
+        formBox.hidden = true;
+        await refreshStatus();
+        loadCustomProviders();
+      } catch (err) {
+        toast(`Save failed: ${err.message}`, 'error');
+      } finally {
+        btnSave.disabled = false;
+      }
+    });
     if (el.modal._prov) el.modal.removeEventListener('click', el.modal._prov);
     el.modal._prov = async (e) => {
       const gs = e.target.closest('[data-guide-save]');
@@ -3884,9 +4145,8 @@
         ? `<div class="box phone-pair" style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
              <div style="width:180px;height:180px;flex:none;background:#fff;border-radius:10px;padding:6px">${p.qr && p.qr.svg ? `<img alt="QR code" src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(p.qr.svg)}" style="width:100%;height:100%;display:block;image-rendering:pixelated">` : ''}</div>
              <div style="flex:1;min-width:220px">
-               <p style="margin:0 0 10px">Scan this QR code with your phone's camera. Or, in the A.S.T.R.O AI app, tap Connect to my computer and enter:</p>
-               <div class="set-row" style="padding:4px 0"><div class="lbl"><b>Address</b></div><div>${(st.urls || []).slice(0, 1).map((u) => `<code>${esc(u)}</code>`).join('')}</div></div>
-               <div class="set-row" style="padding:4px 0"><div class="lbl"><b>Code</b></div><div><code style="font-size:22px;letter-spacing:3px">${esc(p.code.slice(0, 4) + ' ' + p.code.slice(4))}</code></div></div>
+               <p style="margin:0 0 10px;font-weight:500">Scan this QR code using the built-in QR scanner in the A.S.T.R.O AI Android app.</p>
+               <p class="hint">Instant one-tap pairing. Keys and credentials exchange securely across your local Wi-Fi or private network.</p>
                <p class="hint"><span>${esc('Expires in ' + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0'))}</span></p>
                <button type="button" class="btn" id="phone-cancel">Cancel</button>
              </div></div>`
@@ -3894,11 +4154,30 @@
       const devs = st.devices || [];
       const list = devs.length ? `<ul class="provider-list">${devs.map((d) => `<li class="provider-row on"><span class="dot"></span><div><b>${esc(d.name)}</b><small><span>Paired</span> ${esc(when(d.created))} · <span>Last used</span> ${esc(when(d.last_seen))}</small></div><button type="button" class="btn danger" data-phone-remove="${esc(d.id)}">Remove</button></li>`).join('')}</ul>`
         : '<p class="hint">No phones paired yet.</p>';
+      const desk = devs.length ? `
+        <div class="phone-desk-status">
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="dot ${st.phone_online ? 'on' : ''}"></span>
+              <b>${esc(st.device_model || (devs[0]?.name) || 'Paired Phone')}</b>
+              <span class="pbadge ${st.phone_online ? 'on' : 'off'}">${st.phone_online ? 'Online' : 'Offline'}</span>
+            </div>
+            <div style="margin-top:6px;font-family:var(--hud-mono);font-size:12px;color:var(--color-text-weak)">
+              ${st.battery >= 0 ? `<span>Battery: <b style="color:var(--accent)">${st.battery}%</b>${st.charging ? ' (Charging ⚡)' : ''}</span>` : '<span>Telemetry: Waiting for phone ping</span>'}
+            </div>
+            <div class="phone-quick-actions">
+              <button type="button" class="btn small" id="btn-phone-ring">${icon('i-phone')}Ring Phone</button>
+              <button type="button" class="btn small" id="btn-phone-cam">${icon('i-sparkles')}Take Photo</button>
+              <button type="button" class="btn small ghost" id="btn-phone-refresh">${icon('i-redo')}Refresh Desk</button>
+            </div>
+          </div>
+        </div>` : '';
       root.innerHTML = `<div class="set-row"><div class="lbl"><b>Let my phone connect</b><small>Use this computer's models, keys, chats and projects from the A.S.T.R.O AI Android app, on the same Wi-Fi or a private network such as Tailscale. Works while A.S.T.R.O AI is open on this computer. Off by default.</small></div><label class="switch"><input type="checkbox" id="phone-on"${st.enabled ? ' checked' : ''}><span></span></label></div>
         <div class="set-row"><div class="lbl"><b>Connection Port</b><small>Port used for phone access and pairing (default 8080 or 4174). You can change this if your router or firewall blocks certain ports.</small></div><div class="key-line" style="margin:0"><input class="input" type="number" id="phone-port" value="${st.port || 8080}" min="1024" max="65535" style="width:110px"><button type="button" class="btn small" id="phone-port-save">Set Port</button></div></div>
         ${status}${pairing}
+        <h3 style="margin:18px 0 8px;font-weight:500;font-size:15px">Phone Companion Desk</h3>${desk}
         <h3 style="margin:18px 0 8px;font-weight:500;font-size:15px">Paired phones</h3>${list}
-        <p class="hint">Only devices on a private network can connect, and only after pairing once with a code from this screen. Each phone gets its own key, which you can remove here at any time. A paired phone can do what this app can do here, including running code and agent tasks in your projects, so pair only your own phones. Connections stay inside your network without encryption, so use this on networks you trust (home Wi-Fi, Tailscale), not on public Wi-Fi. The first time, your firewall may ask whether A.S.T.R.O AI may accept connections: allow it on private networks.</p>`;
+        <p class="hint">Only devices on a private network can connect, and only after pairing with a QR code from this screen. Each phone gets its own key, which you can remove here at any time.</p>`;
       $('#phone-on', root).addEventListener('change', (e) => act('/api/phone/enable', { enabled: e.target.checked }));
       $('#phone-port-save', root)?.addEventListener('click', () => {
         const p = parseInt($('#phone-port', root)?.value, 10);
@@ -3907,6 +4186,19 @@
       });
       $('#phone-pair', root)?.addEventListener('click', () => act('/api/phone/pairing', {}));
       $('#phone-cancel', root)?.addEventListener('click', () => act('/api/phone/pairing/cancel', {}));
+      $('#btn-phone-ring', root)?.addEventListener('click', async () => {
+        try {
+          await apiJson('/api/phone/action', { action: 'ring' });
+          toast('Ringing command dispatched to phone');
+        } catch (e) { toast(e.message, 'error'); }
+      });
+      $('#btn-phone-cam', root)?.addEventListener('click', async () => {
+        try {
+          await apiJson('/api/phone/action', { action: 'cam-photo' });
+          toast('Camera command dispatched to phone');
+        } catch (e) { toast(e.message, 'error'); }
+      });
+      $('#btn-phone-refresh', root)?.addEventListener('click', () => refresh());
       $$('[data-phone-remove]', root).forEach((b) => b.addEventListener('click', () => act('/api/phone/devices/remove', { id: b.dataset.phoneRemove })));
     };
     const take = (j) => {
@@ -4205,6 +4497,32 @@
 
   $('#top-pro-pill')?.addEventListener('click', () => switchView('pro'));
   $('#top-call-pill')?.addEventListener('click', () => switchView('calls'));
+  $('#tb-voice-wave-pill')?.addEventListener('click', () => openSettings('voice'));
+  $('#tb-voice-mute')?.addEventListener('click', () => {
+    const isMuted = window.AstroVoice?.toggleMute();
+    toast(isMuted ? 'Voice output muted' : 'Voice output active');
+  });
+  $('#top-phone-pill')?.addEventListener('click', () => openSettings('phone'));
+
+  async function pollPhoneTelemetry() {
+    try {
+      const st = await apiJson('/api/phone/events', null, 'GET');
+      const dot = document.getElementById('phone-dot');
+      const txt = document.getElementById('phone-pill-text');
+      if (dot && txt) {
+        if (st.online) {
+          dot.className = 'dot on';
+          txt.textContent = st.battery >= 0 ? `${st.battery}%${st.charging ? ' ⚡' : ''}` : 'Linked';
+        } else {
+          dot.className = 'dot';
+          txt.textContent = 'Phone';
+        }
+      }
+    } catch (_) {}
+  }
+  setInterval(pollPhoneTelemetry, 12000);
+  setTimeout(pollPhoneTelemetry, 1500);
+
   $('#top-folder-pill')?.addEventListener('click', () => {
     if (window.AstroDev?.promptOpenFolder) {
       window.AstroDev.promptOpenFolder();
@@ -4219,7 +4537,10 @@
     const box = $('#ag-in'); if (!box) return;
     box.value = prompt; box.dispatchEvent(new Event('input', { bubbles: true })); box.focus();
   }
-  $('#voice-button').addEventListener('click', startVoiceInput);
+  $('#voice-button').addEventListener('click', () => {
+    if (window.AstroVoice) window.AstroVoice.toggleListen();
+    else startVoiceInput();
+  });
   $('#add-note').addEventListener('click', addNote);
   $('#notes-search').addEventListener('input', renderNotesList);
   $('#note-title').addEventListener('input', scheduleNoteSave);
