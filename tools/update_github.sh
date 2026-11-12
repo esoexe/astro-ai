@@ -30,6 +30,7 @@ rm -rf "$CLONE"; git clone -q "https://github.com/$LOGIN/$REPO.git" "$CLONE"
 find "$CLONE" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
 cp -a "$STAGE"/. "$CLONE"/
 cd "$CLONE"
+git config http.postBuffer 524288000
 git config user.name "$LOGIN"; git config user.email "$UID_+$LOGIN@users.noreply.github.com"
 git add -A
 if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi

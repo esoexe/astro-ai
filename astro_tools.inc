@@ -14,9 +14,6 @@
 // ------------------------------------------------------------------ catalog
 // asset regexes per platform key: linux-x64, mac-arm64, mac-x64, win-x64
 const char* TOOLS_CATALOG = R"JSON([
- {"id":"piper","name":"Natural voice (Piper)","group":"Voice","kind":"voice","bins":["piper"],"desc":"Offline neural text-to-speech: replies are read in a natural voice generated on your computer (about 90 MB with the English voice). Piper is MIT-licensed; the English voice (LJSpeech) is public domain. Checksums pinned by A.S.T.R.O AI (the release lists none).","src":{"type":"pinned","version":"2023.11.14-2","files":{"linux-x64":{"url":"https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_linux_x86_64.tar.gz","sha256":"a50cb45f355b7af1f6d758c1b360717877ba0a398cc8cbe6d2a7a3a26e225992"},"linux-arm64":{"url":"https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_linux_aarch64.tar.gz","sha256":"fea0fd2d87c54dbc7078d0f878289f404bd4d6eea6e7444a77835d1537ab88eb"},"mac-arm64":{"url":"https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_macos_aarch64.tar.gz","sha256":"6b1eb03b3735946cb35216e063e7eebcc33a6bbf5dd96ec0217959bf1cdcb0cc"},"mac-x64":{"url":"https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_macos_x64.tar.gz","sha256":"ced85c0a3df13945b1e623b878a48fdc2854d5c485b4b67f62857cf551deaf8b"},"win-x64":{"url":"https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_windows_amd64.zip","sha256":"f3c58906402b24f3a96d92145f58acba6d86c9b5db896d207f78dc80811efcea"}}},"extras":[{"url":"https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/en/en_US/ljspeech/medium/en_US-ljspeech-medium.onnx","sha256":"6f52a751e2349abe7a76735eb09dc1875298c77ea2342ffd2fef79ff81b87f22","path":"voices/en_US-ljspeech-medium.onnx"},{"url":"https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/en/en_US/ljspeech/medium/en_US-ljspeech-medium.onnx.json","sha256":"141d612cc0a95ed7efc1ca936b845c2364967f2e9217c5dbfcf69fc4d6c65860","path":"voices/en_US-ljspeech-medium.onnx.json"},{"url":"https://esoexe.github.io/astro-ai/assets/bin/msvcp140.dll","sha256":"0f885b509a685d2bbfa652fed26b5fb31d88fbdab0a978c641d1c7b8aa460aa9","path":"piper/msvcp140.dll","platforms":["win-x64","win-arm64"]},{"url":"https://esoexe.github.io/astro-ai/assets/bin/vcruntime140.dll","sha256":"d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066","path":"piper/vcruntime140.dll","platforms":["win-x64","win-arm64"]},{"url":"https://esoexe.github.io/astro-ai/assets/bin/vcruntime140_1.dll","sha256":"1f2d41c4aa5db0bc33ebf7b66d72943a817d7ce6cbe880502a9403823633093f","path":"piper/vcruntime140_1.dll","platforms":["win-x64","win-arm64"]}],"bindirs":["piper","*"]},
- {"id":"piper-voice-fr","name":"French voice (Piper)","group":"Voice","kind":"voice","bins":[],"desc":"French voice for the natural voice (about 63 MB). Needs \"Natural voice (Piper)\". Voice: SIWIS database, CC BY 4.0.","src":{"type":"files","version":"siwis-medium"},"extras":[{"url":"https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/fr/fr_FR/siwis/medium/fr_FR-siwis-medium.onnx","sha256":"641d1ab097da2b81128c076810edb052b385decc8be3381814802a64a73baf99","path":"voices/fr_FR-siwis-medium.onnx"},{"url":"https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/fr/fr_FR/siwis/medium/fr_FR-siwis-medium.onnx.json","sha256":"39479916c2db192b5ac9764daddd0c744d83e023ad890c6976c0633ae4df8959","path":"voices/fr_FR-siwis-medium.onnx.json"}]},
- {"id":"piper-voice-ar","name":"Arabic voice (Piper)","group":"Voice","kind":"voice","bins":[],"desc":"Arabic (Jordan) voice for the natural voice (about 63 MB). Needs \"Natural voice (Piper)\". The dataset does not state a license: personal use only.","src":{"type":"files","version":"kareem-medium"},"extras":[{"url":"https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/ar/ar_JO/kareem/medium/ar_JO-kareem-medium.onnx","sha256":"9e95cab07b679da603bba17c4dec7ab3111320571964ee95c0379603c086491e","path":"voices/ar_JO-kareem-medium.onnx"},{"url":"https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/ar/ar_JO/kareem/medium/ar_JO-kareem-medium.onnx.json","sha256":"ea6d9b9d9076dbdb6bf5c98c6a141ef154959d2359709b37855727964e7d6c4d","path":"voices/ar_JO-kareem-medium.onnx.json"}]},
  {"id":"clangd","name":"clangd","group":"C / C++","kind":"lsp","bins":["clangd"],
   "desc":"Completion, errors, hover, go-to-definition and formatting for C and C++ (LLVM).",
   "src":{"type":"github","repo":"clangd/clangd","asset":{"linux-x64":"^clangd-linux-[0-9.]+\\.zip$","mac-arm64":"^clangd-mac-[0-9.]+\\.zip$","mac-x64":"^clangd-mac-[0-9.]+\\.zip$","win-x64":"^clangd-windows-[0-9.]+\\.zip$"}},"bindirs":["*/bin"]},
@@ -1107,62 +1104,19 @@ void dev_exthost(int fd, const std::string& action, const Json& body) {
 
 // ------------------------------------------------------------------ natural voice (Piper, offline neural TTS)
 // POST /api/dev/tts/status {} -> {available, voices:[{lang, name}]}
-// POST /api/dev/tts/speak {text, lang, rate?} -> audio/wav (generated on this computer; nothing is sent anywhere)
+// Offline Piper has been completely purged to eliminate MSVC VCRUNTIME140/MSVCP140 DLL dependencies.
+// Speech synthesis is fully powered by Microsoft Edge Neural Voice (WebSocket) & browser Web Speech API.
 struct PiperVoice { std::string lang, name; fs::path model; };
-std::string piper_bin() {
-    Json m; { std::lock_guard<std::mutex> lk(g_tools_mu); m = tools_manifest_locked(); }
-    std::error_code ec;
-    if (const Json* e = m.get("piper"))
-        for (const auto& d : json_strings(e->get("bindirs")))
-            for (const char* n : {"piper", "piper.exe"}) { const fs::path p = fs::path(d) / n; if (fs::is_regular_file(p, ec)) return p.string(); }
-    return tools_which("piper");
-}
-std::vector<PiperVoice> piper_voices() {
-    std::vector<PiperVoice> out; std::error_code ec;
-    for (const auto& t : fs::directory_iterator(tools_root(), ec)) {
-        const fs::path vd = t.path() / "voices";
-        if (!fs::is_directory(vd, ec)) continue;
-        for (const auto& f : fs::directory_iterator(vd, ec)) {
-            const std::string n = f.path().filename().string();
-            if (n.size() < 6 || n.compare(n.size() - 5, 5, ".onnx") != 0) continue;
-            if (!fs::exists(fs::path(f.path().string() + ".json"), ec)) continue;
-            PiperVoice v; v.model = f.path(); v.lang = n.substr(0, n.find('-')); v.name = n.substr(0, n.size() - 5);
-            out.push_back(std::move(v));
-        }
-    }
-    std::sort(out.begin(), out.end(), [](const PiperVoice& a, const PiperVoice& b) { return a.name < b.name; });
-    return out;
-}
+std::string piper_bin() { return ""; }
+std::vector<PiperVoice> piper_voices() { return {}; }
 void dev_tts(int fd, const std::string& action, const Json& body) {
-    const std::string bin = piper_bin();
-    const auto voices = piper_voices();
     if (action == "status") {
-        Json::Array vs; for (const auto& v : voices) { Json::Object o; o["lang"] = Json(v.lang); o["name"] = Json(v.name); vs.push_back(Json(std::move(o))); }
-        Json::Object o; o["available"] = Json(!bin.empty() && !voices.empty()); o["installed"] = Json(!bin.empty()); o["voices"] = Json(std::move(vs));
-        send_json(fd, 200, Json(std::move(o))); return;
+        Json::Object o;
+        o["available"] = Json(false);
+        o["installed"] = Json(false);
+        o["voices"] = Json(Json::Array{});
+        send_json(fd, 200, Json(std::move(o)));
+        return;
     }
-    if (action != "speak") { send_json(fd, 404, error_json("Unknown voice action.")); return; }
-    if (bin.empty()) { send_json(fd, 404, error_json("The natural voice is not installed (Settings > Voice).")); return; }
-    std::string text = get_string(body, "text");
-    if (trim(text).empty()) { send_json(fd, 400, error_json("Nothing to say.")); return; }
-    if (text.size() > 3000) text = text.substr(0, 3000);
-    for (char& c : text) if (c == '\r' || c == '\n') c = ' ';
-    std::string lang = get_string(body, "lang", "en"); for (char& c : lang) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-    const std::string want = lang.substr(0, 2), voice_name = get_string(body, "voice");
-    const PiperVoice* pick = nullptr;
-    for (const auto& v : voices) if (!voice_name.empty() && v.name == voice_name) pick = &v;
-    if (!pick) for (const auto& v : voices) if (v.lang.size() >= 2 && std::tolower(static_cast<unsigned char>(v.lang[0])) == want[0] && std::tolower(static_cast<unsigned char>(v.lang[1])) == (want.size() > 1 ? want[1] : ' ')) { pick = &v; break; }
-    if (!pick) { send_json(fd, 404, error_json("No natural voice for this language.")); return; }
-    double rate = 1.0; if (const Json* r = body.get("rate")) if (const auto* d = std::get_if<double>(&r->value)) rate = std::clamp(*d, 0.5, 2.0);
-    std::error_code ec;
-    const fs::path dir = fs::path(data_dir()) / ".astro_tts"; fs::create_directories(dir, ec);
-    const fs::path out = dir / (random_hex(8) + ".wav");
-    char ls[32]; std::snprintf(ls, sizeof ls, "%.3f", 1.0 / rate);
-    const std::string input = text + "\n";
-    const Captured r = run_capture({bin, "-m", pick->model.string(), "-f", out.string(), "--length_scale", ls}, fs::path(bin).parent_path(), {}, 90, 200'000, &input);
-    std::string wav;
-    { std::ifstream in(out, std::ios::binary); std::stringstream ss; ss << in.rdbuf(); wav = ss.str(); }
-    fs::remove(out, ec);
-    if (r.code != 0 || wav.size() < 100) { send_json(fd, 500, error_json("The natural voice failed: " + trim((r.err.empty() ? r.out : r.err).substr(0, 300)))); return; }
-    send_response(fd, 200, "audio/wav", wav);
+    send_json(fd, 404, error_json("Piper offline TTS has been retired in favor of Edge Neural Voice."));
 }

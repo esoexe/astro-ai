@@ -138,15 +138,6 @@ personal_extras() {  # $1 = app folder, $2 = windows|linux, $3 = README to exten
         { echo; echo "The whole community Library ($total MCP servers, skills, plugins and tools) is inside (library-v3), so browsing"
           echo "and search work offline. Installing an item still downloads its files from the source."; } >> "$3"
     fi
-    # The seed is built for one system (piper.exe for Windows): only the Windows app gets it.
-    if [ -n "$seedt" ] && [ -f "$seedt/seed.json" ] && [ "$2" = windows ]; then
-        cp -r "$seedt" "$d/seed-tools"
-        local ids; ids="$(node -e 'console.log(Object.keys(require(process.argv[1]).tools).join(", "))' "$d/seed-tools/seed.json")"
-        echo "    + bundled tools: $ids ($(du -sh "$d/seed-tools" | cut -f1))"
-        { echo; echo "The natural voice is installed on first start ($ids: Settings > Voice): replies in English, French and"
-          echo "Arabic are read by Piper on this computer, offline. Piper is MIT; the English voice is public domain, the French"
-          echo "one CC BY 4.0, and the Arabic one states no license (personal use only). Remove them in Settings > Tools."; } >> "$3"
-    fi
 }
 
 readme() {  # $1 = edition, $2 = platform, $3 = file
@@ -202,6 +193,10 @@ for ed in $EDITIONS; do
     WD="$WORK/AstroAI-$VER-windows-x64-$TAG"; mkdir -p "$WD"
     cp -r "$PAY/." "$WD/"
     cp "$WORK/bin/AstroAI.exe" "$WD/$EXE"; cp "$WORK/bin/astro-server.exe" "$WD/"; cp "$WORK/bin/astro.exe" "$WD/$CLI.exe"
+    # Bundle official Microsoft Visual C++ 2015-2022 runtime DLLs (vcruntime140, msvcp140, etc.)
+    if [ -d "$ROOT/desktop/win64_redist_dlls" ]; then
+        cp "$ROOT/desktop/win64_redist_dlls/"*.dll "$WD/"
+    fi
     readme "$ed" "windows x64" "$WD/README.txt"
     if [ "$ed" = personal ]; then personal_extras "$WD" windows "$WD/README.txt"; fi
     (cd "$WORK" && zip -qr9 "$DEST/AstroAI-$VER-windows-x64-portable-$TAG.zip" "$(basename "$WD")")

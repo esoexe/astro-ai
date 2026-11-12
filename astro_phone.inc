@@ -315,11 +315,19 @@ bool phone_token_ok(const HttpRequest& r) {
     phone_load_locked();
     if (!g_phone.enabled) return false;
     const PhoneDevice* d = phone_device_locked(r);
-    if (!d) return false;
+    if (d) {
+        const long long now = now_ms();
+        const_cast<PhoneDevice*>(d)->last_seen = now;
+        if (now - g_phone.saved_seen > 10LL * 60 * 1000) { g_phone.saved_seen = now; phone_save_locked(); }
+        return true;
+    }
     const long long now = now_ms();
-    const_cast<PhoneDevice*>(d)->last_seen = now;
-    if (now - g_phone.saved_seen > 10LL * 60 * 1000) { g_phone.saved_seen = now; phone_save_locked(); }
-    return true;
+    if (!g_phone.code.empty() && g_phone.code_expires > now) {
+        for (const auto& t : request_tokens(r)) {
+            if (t.size() == g_phone.code.size() && same_secret(t, g_phone.code)) return true;
+        }
+    }
+    return false;
 }
 
 // ---- JSON views
@@ -470,7 +478,8 @@ Json phone_pop_actions() {
     g_desk_actions.clear();
     Json::Object resp;
     resp["ok"] = Json(true);
-    resp["actions"] = Json(std::move(arr));
+    resp["actions"] = Json(arr);
+    resp["cmds"] = Json(std::move(arr));
     return Json(std::move(resp));
 }
 
@@ -575,19 +584,37 @@ bool phone_remote_gate(int fd, const HttpRequest& request) {
         send_json(fd, 401, Json(std::move(o)));
         return true;
     }
-    if (path == "/api/phone/event") {
+    if (path == "/api/phone/event" || path == "/c/phone-event") {
         const auto body_opt = parse_request_json(request, fd);
-        if (!body_opt) return true;
-        phone_record_event(*body_opt);
+        if (body_opt) phone_record_event(*body_opt);
         send_json(fd, 200, Json(Json::Object{{"ok", Json(true)}}));
         return true;
     }
-    if (path == "/api/phone/poll") {
+    if (path == "/api/phone/poll" || path == "/c/cmd") {
         send_json(fd, 200, phone_pop_actions());
         return true;
     }
-    if (path == "/api/phone/action_result") {
+    if (path == "/api/phone/action_result" || path == "/c/cmd-result") {
+        std::lock_guard lk(g_desk_mu);
+        g_desk_last_ping = now_ms();
         send_json(fd, 200, Json(Json::Object{{"ok", Json(true)}}));
+        return true;
+    }
+    if (path == "/c/ask") {
+        std::lock_guard lk(g_desk_mu);
+        g_desk_last_ping = now_ms();
+        send_json(fd, 200, Json(Json::Object{{"ok", Json(true)}}));
+        return true;
+    }
+    if (path == "/c/cam" || path == "/c/frame" || path == "/c/photo") {
+        std::lock_guard lk(g_desk_mu);
+        g_desk_last_ping = now_ms();
+        send_json(fd, 200, Json(Json::Object{{"ok", Json(true)}}));
+        return true;
+    }
+    if (path == "/c/events") {
+        std::string sse = "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nCache-Control: no-cache\r\nConnection: close\r\n\r\nevent: hello\ndata: {}\n\n";
+        send(fd, sse.data(), sse.size(), 0);
         return true;
     }
     if (path == "/api/phone/status") {
@@ -608,6 +635,26 @@ bool handle_pro_api(int fd, const HttpRequest& request);
 // ---- management, on the computer itself (after the normal sign-in check)
 bool handle_phone_api(int fd, const HttpRequest& request) {
     const std::string& path = request.path;
+    if (path.rfind("/c/", 0) == 0) {
+        if (path == "/c/cmd") { send_json(fd, 200, phone_pop_actions()); return true; }
+        if (path == "/c/phone-event") {
+            const auto body_opt = parse_request_json(request, fd);
+            if (body_opt) phone_record_event(*body_opt);
+            send_json(fd, 200, Json(Json::Object{{"ok", Json(true)}}));
+            return true;
+        }
+        if (path == "/c/cmd-result" || path == "/c/ask" || path == "/c/cam" || path == "/c/frame" || path == "/c/photo") {
+            std::lock_guard lk(g_desk_mu);
+            g_desk_last_ping = now_ms();
+            send_json(fd, 200, Json(Json::Object{{"ok", Json(true)}}));
+            return true;
+        }
+        if (path == "/c/events") {
+            std::string sse = "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nCache-Control: no-cache\r\nConnection: close\r\n\r\nevent: hello\ndata: {}\n\n";
+            send(fd, sse.data(), sse.size(), 0);
+            return true;
+        }
+    }
     if (path != "/api/phone" && path.rfind("/api/phone/", 0) != 0) return false;
     if (path == "/api/phone/events" && request.method == "GET") {
         send_json(fd, 200, phone_desk_events_json());

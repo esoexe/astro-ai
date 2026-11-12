@@ -2590,7 +2590,8 @@ void handle_client(int fd) {
         sock_close(fd);
         return;
     }
-    if (request.path.rfind("/api/", 0) == 0) handle_api(fd, request);
+    if (request.path.rfind("/api/", 0) == 0 || request.path.rfind("/c/", 0) == 0) handle_api(fd, request);
+    else if (t_remote && request.path == "/") serve_static(fd, request);
     else if (t_remote && !((request.method == "GET" || request.method == "HEAD") && request.path.rfind("/preview/", 0) == 0))
         send_response(fd, 404, "text/plain; charset=utf-8", "This address is for the A.S.T.R.O AI Android app.");
     else if (serve_app_proxy(fd, request)) {}

@@ -2339,5 +2339,33 @@
  "Or enter address manually": [
   "Ou entrer l'adresse manuellement",
   "أو أدخل العنوان يدويًا"
+ ],
+ "1. On your computer, open A.S.T.R.O AI and open Settings > Phone.": [
+  "1. Sur votre ordinateur, ouvrez A.S.T.R.O AI et allez dans Paramètres > Téléphone.",
+  "1. على جهاز الكمبيوتر الخاص بك، افتح A.S.T.R.O AI وانتقل إلى الإعدادات > الهاتف."
+ ],
+ "2. Turn on \"Let my phone connect\" and click \"Pair a phone\".": [
+  "2. Activez « Autoriser mon téléphone à se connecter » et cliquez sur « Associer un téléphone ».",
+  "2. شغّل «السماح لهاتفي بالاتصال» واضغط على «إقران هاتف»."
+ ],
+ "3. Scan the QR code displayed on your computer screen. Both devices must be on the same Wi-Fi or private network.": [
+  "3. Scannez le code QR affiché sur l'écran de votre ordinateur. Les deux appareils doivent être sur le même réseau Wi-Fi ou réseau privé.",
+  "3. امسح رمز الاستجابة السريعة (QR) المعروض على شاشة الكمبيوتر. يجب أن يكون كلا الجهازين على نفس شبكة Wi-Fi أو الشبكة الخاصة."
+ ],
+ "Scan Computer QR Code": [
+  "Scanner le code QR de l'ordinateur",
+  "مسح رمز QR للكمبيوتر"
+ ],
+ "Tap below to open your camera scanner and point it at the QR code in Settings > Phone on your computer. A.S.T.R.O AI will pair instantly without entering addresses or passwords.": [
+  "Appuyez ci-dessous pour ouvrir le scanner de l'appareil photo et pointez-le vers le code QR dans Paramètres > Téléphone sur votre ordinateur. A.S.T.R.O AI s'associera instantanément sans saisir d'adresse ni de mot de passe.",
+  "اضغط أدناه لفتح ماسح الكاميرا ووجّهه نحو رمز QR في الإعدادات > الهاتف على جهاز الكمبيوتر. سيتم إقران A.S.T.R.O AI على الفور دون إدخال عناوين أو كلمات مرور."
+ ],
+ "Open Camera Scanner": [
+  "Ouvrir le scanner caméra",
+  "فتح ماسح الكاميرا"
+ ],
+ "Open your camera app and point it at the QR code on your computer screen": [
+  "Ouvrez votre application appareil photo et pointez-la vers le code QR sur l'écran de votre ordinateur",
+  "افتح تطبيق الكاميرا ووجّهه نحو رمز QR على شاشة الكمبيوتر"
  ]
 }

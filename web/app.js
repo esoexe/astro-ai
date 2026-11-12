@@ -3044,82 +3044,22 @@
     u.rate = state.voice.rate;
     return u;
   }
-  // Natural voice: when the offline Piper voice is installed (Settings > Voice) and has a voice for the language, utterances
-  // are synthesized by the local engine and played as audio; otherwise the system voices are used. Same speak()/cancel()
-  // shape as speechSynthesis, and the same onstart / onboundary / onend handlers fire.
-  const canSpeak = () => 'speechSynthesis' in window || Boolean(NV.status?.available);
-  const NV = { status: null, queue: [], playing: null, audio: null, broken: false, gen: 0 };
-  async function nvRefresh() { try { const r = await fetch('/api/dev/tts/status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }); NV.status = r.ok ? await r.json() : null; } catch (_e) { NV.status = null; } return NV.status; }
-  function nvVoiceFor(lang) {
-    if (state.voice.engine === 'system' || NV.broken || !NV.status?.available) return null;
-    const want = String(lang || 'en').slice(0, 2).toLowerCase();
-    return (NV.status.voices || []).find((v) => String(v.lang).slice(0, 2).toLowerCase() === want) || null;
-  }
-  function nvFetch(item) {
-    if (!item.wav) item.wav = fetch('/api/dev/tts/speak', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: item.u.text, lang: item.u.lang, rate: state.voice.rate, voice: item.voice.name }) })
-      .then((r) => { if (!r.ok) throw new Error('tts ' + r.status); return r.blob(); });
-    return item.wav;
-  }
-  function nvNext() {
-    if (NV.playing || !NV.queue.length) return;
-    const item = NV.queue.shift(); NV.playing = item; const gen = NV.gen;
-    NV.queue.slice(0, 2).forEach(nvFetch);   // prefetch the next sentences while this one plays
-    nvFetch(item).then((blob) => {
-      if (gen !== NV.gen) return;
-      const url = URL.createObjectURL(blob); const a = new Audio(url); NV.audio = a;
-      let pulse = 0;
-      const done = (err) => { clearInterval(pulse); URL.revokeObjectURL(url); if (NV.playing !== item) return; NV.playing = null; NV.audio = null; (err ? item.u.onerror : item.u.onend)?.call(item.u, {}); nvNext(); };
-      a.onplay = () => { item.u.onstart?.call(item.u, {}); pulse = setInterval(() => item.u.onboundary?.call(item.u, {}), 260); };
-      a.onended = () => done(false); a.onerror = () => done(true);
-      a.play().catch(() => done(true));
-    }).catch(() => {
-      if (gen !== NV.gen) return;
-      NV.broken = true; NV.playing = null;   // fall back to the system voice for the rest of this session
-      const rest = [item, ...NV.queue]; NV.queue = [];
-      rest.forEach((x) => { try { speechSynthesis.speak(x.u); } catch (_e) { /* no speech */ } });
-    });
-  }
+  // Natural voice is powered by Microsoft Edge Neural Voice (WebSocket client-side) and browser speech synthesis.
+  // Legacy Piper offline binary is completely purged to prevent VCRUNTIME140/MSVCP140 DLL errors.
+  const canSpeak = () => Boolean(window.AstroVoice) || 'speechSynthesis' in window;
   const TTS = {
     speak(u) {
-      const voice = nvVoiceFor(u.lang);
-      if (!voice) { if ('speechSynthesis' in window) speechSynthesis.speak(u); return; }
-      NV.queue.push({ u, voice }); nvNext();
+      if (window.AstroVoice && !window.AstroVoice.muted) {
+        window.AstroVoice.speakChunk(u.text || '');
+        return;
+      }
+      if ('speechSynthesis' in window) speechSynthesis.speak(u);
     },
     cancel() {
-      NV.gen++; NV.queue = []; const p = NV.playing; NV.playing = null;
-      if (NV.audio) { try { NV.audio.pause(); } catch (_e) { /* ignore */ } NV.audio = null; }
-      if (p) p.u.onend?.call(p.u, {});
+      if (window.AstroVoice) window.AstroVoice.stop();
       if ('speechSynthesis' in window) speechSynthesis.cancel();
     },
   };
-  // Settings > Voice: install / status of the natural voice (uses the verified portable tools installer).
-  const NV_TOOLS = [['piper', 'Install natural voice (English, ~90 MB)', 'Natural voice'], ['piper-voice-fr', 'Add French (~63 MB)', 'French'], ['piper-voice-ar', 'Add Arabic (~63 MB)', 'Arabic']];
-  async function paintNaturalVoice() {
-    const st = $('#nv-state'), box = $('#nv-btns'); if (!st || !box) return;
-    let list = null;
-    try { list = (await apiJson('/api/dev/tools/list', {})).tools || []; } catch (_e) { st.textContent = 'Needs the A.S.T.R.O AI engine (desktop app or astro serve). System voices are used.'; box.replaceChildren(); return; }
-    await nvRefresh();
-    const byId = Object.fromEntries(list.map((t) => [t.id, t]));
-    const piper = byId.piper;
-    if (!piper || !piper.installable) { st.textContent = 'Not available for this system yet. System voices are used.'; box.replaceChildren(); return; }
-    const running = NV_TOOLS.map(([id]) => byId[id]?.job).find((j) => j && j.state === 'running');
-    const vs = (NV.status?.voices || []).map((v) => v.lang).join(', ');
-    st.textContent = running ? `Installing… ${running.step || ''} ${Math.round((running.progress || 0) * 100)}%`
-      : NV.status?.available ? `Installed (${vs}). Replies in these languages use the natural voice; other languages use system voices. Generated on this computer: nothing is sent anywhere.`
-      : 'A neural voice that runs on this computer (Piper). Sounds much more natural than most system voices, and works offline. Downloads are checked against pinned SHA-256 checksums.';
-    box.replaceChildren(...NV_TOOLS.filter(([id]) => byId[id] && (id === 'piper' ? !byId[id].installed : byId.piper.installed && !byId[id].installed)).map(([id, label]) => {
-      const b = document.createElement('button'); b.type = 'button'; b.className = id === 'piper' ? 'btn primary' : 'btn'; b.textContent = label; b.disabled = Boolean(running);
-      b.addEventListener('click', async () => {
-        b.disabled = true;
-        try { await apiJson('/api/dev/tools/install', { id }); } catch (e) { toast(e.message); }
-        const tick = async () => { if (!$('#nv-state')) return; await paintNaturalVoice(); const l = (await apiJson('/api/dev/tools/list', {}).catch(() => ({ tools: [] }))).tools || []; const t = l.find((x) => x.id === id); if (t?.job?.state === 'running') setTimeout(tick, 1200); else if (t?.job?.state === 'error') toast(t.job.message || 'Install failed', 'error'); else if (t?.installed) toast('Natural voice ready'); };
-        setTimeout(tick, 600);
-      });
-      return b;
-    }));
-  }
-  // after this script has run, so the request goes through the /api fetch wrapper (client header + session token)
-  setTimeout(nvRefresh, 0);
   function speechChunks(text) {
     const out = [];
     for (const part of plainText(text).split(/(?<=[.!?؟…])\s+|\n+/)) {
